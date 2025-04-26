@@ -54,3 +54,9 @@ TITAN/.vs/TITAN/v16/.suo
 *.enc
 
 *.md
+
+*.json
+
+TITAN/TITAN/.vs/TITAN/v17/.suo
+
+*.vsidx
