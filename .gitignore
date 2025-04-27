@@ -60,3 +60,11 @@ TITAN/.vs/TITAN/v16/.suo
 TITAN/TITAN/.vs/TITAN/v17/.suo
 
 *.vsidx
+
+*.db-wal
+
+*.db-shm
+
+*.opendb
+
+*.recipe

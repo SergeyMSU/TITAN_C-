@@ -20,6 +20,23 @@ Setka::Setka()
 	this->New_initial();
 }
 
+void Setka::Renumerate(void)
+{
+	int kkk = 1;
+	for (auto& i : this->All_Yzel)
+	{
+		i->number = kkk;
+		kkk++;
+	}
+
+	kkk = 1;
+	for (auto& i : this->All_Cell)
+	{
+		i->number = kkk;
+		kkk++;
+	}
+}
+
 void Setka::Set_luch_parametr()
 {
 	// ƒобавл€ет лучам необходимые параметры (например, углы дл€ радиальных лучей) - это ускорит расчЄты
@@ -715,7 +732,7 @@ void Setka::New_initial()
 		}
 	}
 
-	// —читываем €чейки (кругов)
+	// —читываем €чейки (дл€ точек в кругах)
 	if (true)
 	{
 		this->Cell_layer_head.resize(this->Krug_Yzel.size() - 1);
@@ -807,6 +824,11 @@ void Setka::New_initial()
 		
 	}
 
+
+	// ƒалее нужно доделать функции движени€ остальных лучей в сетке.
+	// можно написать программу пододвигание поверхностей к считанным из файла (формат файла из старой программы)
+	// —делать грани, рЄбра, св€зать их
+	// —делать определение €чейки по точке
 
 	fin.close();
 	ffin.close();
@@ -1093,8 +1115,7 @@ void Setka::Tecplot_print_opor_yzel_in_luchs_3D(string name)
 
 	fout.close();
 }
-
-
+ 
 void Setka::Tecplot_print_all_lush_in_3D(string name)
 {
 	// name - это им€ лучей
@@ -1140,7 +1161,6 @@ void Setka::Tecplot_print_all_lush_in_3D(string name)
 
 	fout.close();
 }
-
 
 void Setka::Tecplot_print_all_cell_in_3D()
 {

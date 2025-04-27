@@ -6,6 +6,7 @@ class Geo_param;
 class Yzel;
 class Luch;
 class Cell;
+class Gran;
 
 
 const double const_pi= 3.14159265358979323846;
@@ -28,6 +29,7 @@ const double const_pi= 3.14159265358979323846;
 #include "Yzel.h"
 #include "Setka.h"
 #include "Cell.h"
+#include "Gran.h"
 
 using namespace std;
 
