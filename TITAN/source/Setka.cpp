@@ -17,6 +17,14 @@ Setka::Setka()
 	this->All_name_luch["E_Luch"] = &this->E_Luch;
 	this->All_name_luch["H_Luch"] = &this->H_Luch;
 	this->All_name_luch["G_Luch"] = &this->G_Luch;
+	this->name_luch.reserve(7);
+	this->name_luch.push_back("A_Luch");
+	this->name_luch.push_back("B_Luch");
+	this->name_luch.push_back("C_Luch");
+	this->name_luch.push_back("D_Luch");
+	this->name_luch.push_back("E_Luch");
+	this->name_luch.push_back("H_Luch");
+	this->name_luch.push_back("G_Luch");
 	this->New_initial();
 }
 
@@ -39,7 +47,8 @@ void Setka::Renumerate(void)
 
 void Setka::Set_luch_parametr()
 {
-	// Добавляет лучам необходимые параметры (например, углы для радиальных лучей) - это ускорит расчёты
+	// Добавляет лучам необходимые параметры 
+	// (например, углы the и phi для радиальных лучей A, B, C типов) - это ускорит расчёты
 	for (auto& i : this->A2_Luch)
 	{
 		auto A = i->Yzels[0];
@@ -61,6 +70,72 @@ void Setka::Set_luch_parametr()
 			double z = A->coord[0][2];
 			double r = std::sqrt(x * x + y * y + z * z);
 			i->parameters["the"] = std::acos(x / r);
+			i->parameters["phi"] = polar_angle(y, z);
+		}
+	}
+
+	for (auto& j : this->B_Luch)
+	{
+		for (auto& i : j)
+		{
+			auto A = i->Yzels[0];
+			double x = A->coord[0][0];
+			double y = A->coord[0][1];
+			double z = A->coord[0][2];
+			double r = std::sqrt(x * x + y * y + z * z);
+			i->parameters["the"] = std::acos(x / r);
+			i->parameters["phi"] = polar_angle(y, z);
+		}
+	}
+
+	for (auto& j : this->D_Luch)
+	{
+		for (auto& i : j)
+		{
+			auto A = i->Yzels[0];
+			double x = A->coord[0][0];
+			double y = A->coord[0][1];
+			double z = A->coord[0][2];
+			double r = std::sqrt(x * x + y * y + z * z);
+			i->parameters["phi"] = polar_angle(y, z);
+		}
+	}
+
+	for (auto& j : this->E_Luch)
+	{
+		for (auto& i : j)
+		{
+			auto A = i->Yzels[0];
+			double x = A->coord[0][0];
+			double y = A->coord[0][1];
+			double z = A->coord[0][2];
+			double r = std::sqrt(x * x + y * y + z * z);
+			i->parameters["phi"] = polar_angle(y, z);
+		}
+	}
+
+	for (auto& j : this->H_Luch)
+	{
+		for (auto& i : j)
+		{
+			auto A = i->Yzels[0];
+			double x = A->coord[0][0];
+			double y = A->coord[0][1];
+			double z = A->coord[0][2];
+			double r = std::sqrt(x * x + y * y + z * z);
+			i->parameters["phi"] = polar_angle(y, z);
+		}
+	}
+
+	for (auto& j : this->G_Luch)
+	{
+		for (auto& i : j)
+		{
+			auto A = i->Yzels[0];
+			double x = A->coord[0][0];
+			double y = A->coord[0][1];
+			double z = A->coord[0][2];
+			double r = std::sqrt(x * x + y * y + z * z);
 			i->parameters["phi"] = polar_angle(y, z);
 		}
 	}
@@ -174,8 +249,10 @@ void Setka::New_initial()
 	if (true)
 	{
 		vector<Luch*> Luch_;
-		for (auto& [name, vec_ptr] : this->All_name_luch)
+		//for (auto& [name, vec_ptr] : this->All_name_luch)
+		for(auto& name : this->name_luch)
 		{
+			auto vec_ptr = this->All_name_luch[name];
 			cout << "Zopolnyaem  " << name << endl;
 			ffin.read((char*)&n, sizeof n); // Число лучей
 			for (i = 0; i < n; i++)
@@ -196,6 +273,7 @@ void Setka::New_initial()
 				}
 
 				ffin.read((char*)&n2, sizeof n2); // Число опорных узлов
+				//cout << name << "  Opor yzel = " << n2 << endl;
 				for (j = 0; j < n2; j++)
 				{
 					ffin.read((char*)&n3, sizeof n3); // Номер узла
@@ -650,6 +728,7 @@ void Setka::New_initial()
 		
 	}
 
+
 	// Теперь надо двигать узлы в соответствии с функциями движения
 	if (true) 
 	{
@@ -704,7 +783,6 @@ void Setka::New_initial()
 			A->coord[0][2] = z / r * this->geo->R5;
 		}
 
-	
 		for (auto& i : this->C2_Luch)
 		{
 			auto A = i->Yzels_opor[0];
@@ -726,10 +804,63 @@ void Setka::New_initial()
 			A->coord[0][2] = z / r * this->geo->R2;
 		}
 
+		// Надо бы отсортировать вектор лучей, чтобы двигать их в правильном порядке
+		std::sort(this->All_Luch.begin(), this->All_Luch.end(), [](Luch* a, Luch* b) {
+			if (a->type == "A_Luch" && b->type != "A_Luch")
+			{
+				return true;
+			}
+
+			if (a->type == "B_Luch" && b->type != "A_Luch" && b->type != "B_Luch")
+			{
+				return true;
+			}
+
+			if (a->type == "C_Luch" && b->type != "A_Luch" && 
+				b->type != "B_Luch" && b->type != "C_Luch")
+			{
+				return true;
+			}
+			if (a->type == "D_Luch" && b->type != "A_Luch" &&
+				b->type != "B_Luch" && b->type != "C_Luch" &&
+				b->type != "D_Luch")
+			{
+				return true;
+			}
+
+			if (a->type == "E_Luch" && b->type != "A_Luch" &&
+				b->type != "B_Luch" && b->type != "C_Luch" && 
+				b->type != "D_Luch" && b->type != "E_Luch")
+			{
+			return true;
+			}
+
+			if (a->type == "H_Luch" && b->type != "A_Luch" &&
+				b->type != "B_Luch" && b->type != "C_Luch" &&
+				b->type != "D_Luch" && b->type != "E_Luch" &&
+				b->type != "H_Luch")
+			{
+			return true;
+			}
+
+			return false;
+			});
+
 		for (auto& i : this->All_Luch)
 		{
-			i->dvigenie(0); // ??????????????????????????????????????????????????????????
+			i->dvigenie(0);
 		}
+		//for (auto& nn : this->name_luch) // Что-бы перебирать лучи в правильном порядке
+		//{
+		//	auto A = *(All_name_luch[nn]);
+		//	for (auto& j : A)
+		//	{
+		//		for (auto& i : j)
+		//		{
+		//			i->dvigenie(0);
+		//		}
+		//	}
+		//}
 	}
 
 	// Считываем ячейки (для точек в кругах)
@@ -825,8 +956,9 @@ void Setka::New_initial()
 	}
 
 
-	// Далее нужно доделать функции движения остальных лучей в сетке.
+	// Надо проверить возможность движения сетки, включая изменение расстояний R1 и т.д. которые предполагались константой
 	// можно написать программу пододвигание поверхностей к считанным из файла (формат файла из старой программы)
+	
 	// Сделать грани, рёбра, связать их
 	// Сделать определение ячейки по точке
 
@@ -1147,6 +1279,60 @@ void Setka::Tecplot_print_all_lush_in_3D(string name)
 			{
 				fout << j->Yzels[m]->coord[0][0] << " " << j->Yzels[m]->coord[0][1] << " " << j->Yzels[m]->coord[0][2] << endl;
 				fout << j->Yzels[m + 1]->coord[0][0] << " " << j->Yzels[m + 1]->coord[0][1] << " " << j->Yzels[m + 1]->coord[0][2] << endl;
+			}
+		}
+
+
+		for (int m = 0; m < k; m++)
+		{
+			fout << 2 * m + 1 << " " << 2 * m + 2 << endl;
+		}
+
+		fout << endl;
+	}
+
+	fout.close();
+}
+
+void Setka::Tecplot_print_all_lush_in_2D()
+{
+	// name - это имя лучей
+	ofstream fout;
+	string name_f = "Tecplot_all_lush_in_2D.txt";
+
+	int k = 0;
+
+	for (auto& nn : this->name_luch)
+	{
+		auto A = *(this->All_name_luch[nn]);
+		for (auto& j : A[0])
+		{
+			k += (j->Yzels.size() - 1);
+		}
+	}
+
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = X, Y" << endl;
+
+	int kkk = 1;
+
+
+	for (int i = 0; i < this->geo->Nphi; i++)
+	{
+		//auto i = A[1];
+		fout << "ZONE T=HP, N = " << 2 * k << ", E = " << k << ", F=FEPOINT, ET=LINESEG, SOLUTIONTIME = " << kkk << endl;
+		kkk++;
+
+		for (auto& nn : this->name_luch)
+		{
+			auto A = *(this->All_name_luch[nn]);
+			for (auto& j : A[i])
+			{
+				for (int m = 0; m < j->Yzels.size() - 1; m++)
+				{
+					fout << j->Yzels[m]->coord[0][0] << " " << sqrt(kv(j->Yzels[m]->coord[0][1]) + kv(j->Yzels[m]->coord[0][2])) << endl;
+					fout << j->Yzels[m + 1]->coord[0][0] << " " << sqrt(kv(j->Yzels[m + 1]->coord[0][1]) + kv(j->Yzels[m + 1]->coord[0][2])) << endl;
+				}
 			}
 		}
 

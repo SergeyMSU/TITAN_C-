@@ -29,7 +29,8 @@ public:
 	vector <vector<Luch*>> E_Luch;
 	vector <vector<Luch*>> H_Luch;
 	vector <vector<Luch*>> G_Luch;
-	map <string, vector<vector<Luch*>>*> All_name_luch;
+	map <string, vector<vector<Luch*>>*> All_name_luch; 
+	vector<string> name_luch;
 
 	vector<Luch*> A2_Luch;
 	vector<Luch*> C2_Luch;
@@ -61,7 +62,6 @@ public:
 	void Tecplot_print_all_cell_in_3D();
 	void Tecplot_print_krug_yzel_in_3D(int num);
 	void Tecplot_print_opor_yzel_in_luchs_3D(string name);
-
-
+	void Tecplot_print_all_lush_in_2D();
 };
 

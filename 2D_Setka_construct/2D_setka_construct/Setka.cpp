@@ -728,6 +728,7 @@ void Setka::Construct_initial()
         auto yz4 = this->D_Luch[1]->Yzels[1 + i];
 
         A->Yzels.push_back(yz1);
+        A->Yzels_opor.push_back(yz3); //
         A->Yzels_opor.push_back(yz1);
 
         // Делаем непрямые лучи
@@ -737,9 +738,9 @@ void Setka::Construct_initial()
         tt1 = (yz1->coord[0][1] - yz3->coord[0][1]) * this->geo.dd7;
         t2 = (yz4->coord[0][0] - yz2->coord[0][0]) * this->geo.dd8;
         tt2 = (yz4->coord[0][1] - yz2->coord[0][1]) * this->geo.dd8;
-        x0 = yz1->coord[0][0];        // Это координаты с последней итерации цикла
+        x0 = yz1->coord[0][0];        
         y0 = yz1->coord[0][1];
-        x1 = yz2->coord[0][0];        // Это координаты с последней итерации цикла
+        x1 = yz2->coord[0][0];       
         y1 = yz2->coord[0][1];
 
         double a1, b1, c1, d1, a2, b2, c2, d2;
@@ -769,6 +770,7 @@ void Setka::Construct_initial()
         }
 
         A->Yzels.push_back(yz2);
+        A->Yzels_opor.push_back(yz4);
         A->Yzels_opor.push_back(yz2);
     }
 
@@ -795,6 +797,7 @@ void Setka::Construct_initial()
         double x, y, r;
 
         A->Yzels.push_back(yz1);
+        A->Yzels_opor.push_back(yz3);
         A->Yzels_opor.push_back(yz1);
 
         // Делаем непрямые лучи
@@ -815,7 +818,7 @@ void Setka::Construct_initial()
         tt1 = (yz1->coord[0][1] - yz3->coord[0][1]) * this->geo.dd1;
         t2 = 0.0;
         tt2 = 1.0 * this->geo.dd2;
-        x0 = yz1->coord[0][0];        // Это координаты с последней итерации цикла
+        x0 = yz1->coord[0][0];        
         y0 = yz1->coord[0][1];
         x1 = yz2->coord[0][0];
         y1 = yz2->coord[0][1];
@@ -1660,7 +1663,7 @@ void Setka::Save_for_3D(string name)
     double x, y;
 
     // Записываем номер версии файла вывода (для того, чтобы можно было отслеживать версии)
-    n = 1;
+    n = 2;
     out.write((char*)&n, sizeof n);
 
     // Записываем параметры сетки   this->geo
@@ -1750,6 +1753,7 @@ void Setka::Save_for_3D(string name)
     cout << " this->All_name_luch.size() = " << this->All_name_luch.size() << endl;
     for (auto& LL : this->All_name_luch)
     {
+        cout << "SSSSS  " << endl;
         auto L = *LL;
         n = L.size();
         cout << "n = " << n << endl;
@@ -1766,6 +1770,7 @@ void Setka::Save_for_3D(string name)
 
             n = i->Yzels_opor.size();
             out.write((char*)&n, sizeof n);
+            cout << "n =   " << n <<  endl;
             for (auto& j : i->Yzels_opor)
             {
                 n = j->number;

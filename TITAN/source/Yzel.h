@@ -12,5 +12,6 @@ public:
 	Yzel(const double& a, const double& b, const double& c);
 
 	double func_R(int i_time); // Расстояние до начала координат
+	double func_Ryz(int i_time); // Расстояние до начала координат
 };
 

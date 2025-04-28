@@ -25,3 +25,8 @@ double Yzel::func_R(int i_time)
 {
 	return sqrt(kvv(this->coord[i_time][0], this->coord[i_time][1], this->coord[i_time][2]));
 }
+
+double Yzel::func_Ryz(int i_time)
+{
+	return sqrt(kvv(0.0, this->coord[i_time][1], this->coord[i_time][2]));
+}

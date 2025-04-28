@@ -25,6 +25,7 @@ int main()
     S1.Tecplot_print_opor_yzel_in_luchs_3D("C_Luch");
     S1.Tecplot_print_opor_yzel_in_luchs_3D("A2_Luch");
     S1.Tecplot_print_opor_yzel_in_luchs_3D("C2_Luch");
+    S1.Tecplot_print_all_lush_in_2D();
     std::cout << "Hello World!\n";
 }
 

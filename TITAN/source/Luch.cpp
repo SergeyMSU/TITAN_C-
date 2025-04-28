@@ -17,6 +17,7 @@ void Luch::dvigenie(int i_time)
 
 		int M0 = this->geo->M0;
 		int M1 = this->geo->M1;
+		int M11 = this->geo->M11;
 		int M2 = this->geo->M2;
 		int M3 = this->geo->M3;
 		int M4 = this->geo->M4;
@@ -46,15 +47,25 @@ void Luch::dvigenie(int i_time)
 			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
 		}
 		num += M1 + 1;
+		double dr = (R2 - R1) / (M1 + 1);
 
-		for (int j = 0; j < M2; j++)
+		for (int j = 0; j < M11; j++)
 		{
-			r = R2 + (j + 1) * (R3 - R2) / (M2 + 1);
+			r = R2 + dr * (j + 1);
 			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
 			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
 			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
 		}
-		num += M2 + 1;
+		num += M11;
+
+		for (int j = 0; j < M2 - M11; j++)
+		{
+			r = R2 + (j + 1) * (R3 - R2) / (M2 - M11 + 1);
+			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
+			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
+			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
+		}
+		num += (M2 - M11) + 1;
 
 		for (int j = 0; j < M3; j++)
 		{
@@ -179,4 +190,377 @@ void Luch::dvigenie(int i_time)
 		}
 
 	}
+	else if (this->type == "B_Luch")
+	{
+		double R0 = this->geo->R0;
+		double R1 = this->geo->R1;
+		double R5 = this->geo->R5;
+		double R2 = this->Yzels_opor[1]->func_R(i_time); // TS
+		double R3 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) + 
+			kv(this->Yzels_opor[2]->coord[i_time][2])); // HP (расстояние от HP до оси вращения)
+		double x3 = this->Yzels_opor[2]->coord[i_time][0];
+
+		double R4 = sqrt(kv(this->Yzels_opor[3]->coord[i_time][1]) +
+			kv(this->Yzels_opor[3]->coord[i_time][2])); // BS причём для B лучей это фиктивный BS
+		// Она уже там не выделяется, поэтому подвинуть эти координаты надо заранее в другой подпрограмме
+
+
+		int M0 = this->geo->M0;
+		int M1 = this->geo->M1;
+		int M11 = this->geo->M11;
+		int M2 = this->geo->M2;
+		int M3 = this->geo->M3;
+		int M4 = this->geo->M4;
+
+		if (this->parameters.find("phi") == this->parameters.end()) cout << "5690890909  ERROR" << endl;
+		if (this->parameters.find("the") == this->parameters.end()) cout << "1237130806  ERROR" << endl;
+
+		double phi = this->parameters["phi"];
+		double the = this->parameters["the"];
+		double r, x, y, z, dr;
+		int num = 0;
+
+		for (int j = 0; j < M0; j++)
+		{
+			r = R0 + j * (R1 - R0) / M0;
+			this->Yzels[j + num]->coord[i_time][0] = r * cos(the);
+			this->Yzels[j + num]->coord[i_time][1] = r * sin(the) * cos(phi);
+			this->Yzels[j + num]->coord[i_time][2] = r * sin(the) * sin(phi);
+		}
+		num += M0;
+
+		this->Yzels[num]->coord[i_time][0] = R1 * cos(the);
+		this->Yzels[num]->coord[i_time][1] = R1 * sin(the) * cos(phi);
+		this->Yzels[num]->coord[i_time][2] = R1 * sin(the) * sin(phi);
+		num += 1;
+
+		for (int j = 0; j < M1; j++)
+		{
+			r = R1 + (j + 1) * (R2 - R1) / (M1 + 1);
+			this->Yzels[j + num]->coord[i_time][0] = r * cos(the);
+			this->Yzels[j + num]->coord[i_time][1] = r * sin(the) * cos(phi);
+			this->Yzels[j + num]->coord[i_time][2] = r * sin(the) * sin(phi);
+		}
+		num += M1 + 1; // (+1 для опорной точки) но опорную точку здесь двигать не обязательно, она должна быть уже подвинута
+		dr = (R2 - R1) / (M1 + 1);
+
+		for (int j = 0; j < M11; j++)
+		{
+			r = R2 + dr * (j + 1); 
+			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
+			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
+			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
+		}
+		num += M11;
+
+		// Делаем непрямые лучи
+		double x0, y0, x1, y1, t1, t2, tt1, tt2;
+
+		t1 = cos(the) * this->geo->dd3;
+		tt1 = sin(the) * this->geo->dd3;
+		t2 = 0.0;
+		tt2 = 1.0 * this->geo->dd4;
+		x0 = r * cos(the); // Это координаты с последней итерации предыдущего цикла
+		y0 = r * sin(the);
+		x1 = x3;
+		y1 = R3;
+
+		double a1, b1, c1, d1, a2, b2, c2, d2;
+
+		a1 = x0;
+		b1 = t1;
+		c1 = -2 * t1 - t2 - 3.0 * x0 + 3.0 * x1;
+		d1 = t1 + t2 + 2.0 * x0 - 2.0 * x1;
+
+		a2 = y0;
+		b2 = tt1;
+		c2 = -2 * tt1 - tt2 - 3.0 * y0 + 3.0 * y1;
+		d2 = tt1 + tt2 + 2.0 * y0 - 2.0 * y1;
+
+		for (int j = 0; j < M2 - M11; j++)
+		{
+			double s = 1.0 * (j + 1) / (M2 - M11 + 1);
+			x = a1 + b1 * s + c1 * s * s + d1 * s * s * s;
+			y = a2 + b2 * s + c2 * s * s + d2 * s * s * s;
+			z = y * sin(phi);
+			y = y * cos(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+		}
+		num += (M2 - M11) + 1;
+
+		// Точки от R3 (HP) до R4 (BS)
+		for (int j = 0; j < M3; j++)
+		{
+			r = R3 + (j + 1) * (R4 - R3) / (M3 + 1);
+			//x = x;  // Последняя координата предыдущего цикла
+			y = r * cos(phi);
+			z = r * sin(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+		}
+		num += M3 + 1;
+
+		for (int j = 0; j < M4; j++)
+		{
+			r = R4 + (j + 1) * (R5 - R4) / (M4 + 1);
+			//x = x;
+			y = r * cos(phi);
+			z = r * sin(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+		}
+	}
+	else if (this->type == "D_Luch")
+	{	// D лучи двигаются обязательно после C - лучей, так как они опираются на них
+		int M2 = this->geo->M2;
+		int M11 = this->geo->M11;
+		int M3 = this->geo->M3;
+		int M4 = this->geo->M4;
+
+		double R5 = this->geo->R5;
+
+		if (this->parameters.find("phi") == this->parameters.end()) cout << "0990967451  ERROR" << endl;
+
+		double phi = this->parameters["phi"];
+		int num = 0;
+		double x, y, z, r;
+
+		double x0 = this->Yzels_opor[0]->coord[i_time][0];
+		double y0 = sqrt(kv(this->Yzels_opor[0]->coord[i_time][1]) + 
+			kv(this->Yzels_opor[0]->coord[i_time][2]));
+
+		double x1 = this->Yzels_opor[1]->coord[i_time][0];
+		double y1 = sqrt(kv(this->Yzels_opor[1]->coord[i_time][1]) +
+			kv(this->Yzels_opor[1]->coord[i_time][2]));
+
+		double x2 = this->Yzels_opor[2]->coord[i_time][0];
+		double y2 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) +
+			kv(this->Yzels_opor[2]->coord[i_time][2]));
+
+		// Точки от R2 (TS) до R3 (HP)
+		num += 1;
+		for (int j = 0; j < M2 - M11; j++)
+		{
+			x = x0 + (x1 - x0) * (j + 1) / (M2 - M11 + 1);
+			y = y0 + (y1 - y0) * (j + 1) / (M2 - M11 + 1);
+			z = y * sin(phi);
+			y = y * cos(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+		}
+		num += (M2 - M11) + 1;
+
+		for (int j = 0; j < M3; j++)
+		{
+			r = y1 + (j + 1) * (y2 - y1) / (M3 + 1);
+			x = x1;
+			y = r * cos(phi);
+			z = r * sin(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+		}
+		num += M3 + 1;
+
+		for (int j = 0; j < M4; j++)
+		{
+			r = y2 + (j + 1) * (R5 - y2) / (M4 + 1);
+			x = x1;
+			y = r * cos(phi);
+			z = r * sin(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+		}
+		num += M4;
+
+		r = R5;
+		x = x1;
+		y = r * cos(phi);
+		z = r * sin(phi);
+		this->Yzels[num]->coord[i_time][0] = x;
+		this->Yzels[num]->coord[i_time][1] = y;
+		this->Yzels[num]->coord[i_time][2] = z;
+	}
+	else if (this->type == "E_Luch")
+	{	// E лучи двигаются обязательно после C - лучей, так как они опираются на них
+		int M3 = this->geo->M3;
+		int M4 = this->geo->M4;
+
+		double R5 = this->geo->R5;
+
+		if (this->parameters.find("phi") == this->parameters.end()) cout << "4533212122  ERROR" << endl;
+
+		double phi = this->parameters["phi"];
+		int num = 0;
+		double x, y, z, r;
+
+		double x0 = this->Yzels_opor[0]->coord[i_time][0];
+		double y0 = sqrt(kv(this->Yzels_opor[0]->coord[i_time][1]) +
+			kv(this->Yzels_opor[0]->coord[i_time][2]));
+
+		double x1 = this->Yzels_opor[1]->coord[i_time][0];
+		double y1 = sqrt(kv(this->Yzels_opor[1]->coord[i_time][1]) +
+			kv(this->Yzels_opor[1]->coord[i_time][2]));
+
+		x = (x0 + x1) / 2.0; // Нужно чтобы x0 был равен x1 (на всякий будем брать среднее)
+
+		num += 1;
+		for (int j = 0; j < M3; j++)
+		{
+			r = y0 + (j + 1) * (y1 - y0) / (M3 + 1);
+			y = r * cos(phi);
+			z = r * sin(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+		}
+		num += M3 + 1;
+
+		for (int j = 0; j < M4; j++)
+		{
+			r = y1 + (j + 1) * (R5 - y1) / (M4 + 1);
+			y = r * cos(phi);
+			z = r * sin(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+		}
+		num += M4;
+
+		r = R5;
+		y = r * cos(phi);
+		z = r * sin(phi);
+		this->Yzels[num]->coord[i_time][0] = x;
+		this->Yzels[num]->coord[i_time][1] = y;
+		this->Yzels[num]->coord[i_time][2] = z;
+
+	}
+	else if (this->type == "H_Luch")
+	{	
+		int M3 = this->geo->M3;
+		int M4 = this->geo->M4;
+
+		double R5 = this->geo->R5;
+
+		if (this->parameters.find("phi") == this->parameters.end()) cout << "7635497867  ERROR" << endl;
+
+		double phi = this->parameters["phi"];
+		int num = 0;
+		double x, y, z, r;
+
+		// Делаем непрямые лучи
+		double x0, y0, x1, y1, t1, t2, tt1, tt2;
+
+		auto yz3 = this->Yzels_opor[0];
+		auto yz1 = this->Yzels_opor[1];
+		auto yz4 = this->Yzels_opor[2];
+		auto yz2 = this->Yzels_opor[3];
+
+		double dd7 = this->geo->dd7;
+		double dd8 = this->geo->dd8;
+
+		t1 = (yz1->coord[i_time][0] - yz3->coord[i_time][0]) * dd7;
+		tt1 = (yz1->func_Ryz(i_time) - yz3->func_Ryz(i_time)) * dd7;
+		t2 = (yz4->coord[i_time][0] - yz2->coord[i_time][0]) * dd8;
+		tt2 = (yz4->func_Ryz(i_time) - yz2->func_Ryz(i_time)) * dd8;
+		x0 = yz1->coord[i_time][0];       
+		y0 = yz1->func_Ryz(i_time);
+		x1 = yz2->coord[i_time][0];        
+		y1 = yz2->func_Ryz(i_time);
+
+		double a1, b1, c1, d1, a2, b2, c2, d2;
+
+		a1 = x0;
+		b1 = t1;
+		c1 = -2 * t1 - t2 - 3.0 * x0 + 3.0 * x1;
+		d1 = t1 + t2 + 2.0 * x0 - 2.0 * x1;
+
+		a2 = y0;
+		b2 = tt1;
+		c2 = -2 * tt1 - tt2 - 3.0 * y0 + 3.0 * y1;
+		d2 = tt1 + tt2 + 2.0 * y0 - 2.0 * y1;
+
+		num += 1;
+		for (int j = 0; j < 4; j++)
+		{
+			double s = 1.0 * (j + 1) / (5);
+			x = a1 + b1 * s + c1 * s * s + d1 * s * s * s;
+			y = a2 + b2 * s + c2 * s * s + d2 * s * s * s;
+			z = y * sin(phi);
+			y = y * cos(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+		}
+
+	}
+	else if (this->type == "G_Luch")
+	{
+		// Для G - лучей можно периодически подбирать коэффиценты, но это нужно делать в отдельной подпрограмме
+		// подбирать надо редко (при сильных движениях сетки)
+		// Возможно для каждого луча придётся сделать отдельный коэффицент (так как сетка зависит от угла phi существенно)
+		auto yz1 = this->Yzels_opor[1];
+		auto yz2 = this->Yzels_opor[2];
+		auto yz3 = this->Yzels_opor[0];
+		double dd1 = this->geo->dd1;
+		double dd2 = this->geo->dd2;
+
+		int M1 = this->geo->M1;
+		int M11 = this->geo->M11;
+		int MF = this->geo->MF;
+		int M2 = this->geo->M2;
+
+		if (this->parameters.find("phi") == this->parameters.end()) cout << "0989878874  ERROR" << endl;
+
+		double phi = this->parameters["phi"];
+		int num = 0;
+
+		// Делаем непрямые лучи
+		double x0, y0, x1, y1, t1, t2, tt1, tt2;
+
+		double a1, b1, c1, d1, a2, b2, c2, d2, x, y, z;
+
+		t1 = (yz1->coord[i_time][0] - yz3->coord[i_time][0]) * dd1;
+		tt1 = (yz1->func_Ryz(i_time) - yz3->func_Ryz(i_time)) * dd1;
+		t2 = 0.0;
+		tt2 = 1.0 * dd2;
+		x0 = yz1->coord[i_time][0];       
+		y0 = yz1->func_Ryz(i_time);
+		x1 = yz2->coord[i_time][0];
+		y1 = yz2->func_Ryz(i_time);
+
+		//cout << "GGG  " << yz1->number << " " << x0 << " " << y0 << " " << t1 << " " << tt1 << endl;
+
+		a1 = x0;
+		b1 = t1;
+		c1 = -2 * t1 - t2 - 3.0 * x0 + 3.0 * x1;
+		d1 = t1 + t2 + 2.0 * x0 - 2.0 * x1;
+
+		a2 = y0;
+		b2 = tt1;
+		c2 = -2 * tt1 - tt2 - 3.0 * y0 + 3.0 * y1;
+		d2 = tt1 + tt2 + 2.0 * y0 - 2.0 * y1;
+
+		// Точки от R2 (TS) до R3 (HP)
+		num = 1;
+		for (int j = 0; j < M2 - M11 - MF + 1; j++)
+		{
+			double s = 1.0 * (j + 1.0) / (M2 - M11 - MF + 1 + 1.0);
+			x = a1 + b1 * s + c1 * s * s + d1 * s * s * s;
+			y = a2 + b2 * s + c2 * s * s + d2 * s * s * s;
+			z = y * sin(phi);
+			y = y * cos(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+		}
+
+	}
+	
 }

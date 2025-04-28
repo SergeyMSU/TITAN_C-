@@ -10,6 +10,7 @@ int main()
 
     S.Set_geo();
     S.Construct_initial();
+    cout << "S.H_Luch[0]->Yzels_opor.size()   " << S.H_Luch[0]->Yzels_opor.size() << endl;
     S.Print_yzel();
     S.Print_cell();
     S.Print_cell_center();
