@@ -36,7 +36,7 @@ public:
 	vector<Luch*> C2_Luch;
 
 
-
+	Surfaces* Surf1;
 	
 
 	Setka();
@@ -52,6 +52,7 @@ public:
 	void Set_luch_parametr();
 	// Добавляет лучам необходимые параметры (например, углы для радиальных лучей) - это ускорит расчёты
 
+	void Read_old_surface(string name);
 
 	// ВИЗУАЛИЗАЦИЯ
 	// Ниже всё, что касается визуализации сетки

@@ -7,6 +7,7 @@ class Yzel;
 class Luch;
 class Cell;
 class Gran;
+class Surfaces;
 
 
 const double const_pi= 3.14159265358979323846;
@@ -22,6 +23,8 @@ const double const_pi= 3.14159265358979323846;
 #include <math.h>
 
 
+// Boost библиотека (надо подключать к компилятору отдельно)
+#include "boost/multi_array.hpp"
 
 #include "Help_funk.h"
 #include "Geo_param.h"
@@ -30,6 +33,8 @@ const double const_pi= 3.14159265358979323846;
 #include "Setka.h"
 #include "Cell.h"
 #include "Gran.h"
+#include "Surfaces.h"
+
 
 using namespace std;
 

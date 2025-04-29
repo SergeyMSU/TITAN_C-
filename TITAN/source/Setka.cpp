@@ -5,6 +5,7 @@ using namespace std;
 
 Setka::Setka()
 {
+	this->Surf1 = nullptr;
 	this->geo = new Geo_param();
 	Luch::geo = this->geo;
 	this->geo->Nphi = 60;     // &INIT&
@@ -26,6 +27,7 @@ Setka::Setka()
 	this->name_luch.push_back("H_Luch");
 	this->name_luch.push_back("G_Luch");
 	this->New_initial();
+
 }
 
 void Setka::Renumerate(void)
@@ -164,6 +166,20 @@ void Setka::Set_luch_parametr()
 			i->parameters["phi"] = polar_angle(y, z);
 		}
 	}
+}
+
+void Setka::Read_old_surface(string name)
+{
+	cout << "Start Read_old_surface: " << name << endl;
+	if (this->Surf1 != nullptr)
+	{
+		this->Surf1->~Surfaces();
+		delete this->Surf1;
+	}
+
+	this->Surf1 = new Surfaces();
+	this->Surf1->Read_old(name);
+	cout << "End Read_old_surface: " << name << endl;
 }
 
 void Setka::New_initial()
@@ -1143,8 +1159,12 @@ void Setka::Tecplot_print_all_yzel_in_3D(string name)
 	int k = 1;
 	ofstream fout;
 	string name_f = "Tecplot_all_yzel_in_3D_" + name + ".txt";
+	
 
 	fout.open(name_f);
+
+
+
 	fout << "TITLE = HP  VARIABLES = X, Y, Z"  << endl;
 
 	for (auto& ii : this->Yzel_2D)
