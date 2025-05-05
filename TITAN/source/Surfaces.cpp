@@ -112,6 +112,8 @@ double Surfaces::Get_TS(const double& phi, const double& the)
 	int i1 = 0, i2 = 0; // по углу phi
 	int j1 = 0, j2 = 0; // по углу the
 
+	i1 = this->phi_angle.size() - 1;
+
 	for (int i = 0; i < this->phi_angle.size(); i++)
 	{
  		if (this->phi_angle[i] > phi)
@@ -132,7 +134,11 @@ double Surfaces::Get_TS(const double& phi, const double& the)
 			{
 				j2 = i;
 				j1 = j2 - 1;
-				if (j1 < 0) j1 = this->the_angle.shape()[1] - 1;
+				if (j1 < 0) 
+				{
+					j1 = 0;
+					j2 = 1;
+				}
 				break;
 			}
 		}
@@ -147,28 +153,32 @@ double Surfaces::Get_TS(const double& phi, const double& the)
 	}
 	else
 	{
-		if (the < const_pi / 2.0)
+		// В головной области
+		j2 = this->the_angle2.shape()[1] - 1;
+		j1 = j2 - 1;
+
+		for (int i = 0; i < this->the_angle2.shape()[1]; i++)
 		{
-			// В головной области
-			for (int i = 0; i < this->the_angle2.shape()[1]; i++)
+			if (this->the_angle2[i1][i] > the)
 			{
-				if (this->the_angle2[i1][i] > the)
+				j2 = i;
+				j1 = j2 - 1;
+				if (j1 < 0)
 				{
-					j2 = i;
-					j1 = j2 - 1;
-					if (j1 < 0) j1 = this->the_angle2.shape()[1] - 1;
-					break;
+					j1 = 0;
+					j2 = 1;
 				}
+				break;
 			}
-
-			double x = (phi - this->phi_angle[i1]) / (this->phi_angle[i2] - this->phi_angle[i1]);
-			double y = (the - this->the_angle2[i1][j1]) / (this->the_angle2[i1][j2] - this->the_angle2[i1][j2]);
-
-			return this->TS_radial2[i1][j1] * (1 - x) * (1 - y) +
-				this->TS_radial2[i1][j2] * x * (1 - y) +
-				this->TS_radial2[i2][j1] * (1 - x) * y +
-				this->TS_radial2[i2][j2] * x * y;
 		}
+
+		double x = (phi - this->phi_angle[i1]) / (this->phi_angle[i2] - this->phi_angle[i1]);
+		double y = (the - this->the_angle2[i1][j1]) / (this->the_angle2[i1][j2] - this->the_angle2[i1][j1]);
+
+		return this->TS_radial2[i1][j1] * (1 - x) * (1 - y) +
+			this->TS_radial2[i1][j2] * x * (1 - y) +
+			this->TS_radial2[i2][j1] * (1 - x) * y +
+			this->TS_radial2[i2][j2] * x * y;
 	}
 
 	

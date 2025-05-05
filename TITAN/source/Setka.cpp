@@ -182,6 +182,60 @@ void Setka::Read_old_surface(string name)
 	cout << "End Read_old_surface: " << name << endl;
 }
 
+void Setka::Move_to_surf(Surfaces* Surf)
+{
+	double x, y, z, phi, the, r, rr;
+	for (int st = 0; st < 1; st++)
+	{
+		for (auto& i : this->A_Luch)
+		{
+			for (auto& j : i)
+			{
+				x = j->Yzels_opor[1]->coord[0][0];
+				y = j->Yzels_opor[1]->coord[0][1];
+				z = j->Yzels_opor[1]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				the = polar_angle(x, sqrt(kv(y) + kv(z)));
+				phi = polar_angle(y, z);
+
+				if (phi == 6.1784655520599268)
+				{
+					//cout << 'rr' << endl;
+				}
+
+				rr = Surf->Get_TS(phi, the);
+
+				j->Yzels_opor[1]->coord[0][0] *= rr / r;
+				j->Yzels_opor[1]->coord[0][1] *= rr / r;
+				j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "0989898653   errjr" << endl;
+				}
+				/*if (r > rr)
+				{
+					j->Yzels_opor[1]->coord[0][0] *= 0.99;
+					j->Yzels_opor[1]->coord[0][1] *= 0.99;
+					j->Yzels_opor[1]->coord[0][2] *= 0.99;
+				}
+				else
+				{
+					j->Yzels_opor[1]->coord[0][0] *= 1.01;
+					j->Yzels_opor[1]->coord[0][1] *= 1.01;
+					j->Yzels_opor[1]->coord[0][2] *= 1.01;
+				}*/
+			}
+		}
+	}
+
+	for (auto& i : this->All_Luch)
+	{
+		i->dvigenie(0);
+	}
+
+}
+
 void Setka::New_initial()
 {
 	cout << "---START New_initial---" << endl;

@@ -53,12 +53,17 @@ public:
 	// Добавляет лучам необходимые параметры (например, углы для радиальных лучей) - это ускорит расчёты
 
 	void Read_old_surface(string name);
+	// Считывает файл поверхностей (в формате старой программы на фортране)
+
+	void Move_to_surf(Surfaces* Surf);
 
 	// ВИЗУАЛИЗАЦИЯ
 	// Ниже всё, что касается визуализации сетки
 
 	// Для Tecplot
 	void Tecplot_print_all_yzel_in_3D(string name);
+	// Печатает все узлы (но по слоям, чтобы можно было удобно их просмотреть)
+
 	void Tecplot_print_all_lush_in_3D(string name);
 	void Tecplot_print_all_cell_in_3D();
 	void Tecplot_print_krug_yzel_in_3D(int num);

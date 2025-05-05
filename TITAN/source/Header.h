@@ -21,6 +21,8 @@ const double const_pi= 3.14159265358979323846;
 #include <fstream>
 #include <map>
 #include <math.h>
+#include <cmath>
+#include <limits>
 
 
 // Boost библиотека (надо подключать к компилятору отдельно)
