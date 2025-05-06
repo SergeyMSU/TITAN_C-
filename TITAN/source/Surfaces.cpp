@@ -125,6 +125,8 @@ double Surfaces::Get_TS(const double& phi, const double& the)
 		}
 	}
 
+	
+
 	if (the < const_pi / 2.0)
 	{
 		// В головной области
@@ -146,14 +148,70 @@ double Surfaces::Get_TS(const double& phi, const double& the)
 		double x = (phi - this->phi_angle[i1]) / (this->phi_angle[i2] - this->phi_angle[i1]);
 		double y = (the - this->the_angle[i1][j1]) / (this->the_angle[i1][j2] - this->the_angle[i1][j1]);
 
-		return this->TS_radial[i1][j1] * (1 - x) * (1 - y) +
-			this->TS_radial[i1][j2] * x * (1 - y) +
-			this->TS_radial[i2][j1] * (1 - x) * y +
+		if (i1 == this->phi_angle.size() - 1)
+		{
+			x = (phi - this->phi_angle[i1]) / (2.0 * const_pi + this->phi_angle[i2] - this->phi_angle[i1]);
+		}
+
+		if (x > 1 || x < 0)
+		{
+			cout << "error 845698734569032" << endl;
+		}
+
+		if (y > 1 || y < 0)
+		{
+			cout << "error 46373547457" << endl;
+		}
+
+		double b =   this->TS_radial[i1][j1] * (1 - x) * (1 - y) +
+			this->TS_radial[i2][j1] * x * (1 - y) +
+			this->TS_radial[i1][j2] * (1 - x) * y +
 			this->TS_radial[i2][j2] * x * y;
+
+		if (b > max(max(this->TS_radial[i1][j1], this->TS_radial[i1][j2]),
+			max(this->TS_radial[i2][j1], this->TS_radial[i2][j2])) * 1.000000001  )
+		{
+			cout << b << " " << this->TS_radial[i1][j1] << " " <<
+				this->TS_radial[i2][j1] << " " << this->TS_radial[i1][j2] << " " <<
+				this->TS_radial[i2][j2] << endl;
+			cout << "eror 89345873455234" << endl;
+		}
+
+		return b;
+
+	}
+	else if (the < this->the_angle2[0][0])
+	{
+		double x = (phi - this->phi_angle[i1]) / (this->phi_angle[i2] - this->phi_angle[i1]);
+		double y = (the - const_pi / 2.0) / (this->the_angle2[0][0] - const_pi / 2.0);
+
+		if (i1 == this->phi_angle.size() - 1)
+		{
+			x = (phi - this->phi_angle[i1]) / (2.0 * const_pi + this->phi_angle[i2] - this->phi_angle[i1]);
+		}
+
+		if (x > 1 || x < 0)
+		{
+			cout << "error 845698734569032" << endl;
+		}
+
+		if (y > 1 || y < 0)
+		{
+			cout << "error 46373547457" << endl;
+		}
+
+		return this->TS_radial[i1][this->the_angle.shape()[1] - 1] * (1 - x) * (1 - y) +
+			this->TS_radial[i2][this->the_angle.shape()[1] - 1] * x * (1 - y) +
+			this->TS_radial2[i1][0] * (1 - x) * y +
+			this->TS_radial2[i2][0] * x * y;
 	}
 	else
 	{
-		// В головной области
+
+		//cout << this->phi_angle[i1] << " " << phi << " " << this->phi_angle[i2] << endl;
+
+
+		// В хвостовой области
 		j2 = this->the_angle2.shape()[1] - 1;
 		j1 = j2 - 1;
 
@@ -175,10 +233,37 @@ double Surfaces::Get_TS(const double& phi, const double& the)
 		double x = (phi - this->phi_angle[i1]) / (this->phi_angle[i2] - this->phi_angle[i1]);
 		double y = (the - this->the_angle2[i1][j1]) / (this->the_angle2[i1][j2] - this->the_angle2[i1][j1]);
 
-		return this->TS_radial2[i1][j1] * (1 - x) * (1 - y) +
-			this->TS_radial2[i1][j2] * x * (1 - y) +
-			this->TS_radial2[i2][j1] * (1 - x) * y +
+		if (i1 == this->phi_angle.size() - 1)
+		{
+			x = (phi - this->phi_angle[i1]) / (2.0 * const_pi + this->phi_angle[i2] - this->phi_angle[i1]);
+		}
+
+		if (x > 1 || x < 0)
+		{
+			cout << "error 845698734569032" << endl;
+		}
+
+		if (y > 1 || y < 0)
+		{
+			cout << i1 << " " << i2 << " " << j1 << " " << j2 << endl;
+			cout << this->the_angle2[i1][j1] << " " << this->the_angle2[i1][j2] << endl;
+			cout << this->the_angle2[i2][j1] << " " << this->the_angle2[i2][j2] << endl;
+
+			cout << "error 46373547457" << endl;
+		}
+
+		double b =  this->TS_radial2[i1][j1] * (1 - x) * (1 - y) +
+			this->TS_radial2[i2][j1] * x * (1 - y) +
+			this->TS_radial2[i1][j2] * (1 - x) * y +
 			this->TS_radial2[i2][j2] * x * y;
+
+		if (b > max(max(this->TS_radial2[i1][j1], this->TS_radial2[i1][j2]),
+			max(this->TS_radial2[i2][j1], this->TS_radial2[i2][j2])))
+		{
+			cout << "eror 89345873455234" << endl;
+		}
+
+		return b;
 	}
 
 	
@@ -195,6 +280,12 @@ double Surfaces::Get_HP(const double& phi, const double& the, int met)
 	{
 		int i1 = 0, i2 = 0; // по углу phi
 		int j1 = 0, j2 = 0; // по углу the
+
+		j2 = this->the_angle.shape()[1] - 1;
+		j1 = j2 - 1;
+
+		i2 = this->phi_angle.size() - 1;
+		i1 = i2 - 1;
 
 		for (int i = 0; i < this->phi_angle.size(); i++)
 		{
@@ -216,7 +307,11 @@ double Surfaces::Get_HP(const double& phi, const double& the, int met)
 			{
 				j2 = i;
 				j1 = j2 - 1;
-				if (j1 < 0) j1 = this->the_angle.shape()[1] - 1;
+				if (j1 < 0)
+				{
+					j1 = 0;
+					j2 = 1;
+				}
 				break;
 			}
 		}
@@ -233,6 +328,12 @@ double Surfaces::Get_HP(const double& phi, const double& the, int met)
 	{
 		int i1 = 0, i2 = 0; // по углу phi
 		int j1 = 0, j2 = 0; // по координате x
+
+		i2 = this->phi_angle.size() - 1;
+		i1 = i2 - 1;
+
+		j2 = this->x_cilindr.shape()[1] - 1;
+		j1 = j2 - 1;
 
 		for (int i = 0; i < this->phi_angle.size(); i++)
 		{
@@ -276,4 +377,60 @@ double Surfaces::Get_HP(const double& phi, const double& the, int met)
 		exit(-1);
 	}
 
+}
+
+void Surfaces::Print_TS()
+{
+	ofstream fout;
+	fout.open("Surface_Print_TS.txt");
+
+	fout << "TITLE = HP  VARIABLES = X, Y, Z" << endl;
+
+	for (int i = 0; i < this->phi_angle.size(); i++)
+	{
+		double phi = this->phi_angle[i];
+		for (int j = 0; j < this->the_angle.shape()[1]; j++)
+		{
+			double the = this->the_angle[i][j];
+			double r = this->TS_radial[i][j];
+
+			fout << r * cos(the) << " " << r * sin(the) * cos(phi) << " " << r * sin(the) * sin(phi) << endl;
+		}
+	}
+
+	for (int i = 0; i < this->phi_angle.size(); i++)
+	{
+		double phi = this->phi_angle[i];
+		for (int j = 0; j < this->the_angle2.shape()[1]; j++)
+		{
+			double the = this->the_angle2[i][j];
+			double r = this->TS_radial2[i][j];
+
+			fout << r * cos(the) << " " << r * sin(the) * cos(phi) << " " << r * sin(the) * sin(phi) << endl;
+		}
+	}
+
+	fout.close();
+
+
+	fout.open("Surface_Print_TS_my_point.txt");
+
+	fout << "TITLE = HP  VARIABLES = X, Y, Z" << endl;
+
+	int N1 = 100;
+	int N2 = 100;
+
+	for (int i = 0; i < N1; i++)
+	{
+		double phi = i * 2 * const_pi / N1;
+		for (int j = 0; j < N2; j++)
+		{
+			double the = j * const_pi / N2;
+			double r = this->Get_TS(phi, the);
+
+			fout << r * cos(the) << " " << r * sin(the) * cos(phi) << " " << r * sin(the) * sin(phi) << endl;
+		}
+	}
+
+	fout.close();
 }

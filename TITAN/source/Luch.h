@@ -9,7 +9,7 @@ class Luch
 {
 public:
 	string type;
-	static Geo_param* geo;
+	static Geo_param* geo;             // Задаётся при инициализации класса Setka
 	map<string, double> parameters;    // Параметры луча (могут быть свои для каждого типа)
 	// "the" - угол в сферической ск от оси х - ось набегающего потока - зенитный угол
 	// "phi" - угол в сферической ск - азимутальный угол

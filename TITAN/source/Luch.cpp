@@ -60,7 +60,7 @@ void Luch::dvigenie(int i_time)
 
 		for (int j = 0; j < M2 - M11; j++)
 		{
-			r = R2 + (j + 1) * (R3 - R2) / (M2 - M11 + 1);
+			r = R2 + dr * M11 + (j + 1) * (R3 - R2 - dr * M11) / (M2 - M11 + 1);
 			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
 			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
 			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
@@ -84,9 +84,9 @@ void Luch::dvigenie(int i_time)
 			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
 		}
 
-		//this->Yzels[num + M4]->coord[i_time][0] = R5 * cos(the);
-		//this->Yzels[num + M4]->coord[i_time][1] = R5 * sin(the) * cos(phi);
-		//this->Yzels[num + M4]->coord[i_time][2] = R5 * sin(the) * sin(phi);
+		this->Yzels[num + M4]->coord[i_time][0] = R5 * cos(the);
+		this->Yzels[num + M4]->coord[i_time][1] = R5 * sin(the) * cos(phi);
+		this->Yzels[num + M4]->coord[i_time][2] = R5 * sin(the) * sin(phi);
 
 	}
 	else if (this->type == "C_Luch" || this->type == "C2_Luch")
@@ -198,7 +198,7 @@ void Luch::dvigenie(int i_time)
 		double R2 = this->Yzels_opor[1]->func_R(i_time); // TS
 		double R3 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) + 
 			kv(this->Yzels_opor[2]->coord[i_time][2])); // HP (рассто€ние от HP до оси вращени€)
-		double x3 = this->Yzels_opor[2]->coord[i_time][0];
+		//double x3 = this->Yzels_opor[2]->coord[i_time][0];
 
 		double R4 = sqrt(kv(this->Yzels_opor[3]->coord[i_time][1]) +
 			kv(this->Yzels_opor[3]->coord[i_time][2])); // BS причЄм дл€ B лучей это фиктивный BS
@@ -252,6 +252,10 @@ void Luch::dvigenie(int i_time)
 			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
 		}
 		num += M11;
+
+		double x3 = r * cos(the); // «апомнили
+		this->Yzels_opor[2]->coord[i_time][0] = x3;
+		this->Yzels_opor[3]->coord[i_time][0] = x3;
 
 		// ƒелаем непр€мые лучи
 		double x0, y0, x1, y1, t1, t2, tt1, tt2;
@@ -313,6 +317,13 @@ void Luch::dvigenie(int i_time)
 			this->Yzels[num + j]->coord[i_time][1] = y;
 			this->Yzels[num + j]->coord[i_time][2] = z;
 		}
+		num += M4;
+
+		y = R5 * cos(phi);
+		z = R5 * sin(phi);
+		this->Yzels[num]->coord[i_time][0] = x;
+		this->Yzels[num]->coord[i_time][1] = y;
+		this->Yzels[num]->coord[i_time][2] = z;
 	}
 	else if (this->type == "D_Luch")
 	{	// D лучи двигаютс€ об€зательно после C - лучей, так как они опираютс€ на них
@@ -333,19 +344,23 @@ void Luch::dvigenie(int i_time)
 		double y0 = sqrt(kv(this->Yzels_opor[0]->coord[i_time][1]) + 
 			kv(this->Yzels_opor[0]->coord[i_time][2]));
 
-		double x1 = this->Yzels_opor[1]->coord[i_time][0];
+		double x1 = x0;// this->Yzels_opor[1]->coord[i_time][0];
+		this->Yzels_opor[1]->coord[i_time][0] = x0;
 		double y1 = sqrt(kv(this->Yzels_opor[1]->coord[i_time][1]) +
 			kv(this->Yzels_opor[1]->coord[i_time][2]));
 
-		double x2 = this->Yzels_opor[2]->coord[i_time][0];
+		double x2 = x0;// this->Yzels_opor[2]->coord[i_time][0];
+		this->Yzels_opor[2]->coord[i_time][0] = x0;
 		double y2 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) +
 			kv(this->Yzels_opor[2]->coord[i_time][2]));
+
+		x = x0;
 
 		// “очки от R2 (TS) до R3 (HP)
 		num += 1;
 		for (int j = 0; j < M2 - M11; j++)
 		{
-			x = x0 + (x1 - x0) * (j + 1) / (M2 - M11 + 1);
+			//x = x0 + (x1 - x0) * (j + 1) / (M2 - M11 + 1);
 			y = y0 + (y1 - y0) * (j + 1) / (M2 - M11 + 1);
 			z = y * sin(phi);
 			y = y * cos(phi);
@@ -358,7 +373,7 @@ void Luch::dvigenie(int i_time)
 		for (int j = 0; j < M3; j++)
 		{
 			r = y1 + (j + 1) * (y2 - y1) / (M3 + 1);
-			x = x1;
+			//x = x1;
 			y = r * cos(phi);
 			z = r * sin(phi);
 			this->Yzels[num + j]->coord[i_time][0] = x;
@@ -370,7 +385,7 @@ void Luch::dvigenie(int i_time)
 		for (int j = 0; j < M4; j++)
 		{
 			r = y2 + (j + 1) * (R5 - y2) / (M4 + 1);
-			x = x1;
+			//x = x1;
 			y = r * cos(phi);
 			z = r * sin(phi);
 			this->Yzels[num + j]->coord[i_time][0] = x;
@@ -380,7 +395,7 @@ void Luch::dvigenie(int i_time)
 		num += M4;
 
 		r = R5;
-		x = x1;
+		//x = x1;
 		y = r * cos(phi);
 		z = r * sin(phi);
 		this->Yzels[num]->coord[i_time][0] = x;
@@ -400,15 +415,17 @@ void Luch::dvigenie(int i_time)
 		int num = 0;
 		double x, y, z, r;
 
-		double x0 = this->Yzels_opor[0]->coord[i_time][0];
-		double y0 = sqrt(kv(this->Yzels_opor[0]->coord[i_time][1]) +
-			kv(this->Yzels_opor[0]->coord[i_time][2]));
-
-		double x1 = this->Yzels_opor[1]->coord[i_time][0];
-		double y1 = sqrt(kv(this->Yzels_opor[1]->coord[i_time][1]) +
+		//double x0 = this->Yzels_opor[1]->coord[i_time][0];
+		double y0 = sqrt(kv(this->Yzels_opor[1]->coord[i_time][1]) +
 			kv(this->Yzels_opor[1]->coord[i_time][2]));
 
-		x = (x0 + x1) / 2.0; // Ќужно чтобы x0 был равен x1 (на вс€кий будем брать среднее)
+		//double x1 = this->Yzels_opor[2]->coord[i_time][0];
+		double y1 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) +
+			kv(this->Yzels_opor[2]->coord[i_time][2]));
+
+		x = this->Yzels_opor[0]->coord[i_time][0];
+
+		this->Yzels[num]->coord[i_time][0] = x;
 
 		num += 1;
 		for (int j = 0; j < M3; j++)
@@ -420,7 +437,11 @@ void Luch::dvigenie(int i_time)
 			this->Yzels[num + j]->coord[i_time][1] = y;
 			this->Yzels[num + j]->coord[i_time][2] = z;
 		}
-		num += M3 + 1;
+		num += M3;
+
+		this->Yzels[num]->coord[i_time][0] = x;
+		
+		num += 1;
 
 		for (int j = 0; j < M4; j++)
 		{

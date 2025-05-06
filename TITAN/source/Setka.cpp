@@ -50,7 +50,8 @@ void Setka::Renumerate(void)
 void Setka::Set_luch_parametr()
 {
 	// ƒобавл€ет лучам необходимые параметры 
-	// (например, углы the и phi дл€ радиальных лучей A, B, C типов) - это ускорит расчЄты
+	// (например, углы the и phi дл€ радиальных лучей A, B, C типов) - это ускорит расчЄты, так как 
+	// они остаютс€ посто€нными дл€ луча, и можно посто€нно не пересчитывать значени€
 	for (auto& i : this->A2_Luch)
 	{
 		auto A = i->Yzels[0];
@@ -185,8 +186,9 @@ void Setka::Read_old_surface(string name)
 void Setka::Move_to_surf(Surfaces* Surf)
 {
 	double x, y, z, phi, the, r, rr;
-	for (int st = 0; st < 1; st++)
+	for (int st = 0; st < 5; st++)
 	{
+
 		for (auto& i : this->A_Luch)
 		{
 			for (auto& j : i)
@@ -198,10 +200,7 @@ void Setka::Move_to_surf(Surfaces* Surf)
 				the = polar_angle(x, sqrt(kv(y) + kv(z)));
 				phi = polar_angle(y, z);
 
-				if (phi == 6.1784655520599268)
-				{
-					//cout << 'rr' << endl;
-				}
+				
 
 				rr = Surf->Get_TS(phi, the);
 
@@ -213,25 +212,146 @@ void Setka::Move_to_surf(Surfaces* Surf)
 				{
 					cout << "0989898653   errjr" << endl;
 				}
-				/*if (r > rr)
+
+				if (phi == 0.0 && the == const_pi/2)
 				{
-					j->Yzels_opor[1]->coord[0][0] *= 0.99;
-					j->Yzels_opor[1]->coord[0][1] *= 0.99;
-					j->Yzels_opor[1]->coord[0][2] *= 0.99;
+					//cout << 'rr' << endl;
 				}
-				else
+
+				x = j->Yzels_opor[2]->coord[0][0];
+				y = j->Yzels_opor[2]->coord[0][1];
+				z = j->Yzels_opor[2]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+
+				rr = Surf->Get_HP(phi, the, 0);
+
+				j->Yzels_opor[2]->coord[0][0] *= rr / r;
+				j->Yzels_opor[2]->coord[0][1] *= rr / r;
+				j->Yzels_opor[2]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
 				{
-					j->Yzels_opor[1]->coord[0][0] *= 1.01;
-					j->Yzels_opor[1]->coord[0][1] *= 1.01;
-					j->Yzels_opor[1]->coord[0][2] *= 1.01;
-				}*/
+					cout << "9443563295   errjr" << endl;
+				}
+
 			}
 		}
-	}
+
+		for (auto& i : this->B_Luch)
+		{
+			for (auto& j : i)
+			{
+				x = j->Yzels_opor[1]->coord[0][0];
+				y = j->Yzels_opor[1]->coord[0][1];
+				z = j->Yzels_opor[1]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				the = polar_angle(x, sqrt(kv(y) + kv(z)));
+				phi = polar_angle(y, z);
+
+				rr = Surf->Get_TS(phi, the);
+
+				j->Yzels_opor[1]->coord[0][0] *= rr / r;
+				j->Yzels_opor[1]->coord[0][1] *= rr / r;
+				j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "0989898653   errjr" << endl;
+				}
+
+
+				x = j->Yzels_opor[2]->coord[0][0];
+				y = j->Yzels_opor[2]->coord[0][1];
+				z = j->Yzels_opor[2]->coord[0][2];
+
+				rr = Surf->Get_HP(phi, x, 1);
+				r = sqrt(kvv(0.0, y, z));
+				j->Yzels_opor[2]->coord[0][1] *= rr / r;
+				j->Yzels_opor[2]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "6510292073   errjr" << endl;
+				}
+
+			}
+		}
+
+		for (auto& i : this->C_Luch)
+		{
+			for (auto& j : i)
+			{
+				x = j->Yzels_opor[1]->coord[0][0];
+				y = j->Yzels_opor[1]->coord[0][1];
+				z = j->Yzels_opor[1]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				the = polar_angle(x, sqrt(kv(y) + kv(z)));
+				phi = polar_angle(y, z);
+
+
+
+				rr = Surf->Get_TS(phi, the);
+
+				j->Yzels_opor[1]->coord[0][0] *= rr / r;
+				j->Yzels_opor[1]->coord[0][1] *= rr / r;
+				j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "0989898653   errjr" << endl;
+				}
+			}
+		}
+
+		for (auto& i : this->D_Luch)
+		{
+			for (auto& j : i)
+			{
+				x = j->Yzels_opor[1]->coord[0][0];
+				y = j->Yzels_opor[1]->coord[0][1];
+				z = j->Yzels_opor[1]->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+				phi = polar_angle(y, z);
+				rr = Surf->Get_HP(phi, x, 1);
+
+				j->Yzels_opor[1]->coord[0][1] *= rr / r;
+				j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "6510292073   errjr" << endl;
+				}
+
+			}
+		}
+
+		for (auto& i : this->E_Luch)
+		{
+			for (auto& j : i)
+			{
+				x = j->Yzels_opor[1]->coord[0][0];
+				y = j->Yzels_opor[1]->coord[0][1];
+				z = j->Yzels_opor[1]->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+				phi = polar_angle(y, z);
+				rr = Surf->Get_HP(phi, x, 1);
+
+				j->Yzels_opor[1]->coord[0][1] *= rr / r;
+				j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "6510292073   errjr" << endl;
+				}
+			}
+		}
+	
 
 	for (auto& i : this->All_Luch)
 	{
 		i->dvigenie(0);
+	}
+
 	}
 
 }
@@ -802,9 +922,130 @@ void Setka::New_initial()
 	// “еперь надо двигать узлы в соответствии с функци€ми движени€
 	if (true) 
 	{
+		this->geo->R2 = 20.0;
+		this->geo->R3 = 30.0;
+		this->geo->R4 = 140.0;
+		this->geo->R5 = 200.0;
+		this->geo->L6 = -40.0;
+		this->geo->L7 = -150.0;
+		
 		this->Set_luch_parametr();
 		// ¬ыставл€ем опорные точки у ј2-лучей в правильном пор€дке
 		double x, y, z, r;
+
+		for (auto& i : this->All_Luch)
+		{
+			if (i->type == "A_Luch")
+			{
+				auto A = i->Yzels_opor[0];
+				x = A->coord[0][0];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				A->coord[0][0] = x / r * this->geo->R1;
+				A->coord[0][1] = y / r * this->geo->R1;
+				A->coord[0][2] = z / r * this->geo->R1;
+
+				A = i->Yzels_opor[1];
+				x = A->coord[0][0];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				A->coord[0][0] = x / r * this->geo->R2;
+				A->coord[0][1] = y / r * this->geo->R2;
+				A->coord[0][2] = z / r * this->geo->R2;
+
+				A = i->Yzels_opor[2];
+				x = A->coord[0][0];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				A->coord[0][0] = x / r * this->geo->R3;
+				A->coord[0][1] = y / r * this->geo->R3;
+				A->coord[0][2] = z / r * this->geo->R3;
+
+				A = i->Yzels_opor[3];
+				x = A->coord[0][0];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				A->coord[0][0] = x / r * this->geo->R4;
+				A->coord[0][1] = y / r * this->geo->R4;
+				A->coord[0][2] = z / r * this->geo->R4;
+
+				A = i->Yzels_opor[4];
+				x = A->coord[0][0];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				A->coord[0][0] = x / r * this->geo->R5;
+				A->coord[0][1] = y / r * this->geo->R5;
+				A->coord[0][2] = z / r * this->geo->R5;
+			}
+			else if (i->type == "C_Luch" || i->type == "B_Luch")
+			{
+				auto A = i->Yzels_opor[0];
+				x = A->coord[0][0];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				A->coord[0][0] = x / r * this->geo->R1;
+				A->coord[0][1] = y / r * this->geo->R1;
+				A->coord[0][2] = z / r * this->geo->R1;
+
+				A = i->Yzels_opor[1];
+				x = A->coord[0][0];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				A->coord[0][0] = x / r * this->geo->R2;
+				A->coord[0][1] = y / r * this->geo->R2;
+				A->coord[0][2] = z / r * this->geo->R2;
+			}
+		}
+
+		for (auto& i : this->All_Luch)
+		{
+			if (i->type == "B_Luch")
+			{
+				auto A = i->Yzels_opor[2];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+				A->coord[0][0] = i->Yzels_opor[1]->coord[0][0];
+				A->coord[0][1] = y / r * this->geo->R3;
+				A->coord[0][2] = z / r * this->geo->R3;
+
+				A = i->Yzels_opor[3];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+				A->coord[0][0] = i->Yzels_opor[1]->coord[0][0];
+				A->coord[0][1] = y / r * this->geo->R4;
+				A->coord[0][2] = z / r * this->geo->R4;
+			}
+
+			if (i->type == "D_Luch")
+			{
+				auto A = i->Yzels_opor[1];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+				A->coord[0][0] = i->Yzels_opor[0]->coord[0][0];
+				A->coord[0][1] = y / r * this->geo->R3;
+				A->coord[0][2] = z / r * this->geo->R3;
+
+				A = i->Yzels_opor[2];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+				A->coord[0][0] = i->Yzels_opor[0]->coord[0][0];
+				A->coord[0][1] = y / r * this->geo->R4;
+				A->coord[0][2] = z / r * this->geo->R4;
+			}
+		}
+
+
 		for (auto& i : this->A2_Luch)
 		{
 			auto A = i->Yzels_opor[0];
@@ -916,8 +1157,42 @@ void Setka::New_initial()
 			return false;
 			});
 
+		// ƒобавим в E-лучи опорную тотчку из C-луча
+		for (int i = 0; i < this->E_Luch.size(); i++)
+		{
+			for (int j = 0; j < this->E_Luch[0].size(); j++)
+			{
+				this->E_Luch[i][j]->Yzels_opor.insert(this->E_Luch[i][j]->Yzels_opor.begin(), 
+					this->C_Luch[i][0]->Yzels[this->geo->M0 + this->geo->M1 + this->geo->M11 + 1 + j]);
+			}
+		}
+
+
 		for (auto& i : this->All_Luch)
 		{
+			if (i->type == "E_Luch")
+			{
+				auto A = i->Yzels_opor[1];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+				A->coord[0][0] = i->Yzels_opor[0]->coord[0][0];
+				A->coord[0][1] = y / r * this->geo->R3;
+				A->coord[0][2] = z / r * this->geo->R3;
+
+				A = i->Yzels_opor[2];
+				y = A->coord[0][1];
+				z = A->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+				A->coord[0][0] = i->Yzels_opor[0]->coord[0][0];
+				A->coord[0][1] = y / r * this->geo->R4;
+				A->coord[0][2] = z / r * this->geo->R4;
+			}
+		}
+
+		for (auto& i : this->All_Luch)
+		{
+			//cout << i->type << endl;
 			i->dvigenie(0);
 		}
 		//for (auto& nn : this->name_luch) // „то-бы перебирать лучи в правильном пор€дке
