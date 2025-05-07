@@ -34,9 +34,12 @@ public:
 
 	double Get_TS(const double& phi, const double& the);
 	double Get_HP(const double& phi, const double& the, int met);
+	double Get_BS(const double& phi, const double& the);
 
 	// Визуализируем поверхность
 
 	void Print_TS(); // печатаем точки TS
+	void Print_HP(); // печатаем точки TS
+	void Print_BS(); // печатаем точки TS
 };
 

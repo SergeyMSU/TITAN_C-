@@ -12,6 +12,8 @@ int main()
 
     S1.Read_old_surface("ASurf_Save00591.bin");
     S1.Surf1->Print_TS();
+    S1.Surf1->Print_HP();
+    S1.Surf1->Print_BS();
 
     //cout << "TS = " << S1.Surf1->Get_TS(0.0, 0.0) << endl;
     //cout << "HP = " << S1.Surf1->Get_HP(0.0, 0.0, 0) << endl;
