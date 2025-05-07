@@ -22,6 +22,20 @@ void Luch::dvigenie(int i_time)
 		int M3 = this->geo->M3;
 		int M4 = this->geo->M4;
 
+		double da1 = this->geo->da1;
+		double da2 = this->geo->da2;
+
+		if (this->parameters.find("da1") != this->parameters.end())
+		{
+			da1 = this->parameters["da1"];
+		}
+
+		if (this->parameters.find("da2") != this->parameters.end()) da2 = this->parameters["da2"];
+
+
+		//cout << "da1 = " << da1 << endl;
+
+
 		if (this->parameters.find("phi") == this->parameters.end()) cout << "9573676612  ERROR" << endl;
 		if (this->parameters.find("the") == this->parameters.end()) cout << "0452198906  ERROR" << endl;
 
@@ -58,21 +72,97 @@ void Luch::dvigenie(int i_time)
 		}
 		num += M11;
 
+		// Делаем непрямые лучи
+		double x0, y0, x1, y1, t1, t2, tt1, tt2;
+
+		t1 = cos(the) * da1;
+		tt1 = sin(the) * da1;
+		t2 = cos(the) * da2;
+		tt2 = sin(the) * da2;
+		x0 = r * cos(the); // Это координаты с последней итерации предыдущего цикла
+		y0 = r * sin(the);
+		x1 = R3 * cos(the); // Это координаты с последней итерации предыдущего цикла
+		y1 = R3 * sin(the);
+
+		double a1, b1, c1, d1, a2, b2, c2, d2, x, y, z;
+
+		a1 = x0;
+		b1 = t1;
+		c1 = -2 * t1 - t2 - 3.0 * x0 + 3.0 * x1;
+		d1 = t1 + t2 + 2.0 * x0 - 2.0 * x1;
+
+		a2 = y0;
+		b2 = tt1;
+		c2 = -2 * tt1 - tt2 - 3.0 * y0 + 3.0 * y1;
+		d2 = tt1 + tt2 + 2.0 * y0 - 2.0 * y1;
+
+
 		for (int j = 0; j < M2 - M11; j++)
 		{
-			r = R2 + dr * M11 + (j + 1) * (R3 - R2 - dr * M11) / (M2 - M11 + 1);
+			double s = 1.0 * (j + 1) / (M2 - M11 + 1);
+			x = a1 + b1 * s + c1 * s * s + d1 * s * s * s;
+			y = a2 + b2 * s + c2 * s * s + d2 * s * s * s;
+			z = y * sin(phi);
+			y = y * cos(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+
+			/*r = R2 + dr * M11 + (j + 1) * (R3 - R2 - dr * M11) / (M2 - M11 + 1);
 			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
 			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
-			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
+			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);*/
 		}
 		num += (M2 - M11) + 1;
 
+		double da3 = this->geo->da3;
+		double da4 = this->geo->da4;
+
+		if (this->parameters.find("da3") != this->parameters.end())
+		{
+			da3 = this->parameters["da3"];
+		}
+
+		if (this->parameters.find("da4") != this->parameters.end())
+		{
+			da4 = this->parameters["da4"];
+		}
+
+		t1 = cos(the) * da3;
+		tt1 = sin(the) * da3;
+		t2 = cos(the) * da4;
+		tt2 = sin(the) * da4;
+		x0 = R3 * cos(the); // Это координаты с последней итерации предыдущего цикла
+		y0 = R3 * sin(the);
+		x1 = R4 * cos(the); // Это координаты с последней итерации предыдущего цикла
+		y1 = R4 * sin(the);
+
+		a1 = x0;
+		b1 = t1;
+		c1 = -2 * t1 - t2 - 3.0 * x0 + 3.0 * x1;
+		d1 = t1 + t2 + 2.0 * x0 - 2.0 * x1;
+
+		a2 = y0;
+		b2 = tt1;
+		c2 = -2 * tt1 - tt2 - 3.0 * y0 + 3.0 * y1;
+		d2 = tt1 + tt2 + 2.0 * y0 - 2.0 * y1;
+
+
 		for (int j = 0; j < M3; j++)
 		{
-			r = R3 + (j + 1) * (R4 - R3) / (M3 + 1);
+			double s = 1.0 * (j + 1) / (M3 + 1);
+			x = a1 + b1 * s + c1 * s * s + d1 * s * s * s;
+			y = a2 + b2 * s + c2 * s * s + d2 * s * s * s;
+			z = y * sin(phi);
+			y = y * cos(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+
+			/*r = R3 + (j + 1) * (R4 - R3) / (M3 + 1);
 			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
 			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
-			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
+			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);*/
 		}
 		num += M3 + 1;
 
@@ -260,10 +350,17 @@ void Luch::dvigenie(int i_time)
 		// Делаем непрямые лучи
 		double x0, y0, x1, y1, t1, t2, tt1, tt2;
 
-		t1 = cos(the) * this->geo->dd3;
-		tt1 = sin(the) * this->geo->dd3;
+		double dd3 = this->geo->dd3;
+		if (this->parameters.find("dd3") != this->parameters.end()) dd3 = this->parameters["dd3"];
+
+		double dd4 = this->geo->dd4;
+		if (this->parameters.find("dd4") != this->parameters.end()) dd4 = this->parameters["dd4"];
+		
+
+		t1 = cos(the) * dd3;
+		tt1 = sin(the) * dd3;
 		t2 = 0.0;
-		tt2 = 1.0 * this->geo->dd4;
+		tt2 = 1.0 * dd4;
 		x0 = r * cos(the); // Это координаты с последней итерации предыдущего цикла
 		y0 = r * sin(the);
 		x1 = x3;
@@ -584,4 +681,29 @@ void Luch::dvigenie(int i_time)
 
 	}
 	
+}
+
+
+Yzel* Luch::get_yzel_near_opor(int num_opor, int shift)
+{
+	// НЕТ проверки на выход за пределы !!!
+	auto A = this->Yzels_opor[num_opor];
+
+	// Находим позицию целевого элемента
+	vector<Yzel*>::iterator target_it = std::find(this->Yzels.begin(), this->Yzels.end(), A);
+
+	// Проверки
+	if (target_it == this->Yzels.end()) 
+	{
+		cout << "1546767586 Значение не найдено в векторе" << endl;
+		return nullptr;
+	}
+
+	if (target_it == this->Yzels.begin()) 
+	{
+		cout << "9867656565 Нет элементов перед целевым значением" << endl;
+		return nullptr;
+	}
+
+	return *(target_it + shift);
 }

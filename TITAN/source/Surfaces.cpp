@@ -396,11 +396,18 @@ double Surfaces::Get_BS(const double& phi, const double& the)
 		}
 	}
 
+	/*if (the == const_pi / 2.0 && phi == 0.0)
+	{
+		cout << "edrge" << endl;
+	}*/
 
 
 	if (the < const_pi / 2.0 + 0.000001)
 	{
 		// В головной области
+		j2 = this->the_angle.shape()[1] - 1;
+		j1 = j2 - 1;
+
 		for (int i = 0; i < this->the_angle.shape()[1]; i++)
 		{
 			if (this->the_angle[i1][i] > the)

@@ -70,3 +70,5 @@ TITAN/TITAN/.vs/TITAN/v17/.suo
 *.recipe
 
 TITAN/Surface_Print_TS
+
+*.nb

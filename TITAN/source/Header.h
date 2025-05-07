@@ -23,6 +23,7 @@ const double const_pi= 3.14159265358979323846;
 #include <math.h>
 #include <cmath>
 #include <limits>
+#include <iterator>
 
 
 // Boost библиотека (надо подключать к компилятору отдельно)

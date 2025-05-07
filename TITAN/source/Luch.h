@@ -20,4 +20,7 @@ public:
 	//vector<Luch*> Luch_soseds;    // Лучи-соседи (по ним легко искать соседние точки)
 
 	void dvigenie(int i_time);
+
+	Yzel* get_yzel_near_opor(int num_opor, int shift);
+	// Взять узел возле такого-то опорного с таким-то сдвигом
 };

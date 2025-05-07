@@ -1,4 +1,5 @@
 #include "Help_funk.h"
+#include "Yzel.h"
 
 double polar_angle(const double& x, const double& y)
 {
@@ -30,3 +31,14 @@ double polar_angle(const double& x, const double& y)
 	return 0.0;
 }
 
+
+double Yzel_distance(Yzel* A, Yzel* B, int time)
+{
+	return sqrt(kv(A->coord[time][0] - B->coord[time][0]) +
+		kv(A->coord[time][1] - B->coord[time][1]) + kv(A->coord[time][2] - B->coord[time][2]));
+}
+
+double Yzel_distance_x(Yzel* A, Yzel* B, int time)
+{
+	return sqrt(kv(A->coord[time][1] - B->coord[time][1]) + kv(A->coord[time][2] - B->coord[time][2]));
+}

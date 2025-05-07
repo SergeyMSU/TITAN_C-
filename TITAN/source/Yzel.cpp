@@ -1,5 +1,6 @@
 #include "Yzel.h"
 
+
 Yzel::Yzel()
 {
 	this->coord[0][0] = this->coord[0][1] = this->coord[0][2] = 0.0;

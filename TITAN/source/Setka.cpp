@@ -186,6 +186,7 @@ void Setka::Read_old_surface(string name)
 void Setka::Move_to_surf(Surfaces* Surf)
 {
 	double x, y, z, phi, the, r, rr;
+	cout << "Start: Move_to_surf" << endl;
 	for (int st = 0; st < 5; st++)
 	{
 
@@ -233,6 +234,25 @@ void Setka::Move_to_surf(Surfaces* Surf)
 				{
 					cout << "9443563295   errjr" << endl;
 				}
+
+				x = j->Yzels_opor[3]->coord[0][0];
+				y = j->Yzels_opor[3]->coord[0][1];
+				z = j->Yzels_opor[3]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				the = polar_angle(x, sqrt(kv(y) + kv(z)));
+				phi = polar_angle(y, z);
+
+
+				rr = Surf->Get_BS(phi, the);
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "5794671565   errjr" << endl;
+				}
+
+				j->Yzels_opor[3]->coord[0][0] *= rr / r;
+				j->Yzels_opor[3]->coord[0][1] *= rr / r;
+				j->Yzels_opor[3]->coord[0][2] *= rr / r;
 
 			}
 		}
@@ -354,6 +374,7 @@ void Setka::Move_to_surf(Surfaces* Surf)
 
 	}
 
+	cout << "End: Move_to_surf" << endl;
 }
 
 void Setka::New_initial()
@@ -415,6 +436,13 @@ void Setka::New_initial()
 		ffin.read((char*)&x, sizeof x);  this->geo->dd7 = x;
 		ffin.read((char*)&x, sizeof x);  this->geo->dd8 = x;
 	}
+
+	// Меняем геометрические параметры, которые нужны
+	this->geo->dd3 = 19.0;
+	this->geo->dd4 = 15.0;
+	this->geo->dd5 = 19.0;
+	this->geo->dd6 = 14.0;
+
 
 	// Считываем узлы
 	int sdvig_yz = 0;
@@ -925,9 +953,9 @@ void Setka::New_initial()
 		this->geo->R2 = 20.0;
 		this->geo->R3 = 30.0;
 		this->geo->R4 = 140.0;
-		this->geo->R5 = 200.0;
+		this->geo->R5 = 400.0;
 		this->geo->L6 = -40.0;
-		this->geo->L7 = -150.0;
+		this->geo->L7 = -160.0;
 		
 		this->Set_luch_parametr();
 		// Выставляем опорные точки у А2-лучей в правильном порядке
@@ -1312,6 +1340,275 @@ void Setka::New_initial()
 	cout << "---END New_initial---" << endl;
 }
 
+void Setka::auto_set_luch_geo_parameter(void)
+{
+	// Эту функцию совместно с функцией движения сетки (luch.cpp) можно улучшать и дополнять в процессе
+	bool izmen = true;
+	int k = 0;
+
+	while(izmen == true)
+	//for(int ii = 0; ii < 50; ii++)
+	{
+		cout << "Izmenenie geo parameters" << endl;
+		izmen = false;
+		k = 0;
+
+		for (auto& i : this->All_Luch)
+		{
+
+			if (i->type == "A_Luch" || i->type == "A2_Luch")
+			{
+				// da1
+				auto a1 = i->get_yzel_near_opor(1, -1);
+				auto a2 = i->Yzels_opor[1];
+
+				auto b1 = i->get_yzel_near_opor(1, this->geo->M11);
+				auto b2 = i->get_yzel_near_opor(1, this->geo->M11 + 1);
+
+				double d1 = fabs(a1->func_R(0) - a2->func_R(0));
+				double d2 = fabs(b1->func_R(0) - b2->func_R(0));
+
+				//if ((100.0 - d2 * 100.0 / d1) > 5.0)
+				//{
+				//	izmen = true;
+				//	if (i->parameters.find("da1") != i->parameters.end())
+				//	{
+				//		i->parameters["da1"] *= 1.03;
+				//	}
+				//	else
+				//	{
+				//		i->parameters["da1"] = this->geo->da1 * 1.03;
+				//	}
+				//}
+				//else if ((100.0 - d2 * 100.0 / d1) < -5.0)
+				//{
+				//	izmen = true;
+				//	if (i->parameters.find("da1") != i->parameters.end())
+				//	{
+				//		i->parameters["da1"] *= 0.97;
+				//	}
+				//	else
+				//	{
+				//		i->parameters["da1"] = this->geo->da1 * 0.97;
+				//	}
+				//}
+
+				//// da2
+				//b1 = i->Yzels_opor[2];
+				//b2 = i->get_yzel_near_opor(2, -1);
+
+				//d2 = fabs(b1->func_R(0) - b2->func_R(0));
+
+				//if ((100.0 - d2 * 100.0 / d1) > 5.0)
+				//{
+				//	izmen = true;
+				//	if (i->parameters.find("da2") != i->parameters.end())
+				//	{
+				//		i->parameters["da2"] *= 1.03;
+				//	}
+				//	else
+				//	{
+				//		i->parameters["da2"] = this->geo->da2 * 1.03;
+				//	}
+				//}
+				//else if ((100.0 - d2 * 100.0 / d1) < -5.0)
+				//{
+				//	izmen = true;
+				//	if (i->parameters.find("da2") != i->parameters.end())
+				//	{
+				//		i->parameters["da2"] *= 0.97;
+				//	}
+				//	else
+				//	{
+				//		i->parameters["da2"] = this->geo->da2 * 0.97;
+				//	}
+				//}
+
+				//da3
+				b1 = i->Yzels_opor[2];
+				b2 = i->get_yzel_near_opor(2, 1);
+
+				//cout << b1->coord[0][0] << endl;
+				//cout << b2->coord[0][0] << endl;
+
+				d2 = fabs(b1->func_R(0) - b2->func_R(0));
+
+				if ((100.0 - d2 * 100.0 / d1) > 5.0)
+				{
+					k++;
+					izmen = true;
+					if (i->parameters.find("da3") != i->parameters.end())
+					{
+						i->parameters["da3"] *= 1.05;
+					}
+					else
+					{
+						i->parameters["da3"] = this->geo->da3 * 1.05;
+					}
+
+					//cout << "Y  " << i->parameters["da3"] << endl;
+				}
+				else if ((100.0 - d2 * 100.0 / d1) < -5.0)
+				{
+					k++;
+					izmen = true;
+					if (i->parameters.find("da3") != i->parameters.end())
+					{
+						i->parameters["da3"] *= 0.95;
+					}
+					else
+					{
+						i->parameters["da3"] = this->geo->da3 * 0.95;
+					}
+
+					if (i->parameters["da3"] < 0.5)
+					{
+						cout << " wfwef" << endl;
+						cout << i->parameters["da3"] << endl;
+						cout << b1->coord[0][0] << " " << b1->coord[0][1]  << " " << b1->coord[0][2]  << endl;
+						cout << b2->coord[0][0] << " " << b2->coord[0][1]  << " " << b2->coord[0][2]  << endl;
+					}
+					//cout << "N  " << i->parameters["da3"] << endl;
+				}
+
+				//// da4
+				//b1 = i->Yzels_opor[3];
+				//b2 = i->get_yzel_near_opor(3, -1);
+
+				//d2 = fabs(b1->func_R(0) - b2->func_R(0));
+
+				//if ((100.0 - d2 * 100.0 / d1) > 3.0)
+				//{
+				//	izmen = true;
+				//	if (i->parameters.find("da4") != i->parameters.end())
+				//	{
+				//		i->parameters["da4"] *= 1.05;
+				//	}
+				//	else
+				//	{
+				//		i->parameters["da4"] = this->geo->da4 * 1.05;
+				//	}
+				//}
+				//else if ((100.0 - d2 * 100.0 / d1) < -3.0)
+				//{
+				//	izmen = true;
+				//	if (i->parameters.find("da4") != i->parameters.end())
+				//	{
+				//		i->parameters["da4"] *= 0.95;
+				//	}
+				//	else
+				//	{
+				//		i->parameters["da4"] = this->geo->da4 * 0.95;
+				//	}
+				//}
+
+
+			}
+
+			if (i->type == "B_Luch")
+			{
+				// dd3
+				auto a1 = i->get_yzel_near_opor(1, -1);
+				auto a2 = i->Yzels_opor[1];
+
+				auto b1 = i->get_yzel_near_opor(1, this->geo->M11);
+				auto b2 = i->get_yzel_near_opor(1, this->geo->M11 + 1);
+
+				double d1 = Yzel_distance(a1, a2, 0);
+				//double d2 = Yzel_distance_x(b1, b2, 0);
+
+				double ex = b1->coord[0][0];
+				double ey = b1->coord[0][1];
+				double ez = b1->coord[0][2];
+
+				double the = polar_angle(ex, sqrt(kvv(0.0, ey, ez))) - const_pi/2.0;
+
+				double ee = sqrt(kvv(ex, ey, ez));
+				ex /= ee;
+				ey /= ee;
+				ez /= ee;
+
+				double vx = (b2->coord[0][0] - b1->coord[0][0]);
+				double vy = (b2->coord[0][1] - b1->coord[0][1]);
+				double vz = (b2->coord[0][2] - b1->coord[0][2]);
+
+				double vv = sqrt(kvv(vx, vy, vz));
+				vx /= vv;
+				vy /= vv;
+				vz /= vv;
+
+				double co = fabs(vx * ex + vy * ey + vz * ez);
+
+				// Попытка сделать так, чтобы B лучи были гладкими вблизи TS (для этого нужно было как-то уменьшить d2 для лучей вблизи тройной точки)
+				double d2 = fabs((b2->coord[0][0] - b1->coord[0][0]) * ex +
+					(b2->coord[0][1] - b1->coord[0][1]) * ey + (b2->coord[0][2] - b1->coord[0][2]) * ez) * co * co * kv(cos(the));
+
+				if ((100.0 - d2 * 100.0 / d1) > 3.0)
+				{
+					izmen = true;
+					if (i->parameters.find("dd3") != i->parameters.end())
+					{
+						i->parameters["dd3"] *= 1.03;
+					}
+					else
+					{
+						i->parameters["dd3"] = this->geo->dd3 * 1.03;
+					}
+				}
+				else if ((100.0 - d2 * 100.0 / d1) < -3.0)
+				{
+					izmen = true;
+					if (i->parameters.find("dd3") != i->parameters.end())
+					{
+						i->parameters["dd3"] *= 0.97;
+					}
+					else
+					{
+						i->parameters["dd3"] = this->geo->dd3 * 0.97;
+					}
+				}
+				// dd4
+				b1 = i->Yzels_opor[2];
+				b2 = i->get_yzel_near_opor(2, -1);
+
+				d2 = Yzel_distance(b1, b2, 0);
+
+				if ((100.0 - d2 * 100.0 / d1) > 3.0)
+				{
+					izmen = true;
+					if (i->parameters.find("dd4") != i->parameters.end())
+					{
+						i->parameters["dd4"] *= 1.03;
+					}
+					else
+					{
+						i->parameters["dd4"] = this->geo->dd4 * 1.03;
+					}
+				}
+				else if ((100.0 - d2 * 100.0 / d1) < -3.0)
+				{
+					izmen = true;
+					if (i->parameters.find("dd4") != i->parameters.end())
+					{
+						i->parameters["dd4"] *= 0.97;
+					}
+					else
+					{
+						i->parameters["dd4"] = this->geo->dd4 * 0.97;
+					}
+				}
+			}
+		}
+
+		for (auto& i : this->All_Luch)
+		{
+			i->dvigenie(0);
+		}
+
+		cout << "k = " << k << endl;
+	}
+}
+
 void Setka::Winslow_method(void)
 {
 	int N, M;
@@ -1689,6 +1986,295 @@ void Setka::Tecplot_print_all_lush_in_2D()
 		for (int m = 0; m < k; m++)
 		{
 			fout << 2 * m + 1 << " " << 2 * m + 2 << endl;
+		}
+
+		fout << endl;
+	}
+
+	fout.close();
+}
+
+void Setka::Tecplot_print_plane_lush(int plane)
+{
+	// name - это имя лучей
+	ofstream fout;
+	string name_f = "Tecplot_print_plane_lush_" + to_string(plane) + ".txt";
+
+	int k = 0;
+
+	for (auto& nn : this->name_luch)
+	{
+		auto A = *(this->All_name_luch[nn]);
+		for (auto& j : A[0])
+		{
+			k += (j->Yzels.size() - 1);
+		}
+	}
+
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = X, Y" << endl;
+
+
+	for (int i = plane; i <= plane; i++)
+	{
+		//auto i = A[1];
+		fout << "ZONE T=HP, N = " << 2 * k << ", E = " << k << ", F=FEPOINT, ET=LINESEG" << endl;
+	
+		for (auto& nn : this->name_luch)
+		{
+			auto A = *(this->All_name_luch[nn]);
+			for (auto& j : A[i])
+			{
+				for (int m = 0; m < j->Yzels.size() - 1; m++)
+				{
+					fout << j->Yzels[m]->coord[0][0] << " " << sqrt(kv(j->Yzels[m]->coord[0][1]) + kv(j->Yzels[m]->coord[0][2])) << endl;
+					fout << j->Yzels[m + 1]->coord[0][0] << " " << sqrt(kv(j->Yzels[m + 1]->coord[0][1]) + kv(j->Yzels[m + 1]->coord[0][2])) << endl;
+				}
+			}
+		}
+
+
+		for (int m = 0; m < k; m++)
+		{
+			fout << 2 * m + 1 << " " << 2 * m + 2 << endl;
+		}
+
+		fout << endl;
+	}
+
+	fout.close();
+}
+
+void Setka::Tecplot_print_plane_surfase(int plane)
+{
+	// name - это имя лучей
+	ofstream fout;
+	string name_f = "Tecplot_print_plane_surfase_" + to_string(plane) + ".txt";
+
+	int kTS = 0;
+	kTS += this->A_Luch[0].size();
+	kTS += this->B_Luch[0].size();
+	kTS += this->C_Luch[0].size();
+
+	int kHP = 0;
+	kHP += this->A_Luch[0].size();
+	kHP += this->B_Luch[0].size();
+	kHP += this->E_Luch[0].size();
+	kHP += this->D_Luch[0].size();
+
+	int kBS = 0;
+	kBS += this->A_Luch[0].size();
+
+
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = X, Y" << endl;
+
+	for (int i = plane; i <= plane; i++)
+	{
+		//auto i = A[1];
+		fout << "ZONE T=HP, N = " << kTS + kHP + kBS << ", E = " << kTS + kHP + kBS - 3 << ", F=FEPOINT, ET=LINESEG" << endl;
+
+		// TS
+		for (auto& i : this->A_Luch[i])
+		{
+			double x = i->Yzels_opor[1]->coord[0][0];
+			double y = i->Yzels_opor[1]->coord[0][1];
+			double z = i->Yzels_opor[1]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		for (auto& i : this->B_Luch[i])
+		{
+			double x = i->Yzels_opor[1]->coord[0][0];
+			double y = i->Yzels_opor[1]->coord[0][1];
+			double z = i->Yzels_opor[1]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		for (auto& i : this->C_Luch[i])
+		{
+			double x = i->Yzels_opor[1]->coord[0][0];
+			double y = i->Yzels_opor[1]->coord[0][1];
+			double z = i->Yzels_opor[1]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		// HP
+		for (auto& i : this->A_Luch[i])
+		{
+			double x = i->Yzels_opor[2]->coord[0][0];
+			double y = i->Yzels_opor[2]->coord[0][1];
+			double z = i->Yzels_opor[2]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		for (auto& i : this->B_Luch[i])
+		{
+			double x = i->Yzels_opor[2]->coord[0][0];
+			double y = i->Yzels_opor[2]->coord[0][1];
+			double z = i->Yzels_opor[2]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		for (auto& i : this->E_Luch[i])
+		{
+			double x = i->Yzels_opor[1]->coord[0][0];
+			double y = i->Yzels_opor[1]->coord[0][1];
+			double z = i->Yzels_opor[1]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		for (auto& i : this->D_Luch[i])
+		{
+			double x = i->Yzels_opor[1]->coord[0][0];
+			double y = i->Yzels_opor[1]->coord[0][1];
+			double z = i->Yzels_opor[1]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		// BS
+		for (auto& i : this->A_Luch[i])
+		{
+			double x = i->Yzels_opor[3]->coord[0][0];
+			double y = i->Yzels_opor[3]->coord[0][1];
+			double z = i->Yzels_opor[3]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+
+		for (int m = 1; m < kTS; m++)
+		{
+			fout << m << " " << m + 1 << endl;
+		}
+
+		for (int m = 1; m < kHP; m++)
+		{
+			fout << kTS + m << " " << kTS + m + 1 << endl;
+		}
+
+		for (int m = 1; m < kBS; m++)
+		{
+			fout << kTS + kHP + m << " " << kTS + kHP + m + 1 << endl;
+		}
+
+		fout << endl;
+	}
+
+	fout.close();
+}
+
+void Setka::Tecplot_print_All_surfase_in_2D()
+{
+	// name - это имя лучей
+	ofstream fout;
+	string name_f = "Tecplot_print_All_surfase_in_2D.txt";
+
+	int kTS = 0;
+	kTS += this->A_Luch[0].size();
+	kTS += this->B_Luch[0].size();
+	kTS += this->C_Luch[0].size();
+
+	int kHP = 0;
+	kHP += this->A_Luch[0].size();
+	kHP += this->B_Luch[0].size();
+	kHP += this->E_Luch[0].size();
+	kHP += this->D_Luch[0].size();
+
+	int kBS = 0;
+	kBS += this->A_Luch[0].size();
+
+
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = X, Y" << endl;
+	int kkk = 0;
+
+	for (int i = 0; i < this->geo->Nphi; i++)
+	{
+		kkk++;
+		//auto i = A[1];
+		fout << "ZONE T=HP, N = " << kTS + kHP + kBS << ", E = " << kTS + kHP + kBS - 3 << ", F=FEPOINT, ET=LINESEG, SOLUTIONTIME = " << kkk << endl;
+
+		// TS
+		for (auto& i : this->A_Luch[i])
+		{
+			double x = i->Yzels_opor[1]->coord[0][0];
+			double y = i->Yzels_opor[1]->coord[0][1];
+			double z = i->Yzels_opor[1]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		for (auto& i : this->B_Luch[i])
+		{
+			double x = i->Yzels_opor[1]->coord[0][0];
+			double y = i->Yzels_opor[1]->coord[0][1];
+			double z = i->Yzels_opor[1]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		for (auto& i : this->C_Luch[i])
+		{
+			double x = i->Yzels_opor[1]->coord[0][0];
+			double y = i->Yzels_opor[1]->coord[0][1];
+			double z = i->Yzels_opor[1]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		// HP
+		for (auto& i : this->A_Luch[i])
+		{
+			double x = i->Yzels_opor[2]->coord[0][0];
+			double y = i->Yzels_opor[2]->coord[0][1];
+			double z = i->Yzels_opor[2]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		for (auto& i : this->B_Luch[i])
+		{
+			double x = i->Yzels_opor[2]->coord[0][0];
+			double y = i->Yzels_opor[2]->coord[0][1];
+			double z = i->Yzels_opor[2]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		for (auto& i : this->E_Luch[i])
+		{
+			double x = i->Yzels_opor[1]->coord[0][0];
+			double y = i->Yzels_opor[1]->coord[0][1];
+			double z = i->Yzels_opor[1]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		for (auto& i : this->D_Luch[i])
+		{
+			double x = i->Yzels_opor[1]->coord[0][0];
+			double y = i->Yzels_opor[1]->coord[0][1];
+			double z = i->Yzels_opor[1]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+		// BS
+		for (auto& i : this->A_Luch[i])
+		{
+			double x = i->Yzels_opor[3]->coord[0][0];
+			double y = i->Yzels_opor[3]->coord[0][1];
+			double z = i->Yzels_opor[3]->coord[0][2];
+			fout << x << " " << sqrt(kv(y) + kv(z)) << endl;
+		}
+
+
+		for (int m = 1; m < kTS; m++)
+		{
+			fout << m << " " << m + 1 << endl;
+		}
+
+		for (int m = 1; m < kHP; m++)
+		{
+			fout << kTS + m << " " << kTS + m + 1 << endl;
+		}
+
+		for (int m = 1; m < kBS; m++)
+		{
+			fout << kTS + kHP + m << " " << kTS + kHP + m + 1 << endl;
 		}
 
 		fout << endl;
