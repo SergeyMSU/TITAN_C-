@@ -187,6 +187,7 @@ void Setka::Move_to_surf(Surfaces* Surf)
 {
 	double x, y, z, phi, the, r, rr;
 	cout << "Start: Move_to_surf" << endl;
+	double R_BS; // положение внешней ударной волны (для движение B E D лучей)
 	for (int st = 0; st < 5; st++)
 	{
 
@@ -366,11 +367,45 @@ void Setka::Move_to_surf(Surfaces* Surf)
 			}
 		}
 	
+		// Двигаем BS для B E D лучей
+		for (int i = 0; i < this->B_Luch.size(); i++)
+		{
+			R_BS = this->A_Luch[i].back()->Yzels_opor[3]->func_R(0);
+			for (auto& j : this->B_Luch[i])
+			{
+				y = j->Yzels_opor[3]->coord[0][1];
+				z = j->Yzels_opor[3]->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
 
-	for (auto& i : this->All_Luch)
-	{
-		i->dvigenie(0);
-	}
+				j->Yzels_opor[3]->coord[0][1] *= R_BS / r;
+				j->Yzels_opor[3]->coord[0][2] *= R_BS / r;
+			}
+
+			for (auto& j : this->E_Luch[i])
+			{
+				y = j->Yzels_opor[2]->coord[0][1];
+				z = j->Yzels_opor[2]->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+
+				j->Yzels_opor[2]->coord[0][1] *= R_BS / r;
+				j->Yzels_opor[2]->coord[0][2] *= R_BS / r;
+			}
+
+			for (auto& j : this->D_Luch[i])
+			{
+				y = j->Yzels_opor[2]->coord[0][1];
+				z = j->Yzels_opor[2]->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+
+				j->Yzels_opor[2]->coord[0][1] *= R_BS / r;
+				j->Yzels_opor[2]->coord[0][2] *= R_BS / r;
+			}
+		}
+
+		for (auto& i : this->All_Luch)
+		{
+			i->dvigenie(0);
+		}
 
 	}
 
@@ -1340,16 +1375,60 @@ void Setka::New_initial()
 	cout << "---END New_initial---" << endl;
 }
 
-void Setka::auto_set_luch_geo_parameter(void)
+void Setka::auto_set_luch_geo_parameter(int for_new)
 {
+	// for_new = 0 - значит это первый запуск функции и параметры двлеки от идеальных
+	// в этом случае движение изначально будет большое
+	// for_new = 1 - небольшое движение, если это не первый запуск и поверхности уже стоят где надо
+
+	cout << "Start: Izmenenie geo parameters" << endl;
 	// Эту функцию совместно с функцией движения сетки (luch.cpp) можно улучшать и дополнять в процессе
 	bool izmen = true;
 	int k = 0;
+	int ii = 0;
+
+	double procent = 50.0;
+	if (for_new == 1)
+	{
+		procent = 1.0;
+	}
 
 	while(izmen == true)
 	//for(int ii = 0; ii < 50; ii++)
 	{
-		cout << "Izmenenie geo parameters" << endl;
+		ii++;
+
+		if (ii > 80)
+		{
+			procent = 0.1;
+		}
+
+		if (for_new == 0) // динамическое изменение коэффициента
+		{
+			if (ii > 80)
+			{
+				procent = 0.1;
+			}
+			else if (ii > 50)
+			{
+				procent = 1.0;
+			}
+			else if (ii > 20)
+			{
+				procent = 3.0;
+			}
+			else if (ii > 13)
+			{
+				procent = 10.0;
+			}
+			else if (ii > 3)
+			{
+				procent = 20.0;
+			}
+		}
+
+
+
 		izmen = false;
 		k = 0;
 
@@ -1368,68 +1447,40 @@ void Setka::auto_set_luch_geo_parameter(void)
 				double d1 = fabs(a1->func_R(0) - a2->func_R(0));
 				double d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-				//if ((100.0 - d2 * 100.0 / d1) > 5.0)
-				//{
-				//	izmen = true;
-				//	if (i->parameters.find("da1") != i->parameters.end())
-				//	{
-				//		i->parameters["da1"] *= 1.03;
-				//	}
-				//	else
-				//	{
-				//		i->parameters["da1"] = this->geo->da1 * 1.03;
-				//	}
-				//}
-				//else if ((100.0 - d2 * 100.0 / d1) < -5.0)
-				//{
-				//	izmen = true;
-				//	if (i->parameters.find("da1") != i->parameters.end())
-				//	{
-				//		i->parameters["da1"] *= 0.97;
-				//	}
-				//	else
-				//	{
-				//		i->parameters["da1"] = this->geo->da1 * 0.97;
-				//	}
-				//}
+				if ((100.0 - d2 * 100.0 / d1) > 5.0)
+				{
+					k++;
+					izmen = true;
+					if (i->parameters.find("da1") != i->parameters.end())
+					{
+						i->parameters["da1"] *= (1.0 + procent/100.0);
+						//cout << "UP " << i->parameters["da1"] << endl;
+					}
+					else
+					{
+						i->parameters["da1"] = this->geo->da1 * (1.0 + procent / 100.0);
+						//cout << "UP " << i->parameters["da1"] << endl;
+					}
+				}
+				else if ((100.0 - d2 * 100.0 / d1) < -5.0)
+				{
+					k++;
+					izmen = true;
+					if (i->parameters.find("da1") != i->parameters.end())
+					{
+						i->parameters["da1"] *= (1.0 - procent / 100.0);
+						//cout << "DOWN " << i->parameters["da1"] << endl;
+					}
+					else
+					{
+						i->parameters["da1"] = this->geo->da1 * (1.0 - procent / 100.0);
+						//cout << "DOWN " << i->parameters["da1"] << endl;
+					}
+				}
 
-				//// da2
-				//b1 = i->Yzels_opor[2];
-				//b2 = i->get_yzel_near_opor(2, -1);
-
-				//d2 = fabs(b1->func_R(0) - b2->func_R(0));
-
-				//if ((100.0 - d2 * 100.0 / d1) > 5.0)
-				//{
-				//	izmen = true;
-				//	if (i->parameters.find("da2") != i->parameters.end())
-				//	{
-				//		i->parameters["da2"] *= 1.03;
-				//	}
-				//	else
-				//	{
-				//		i->parameters["da2"] = this->geo->da2 * 1.03;
-				//	}
-				//}
-				//else if ((100.0 - d2 * 100.0 / d1) < -5.0)
-				//{
-				//	izmen = true;
-				//	if (i->parameters.find("da2") != i->parameters.end())
-				//	{
-				//		i->parameters["da2"] *= 0.97;
-				//	}
-				//	else
-				//	{
-				//		i->parameters["da2"] = this->geo->da2 * 0.97;
-				//	}
-				//}
-
-				//da3
+				// da2
 				b1 = i->Yzels_opor[2];
-				b2 = i->get_yzel_near_opor(2, 1);
-
-				//cout << b1->coord[0][0] << endl;
-				//cout << b2->coord[0][0] << endl;
+				b2 = i->get_yzel_near_opor(2, -1);
 
 				d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
@@ -1437,77 +1488,142 @@ void Setka::auto_set_luch_geo_parameter(void)
 				{
 					k++;
 					izmen = true;
-					if (i->parameters.find("da3") != i->parameters.end())
+					if (i->parameters.find("da2") != i->parameters.end())
 					{
-						i->parameters["da3"] *= 1.05;
+						i->parameters["da2"] *= (1.0 + procent / 100.0);
 					}
 					else
 					{
-						i->parameters["da3"] = this->geo->da3 * 1.05;
+						i->parameters["da2"] = this->geo->da2 * (1.0 + procent / 100.0);
 					}
-
-					//cout << "Y  " << i->parameters["da3"] << endl;
 				}
 				else if ((100.0 - d2 * 100.0 / d1) < -5.0)
 				{
 					k++;
 					izmen = true;
-					if (i->parameters.find("da3") != i->parameters.end())
+					if (i->parameters.find("da2") != i->parameters.end())
 					{
-						i->parameters["da3"] *= 0.95;
+						i->parameters["da2"] *= (1.0 - procent / 100.0);
 					}
 					else
 					{
-						i->parameters["da3"] = this->geo->da3 * 0.95;
+						i->parameters["da2"] = this->geo->da2 * (1.0 - procent / 100.0);
 					}
-
-					if (i->parameters["da3"] < 0.5)
-					{
-						cout << " wfwef" << endl;
-						cout << i->parameters["da3"] << endl;
-						cout << b1->coord[0][0] << " " << b1->coord[0][1]  << " " << b1->coord[0][2]  << endl;
-						cout << b2->coord[0][0] << " " << b2->coord[0][1]  << " " << b2->coord[0][2]  << endl;
-					}
-					//cout << "N  " << i->parameters["da3"] << endl;
 				}
 
-				//// da4
-				//b1 = i->Yzels_opor[3];
-				//b2 = i->get_yzel_near_opor(3, -1);
+				//da3
+				if (i->parameters.find("da3") == i->parameters.end() || i->parameters["da3"] > 0.05)
+				{
+					b1 = i->Yzels_opor[2];
+					b2 = i->get_yzel_near_opor(2, 1);
 
-				//d2 = fabs(b1->func_R(0) - b2->func_R(0));
+					d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-				//if ((100.0 - d2 * 100.0 / d1) > 3.0)
-				//{
-				//	izmen = true;
-				//	if (i->parameters.find("da4") != i->parameters.end())
-				//	{
-				//		i->parameters["da4"] *= 1.05;
-				//	}
-				//	else
-				//	{
-				//		i->parameters["da4"] = this->geo->da4 * 1.05;
-				//	}
-				//}
-				//else if ((100.0 - d2 * 100.0 / d1) < -3.0)
-				//{
-				//	izmen = true;
-				//	if (i->parameters.find("da4") != i->parameters.end())
-				//	{
-				//		i->parameters["da4"] *= 0.95;
-				//	}
-				//	else
-				//	{
-				//		i->parameters["da4"] = this->geo->da4 * 0.95;
-				//	}
-				//}
+					if ((100.0 - d2 * 100.0 / d1) > 5.0)
+					{
+						k++;
+						izmen = true;
+						if (i->parameters.find("da3") != i->parameters.end())
+						{
+							i->parameters["da3"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							i->parameters["da3"] = this->geo->da3 * (1.0 + procent / 100.0);
+						}
+					}
+					else if ((100.0 - d2 * 100.0 / d1) < -5.0)
+					{
+						k++;
+						izmen = true;
+						if (i->parameters.find("da3") != i->parameters.end())
+						{
+							i->parameters["da3"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							i->parameters["da3"] = this->geo->da3 * (1.0 - procent / 100.0);
+						}
+					}
+				}
 
+				// da4
+				if (i->parameters.find("da4") == i->parameters.end() || i->parameters["da4"] > 0.05)
+				{
+					b1 = i->Yzels_opor[3];
+					b2 = i->get_yzel_near_opor(3, -1);
+
+					d2 = fabs(b1->func_R(0) - b2->func_R(0));
+
+					if ((100.0 - d2 * 100.0 / (2.0 * d1) ) > 5.0)
+					{
+						k++;
+						izmen = true;
+						if (i->parameters.find("da4") != i->parameters.end())
+						{
+							i->parameters["da4"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							i->parameters["da4"] = this->geo->da4 * (1.0 + procent / 100.0);
+						}
+					}
+					else if ((100.0 - d2 * 100.0 / (2.0 * d1)) < -5.0)
+					{
+						k++;
+						izmen = true;
+						if (i->parameters.find("da4") != i->parameters.end())
+						{
+							i->parameters["da4"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							i->parameters["da4"] = this->geo->da4 * (1.0 - procent / 100.0);
+						}
+					}
+				}
+
+				//da5
+				if (i->parameters.find("da5") == i->parameters.end() || i->parameters["da5"] > 0.05)
+				{
+					b1 = i->Yzels_opor[3];
+					b2 = i->get_yzel_near_opor(3, 1);
+
+					d2 = fabs(b1->func_R(0) - b2->func_R(0));
+
+					if ((100.0 - d2 * 100.0 / (2.0 * d1)) > 5.0)
+					{
+						k++;
+						izmen = true;
+						if (i->parameters.find("da5") != i->parameters.end())
+						{
+							i->parameters["da5"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							i->parameters["da5"] = this->geo->da5 * (1.0 + procent / 100.0);
+						}
+					}
+					else if ((100.0 - d2 * 100.0 / (2.0 * d1)) < -5.0)
+					{
+						k++;
+						izmen = true;
+						if (i->parameters.find("da5") != i->parameters.end())
+						{
+							i->parameters["da5"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							i->parameters["da5"] = this->geo->da5 * (1.0 - procent / 100.0);
+						}
+					}
+				}
 
 			}
 
 			if (i->type == "B_Luch")
 			{
-				// dd3
+				// ba1
 				auto a1 = i->get_yzel_near_opor(1, -1);
 				auto a2 = i->Yzels_opor[1];
 
@@ -1515,59 +1631,35 @@ void Setka::auto_set_luch_geo_parameter(void)
 				auto b2 = i->get_yzel_near_opor(1, this->geo->M11 + 1);
 
 				double d1 = Yzel_distance(a1, a2, 0);
-				//double d2 = Yzel_distance_x(b1, b2, 0);
+				double d2 = Yzel_distance_x(b1, b2, 0);
 
-				double ex = b1->coord[0][0];
-				double ey = b1->coord[0][1];
-				double ez = b1->coord[0][2];
-
-				double the = polar_angle(ex, sqrt(kvv(0.0, ey, ez))) - const_pi/2.0;
-
-				double ee = sqrt(kvv(ex, ey, ez));
-				ex /= ee;
-				ey /= ee;
-				ez /= ee;
-
-				double vx = (b2->coord[0][0] - b1->coord[0][0]);
-				double vy = (b2->coord[0][1] - b1->coord[0][1]);
-				double vz = (b2->coord[0][2] - b1->coord[0][2]);
-
-				double vv = sqrt(kvv(vx, vy, vz));
-				vx /= vv;
-				vy /= vv;
-				vz /= vv;
-
-				double co = fabs(vx * ex + vy * ey + vz * ez);
-
-				// Попытка сделать так, чтобы B лучи были гладкими вблизи TS (для этого нужно было как-то уменьшить d2 для лучей вблизи тройной точки)
-				double d2 = fabs((b2->coord[0][0] - b1->coord[0][0]) * ex +
-					(b2->coord[0][1] - b1->coord[0][1]) * ey + (b2->coord[0][2] - b1->coord[0][2]) * ez) * co * co * kv(cos(the));
-
-				if ((100.0 - d2 * 100.0 / d1) > 3.0)
+				if ((100.0 - d2 * 100.0 / d1) > 5.0)
 				{
+					k++;
 					izmen = true;
-					if (i->parameters.find("dd3") != i->parameters.end())
+					if (i->parameters.find("ba1") != i->parameters.end())
 					{
-						i->parameters["dd3"] *= 1.03;
+						i->parameters["ba1"] *= (1.0 + procent / 100.0);
 					}
 					else
 					{
-						i->parameters["dd3"] = this->geo->dd3 * 1.03;
+						i->parameters["ba1"] = this->geo->ba1 * (1.0 + procent / 100.0);
 					}
 				}
-				else if ((100.0 - d2 * 100.0 / d1) < -3.0)
+				else if ((100.0 - d2 * 100.0 / d1) < -5.0)
 				{
+					k++;
 					izmen = true;
-					if (i->parameters.find("dd3") != i->parameters.end())
+					if (i->parameters.find("ba1") != i->parameters.end())
 					{
-						i->parameters["dd3"] *= 0.97;
+						i->parameters["ba1"] *= (1.0 - procent / 100.0);
 					}
 					else
 					{
-						i->parameters["dd3"] = this->geo->dd3 * 0.97;
+						i->parameters["ba1"] = this->geo->ba1 * (1.0 - procent / 100.0);
 					}
 				}
-				// dd4
+				// ba2
 				b1 = i->Yzels_opor[2];
 				b2 = i->get_yzel_near_opor(2, -1);
 
@@ -1575,30 +1667,450 @@ void Setka::auto_set_luch_geo_parameter(void)
 
 				if ((100.0 - d2 * 100.0 / d1) > 3.0)
 				{
+					k++;
 					izmen = true;
-					if (i->parameters.find("dd4") != i->parameters.end())
+					if (i->parameters.find("ba2") != i->parameters.end())
 					{
-						i->parameters["dd4"] *= 1.03;
+						i->parameters["ba2"] *= (1.0 + procent / 100.0);
 					}
 					else
 					{
-						i->parameters["dd4"] = this->geo->dd4 * 1.03;
+						i->parameters["ba2"] = this->geo->ba2 * (1.0 + procent / 100.0);
 					}
 				}
 				else if ((100.0 - d2 * 100.0 / d1) < -3.0)
 				{
+					k++;
 					izmen = true;
-					if (i->parameters.find("dd4") != i->parameters.end())
+					if (i->parameters.find("ba2") != i->parameters.end())
 					{
-						i->parameters["dd4"] *= 0.97;
+						i->parameters["ba2"] *= (1.0 - procent / 100.0);
 					}
 					else
 					{
-						i->parameters["dd4"] = this->geo->dd4 * 0.97;
+						i->parameters["ba2"] = this->geo->ba2 * (1.0 - procent / 100.0);
+					}
+				}
+
+				// ba3
+				if (i->parameters.find("ba3") == i->parameters.end() || i->parameters["ba3"] > 0.05)
+				{
+					a1 = i->get_yzel_near_opor(1, -1);
+					a2 = i->Yzels_opor[1];
+
+					b1 = i->Yzels_opor[2];
+					b2 = i->get_yzel_near_opor(2, 1);
+
+					d1 = Yzel_distance(a1, a2, 0);
+					d2 = Yzel_distance_x(b1, b2, 0);
+
+					if ((100.0 - d2 * 100.0 / d1) > 1.0)
+					{
+						k++;
+						izmen = true;
+						if (i->parameters.find("ba3") != i->parameters.end())
+						{
+							i->parameters["ba3"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							i->parameters["ba3"] = this->geo->ba3 * (1.0 + procent / 100.0);
+						}
+					}
+					else if ((100.0 - d2 * 100.0 / d1) < -1.0)
+					{
+						k++;
+						izmen = true;
+						if (i->parameters.find("ba3") != i->parameters.end())
+						{
+							i->parameters["ba3"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							i->parameters["ba3"] = this->geo->ba3 * (1.0 - procent / 100.0);
+						}
+					}
+				}
+				// ba4
+				if (i->parameters.find("ba4") == i->parameters.end() || i->parameters["ba4"] > 0.05)
+				{
+					b1 = i->Yzels_opor[3];
+					b2 = i->get_yzel_near_opor(3, -1);
+
+					d2 = Yzel_distance(b1, b2, 0);
+
+					if ((100.0 - d2 * 100.0 / (2.0 * d1)) > 1.0)
+					{
+						k++;
+						izmen = true;
+						if (i->parameters.find("ba4") != i->parameters.end())
+						{
+							i->parameters["ba4"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							i->parameters["ba4"] = this->geo->ba4 * (1.0 + procent / 100.0);
+						}
+					}
+					else if ((100.0 - d2 * 100.0 / (2.0 * d1)) < -1.0)
+					{
+						k++;
+						izmen = true;
+						if (i->parameters.find("ba4") != i->parameters.end())
+						{
+							i->parameters["ba4"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							i->parameters["ba4"] = this->geo->ba4 * (1.0 - procent / 100.0);
+						}
 					}
 				}
 			}
 		}
+
+		// для B лучей за TS
+		for (int i = 0; i < this->B_Luch.size(); i++)
+		{
+			auto A = this->A_Luch[i].back();
+			auto B = this->B_Luch[i][0];
+			auto a1 = A->get_yzel_near_opor(3, 1);
+			auto a2 = A->Yzels_opor[3];
+
+			auto b1 = B->Yzels_opor[3];
+			auto b2 = B->get_yzel_near_opor(3, 1);
+
+			double d1 = Yzel_distance(a1, a2, 0);
+			double d2 = Yzel_distance(b1, b2, 0);
+
+			if ((100.0 - d2 * 100.0 / d1) > 1.0)
+			{
+				k++;
+				izmen = true;
+				for (auto& kk : this->B_Luch[i])
+				{
+					if (kk->parameters.find("ba5") != kk->parameters.end())
+					{
+						kk->parameters["ba5"] *= (1.0 + procent / 100.0);
+					}
+					else
+					{
+						kk->parameters["ba5"] = this->geo->ba5 * (1.0 + procent / 100.0);
+					}
+				}
+			}
+			else if((100.0 - d2 * 100.0 / d1) < -1.0)
+			{
+				k++;
+				izmen = true;
+				for (auto& kk : this->B_Luch[i])
+				{
+					if (kk->parameters.find("ba5") != kk->parameters.end())
+					{
+						kk->parameters["ba5"] *= (1.0 - procent / 100.0);
+					}
+					else
+					{
+						kk->parameters["ba5"] = this->geo->ba5 * (1.0 - procent / 100.0);
+					}
+				}
+			}
+		}
+
+		// для E лучей
+		for (int i = 0; i < this->E_Luch.size(); i++)
+		{
+			auto A = this->E_Luch[i][0];
+			auto B = this->B_Luch[i].back();
+			
+			// ea1
+			auto a1 = A->get_yzel_near_opor(1, 1);
+			auto a2 = A->Yzels_opor[1];
+
+			auto b1 = B->Yzels_opor[2];
+			auto b2 = B->get_yzel_near_opor(2, 1);
+
+			double d2 = Yzel_distance(a1, a2, 0);
+			double d1 = Yzel_distance(b1, b2, 0);
+
+			if (this->E_Luch[i][0]->parameters.find("ea1") == this->E_Luch[i][0]->parameters.end() || this->E_Luch[i][0]->parameters["ea1"] > 0.01)
+			{
+				if ((100.0 - d2 * 100.0 / d1) > 1.0)
+				{
+					k++;
+					izmen = true;
+					for (auto& kk : this->E_Luch[i])
+					{
+						if (kk->parameters.find("ea1") != kk->parameters.end())
+						{
+							kk->parameters["ea1"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["ea1"] = this->geo->ea1 * (1.0 + procent / 100.0);
+						}
+					}
+				}
+				else if ((100.0 - d2 * 100.0 / d1) < -1.0)
+				{
+					k++;
+					izmen = true;
+					for (auto& kk : this->E_Luch[i])
+					{
+						if (kk->parameters.find("ea1") != kk->parameters.end())
+						{
+							kk->parameters["ea1"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["ea1"] = this->geo->ea1 * (1.0 - procent / 100.0);
+						}
+					}
+				}
+			}
+
+			// ea2
+
+			if (this->E_Luch[i][0]->parameters.find("ea2") == this->E_Luch[i][0]->parameters.end() || this->E_Luch[i][0]->parameters["ea2"] > 0.01)
+			{
+				a1 = A->get_yzel_near_opor(2, -1);
+				a2 = A->Yzels_opor[2];
+
+				b1 = B->Yzels_opor[3];
+				b2 = B->get_yzel_near_opor(3, -1);
+
+				d2 = Yzel_distance(a1, a2, 0);
+				d1 = Yzel_distance(b1, b2, 0);
+
+				if ((100.0 - d2 * 100.0 / d1) > 1.0)
+				{
+					k++;
+					izmen = true;
+					for (auto& kk : this->E_Luch[i])
+					{
+						if (kk->parameters.find("ea2") != kk->parameters.end())
+						{
+							kk->parameters["ea2"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["ea2"] = this->geo->ea2 * (1.0 + procent / 100.0);
+						}
+					}
+				}
+				else if ((100.0 - d2 * 100.0 / d1) < -1.0)
+				{
+					k++;
+					izmen = true;
+					for (auto& kk : this->E_Luch[i])
+					{
+						if (kk->parameters.find("ea2") != kk->parameters.end())
+						{
+							kk->parameters["ea2"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["ea2"] = this->geo->ea2 * (1.0 - procent / 100.0);
+						}
+					}
+				}
+			}
+
+			// ea3
+
+			if (this->E_Luch[i][0]->parameters.find("ea3") == this->E_Luch[i][0]->parameters.end() || this->E_Luch[i][0]->parameters["ea3"] > 0.01)
+			{
+				a1 = A->get_yzel_near_opor(2, 1);
+				a2 = A->Yzels_opor[2];
+
+				b1 = B->Yzels_opor[3];
+				b2 = B->get_yzel_near_opor(3, 1);
+
+				d2 = Yzel_distance(a1, a2, 0);
+				d1 = Yzel_distance(b1, b2, 0);
+
+				if ((100.0 - d2 * 100.0 / d1) > 1.0)
+				{
+					k++;
+					izmen = true;
+					for (auto& kk : this->E_Luch[i])
+					{
+						if (kk->parameters.find("ea3") != kk->parameters.end())
+						{
+							kk->parameters["ea3"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["ea3"] = this->geo->ea3 * (1.0 + procent / 100.0);
+						}
+					}
+				}
+				else if ((100.0 - d2 * 100.0 / d1) < -1.0)
+				{
+					k++;
+					izmen = true;
+					for (auto& kk : this->E_Luch[i])
+					{
+						if (kk->parameters.find("ea3") != kk->parameters.end())
+						{
+							kk->parameters["ea3"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["ea3"] = this->geo->ea3 * (1.0 - procent / 100.0);
+						}
+					}
+				}
+			}
+		}
+
+		// для D лучей
+		for (int i = 0; i < this->D_Luch.size(); i++)
+		{
+			auto A = this->D_Luch[i][0];
+			auto B = this->E_Luch[i].back();
+
+			// md1
+			auto a1 = A->get_yzel_near_opor(1, 1);
+			auto a2 = A->Yzels_opor[1];
+
+			auto b1 = B->Yzels_opor[1];
+			auto b2 = B->get_yzel_near_opor(1, 1);
+
+			double d2 = Yzel_distance(a1, a2, 0);
+			double d1 = Yzel_distance(b1, b2, 0);
+
+			if (this->D_Luch[i][0]->parameters.find("md1") == this->D_Luch[i][0]->parameters.end() || this->D_Luch[i][0]->parameters["md1"] > 0.01)
+			{
+				if ((100.0 - d2 * 100.0 / d1) > 1.0)
+				{
+					k++;
+					izmen = true;
+					for (auto& kk : this->D_Luch[i])
+					{
+						if (kk->parameters.find("md1") != kk->parameters.end())
+						{
+							kk->parameters["md1"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["md1"] = this->geo->md1 * (1.0 + procent / 100.0);
+						}
+					}
+				}
+				else if ((100.0 - d2 * 100.0 / d1) < -1.0)
+				{
+					k++;
+					izmen = true;
+					for (auto& kk : this->D_Luch[i])
+					{
+						if (kk->parameters.find("md1") != kk->parameters.end())
+						{
+							kk->parameters["md1"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["md1"] = this->geo->md1 * (1.0 - procent / 100.0);
+						}
+					}
+				}
+			}
+
+			// md2
+
+			if (this->D_Luch[i][0]->parameters.find("md2") == this->D_Luch[i][0]->parameters.end() || this->D_Luch[i][0]->parameters["md2"] > 0.01)
+			{
+				a1 = A->get_yzel_near_opor(2, -1);
+				a2 = A->Yzels_opor[2];
+
+				b1 = B->Yzels_opor[2];
+				b2 = B->get_yzel_near_opor(2, -1);
+
+				d2 = Yzel_distance(a1, a2, 0);
+				d1 = Yzel_distance(b1, b2, 0);
+
+				if ((100.0 - d2 * 100.0 / d1) > 1.0)
+				{
+					k++;
+					izmen = true;
+					for (auto& kk : this->D_Luch[i])
+					{
+						if (kk->parameters.find("md2") != kk->parameters.end())
+						{
+							kk->parameters["md2"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["md2"] = this->geo->md2 * (1.0 + procent / 100.0);
+						}
+					}
+				}
+				else if ((100.0 - d2 * 100.0 / d1) < -1.0)
+				{
+					k++;
+					izmen = true;
+					for (auto& kk : this->D_Luch[i])
+					{
+						if (kk->parameters.find("md2") != kk->parameters.end())
+						{
+							kk->parameters["md2"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["md2"] = this->geo->md2 * (1.0 - procent / 100.0);
+						}
+					}
+				}
+			}
+
+			// md3
+
+			if (this->D_Luch[i][0]->parameters.find("md3") == this->D_Luch[i][0]->parameters.end() || this->D_Luch[i][0]->parameters["md3"] > 0.01)
+			{
+				a1 = A->get_yzel_near_opor(2, 1);
+				a2 = A->Yzels_opor[2];
+
+				b1 = B->Yzels_opor[2];
+				b2 = B->get_yzel_near_opor(2, 1);
+
+				d2 = Yzel_distance(a1, a2, 0);
+				d1 = Yzel_distance(b1, b2, 0);
+
+				if ((100.0 - d2 * 100.0 / d1) > 1.0)
+				{
+					k++;
+					izmen = true;
+					for (auto& kk : this->D_Luch[i])
+					{
+						if (kk->parameters.find("md3") != kk->parameters.end())
+						{
+							kk->parameters["md3"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["md3"] = this->geo->md3 * (1.0 + procent / 100.0);
+						}
+					}
+				}
+				else if ((100.0 - d2 * 100.0 / d1) < -1.0)
+				{
+					k++;
+					izmen = true;
+					for (auto& kk : this->D_Luch[i])
+					{
+						if (kk->parameters.find("md3") != kk->parameters.end())
+						{
+							kk->parameters["md3"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["md3"] = this->geo->md3 * (1.0 - procent / 100.0);
+						}
+					}
+				}
+			}
+		}
+
 
 		for (auto& i : this->All_Luch)
 		{
@@ -1607,6 +2119,9 @@ void Setka::auto_set_luch_geo_parameter(void)
 
 		cout << "k = " << k << endl;
 	}
+
+
+	cout << "END: Izmenenie geo parameters" << endl;
 }
 
 void Setka::Winslow_method(void)

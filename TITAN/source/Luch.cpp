@@ -72,46 +72,20 @@ void Luch::dvigenie(int i_time)
 		}
 		num += M11;
 
-		// Делаем непрямые лучи
-		double x0, y0, x1, y1, t1, t2, tt1, tt2;
-
-		t1 = cos(the) * da1;
-		tt1 = sin(the) * da1;
-		t2 = cos(the) * da2;
-		tt2 = sin(the) * da2;
-		x0 = r * cos(the); // Это координаты с последней итерации предыдущего цикла
-		y0 = r * sin(the);
-		x1 = R3 * cos(the); // Это координаты с последней итерации предыдущего цикла
-		y1 = R3 * sin(the);
-
-		double a1, b1, c1, d1, a2, b2, c2, d2, x, y, z;
-
-		a1 = x0;
-		b1 = t1;
-		c1 = -2 * t1 - t2 - 3.0 * x0 + 3.0 * x1;
-		d1 = t1 + t2 + 2.0 * x0 - 2.0 * x1;
-
-		a2 = y0;
-		b2 = tt1;
-		c2 = -2 * tt1 - tt2 - 3.0 * y0 + 3.0 * y1;
-		d2 = tt1 + tt2 + 2.0 * y0 - 2.0 * y1;
-
+		// Делаем сгущение (его можно поменять тут)   da1    da2
+		
+		double a = da1;
+		double b = da2;
 
 		for (int j = 0; j < M2 - M11; j++)
 		{
-			double s = 1.0 * (j + 1) / (M2 - M11 + 1);
-			x = a1 + b1 * s + c1 * s * s + d1 * s * s * s;
-			y = a2 + b2 * s + c2 * s * s + d2 * s * s * s;
-			z = y * sin(phi);
-			y = y * cos(phi);
-			this->Yzels[num + j]->coord[i_time][0] = x;
-			this->Yzels[num + j]->coord[i_time][1] = y;
-			this->Yzels[num + j]->coord[i_time][2] = z;
-
-			/*r = R2 + dr * M11 + (j + 1) * (R3 - R2 - dr * M11) / (M2 - M11 + 1);
+			double s = (j + 1.0) / (M2 - M11 + 1.0);
+			double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s);  // Линейное сгущение к обоим концам
+			r = R2 + dr * M11 + (R3 - R2 - dr * M11) * ss;
+			//r = R2 + dr * M11 + (j + 1) * (R3 - R2 - dr * M11) / (M2 - M11 + 1);
 			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
 			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
-			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);*/
+			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
 		}
 		num += (M2 - M11) + 1;
 
@@ -128,47 +102,41 @@ void Luch::dvigenie(int i_time)
 			da4 = this->parameters["da4"];
 		}
 
-		t1 = cos(the) * da3;
-		tt1 = sin(the) * da3;
-		t2 = cos(the) * da4;
-		tt2 = sin(the) * da4;
-		x0 = R3 * cos(the); // Это координаты с последней итерации предыдущего цикла
-		y0 = R3 * sin(the);
-		x1 = R4 * cos(the); // Это координаты с последней итерации предыдущего цикла
-		y1 = R4 * sin(the);
-
-		a1 = x0;
-		b1 = t1;
-		c1 = -2 * t1 - t2 - 3.0 * x0 + 3.0 * x1;
-		d1 = t1 + t2 + 2.0 * x0 - 2.0 * x1;
-
-		a2 = y0;
-		b2 = tt1;
-		c2 = -2 * tt1 - tt2 - 3.0 * y0 + 3.0 * y1;
-		d2 = tt1 + tt2 + 2.0 * y0 - 2.0 * y1;
-
+		//double t1, t2, tt1, tt2, x0, y0, x1, y1, a1, b1, c1, d1, a2, b2, c2, d2, x, y, z;
+		a = da3;
+		b = da4;
 
 		for (int j = 0; j < M3; j++)
 		{
-			double s = 1.0 * (j + 1) / (M3 + 1);
-			x = a1 + b1 * s + c1 * s * s + d1 * s * s * s;
-			y = a2 + b2 * s + c2 * s * s + d2 * s * s * s;
-			z = y * sin(phi);
-			y = y * cos(phi);
-			this->Yzels[num + j]->coord[i_time][0] = x;
-			this->Yzels[num + j]->coord[i_time][1] = y;
-			this->Yzels[num + j]->coord[i_time][2] = z;
-
-			/*r = R3 + (j + 1) * (R4 - R3) / (M3 + 1);
+			double s = (j + 1.0) / (M3 + 1.0);
+			double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s);  // Линейное сгущение к обоим концам
+			r = R3 + (R4 - R3) * ss;
+			//r = R3 + (j + 1) * (R4 - R3) / (M3 + 1);
 			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
 			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
-			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);*/
+			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
 		}
 		num += M3 + 1;
 
+
+		double da5 = this->geo->da5;
+		double da6 = 2.0;
+
+		if (this->parameters.find("da5") != this->parameters.end())
+		{
+			da5 = this->parameters["da5"];
+		}
+
+
+		a = da5;
+		b = da6;
+
 		for (int j = 0; j < M4; j++)
 		{
-			r = R4 + (j + 1) * (R5 - R4) / (M4 + 1);
+			double s = (j + 1.0) / (M4 + 1.0);
+			double ss = a * s - (3.0 * a + b - 4.0) * s * s * s + (2.0 * a + b - 3.0) * s * s * s * s;  // квадратичное сгущение к левому концу и линейное к правому
+			r = R4 + (R5 - R4) * ss;
+			//r = R4 + (j + 1) * (R5 - R4) / (M4 + 1);  // квадратичное сгущение к левому концу и линейное к правому
 			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
 			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
 			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
@@ -288,7 +256,7 @@ void Luch::dvigenie(int i_time)
 		double R2 = this->Yzels_opor[1]->func_R(i_time); // TS
 		double R3 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) + 
 			kv(this->Yzels_opor[2]->coord[i_time][2])); // HP (расстояние от HP до оси вращения)
-		//double x3 = this->Yzels_opor[2]->coord[i_time][0];
+		//double xHP = this->Yzels_opor[2]->coord[i_time][0];
 
 		double R4 = sqrt(kv(this->Yzels_opor[3]->coord[i_time][1]) +
 			kv(this->Yzels_opor[3]->coord[i_time][2])); // BS причём для B лучей это фиктивный BS
@@ -343,7 +311,7 @@ void Luch::dvigenie(int i_time)
 		}
 		num += M11;
 
-		double x3 = r * cos(the); // Запомнили
+		double x3 = r* cos(the); // Запомнили
 		this->Yzels_opor[2]->coord[i_time][0] = x3;
 		this->Yzels_opor[3]->coord[i_time][0] = x3;
 
@@ -378,11 +346,22 @@ void Luch::dvigenie(int i_time)
 		c2 = -2 * tt1 - tt2 - 3.0 * y0 + 3.0 * y1;
 		d2 = tt1 + tt2 + 2.0 * y0 - 2.0 * y1;
 
+
+		double ba1 = this->geo->ba1;
+		if (this->parameters.find("ba1") != this->parameters.end()) ba1 = this->parameters["ba1"];
+
+		double ba2 = this->geo->ba2;
+		if (this->parameters.find("ba2") != this->parameters.end()) ba2 = this->parameters["ba2"];
+
+		double a = ba1;
+		double b = ba2;
+
 		for (int j = 0; j < M2 - M11; j++)
 		{
 			double s = 1.0 * (j + 1) / (M2 - M11 + 1);
-			x = a1 + b1 * s + c1 * s * s + d1 * s * s * s;
-			y = a2 + b2 * s + c2 * s * s + d2 * s * s * s;
+			double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s); // линейное сгущение с двух сторон
+			x = a1 + b1 * ss + c1 * ss * ss + d1 * ss * ss * ss;
+			y = a2 + b2 * ss + c2 * ss * ss + d2 * ss * ss * ss;
 			z = y * sin(phi);
 			y = y * cos(phi);
 			this->Yzels[num + j]->coord[i_time][0] = x;
@@ -391,26 +370,42 @@ void Luch::dvigenie(int i_time)
 		}
 		num += (M2 - M11) + 1;
 
+		double ba3 = this->geo->ba3;
+		if (this->parameters.find("ba3") != this->parameters.end()) ba3 = this->parameters["ba3"];
+		double ba4 = this->geo->ba4;
+		if (this->parameters.find("ba4") != this->parameters.end()) ba4 = this->parameters["ba4"];
+		a = ba3;
+		b = ba4;
 		// Точки от R3 (HP) до R4 (BS)
 		for (int j = 0; j < M3; j++)
 		{
-			r = R3 + (j + 1) * (R4 - R3) / (M3 + 1);
+			double s = (j + 1.0) / (M3 + 1.0);
+			double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s);  // Линейное сгущение к обоим концам
+			r = R3 + ss * (R4 - R3);
 			//x = x;  // Последняя координата предыдущего цикла
 			y = r * cos(phi);
 			z = r * sin(phi);
-			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][0] = x3;
 			this->Yzels[num + j]->coord[i_time][1] = y;
 			this->Yzels[num + j]->coord[i_time][2] = z;
 		}
 		num += M3 + 1;
 
+
+		double ba5 = this->geo->ba5;
+		if (this->parameters.find("ba5") != this->parameters.end()) ba5 = this->parameters["ba5"];
+		a = ba5;
+		b = 2.0;
+
 		for (int j = 0; j < M4; j++)
 		{
-			r = R4 + (j + 1) * (R5 - R4) / (M4 + 1);
+			double s = (j + 1.0) / (M4 + 1.0);
+			double ss = a * s - (3.0 * a + b - 4.0) * s * s * s + (2.0 * a + b - 3.0) * s * s * s * s;  // квадратичное сгущение к левому концу и линейное к правому
+			r = R4 + (R5 - R4) * ss;
 			//x = x;
 			y = r * cos(phi);
 			z = r * sin(phi);
-			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][0] = x3;
 			this->Yzels[num + j]->coord[i_time][1] = y;
 			this->Yzels[num + j]->coord[i_time][2] = z;
 		}
@@ -418,7 +413,7 @@ void Luch::dvigenie(int i_time)
 
 		y = R5 * cos(phi);
 		z = R5 * sin(phi);
-		this->Yzels[num]->coord[i_time][0] = x;
+		this->Yzels[num]->coord[i_time][0] = x3;
 		this->Yzels[num]->coord[i_time][1] = y;
 		this->Yzels[num]->coord[i_time][2] = z;
 	}
@@ -453,12 +448,17 @@ void Luch::dvigenie(int i_time)
 
 		x = x0;
 
+		double a = 0.1;
+		double b = 0.3;
+
 		// Точки от R2 (TS) до R3 (HP)
 		num += 1;
 		for (int j = 0; j < M2 - M11; j++)
 		{
 			//x = x0 + (x1 - x0) * (j + 1) / (M2 - M11 + 1);
-			y = y0 + (y1 - y0) * (j + 1) / (M2 - M11 + 1);
+			double s = 1.0 * (j + 1) / (M2 - M11 + 1);
+			double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s); // линейное сгущение с двух сторон
+			y = y0 + (y1 - y0) * ss;
 			z = y * sin(phi);
 			y = y * cos(phi);
 			this->Yzels[num + j]->coord[i_time][0] = x;
@@ -467,9 +467,21 @@ void Luch::dvigenie(int i_time)
 		}
 		num += (M2 - M11) + 1;
 
+
+		double md1 = this->geo->md1;
+		if (this->parameters.find("md1") != this->parameters.end()) md1 = this->parameters["md1"];
+
+		double md2 = this->geo->md2;
+		if (this->parameters.find("md2") != this->parameters.end()) md2 = this->parameters["md2"];
+
+		a = md1;
+		b = md2;
+
 		for (int j = 0; j < M3; j++)
 		{
-			r = y1 + (j + 1) * (y2 - y1) / (M3 + 1);
+			double s = 1.0 * (j + 1) / (M3 + 1);
+			double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s); // линейное сгущение с двух сторон
+			r = y1 + (y2 - y1)  * ss;
 			//x = x1;
 			y = r * cos(phi);
 			z = r * sin(phi);
@@ -479,9 +491,17 @@ void Luch::dvigenie(int i_time)
 		}
 		num += M3 + 1;
 
+		double md3 = this->geo->md3;
+		if (this->parameters.find("md3") != this->parameters.end()) md3 = this->parameters["md3"];
+
+		a = md3;
+		b = 2.0;
+
 		for (int j = 0; j < M4; j++)
 		{
-			r = y2 + (j + 1) * (R5 - y2) / (M4 + 1);
+			double s = (j + 1.0) / (M4 + 1.0);
+			double ss = a * s - (3.0 * a + b - 4.0) * s * s * s + (2.0 * a + b - 3.0) * s * s * s * s;  // квадратичное сгущение к левому концу и линейное к правому
+			r = y2 + (R5 - y2) * ss;
 			//x = x1;
 			y = r * cos(phi);
 			z = r * sin(phi);
@@ -525,9 +545,21 @@ void Luch::dvigenie(int i_time)
 		this->Yzels[num]->coord[i_time][0] = x;
 
 		num += 1;
+
+		double ea1 = this->geo->ea1;
+		if (this->parameters.find("ea1") != this->parameters.end()) ea1 = this->parameters["ea1"];
+
+		double ea2 = this->geo->ea2;
+		if (this->parameters.find("ea2") != this->parameters.end()) ea2 = this->parameters["ea2"];
+
+		double a = ea1;
+		double b = ea2;
+
 		for (int j = 0; j < M3; j++)
 		{
-			r = y0 + (j + 1) * (y1 - y0) / (M3 + 1);
+			double s = 1.0 * (j + 1) / (M3 + 1);
+			double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s); // линейное сгущение с двух сторон
+			r = y0 + (y1 - y0) * ss;
 			y = r * cos(phi);
 			z = r * sin(phi);
 			this->Yzels[num + j]->coord[i_time][0] = x;
@@ -540,9 +572,16 @@ void Luch::dvigenie(int i_time)
 		
 		num += 1;
 
+		double ea3 = this->geo->ea3;
+		if (this->parameters.find("ea3") != this->parameters.end()) ea3 = this->parameters["ea3"];
+
+		a = ea3;
+		b = 2.0;
 		for (int j = 0; j < M4; j++)
 		{
-			r = y1 + (j + 1) * (R5 - y1) / (M4 + 1);
+			double s = (j + 1.0) / (M4 + 1.0);
+			double ss = a * s - (3.0 * a + b - 4.0) * s * s * s + (2.0 * a + b - 3.0) * s * s * s * s;  // квадратичное сгущение к левому концу и линейное к правому
+			r = y1 + (R5 - y1) * ss;
 			y = r * cos(phi);
 			z = r * sin(phi);
 			this->Yzels[num + j]->coord[i_time][0] = x;
@@ -699,7 +738,7 @@ Yzel* Luch::get_yzel_near_opor(int num_opor, int shift)
 		return nullptr;
 	}
 
-	if (target_it == this->Yzels.begin()) 
+	if (target_it == this->Yzels.begin() && shift < 0)
 	{
 		cout << "9867656565 Нет элементов перед целевым значением" << endl;
 		return nullptr;

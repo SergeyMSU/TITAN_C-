@@ -17,7 +17,7 @@ int main()
 
     S1.Move_to_surf(S1.Surf1);
 
-    S1.auto_set_luch_geo_parameter();
+    S1.auto_set_luch_geo_parameter(0);
     
 
 
