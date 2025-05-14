@@ -26,8 +26,40 @@ Setka::Setka()
 	this->name_luch.push_back("E_Luch");
 	this->name_luch.push_back("H_Luch");
 	this->name_luch.push_back("G_Luch");
-	this->New_initial();
 
+	this->New_initial();                     // Начальное создание узлов и ячеек
+	this->New_connect();                     // Начальное создание граней и связывание их с ячейками
+	// Также добавляет соседей для каждой ячеки
+
+
+
+}
+
+Setka::~Setka()
+{
+	for (auto& i : this->All_Yzel)
+	{
+		delete i;
+	}
+	this->All_Yzel.clear();
+
+	for (auto& i : this->All_Cell)
+	{
+		delete i;
+	}
+	this->All_Cell.clear();
+
+	for (auto& i : this->All_Gran)
+	{
+		delete i;
+	}
+	this->All_Gran.clear();
+
+	for (auto& i : this->All_Luch)
+	{
+		delete i;
+	}
+	this->All_Luch.clear();
 }
 
 void Setka::Renumerate(void)
@@ -45,6 +77,50 @@ void Setka::Renumerate(void)
 		i->number = kkk;
 		kkk++;
 	}
+
+	kkk = 1;
+	for (auto& i : this->All_Gran)
+	{
+		i->number = kkk;
+		kkk++;
+	}
+}
+
+bool Setka::Test_geometr(void)
+{
+	cout << endl;
+	cout << "Testing" << endl;
+
+	cout << "Test 1:" << endl;
+	for (auto& i : this->All_Gran)
+	{
+		if (i->cells.size() != 1 && i->cells.size() != 2)
+		{
+			cout << "Failure: i->cells.size()  = " << i->cells.size()  << endl;
+			return false;
+		}
+	}
+	cout << "Success" << endl;
+
+
+	cout << "Test 2:" << endl;
+	for (auto& i : this->All_Cell)
+	{
+		if (i->grans.size() != 6)
+		{
+			cout << "Failure: i->grans.size()  = " << i->grans.size() << endl;
+			return false;
+		}
+
+		if (i->yzels.size() != 8)
+		{
+			cout << "Failure: i->yzels.size()  = " << i->yzels.size() << endl;
+			return false;
+		}
+	}
+	cout << "Success" << endl << endl;
+
+	return true;
 }
 
 void Setka::Set_luch_parametr()
@@ -985,6 +1061,7 @@ void Setka::New_initial()
 	// Теперь надо двигать узлы в соответствии с функциями движения
 	if (true) 
 	{
+		// SET_PARAMETER   &INIT&
 		this->geo->R2 = 20.0;
 		this->geo->R3 = 30.0;
 		this->geo->R4 = 140.0;
@@ -1363,16 +1440,194 @@ void Setka::New_initial()
 		
 	}
 
-
-	// Надо проверить возможность движения сетки, включая изменение расстояний R1 и т.д. которые предполагались константой
-	// можно написать программу пододвигание поверхностей к считанным из файла (формат файла из старой программы)
-	
+	// На настоящий момент ячейки созданы, теперь необходимо их связать (добавить соседей)!
 	// Сделать грани, рёбра, связать их
 	// Сделать определение ячейки по точке
 
 	fin.close();
 	ffin.close();
 	cout << "---END New_initial---" << endl;
+}
+
+void Setka::New_connect()
+{
+	// План следующий: сначала создаём для каждой ячейки 6 граней
+	// Потом находим повторы, удаляем лишние и связываем грани с ячейками
+	// Для ускорения удаления и т.д. сначала всё делаем в локально созданном списке, потом перенесём всё в вектор
+
+	cout << "START: New_connect" << endl;
+	vector<Gran*> All_gran_;
+	std::unordered_set<int> number_gran_for_delete;
+
+	this->Renumerate();
+
+	// Создаём все грани
+	for (auto& i : this->All_Cell)
+	{
+		auto G = new Gran();
+		G->yzels.push_back(i->yzels[0]);
+		G->yzels.push_back(i->yzels[3]);
+		G->yzels.push_back(i->yzels[2]);
+		G->yzels.push_back(i->yzels[1]);
+		All_gran_.push_back(G);
+		G->cells.push_back(i);
+
+		G = new Gran();
+		G->yzels.push_back(i->yzels[4]);
+		G->yzels.push_back(i->yzels[5]);
+		G->yzels.push_back(i->yzels[6]);
+		G->yzels.push_back(i->yzels[7]);
+		All_gran_.push_back(G);
+		G->cells.push_back(i);
+
+		G = new Gran();
+		G->yzels.push_back(i->yzels[0]);
+		G->yzels.push_back(i->yzels[1]);
+		G->yzels.push_back(i->yzels[5]);
+		G->yzels.push_back(i->yzels[4]);
+		All_gran_.push_back(G);
+		G->cells.push_back(i);
+
+		G = new Gran();
+		G->yzels.push_back(i->yzels[2]);
+		G->yzels.push_back(i->yzels[3]);
+		G->yzels.push_back(i->yzels[7]);
+		G->yzels.push_back(i->yzels[6]);
+		All_gran_.push_back(G);
+		G->cells.push_back(i);
+
+		G = new Gran();
+		G->yzels.push_back(i->yzels[1]);
+		G->yzels.push_back(i->yzels[2]);
+		G->yzels.push_back(i->yzels[6]);
+		G->yzels.push_back(i->yzels[5]);
+		All_gran_.push_back(G);
+		G->cells.push_back(i);
+
+		G = new Gran();
+		G->yzels.push_back(i->yzels[0]);
+		G->yzels.push_back(i->yzels[4]);
+		G->yzels.push_back(i->yzels[7]);
+		G->yzels.push_back(i->yzels[3]);
+		All_gran_.push_back(G);
+		G->cells.push_back(i);
+	}
+
+	// Удаляем дубликаты граней
+
+	// Пробегаемся по всем граням и связываем узлы с гранями
+	for (auto& i : All_gran_)
+	{
+		for (auto& j : i->yzels)
+		{
+			j->grans.push_back(i);
+		}
+	}
+
+	// нумеруем все грани (для того, чтобы запомнить, какие надо удалить)
+	int kkk = 1;
+	for (auto& i : All_gran_)
+	{
+		i->number = kkk;
+		kkk++;
+	}
+
+	//пробегаемся по всем узлам и вычисляем грани, которые нужно удалить
+	kkk = 1;
+	for (auto& i : this->All_Yzel)
+	{
+		if (kkk % 5000 == 0)
+		{
+			cout << kkk << "   from  " << this->All_Yzel.size() << endl;
+		}
+		for (int j = 0; j < i->grans.size(); j++)
+		{
+			for (int k = j + 1; k < i->grans.size(); k++)
+			{
+				if (areCellsEqual_my(i->grans[j], i->grans[k]) == true)
+				{
+					auto A1 = number_gran_for_delete.find(i->grans[j]->number);
+					auto A2 = number_gran_for_delete.find(i->grans[k]->number);
+
+					if (A1 == number_gran_for_delete.end() && A2 == number_gran_for_delete.end())
+					{
+						number_gran_for_delete.insert(i->grans[k]->number);
+						i->grans[j]->cells.push_back(i->grans[k]->cells[0]);
+					}
+				}
+			}
+		}
+		kkk++;
+	}
+
+	// теперь надо удалить все лишние грани и создать новые
+	for (auto& i : All_gran_)
+	{
+		// Если грань не надо удалять, сохраняем её
+		if(number_gran_for_delete.find(i->number) == number_gran_for_delete.end())
+		{
+			auto G = new Gran();
+			for (auto& j : i->yzels)
+			{
+				G->yzels.push_back(j);
+			}
+			for (auto& j : i->cells)
+			{
+				G->cells.push_back(j);
+			}
+			this->All_Gran.push_back(G);
+		}
+		delete i;
+	}
+	number_gran_for_delete.clear();
+	All_gran_.clear();
+	All_gran_.resize(0);
+
+	// нумеруем все грани
+	kkk = 1;
+	for (auto& i : this->All_Gran)
+	{
+		i->number = kkk;
+		kkk++;
+	}
+
+	// чистим старые грани в узлах
+	for (auto& i : this->All_Yzel)
+	{
+		i->grans.clear();
+		i->grans.reserve(12);
+	}
+
+	// Пробегаемся по всем граням и связываем узлы с гранями
+	for (auto& i : this->All_Gran)
+	{
+		for (auto& j : i->yzels)
+		{
+			j->grans.push_back(i);
+		}
+	}
+
+	// Пробегаемся по всем граням и связываем грани с ячейками
+	for (auto& i : this->All_Gran)
+	{
+		for (auto& j : i->cells)
+		{
+			j->grans.push_back(i);
+		}
+	}
+
+	if (this->Test_geometr() == false)
+	{
+		this->~Setka();
+		std::exit(EXIT_FAILURE);
+	}
+	cout << "END: New_connect" << endl;
+
+}
+
+void Setka::Calculating_measure(unsigned short int st_time)
+{
+
 }
 
 void Setka::auto_set_luch_geo_parameter(int for_new)

@@ -11,10 +11,6 @@ int main()
     Setka S1 = Setka();
 
     S1.Read_old_surface("ASurf_Save00591.bin");
-
-    //cout << "TS = " << S1.Surf1->Get_TS(0.0, 0.0) << endl;
-    //cout << "HP = " << S1.Surf1->Get_HP(0.0, 0.0, 0) << endl;
-
     S1.Move_to_surf(S1.Surf1);
 
     S1.auto_set_luch_geo_parameter(0);
@@ -32,7 +28,7 @@ int main()
     //S1.Tecplot_print_all_lush_in_3D("E_Luch");
     //S1.Tecplot_print_all_lush_in_3D("H_Luch");
     //S1.Tecplot_print_all_lush_in_3D("G_Luch");
-    //S1.Tecplot_print_all_cell_in_3D();
+    S1.Tecplot_print_all_cell_in_3D();
     //S1.Tecplot_print_krug_yzel_in_3D(2);
     //S1.Tecplot_print_opor_yzel_in_luchs_3D("A_Luch");
     //S1.Tecplot_print_opor_yzel_in_luchs_3D("C_Luch");

@@ -5,7 +5,7 @@ Yzel::Yzel()
 {
 	this->coord[0][0] = this->coord[0][1] = this->coord[0][2] = 0.0;
 	this->coord[1][0] = this->coord[1][1] = this->coord[1][2] = 0.0;
-	this->luch = nullptr;
+	//this->luch = nullptr;
 	this->number = 0;
 }
 
@@ -19,7 +19,7 @@ Yzel::Yzel(const double& a, const double& b, const double& c)
 	this->coord[1][1] = b;
 	this->coord[1][2] = c;
 
-	this->luch = nullptr;
+	///this->luch = nullptr;
 }
 
 double Yzel::func_R(int i_time)

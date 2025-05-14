@@ -1,12 +1,17 @@
 #pragma once
 #include "Header.h"
+#include <vector>
+
+class Gran;
 
 class Yzel
 {
 public:
 	double coord[2][3];   // [Временной слой координат, три координаты]
-	class Luch* luch;           // Луч на котором расположен узел (каждый узел может лежать только на одном луче)
+	//Luch* luch;           // Луч на котором расположен узел (каждый узел может лежать только на одном луче)
 	int number = 0;                // номера начинаются с единицы
+	vector<Gran*> grans;
+
 
 	Yzel();
 	Yzel(const double& a, const double& b, const double& c);

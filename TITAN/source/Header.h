@@ -3,6 +3,7 @@
 
 // Описание всех классов
 class Geo_param;
+class Setka;
 class Yzel;
 class Luch;
 class Cell;
@@ -17,6 +18,8 @@ const double const_pi= 3.14159265358979323846;
 
 #include <iostream>
 #include <vector>
+#include <list>
+#include <unordered_set>
 #include <algorithm>
 #include <fstream>
 #include <map>
@@ -24,18 +27,19 @@ const double const_pi= 3.14159265358979323846;
 #include <cmath>
 #include <limits>
 #include <iterator>
+#include <cstdlib>
 
 
 // Boost библиотека (надо подключать к компилятору отдельно)
 #include "boost/multi_array.hpp"
 
+#include "Setka.h"
 #include "Help_funk.h"
 #include "Geo_param.h"
 #include "Luch.h"
-#include "Yzel.h"
-#include "Setka.h"
-#include "Cell.h"
 #include "Gran.h"
+#include "Cell.h"
+#include "Yzel.h"
 #include "Surfaces.h"
 
 
