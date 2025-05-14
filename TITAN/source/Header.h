@@ -15,6 +15,7 @@ const double const_pi= 3.14159265358979323846;
 
 #define kv(x) ((x) * (x))
 #define kvv(x, y, z) ((x) * (x) + (y) * (y) + (z) * (z))
+#define norm2(x, y, z) (sqrt(kvv(x, y, z)))
 
 #include <iostream>
 #include <vector>

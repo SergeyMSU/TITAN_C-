@@ -17,6 +17,7 @@ public:
 
 	void Culc_measure(unsigned short int st_time);
 	// вычисл€ет normal, center, area
+	// дл€ корректной работы определени€ нормали центры €чеек должны быть актуальны
 
 	// ‘ункци€ сравнени€ по набору узлов
 	friend bool areCellsEqual(const Gran& cell1, const Gran& cell2);

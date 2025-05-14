@@ -1,6 +1,10 @@
 #include "Setka.h"
 #include <algorithm>
 
+#define  macros1(n, x, y, z) A->yzels[n]->coord[0][0] = x; \
+A->yzels[n]->coord[0][1] = y; \
+A->yzels[n]->coord[0][2] = z
+
 using namespace std;
 
 Setka::Setka()
@@ -1627,7 +1631,32 @@ void Setka::New_connect()
 
 void Setka::Calculating_measure(unsigned short int st_time)
 {
+	// —ледующий блок был дл€ тестировани€
+	/*auto A = this->All_Cell[0];
+	macros1(0, 0, 0, 0);
+	macros1(1, 1, 0, 0);
+	macros1(2, 1, 1, 0);
+	macros1(3, 0, 1, 0);
+	macros1(4, 0, 0, 1);
+	macros1(5, 1, 0, 1);
+	macros1(6, 1, 1, 1);
+	macros1(7, 0, 1, 1);*/
 
+	// —ледующий пор€дкок вычислени€ €вл€етс€ важным
+	for (auto& i : this->All_Cell)
+	{
+		i->Culc_center(st_time);
+	}
+
+	for (auto& i : this->All_Gran)
+	{
+		i->Culc_measure(st_time);
+	}
+
+	for (auto& i : this->All_Cell)
+	{
+		i->Culc_volume(st_time);
+	}
 }
 
 void Setka::auto_set_luch_geo_parameter(int for_new)
@@ -3066,12 +3095,13 @@ void Setka::Tecplot_print_all_cell_in_3D()
 	int kkk = 1;
 
 
-	for (auto& i : this->Cell_layer_head[0])
+	for (auto& i : this->All_Cell)
 	{
-		/*if (kkk > 200)
+
+		if (kkk > 1000)
 		{
 			break;
-		}*/
+		}
 
 		fout << "ZONE T=HP, N = " << i->yzels.size() << ", E = " << i->yzels.size() - 1 << ", F=FEPOINT, ET=LINESEG, SOLUTIONTIME = " << kkk << endl;
 		kkk++;
@@ -3090,4 +3120,35 @@ void Setka::Tecplot_print_all_cell_in_3D()
 	}
 
 	fout.close();
+}
+
+void Setka::Tecplot_print_all_gran_in_cell()
+{
+	// name - это им€ лучей
+	ofstream fout;
+	string name_f = "Tecplot_print_all_gran_in_3D.txt";
+
+
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = X, Y, Z" << endl;
+
+	for (int i = 0; i < 1000; i++) // this->All_Gran.size()
+	{
+		auto C = this->All_Cell[i];
+
+		fout << "ZONE T=HP, N = " << C->grans.size() * 4 << ", E = " << C->grans.size() << ", F=FEPOINT, ET=quadrilateral, SOLUTIONTIME = " << i + 1 << endl;
+
+		for (auto& A : C->grans)
+		{
+			for (auto& j : A->yzels)
+			{
+				fout << j->coord[0][0] << " " << j->coord[0][1] << " " << j->coord[0][2] << endl;
+			}
+		}
+
+		for (int k = 0; k < C->grans.size(); k++)
+		{
+			fout << 4 * k + 1 << " " << 4 * k + 2 << " " << 4 * k + 3 << " " << 4 * k + 4 << endl;
+		}
+	}
 }

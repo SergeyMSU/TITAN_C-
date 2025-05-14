@@ -22,6 +22,63 @@ void Gran::Culc_measure(unsigned short int st_time)
 	this->center[st_time][1] = yc;
 	this->center[st_time][2] = zc;
 
+	// ¬ычисл€ем площадь грани
+	double S = 0.0;
+	int i2;
+	for (int i = 0; i < this->yzels.size(); i++)
+	{
+		i2 = i + 1;
+		if (i2 >= this->yzels.size()) i2 = 0;
+		S += triangleArea3D(this->yzels[i]->coord[st_time][0], this->yzels[i]->coord[st_time][1],
+			this->yzels[i]->coord[st_time][2],
+			this->yzels[i2]->coord[st_time][0], this->yzels[i2]->coord[st_time][1],
+			this->yzels[i2]->coord[st_time][2],
+			xc, yc, zc);
+	}
+	this->area[st_time] = S;
+
+	// ¬ычисл€ем нормаль грани
+	if (Ny != 4) // дл€ других случаем следующий блок может работать не правильно, 
+		// нужно отдельно их рассматривать
+	{
+		cout << "Error  0906764104" << endl;
+	}
+
+	double x1, y1, z1;
+	double x2, y2, z2;
+	double x3, y3, z3;
+
+	x1 = (this->yzels[0]->coord[st_time][0] + this->yzels[1]->coord[st_time][0]) / 2.0;
+	y1 = (this->yzels[0]->coord[st_time][1] + this->yzels[1]->coord[st_time][1]) / 2.0;
+	z1 = (this->yzels[0]->coord[st_time][2] + this->yzels[1]->coord[st_time][2]) / 2.0;
+
+	x2 = (this->yzels[1]->coord[st_time][0] + this->yzels[2]->coord[st_time][0]) / 2.0;
+	y2 = (this->yzels[1]->coord[st_time][1] + this->yzels[2]->coord[st_time][1]) / 2.0;
+	z2 = (this->yzels[1]->coord[st_time][2] + this->yzels[2]->coord[st_time][2]) / 2.0;
+
+	x3 = (this->yzels[2]->coord[st_time][0] + this->yzels[3]->coord[st_time][0]) / 2.0;
+	y3 = (this->yzels[2]->coord[st_time][1] + this->yzels[3]->coord[st_time][1]) / 2.0;
+	z3 = (this->yzels[2]->coord[st_time][2] + this->yzels[3]->coord[st_time][2]) / 2.0;
+
+	double n1, n2, n3, nn;
+	crossProductFast(x2 - x1, y2 - y1, z2 - z1, x3 - x1, y3 - y1, z3 - z1, n1, n2, n3);
+	nn = norm2(n1, n2, n3);
+	n1 /= nn;
+	n2 /= nn;
+	n3 /= nn;
+
+	// Ќужно чтобы нормаль смотрела от первой €чейки ко второй
+	if (scalarProductFast(n1, n2, n3, this->cells[0]->center[st_time][0] - xc,
+		this->cells[0]->center[st_time][1] - yc, this->cells[0]->center[st_time][2] - zc) > 0.0)
+	{
+		n1 = -n1;
+		n2 = -n2;
+		n3 = -n3;
+	}
+
+	this->normal[st_time][0] = n1;
+	this->normal[st_time][1] = n2;
+	this->normal[st_time][2] = n3;
 }
 
 Gran::Gran()

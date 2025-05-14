@@ -88,5 +88,7 @@ public:
 	void Tecplot_print_plane_lush(int plane); // как предыдущая, но печатает в конкретной плоскости
 	void Tecplot_print_plane_surfase(int plane); // как предыдущая, но печатает в конкретной плоскости
 	void Tecplot_print_All_surfase_in_2D(); // как предыдущая, но печатает в конкретной плоскости
+	void Tecplot_print_all_gran_in_cell(); // печатает все грани в 3Д (можно перелистывать их в текплоте)
+	// ограничиваем количество граней в выводе (иначе файл весит 200 мб)
 };
 
