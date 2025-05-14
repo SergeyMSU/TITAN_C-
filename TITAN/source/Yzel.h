@@ -4,6 +4,13 @@
 
 class Gran;
 
+enum class Type_yzel{
+	TS,    // 0    узел на TS
+	HP, // 1       узел на HP
+	BS, // 2       узел на BS
+	Us // 3       обычный узел
+};
+
 class Yzel
 {
 public:
@@ -11,7 +18,7 @@ public:
 	//Luch* luch;           // Луч на котором расположен узел (каждый узел может лежать только на одном луче)
 	int number = 0;                // номера начинаются с единицы
 	vector<Gran*> grans;
-
+	Type_yzel type = Type_yzel::Us;  // по умолчанию создаём обычный узел
 
 	Yzel();
 	Yzel(const double& a, const double& b, const double& c);

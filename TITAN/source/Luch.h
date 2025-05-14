@@ -8,7 +8,7 @@ using namespace std;
 class Luch
 {
 public:
-	string type;
+	string type;        // "A_Luch", "A2_Luch", .....
 	static Geo_param* geo;             // «адаЄтс€ при инициализации класса Setka
 	map<string, double> parameters;    // ѕараметры луча (могут быть свои дл€ каждого типа)
 	// "the" - угол в сферической ск от оси х - ось набегающего потока - зенитный угол

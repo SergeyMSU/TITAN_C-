@@ -2,8 +2,55 @@
 #include <algorithm>
 
 #define  macros1(n, x, y, z) A->yzels[n]->coord[0][0] = x; \
-A->yzels[n]->coord[0][1] = y; \
-A->yzels[n]->coord[0][2] = z
+	A->yzels[n]->coord[0][1] = y; \
+	A->yzels[n]->coord[0][2] = z
+
+#define  macros2(name) for (auto& i : this->All_Gran)\
+	{ \
+		b1 = true; \
+		for (auto& j : i->yzels) \
+		{ \
+			if (j->type != Type_yzel::name) \
+			{ \
+				b1 = false; \
+				break; \
+			} \
+		} \
+		if (b1 == true) \
+		{ \
+			this->Gran_##name.push_back(i); \
+		} \
+	}
+
+
+#define  macros3(name, proc) if ((100.0 - d2 * 100.0 / d1) > proc) \
+		{\
+			k++;\
+			izmen = true;\
+			if (i->parameters.find(#name) != i->parameters.end())\
+			{\
+				i->parameters[#name] *= (1.0 + procent / 100.0);\
+			}\
+			else\
+			{\
+				i->parameters[#name] = this->geo->name * (1.0 + procent / 100.0);\
+			}\
+		}\
+		else if ((100.0 - d2 * 100.0 / d1) < -proc)\
+		{\
+			k++;\
+			izmen = true;\
+			if (i->parameters.find(#name) != i->parameters.end())\
+			{\
+				i->parameters[#name] *= (1.0 - procent / 100.0);\
+			}\
+			else\
+			{\
+				i->parameters[#name] = this->geo->name * (1.0 - procent / 100.0);\
+			}\
+		}
+
+
 
 using namespace std;
 
@@ -34,9 +81,14 @@ Setka::Setka()
 	this->New_initial();                     // Ќачальное создание узлов и €чеек
 	this->New_connect();                     // Ќачальное создание граней и св€зывание их с €чейками
 	// “акже добавл€ет соседей дл€ каждой €чеки
+	this->New_append_surfaces();
 
-
-
+	this->Renumerate();
+	if (this->Test_geometr() == false)
+	{
+		this->~Setka();
+		std::exit(EXIT_FAILURE);
+	}
 }
 
 Setka::~Setka()
@@ -100,7 +152,7 @@ bool Setka::Test_geometr(void)
 	{
 		if (i->cells.size() != 1 && i->cells.size() != 2)
 		{
-			cout << "Failure: i->cells.size()  = " << i->cells.size()  << endl;
+			cout << "Failure: i->cells.size()  = " << i->cells.size() << endl;
 			return false;
 		}
 	}
@@ -120,6 +172,33 @@ bool Setka::Test_geometr(void)
 		{
 			cout << "Failure: i->yzels.size()  = " << i->yzels.size() << endl;
 			return false;
+		}
+	}
+	cout << "Success" << endl;
+
+	cout << "Test 3:" << endl;
+	int nnn = this->A_Luch[0][0]->Yzels_opor.size();
+	int nnn2 = this->C_Luch[0][0]->Yzels_opor.size();
+	for (auto& i : this->All_Luch)
+	{
+		if (i->type == "A_Luch" || i->type == "A2_Luch")
+		{
+			if (i->Yzels_opor.size() != nnn)
+			{
+				cout << "Failure: i->Yzels_opor.size()  = " << i->Yzels_opor.size() << "   " << nnn << 
+					"   " << i->type << endl;
+				return false;
+			}
+		}
+
+		if (i->type == "C_Luch" || i->type == "C2_Luch")
+		{
+			if (i->Yzels_opor.size() != nnn2)
+			{
+				cout << "Failure: i->Yzels_opor.size()  = " << i->Yzels_opor.size() << "   " << nnn2 <<
+					"   " << i->type << endl;
+				return false;
+			}
 		}
 	}
 	cout << "Success" << endl << endl;
@@ -268,9 +347,8 @@ void Setka::Move_to_surf(Surfaces* Surf)
 	double x, y, z, phi, the, r, rr;
 	cout << "Start: Move_to_surf" << endl;
 	double R_BS; // положение внешней ударной волны (дл€ движение B E D лучей)
-	for (int st = 0; st < 5; st++)
+	for (int st = 0; st < 15; st++)
 	{
-
 		for (auto& i : this->A_Luch)
 		{
 			for (auto& j : i)
@@ -295,10 +373,6 @@ void Setka::Move_to_surf(Surfaces* Surf)
 					cout << "0989898653   errjr" << endl;
 				}
 
-				if (phi == 0.0 && the == const_pi/2)
-				{
-					//cout << 'rr' << endl;
-				}
 
 				x = j->Yzels_opor[2]->coord[0][0];
 				y = j->Yzels_opor[2]->coord[0][1];
@@ -336,6 +410,66 @@ void Setka::Move_to_surf(Surfaces* Surf)
 				j->Yzels_opor[3]->coord[0][2] *= rr / r;
 
 			}
+		}
+
+		for (auto& j : this->A2_Luch)
+		{
+			x = j->Yzels_opor[1]->coord[0][0];
+			y = j->Yzels_opor[1]->coord[0][1];
+			z = j->Yzels_opor[1]->coord[0][2];
+			r = sqrt(kvv(x, y, z));
+			the = polar_angle(x, sqrt(kv(y) + kv(z)));
+			phi = polar_angle(y, z);
+
+
+
+			rr = Surf->Get_TS(phi, the);
+
+			j->Yzels_opor[1]->coord[0][0] *= rr / r;
+			j->Yzels_opor[1]->coord[0][1] *= rr / r;
+			j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+			if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+			{
+				cout << "0989898653   errjr" << endl;
+			}
+
+
+			x = j->Yzels_opor[2]->coord[0][0];
+			y = j->Yzels_opor[2]->coord[0][1];
+			z = j->Yzels_opor[2]->coord[0][2];
+			r = sqrt(kvv(x, y, z));
+
+			rr = Surf->Get_HP(phi, the, 0);
+
+			j->Yzels_opor[2]->coord[0][0] *= rr / r;
+			j->Yzels_opor[2]->coord[0][1] *= rr / r;
+			j->Yzels_opor[2]->coord[0][2] *= rr / r;
+
+			if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+			{
+				cout << "9443563295   errjr" << endl;
+			}
+
+			x = j->Yzels_opor[3]->coord[0][0];
+			y = j->Yzels_opor[3]->coord[0][1];
+			z = j->Yzels_opor[3]->coord[0][2];
+			r = sqrt(kvv(x, y, z));
+			the = polar_angle(x, sqrt(kv(y) + kv(z)));
+			phi = polar_angle(y, z);
+
+
+			rr = Surf->Get_BS(phi, the);
+
+			if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+			{
+				cout << "5794671565   errjr" << endl;
+			}
+
+			j->Yzels_opor[3]->coord[0][0] *= rr / r;
+			j->Yzels_opor[3]->coord[0][1] *= rr / r;
+			j->Yzels_opor[3]->coord[0][2] *= rr / r;
+
 		}
 
 		for (auto& i : this->B_Luch)
@@ -401,6 +535,29 @@ void Setka::Move_to_surf(Surfaces* Surf)
 				{
 					cout << "0989898653   errjr" << endl;
 				}
+			}
+		}
+
+		for (auto& j : this->C2_Luch)
+		{
+			x = j->Yzels_opor[1]->coord[0][0];
+			y = j->Yzels_opor[1]->coord[0][1];
+			z = j->Yzels_opor[1]->coord[0][2];
+			r = sqrt(kvv(x, y, z));
+			the = polar_angle(x, sqrt(kv(y) + kv(z)));
+			phi = polar_angle(y, z);
+
+
+
+			rr = Surf->Get_TS(phi, the);
+
+			j->Yzels_opor[1]->coord[0][0] *= rr / r;
+			j->Yzels_opor[1]->coord[0][1] *= rr / r;
+			j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+			if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+			{
+				cout << "0989898653   errjr" << endl;
 			}
 		}
 
@@ -976,6 +1133,17 @@ void Setka::New_initial()
 		}
 	}
 
+	for (int i = 0; i < this->Krug_Yzel_2.size(); i++)
+	{
+		for (int j = 0; j < this->Krug_Yzel_2[0].size(); j++)
+		{
+			if (this->Krug_Yzel_2[i][j]->number < 0)
+			{
+				this->All_Yzel.push_back(this->Krug_Yzel_2[i][j]);
+			}
+		}
+	}
+
 	cout << "Yzlov posle dobavleniya  " << this->All_Yzel.size() << endl;
 
 	// ѕеренумеровываем все узлы
@@ -1439,6 +1607,29 @@ void Setka::New_initial()
 					this->Cell_layer_head[i][j]->yzels[7] = a8;
 				}
 			}
+
+			for (int i = 0; i < this->Cell_layer_tail.size(); i++)
+			{
+				for (int j = 0; j < this->Cell_layer_tail[0].size(); j++)
+				{
+					auto a1 = this->Cell_layer_tail[i][j]->yzels[0];
+					auto a2 = this->Cell_layer_tail[i][j]->yzels[1];
+					auto a3 = this->Cell_layer_tail[i][j]->yzels[2];
+					auto a4 = this->Cell_layer_tail[i][j]->yzels[3];
+					auto a5 = this->Cell_layer_tail[i][j]->yzels[4];
+					auto a6 = this->Cell_layer_tail[i][j]->yzels[5];
+					auto a7 = this->Cell_layer_tail[i][j]->yzels[6];
+					auto a8 = this->Cell_layer_tail[i][j]->yzels[7];
+
+					this->Cell_layer_tail[i][j]->yzels[1] = a3;
+					this->Cell_layer_tail[i][j]->yzels[2] = a5;
+					this->Cell_layer_tail[i][j]->yzels[3] = a7;
+					this->Cell_layer_tail[i][j]->yzels[4] = a2;
+					this->Cell_layer_tail[i][j]->yzels[5] = a4;
+					this->Cell_layer_tail[i][j]->yzels[6] = a6;
+					this->Cell_layer_tail[i][j]->yzels[7] = a8;
+				}
+			}
 		}
 
 		
@@ -1620,13 +1811,63 @@ void Setka::New_connect()
 		}
 	}
 
-	if (this->Test_geometr() == false)
+	/*if (this->Test_geometr() == false)
 	{
 		this->~Setka();
 		std::exit(EXIT_FAILURE);
-	}
+	}*/
 	cout << "END: New_connect" << endl;
 
+}
+
+void Setka::New_append_surfaces()
+{
+	// —начала зададим типы узлам (через опорные точки на лучах проще всего), 
+	// потом пробежимс€ по гран€м и найдЄм нужные
+
+	for (auto& i : this->All_Yzel)
+	{
+		i->type = Type_yzel::Us;
+	}
+
+	for (auto& i : this->All_Luch)
+	{
+		if (i->type == "A_Luch" || i->type == "A2_Luch")
+		{
+			i->Yzels_opor[1]->type = Type_yzel::TS;
+			i->Yzels_opor[2]->type = Type_yzel::HP;
+			i->Yzels_opor[3]->type = Type_yzel::BS;
+		}
+		else if (i->type == "B_Luch")
+		{
+			i->Yzels_opor[1]->type = Type_yzel::TS;
+			i->Yzels_opor[2]->type = Type_yzel::HP;
+		}
+		else if (i->type == "C_Luch" || i->type == "C2_Luch")
+		{
+			if (i->type == "C2_Luch") 
+			{
+				cout << "i->type == C2_Luch" << endl;
+			}
+			i->Yzels_opor[1]->type = Type_yzel::TS;
+		}
+		else if (i->type == "E_Luch")
+		{
+			i->Yzels_opor[1]->type = Type_yzel::HP;
+		}
+		else if (i->type == "D_Luch")
+		{
+			if (i->Yzels_opor[1]->coord[0][0] >= this->geo->L6 - 0.00001)
+			{
+				i->Yzels_opor[1]->type = Type_yzel::HP;
+			}
+		}
+	}
+
+	bool b1 = false;
+	macros2(TS);
+	macros2(HP);
+	macros2(BS);
 }
 
 void Setka::Calculating_measure(unsigned short int st_time)
@@ -1731,36 +1972,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 				double d1 = fabs(a1->func_R(0) - a2->func_R(0));
 				double d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-				if ((100.0 - d2 * 100.0 / d1) > 5.0)
-				{
-					k++;
-					izmen = true;
-					if (i->parameters.find("da1") != i->parameters.end())
-					{
-						i->parameters["da1"] *= (1.0 + procent/100.0);
-						//cout << "UP " << i->parameters["da1"] << endl;
-					}
-					else
-					{
-						i->parameters["da1"] = this->geo->da1 * (1.0 + procent / 100.0);
-						//cout << "UP " << i->parameters["da1"] << endl;
-					}
-				}
-				else if ((100.0 - d2 * 100.0 / d1) < -5.0)
-				{
-					k++;
-					izmen = true;
-					if (i->parameters.find("da1") != i->parameters.end())
-					{
-						i->parameters["da1"] *= (1.0 - procent / 100.0);
-						//cout << "DOWN " << i->parameters["da1"] << endl;
-					}
-					else
-					{
-						i->parameters["da1"] = this->geo->da1 * (1.0 - procent / 100.0);
-						//cout << "DOWN " << i->parameters["da1"] << endl;
-					}
-				}
+				macros3(da1, 5.0);
 
 				// da2
 				b1 = i->Yzels_opor[2];
@@ -1768,32 +1980,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 
 				d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-				if ((100.0 - d2 * 100.0 / d1) > 5.0)
-				{
-					k++;
-					izmen = true;
-					if (i->parameters.find("da2") != i->parameters.end())
-					{
-						i->parameters["da2"] *= (1.0 + procent / 100.0);
-					}
-					else
-					{
-						i->parameters["da2"] = this->geo->da2 * (1.0 + procent / 100.0);
-					}
-				}
-				else if ((100.0 - d2 * 100.0 / d1) < -5.0)
-				{
-					k++;
-					izmen = true;
-					if (i->parameters.find("da2") != i->parameters.end())
-					{
-						i->parameters["da2"] *= (1.0 - procent / 100.0);
-					}
-					else
-					{
-						i->parameters["da2"] = this->geo->da2 * (1.0 - procent / 100.0);
-					}
-				}
+				macros3(da2, 5.0);
 
 				//da3
 				if (i->parameters.find("da3") == i->parameters.end() || i->parameters["da3"] > 0.05)
@@ -1803,32 +1990,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 
 					d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-					if ((100.0 - d2 * 100.0 / d1) > 5.0)
-					{
-						k++;
-						izmen = true;
-						if (i->parameters.find("da3") != i->parameters.end())
-						{
-							i->parameters["da3"] *= (1.0 + procent / 100.0);
-						}
-						else
-						{
-							i->parameters["da3"] = this->geo->da3 * (1.0 + procent / 100.0);
-						}
-					}
-					else if ((100.0 - d2 * 100.0 / d1) < -5.0)
-					{
-						k++;
-						izmen = true;
-						if (i->parameters.find("da3") != i->parameters.end())
-						{
-							i->parameters["da3"] *= (1.0 - procent / 100.0);
-						}
-						else
-						{
-							i->parameters["da3"] = this->geo->da3 * (1.0 - procent / 100.0);
-						}
-					}
+					macros3(da3, 5.0);
 				}
 
 				// da4
@@ -1839,32 +2001,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 
 					d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-					if ((100.0 - d2 * 100.0 / (2.0 * d1) ) > 5.0)
-					{
-						k++;
-						izmen = true;
-						if (i->parameters.find("da4") != i->parameters.end())
-						{
-							i->parameters["da4"] *= (1.0 + procent / 100.0);
-						}
-						else
-						{
-							i->parameters["da4"] = this->geo->da4 * (1.0 + procent / 100.0);
-						}
-					}
-					else if ((100.0 - d2 * 100.0 / (2.0 * d1)) < -5.0)
-					{
-						k++;
-						izmen = true;
-						if (i->parameters.find("da4") != i->parameters.end())
-						{
-							i->parameters["da4"] *= (1.0 - procent / 100.0);
-						}
-						else
-						{
-							i->parameters["da4"] = this->geo->da4 * (1.0 - procent / 100.0);
-						}
-					}
+					macros3(da4, 5.0);
 				}
 
 				//da5
@@ -1875,32 +2012,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 
 					d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-					if ((100.0 - d2 * 100.0 / (2.0 * d1)) > 5.0)
-					{
-						k++;
-						izmen = true;
-						if (i->parameters.find("da5") != i->parameters.end())
-						{
-							i->parameters["da5"] *= (1.0 + procent / 100.0);
-						}
-						else
-						{
-							i->parameters["da5"] = this->geo->da5 * (1.0 + procent / 100.0);
-						}
-					}
-					else if ((100.0 - d2 * 100.0 / (2.0 * d1)) < -5.0)
-					{
-						k++;
-						izmen = true;
-						if (i->parameters.find("da5") != i->parameters.end())
-						{
-							i->parameters["da5"] *= (1.0 - procent / 100.0);
-						}
-						else
-						{
-							i->parameters["da5"] = this->geo->da5 * (1.0 - procent / 100.0);
-						}
-					}
+					macros3(da5, 5.0);
 				}
 
 			}
@@ -1917,64 +2029,15 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 				double d1 = Yzel_distance(a1, a2, 0);
 				double d2 = Yzel_distance_x(b1, b2, 0);
 
-				if ((100.0 - d2 * 100.0 / d1) > 5.0)
-				{
-					k++;
-					izmen = true;
-					if (i->parameters.find("ba1") != i->parameters.end())
-					{
-						i->parameters["ba1"] *= (1.0 + procent / 100.0);
-					}
-					else
-					{
-						i->parameters["ba1"] = this->geo->ba1 * (1.0 + procent / 100.0);
-					}
-				}
-				else if ((100.0 - d2 * 100.0 / d1) < -5.0)
-				{
-					k++;
-					izmen = true;
-					if (i->parameters.find("ba1") != i->parameters.end())
-					{
-						i->parameters["ba1"] *= (1.0 - procent / 100.0);
-					}
-					else
-					{
-						i->parameters["ba1"] = this->geo->ba1 * (1.0 - procent / 100.0);
-					}
-				}
+				macros3(ba1, 5.0);
+
 				// ba2
 				b1 = i->Yzels_opor[2];
 				b2 = i->get_yzel_near_opor(2, -1);
 
 				d2 = Yzel_distance(b1, b2, 0);
 
-				if ((100.0 - d2 * 100.0 / d1) > 3.0)
-				{
-					k++;
-					izmen = true;
-					if (i->parameters.find("ba2") != i->parameters.end())
-					{
-						i->parameters["ba2"] *= (1.0 + procent / 100.0);
-					}
-					else
-					{
-						i->parameters["ba2"] = this->geo->ba2 * (1.0 + procent / 100.0);
-					}
-				}
-				else if ((100.0 - d2 * 100.0 / d1) < -3.0)
-				{
-					k++;
-					izmen = true;
-					if (i->parameters.find("ba2") != i->parameters.end())
-					{
-						i->parameters["ba2"] *= (1.0 - procent / 100.0);
-					}
-					else
-					{
-						i->parameters["ba2"] = this->geo->ba2 * (1.0 - procent / 100.0);
-					}
-				}
+				macros3(ba2, 3.0);
 
 				// ba3
 				if (i->parameters.find("ba3") == i->parameters.end() || i->parameters["ba3"] > 0.05)
@@ -1988,32 +2051,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 					d1 = Yzel_distance(a1, a2, 0);
 					d2 = Yzel_distance_x(b1, b2, 0);
 
-					if ((100.0 - d2 * 100.0 / d1) > 1.0)
-					{
-						k++;
-						izmen = true;
-						if (i->parameters.find("ba3") != i->parameters.end())
-						{
-							i->parameters["ba3"] *= (1.0 + procent / 100.0);
-						}
-						else
-						{
-							i->parameters["ba3"] = this->geo->ba3 * (1.0 + procent / 100.0);
-						}
-					}
-					else if ((100.0 - d2 * 100.0 / d1) < -1.0)
-					{
-						k++;
-						izmen = true;
-						if (i->parameters.find("ba3") != i->parameters.end())
-						{
-							i->parameters["ba3"] *= (1.0 - procent / 100.0);
-						}
-						else
-						{
-							i->parameters["ba3"] = this->geo->ba3 * (1.0 - procent / 100.0);
-						}
-					}
+					macros3(ba3, 1.0);
 				}
 				// ba4
 				if (i->parameters.find("ba4") == i->parameters.end() || i->parameters["ba4"] > 0.05)
@@ -2023,32 +2061,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 
 					d2 = Yzel_distance(b1, b2, 0);
 
-					if ((100.0 - d2 * 100.0 / (2.0 * d1)) > 1.0)
-					{
-						k++;
-						izmen = true;
-						if (i->parameters.find("ba4") != i->parameters.end())
-						{
-							i->parameters["ba4"] *= (1.0 + procent / 100.0);
-						}
-						else
-						{
-							i->parameters["ba4"] = this->geo->ba4 * (1.0 + procent / 100.0);
-						}
-					}
-					else if ((100.0 - d2 * 100.0 / (2.0 * d1)) < -1.0)
-					{
-						k++;
-						izmen = true;
-						if (i->parameters.find("ba4") != i->parameters.end())
-						{
-							i->parameters["ba4"] *= (1.0 - procent / 100.0);
-						}
-						else
-						{
-							i->parameters["ba4"] = this->geo->ba4 * (1.0 - procent / 100.0);
-						}
-					}
+					macros3(ba4, 1.0);
 				}
 			}
 		}
@@ -2644,13 +2657,39 @@ void Setka::Tecplot_print_all_yzel_in_3D(string name)
 	fout.close();
 }
 
+void Setka::Tecplot_print_all_yzel_with_condition()
+{
+	// name - это им€ сетки
+	int k = 1;
+	ofstream fout;
+	string name_f = "Tecplot_all_yzel_with_condition.txt";
+
+
+	fout.open(name_f);
+
+
+
+	fout << "TITLE = HP  VARIABLES = X, Y, Z" << endl;
+	fout << "ZONE T = HP" << endl;
+
+	for (auto& i : this->All_Yzel)
+	{
+		if (i->type == Type_yzel::TS)
+		{
+			fout << i->coord[0][0] << " " << i->coord[0][1] << " " << i->coord[0][2] << endl;
+		}
+	}
+
+	fout.close();
+}
+
 void Setka::Tecplot_print_krug_yzel_in_3D(int num)
 {
 	// num - какой круг выводим - головной или хвостовой
 	int k = 1;
 	vector <vector<Yzel*>> VVVV;
 	ofstream fout;
-	string name_f = "Tecplot_krug_yzel_in_3D_.txt";
+	string name_f = "Tecplot_krug_yzel_in_3D_" + to_string(num) +  ".txt";
 
 	fout.open(name_f);
 	fout << "TITLE = HP  VARIABLES = X, Y, Z" << endl;
@@ -3151,4 +3190,51 @@ void Setka::Tecplot_print_all_gran_in_cell()
 			fout << 4 * k + 1 << " " << 4 * k + 2 << " " << 4 * k + 3 << " " << 4 * k + 4 << endl;
 		}
 	}
+}
+
+void Setka::Tecplot_print_all_gran_in_surface(string name_surf)
+{
+	// name - это им€ лучей
+	ofstream fout;
+	string name_f = "Tecplot_print_all_gran_in_surface_" + name_surf + ".txt";
+
+
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = X, Y, Z" << endl;
+
+	vector<Gran*>* C = nullptr;
+
+	if (name_surf == "TS")
+	{
+		C = &this->Gran_TS;
+	}
+	else if (name_surf == "HP")
+	{
+		C = &this->Gran_HP;
+	}
+	else if (name_surf == "BS")
+	{
+		C = &this->Gran_BS;
+	}
+	else
+	{
+		cout << "Error  9785656643" << endl;
+	}
+
+
+	fout << "ZONE T=HP, N = " << C->size() * 4 << ", E = " << C->size() << ", F=FEPOINT, ET=quadrilateral" <<  endl;
+
+	for (auto& A : *C)
+	{
+		for (auto& j : A->yzels)
+		{
+			fout << j->coord[0][0] << " " << j->coord[0][1] << " " << j->coord[0][2] << endl;
+		}
+	}
+
+	for (int k = 0; k < C->size(); k++)
+	{
+		fout << 4 * k + 1 << " " << 4 * k + 2 << " " << 4 * k + 3 << " " << 4 * k + 4 << endl;
+	}
+	
 }
