@@ -77,3 +77,9 @@ void Cell::Culc_volume(unsigned short int st_time, unsigned short int method)
 		return;
 	}
 }
+
+
+double Cell ::func_R(unsigned short int i_time)
+{
+	return norm2(this->center[i_time][0], this->center[i_time][1], this->center[i_time][2]);
+}

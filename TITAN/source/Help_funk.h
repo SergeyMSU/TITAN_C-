@@ -4,6 +4,10 @@
 
 double polar_angle(const double& x, const double& y);
 
+void dekard_skorost(const double& z, const double& x, const double& y,
+	const double& Vr, const double& Vphi, const double& Vtheta,
+	double& Vz, double& Vx, double& Vy);
+
 double triangleArea3D(
 	const double& x1, const double& y1, const double& z1,
 	const double& x2, const double& y2, const double& z2,

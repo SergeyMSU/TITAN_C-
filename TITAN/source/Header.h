@@ -2,7 +2,8 @@
 
 
 // Описание всех классов
-class Geo_param;
+class Geo_param; 
+class Phys_param;
 class Setka;
 class Yzel;
 class Luch;
@@ -11,12 +12,16 @@ class Gran;
 class Surfaces;
 
 
+
 const double const_pi= 3.14159265358979323846;
 
 #define kv(x) ((x) * (x))
 #define kvv(x, y, z) ((x) * (x) + (y) * (y) + (z) * (z))
 #define norm2(x, y, z) (sqrt(kvv(x, y, z)))
 
+
+#include <string>
+#include <sstream>
 #include <iostream>
 #include <vector>
 #include <list>
@@ -29,14 +34,16 @@ const double const_pi= 3.14159265358979323846;
 #include <limits>
 #include <iterator>
 #include <cstdlib>
-
+#include <Eigen/Dense>
 
 // Boost библиотека (надо подключать к компилятору отдельно)
 #include "boost/multi_array.hpp"
 
+
 #include "Setka.h"
 #include "Help_funk.h"
 #include "Geo_param.h"
+#include "Phys_param.h"
 #include "Luch.h"
 #include "Gran.h"
 #include "Cell.h"
@@ -45,7 +52,6 @@ const double const_pi= 3.14159265358979323846;
 
 
 using namespace std;
-
 
 
 

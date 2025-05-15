@@ -58,6 +58,7 @@ Setka::Setka()
 {
 	this->Surf1 = nullptr;
 	this->geo = new Geo_param();
+	this->phys_param = new Phys_param();
 	Luch::geo = this->geo;
 	this->geo->Nphi = 60;     // &INIT&
 	// ! Это число зависит от сетки триангуляции круга (сколько там вращений по углу она подразумевает)
@@ -563,22 +564,24 @@ void Setka::Move_to_surf(Surfaces* Surf)
 
 		for (auto& i : this->D_Luch)
 		{
+			x = i[0]->Yzels_opor[1]->coord[0][0];
+			y = i[0]->Yzels_opor[1]->coord[0][1];
+			z = i[0]->Yzels_opor[1]->coord[0][2];
+			r = sqrt(kvv(0.0, y, z));
+			phi = polar_angle(y, z);
+			rr = Surf->Get_HP(phi, x, 1);
+
 			for (auto& j : i)
 			{
 				x = j->Yzels_opor[1]->coord[0][0];
 				y = j->Yzels_opor[1]->coord[0][1];
 				z = j->Yzels_opor[1]->coord[0][2];
 				r = sqrt(kvv(0.0, y, z));
-				phi = polar_angle(y, z);
-				rr = Surf->Get_HP(phi, x, 1);
+				//phi = polar_angle(y, z);
+				//rr = Surf->Get_HP(phi, x, 1);
 
 				j->Yzels_opor[1]->coord[0][1] *= rr / r;
 				j->Yzels_opor[1]->coord[0][2] *= rr / r;
-
-				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
-				{
-					cout << "6510292073   errjr" << endl;
-				}
 
 			}
 		}
@@ -1238,7 +1241,7 @@ void Setka::New_initial()
 		this->geo->R3 = 30.0;
 		this->geo->R4 = 140.0;
 		this->geo->R5 = 400.0;
-		this->geo->L6 = -40.0;
+		this->geo->L6 = -60.0;
 		this->geo->L7 = -160.0;
 		
 		this->Set_luch_parametr();
@@ -1731,10 +1734,10 @@ void Setka::New_connect()
 	kkk = 1;
 	for (auto& i : this->All_Yzel)
 	{
-		if (kkk % 5000 == 0)
+		/*if (kkk % 5000 == 0)
 		{
 			cout << kkk << "   from  " << this->All_Yzel.size() << endl;
-		}
+		}*/
 		for (int j = 0; j < i->grans.size(); j++)
 		{
 			for (int k = j + 1; k < i->grans.size(); k++)
@@ -1845,10 +1848,6 @@ void Setka::New_append_surfaces()
 		}
 		else if (i->type == "C_Luch" || i->type == "C2_Luch")
 		{
-			if (i->type == "C2_Luch") 
-			{
-				cout << "i->type == C2_Luch" << endl;
-			}
 			i->Yzels_opor[1]->type = Type_yzel::TS;
 		}
 		else if (i->type == "E_Luch")
@@ -2414,7 +2413,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 			i->dvigenie(0);
 		}
 
-		cout << "k = " << k << endl;
+		//cout << "k = " << k << endl;
 	}
 
 
@@ -3237,4 +3236,64 @@ void Setka::Tecplot_print_all_gran_in_surface(string name_surf)
 		fout << 4 * k + 1 << " " << 4 * k + 2 << " " << 4 * k + 3 << " " << 4 * k + 4 << endl;
 	}
 	
+}
+
+
+void Setka::Tecplot_print_gran_with_condition()
+{
+	// name - это имя лучей
+	ofstream fout;
+	string name_f = "Tecplot_print_gran_with_condition.txt";
+
+
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = X, Y, Z" << endl;
+
+	int k = 0; 
+	int kk = 0;
+
+	for (auto& i : this->All_Gran)
+	{
+		if(i->cells.size() == 1)
+		{ 
+			k++;
+			kk += i->yzels.size();
+		}
+
+		if (i->cells.size() <= 0 || i->cells.size() > 2)
+		{
+			cout << "Error 0909090016" << endl;
+		}
+	}
+
+	fout << "ZONE T=HP, N = " << kk << ", E = " << k << ", F=FEPOINT, ET=quadrilateral" << endl;
+
+	for (auto& C : this->All_Gran)
+	{
+		if (C->cells.size() != 1)
+		{
+			continue;
+		}
+
+		for (auto& j : C->yzels)
+		{
+			fout << j->coord[0][0] << " " << j->coord[0][1] << " " << j->coord[0][2] << endl;
+		}
+	}
+	
+	k = 1;
+	for (auto& C : this->All_Gran)
+	{
+		if (C->cells.size() != 1)
+		{
+			continue;
+		}
+
+		for (int i = k; i < k + C->yzels.size(); i++)
+		{
+			fout << i << " ";
+		}
+		fout << endl;
+		k += C->yzels.size();
+	}
 }

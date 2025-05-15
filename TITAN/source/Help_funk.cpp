@@ -31,6 +31,34 @@ double polar_angle(const double& x, const double& y)
 	return 0.0;
 }
 
+void dekard_skorost(const double& z, const double& x, const double& y, 
+	const double& Vr, const double& Vphi, const double& Vtheta, 
+	double& Vz, double& Vx, double& Vy)
+{
+	double r_2, the_2, phi_2;
+	r_2 = sqrt(x * x + y * y + z * z);
+	the_2 = acos(z / r_2);
+	phi_2 = polar_angle(x, y);
+
+	Vx = Vr * sin(the_2) * cos(phi_2) + Vtheta * cos(the_2) * cos(phi_2) - Vphi * sin(phi_2);
+	Vy = Vr * sin(the_2) * sin(phi_2) + Vtheta * cos(the_2) * sin(phi_2) + Vphi * cos(phi_2);
+	Vz = Vr * cos(the_2) - Vtheta * sin(the_2);
+}
+
+void spherical_skorost(const double& z, const double& x, const double& y, 
+	const double& Vz, const double& Vx, const double& Vy,
+	double& Vr, double& Vphi, double& Vtheta)
+{
+	double r_1, the_1, phi_1;
+
+	r_1 = sqrt(x * x + y * y + z * z);
+	the_1 = acos(z / r_1);
+	phi_1 = polar_angle(x, y);
+
+	Vr = Vx * sin(the_1) * cos(phi_1) + Vy * sin(the_1) * sin(phi_1) + Vz * cos(the_1);
+	Vtheta = Vx * cos(the_1) * cos(phi_1) + Vy * cos(the_1) * sin(phi_1) - Vz * sin(the_1);
+	Vphi = -Vx * sin(phi_1) + Vy * cos(phi_1);
+}
 
 double Yzel_distance(Yzel* A, Yzel* B, int time)
 {

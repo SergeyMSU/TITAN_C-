@@ -86,3 +86,8 @@ Gran::Gran()
 	this->yzels.reserve(4);
 	this->cells.reserve(2);
 }
+
+double Gran::func_R(unsigned short int i_time)
+{
+	return norm2(this->center[i_time][0], this->center[i_time][1], this->center[i_time][2]);
+}

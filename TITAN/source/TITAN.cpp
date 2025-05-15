@@ -16,8 +16,14 @@ int main()
     S1.auto_set_luch_geo_parameter(0);
     S1.Calculating_measure(0);
 
+    S1.Init_boundary_grans();
+    S1.Init_physics();
+
+    cout << "YSPEX" << endl;
+
 
     S1.Tecplot_print_all_yzel_in_3D("SDK1");
+    S1.Tecplot_print_gran_with_condition();
     
 
 
