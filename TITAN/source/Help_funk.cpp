@@ -142,6 +142,20 @@ double triangleArea3D(
 	return 0.5 * cross_magnitude;
 }
 
+void get_bazis(const Eigen::Vector3d& n, Eigen::Vector3d& t, Eigen::Vector3d& m)
+{
+	// 1. Выбираем произвольный вектор 'a', не коллинеарный с 'n'
+	Eigen::Vector3d a(1.0, 0.0, 0.0);
+	if (std::abs(n.dot(a)) > 0.9) {  // Если n почти параллелен (1,0,0), берём другой a
+		a = Eigen::Vector3d(0.0, 1.0, 0.0);
+	}
+
+	// 2. Находим t = (a × n) / |a × n|
+	t = a.cross(n).normalized();
+
+	// 3. Находим m = n × t (уже нормирован, так как n и t ортогональны и единичные)
+	m = n.cross(t);
+}
 
 void crossProductFast(
 	const double& ax, const double& ay, const double& az,

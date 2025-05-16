@@ -62,7 +62,7 @@ Setka::Setka()
 	Luch::geo = this->geo;
 	this->geo->Nphi = 60;     // &INIT&
 	// ! Ёто число зависит от сетки триангул€ции круга (сколько там вращений по углу она подразумевает)
-
+	//cout << "AAAAAAAAAAAAAAAAAAAAA " << endl;
 	this->All_name_luch["A_Luch"] = &this->A_Luch;
 	this->All_name_luch["B_Luch"] = &this->B_Luch;
 	this->All_name_luch["C_Luch"] = &this->C_Luch;
@@ -85,6 +85,17 @@ Setka::Setka()
 	this->New_append_surfaces();
 
 	this->Renumerate();
+
+	// заполн€ем коррдинаты узлов на другом временном слое
+	for (auto& i : this->All_Yzel)
+	{
+		for (unsigned short int j = 0; j < 3; j++)
+		{
+			i->coord[1][j] = i->coord[0][j];
+		}
+	}
+
+
 	if (this->Test_geometr() == false)
 	{
 		this->~Setka();
@@ -148,36 +159,59 @@ bool Setka::Test_geometr(void)
 	cout << endl;
 	cout << "Testing" << endl;
 
-	cout << "Test 1:" << endl;
+	this->Calculating_measure(0);
+	this->Calculating_measure(1);
+
+	cout << "Test 1:" << endl; // √рань ссылаетс€ либо на 1, либо на 2 €чейки
+	// нормаль у грани от порвой €чейки ко второй
 	for (auto& i : this->All_Gran)
 	{
 		if (i->cells.size() != 1 && i->cells.size() != 2)
 		{
 			cout << "Failure: i->cells.size()  = " << i->cells.size() << endl;
-			return false;
+			exit(-1);
 		}
+
+		if (i->cells.size() == 2)
+		{
+			double n1 = i->normal[0][0];
+			double n2 = i->normal[0][1];
+			double n3 = i->normal[0][2];
+
+			double a1 = i->cells[1]->center[0][0] - i->cells[0]->center[0][0];
+			double a2 = i->cells[1]->center[0][1] - i->cells[0]->center[0][1];
+			double a3 = i->cells[1]->center[0][2] - i->cells[0]->center[0][2];
+
+			if (scalarProductFast(n1, n2, n3, a1, a2, a3) < 0.0)
+			{
+				cout << "Failure: 5678675634   = " << scalarProductFast(n1, n2, n3, a1, a2, a3) << endl;
+				exit(-1);
+			}
+		}
+
+
 	}
 	cout << "Success" << endl;
 
 
-	cout << "Test 2:" << endl;
+	cout << "Test 2:" << endl;  // ” €чейки 6 граней и 8 узлов
 	for (auto& i : this->All_Cell)
 	{
 		if (i->grans.size() != 6)
 		{
 			cout << "Failure: i->grans.size()  = " << i->grans.size() << endl;
-			return false;
+			exit(-1);
 		}
 
 		if (i->yzels.size() != 8)
 		{
 			cout << "Failure: i->yzels.size()  = " << i->yzels.size() << endl;
-			return false;
+			exit(-1);
 		}
 	}
 	cout << "Success" << endl;
 
-	cout << "Test 3:" << endl;
+	cout << "Test 3:" << endl;  // „исло опорных точек на всех ј (ј2) лучах одинаковое
 	int nnn = this->A_Luch[0][0]->Yzels_opor.size();
 	int nnn2 = this->C_Luch[0][0]->Yzels_opor.size();
 	for (auto& i : this->All_Luch)
@@ -188,7 +222,7 @@ bool Setka::Test_geometr(void)
 			{
 				cout << "Failure: i->Yzels_opor.size()  = " << i->Yzels_opor.size() << "   " << nnn << 
 					"   " << i->type << endl;
-				return false;
+				exit(-1);
 			}
 		}
 
@@ -198,8 +232,52 @@ bool Setka::Test_geometr(void)
 			{
 				cout << "Failure: i->Yzels_opor.size()  = " << i->Yzels_opor.size() << "   " << nnn2 <<
 					"   " << i->type << endl;
-				return false;
+				exit(-1);
 			}
+		}
+	}
+	cout << "Success" << endl;
+
+
+	cout << "Test 5:" << endl; // ¬се нормали грани единичные и в €чейках выполнен геометрический закон суммы нормалей
+	for (auto& i : this->All_Cell)
+	{
+		double V1 = 0.0;
+		double V2 = 0.0;
+		double V3 = 0.0;
+
+		for (auto& j : i->grans)
+		{
+			double n1 = j->normal[0][0];
+			double n2 = j->normal[0][1];
+			double n3 = j->normal[0][2];
+			if (fabs(norm2(n1, n2, n3) - 1.0) > 0.00001)
+			{
+				cout << "Error 5654354876" << endl;
+				whach(norm2(n1, n2, n3));
+				exit(-1);
+			}
+
+			if (j->cells[0] != i)
+			{
+				n1 *= -1;
+				n2 *= -1;
+				n3 *= -1;
+			}
+			V1 += n1 * j->area[0];
+			V2 += n2 * j->area[0];
+			V3 += n3 * j->area[0];
+		}
+
+		if (norm2(V1, V2, V3)/i->volume[0] > 0.1)
+		{
+			cout << "Error 8768978654" << endl;
+			whach(V1);
+			whach(V2);
+			whach(V3);
+			whach(i->volume[0]);
+			whach(norm2(V1, V2, V3) / i->volume[0]);
+			exit(-1);
 		}
 	}
 	cout << "Success" << endl << endl;
@@ -3155,6 +3233,31 @@ void Setka::Tecplot_print_all_cell_in_3D()
 		}
 
 		fout << endl;
+	}
+
+	fout.close();
+}
+
+void Setka::Tecplot_print_cell_plane_parameters()
+{
+	// name - это им€ лучей
+	ofstream fout;
+	string name_f = "Tecplot_print_cell_plane_parameters.txt";
+
+
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = X, Y, RHO, p, vx, vy, vz, bx, by, bz" << endl;
+
+	int kkk = 1;
+
+
+	for (auto& i : this->Cell_2D[0])
+	{
+		fout << i->center[0][0] << " " << norm2(0.0, i->center[0][1], i->center[0][2]) <<
+			" " << i->parameters[0]["rho"] << " " << i->parameters[0]["p"] <<
+			" " << i->parameters[0]["Vx"] << " " << i->parameters[0]["Vy"] <<
+			" " << i->parameters[0]["Vz"] << " " << i->parameters[0]["Bx"] <<
+			" " << i->parameters[0]["By"] << " " << i->parameters[0]["Bz"] << endl;
 	}
 
 	fout.close();

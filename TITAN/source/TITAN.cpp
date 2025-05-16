@@ -8,16 +8,35 @@ using namespace std;
 
 int main()
 {
+    cout << "Start Programm" << endl;
     Setka S1 = Setka();
 
     S1.Read_old_surface("ASurf_Save00591.bin");
     S1.Move_to_surf(S1.Surf1);
 
     S1.auto_set_luch_geo_parameter(0);
+    cout << "A " << endl;
     S1.Calculating_measure(0);
+    cout << "B " << endl;
+    S1.Calculating_measure(1);
+    cout << "B2 " << endl;
 
     S1.Init_boundary_grans();
+    cout << "C " << endl;
     S1.Init_physics();
+    cout << "D " << endl;
+
+    //S1.Download_cell_parameters("parameters_123.bin");
+
+    cout << "E " << endl;
+
+    S1.Go();
+
+    cout << "F " << endl;
+
+    S1.Tecplot_print_cell_plane_parameters();
+
+    S1.Save_cell_parameters("parameters_123.bin");
 
     cout << "YSPEX" << endl;
 

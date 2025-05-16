@@ -18,6 +18,9 @@ void crossProductFast(
 	const double& bx, const double& by, const double& bz,
 	double& rx, double& ry, double& rz);
 
+void get_bazis(const Eigen::Vector3d& n, Eigen::Vector3d& t, Eigen::Vector3d& m);
+// ѕо единичному вектору n находит два вектора, образующие с ним правую ортонормированную тройку
+
 double scalarProductFast(
 	const double& ax, const double& ay, const double& az,
 	const double& bx, const double& by, const double& bz);

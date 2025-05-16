@@ -1,6 +1,12 @@
 #pragma once
 #include "Header.h"
 
+struct PrintOptions {
+    std::optional<double> dsl;
+    std::optional<double> dsp;
+    std::optional<double> dsc;
+};
+
 class Phys_param
 {
 public:
@@ -10,11 +16,17 @@ public:
     double B_0 = 114.037;             // Магнитное поле на 1 а.е.
     double p_0 = 3118.94;             // давление на 1 а.е.
 
+    // параметры
+    double gamma = (5.0 / 3.0);       // показатель адиабаты
+    double g1 = (5.0 / 3.0 - 1.0);       // показатель адиабаты
+
     // Характерные параметры
     double R_0 = 0.233017;             // Характерный размер 1 а.е.
     double char_rho = 0.06;             // Характерная концентрация в СГС  см^-3
     double char_v = 10.3804;         // Характерная скорость в км/с
 
+    
+     
 
     Eigen::Matrix3d Matr;              // Матрица перехода 1
     Eigen::Matrix3d Matr2;             // Матрица перехода 2
@@ -33,5 +45,25 @@ public:
 
     double Get_rho_0(const double& the);
     double Get_v_0(const double& the);
+
+    void Get_Potok(const double& rho, const double& p, const double& u, const double& v,
+        const double& w, const double& bx, const double& by, const double& bz,
+        const double& n1, const double& n2, const double& n3, 
+        std::vector<double>& Potok);  // Potok - 8-мерный вектор
+
+    double energy(const double& rho, const double& p, const double& vv, const double& bb);
+
+    void chlld(unsigned short int n_state, // метод
+        const double& al, const double& be, const double& ge, // нормаль
+        const double& w, // скорость грани
+        const std::vector<double>& qqq1, const std::vector<double>& qqq2, // основные параметры с двух сторон 
+        std::vector<double>& qqq, // Выходной поток
+        bool null_bn,  // если  true, то нужно обнулить поток магнитного поля через поверхность
+        unsigned short int n_disc,    // формула для определения скорости
+        const std::vector<double>& konvect_left,  // Дополнительные переменные конвективного переноса слева
+        const std::vector<double>& konvect_right, // Дополнительные переменные конвективного переноса справа
+        std::vector<double>& konvect, // Дополнительные переменные конвективного переноса ПОТОКИ
+        double& dsr, double& dsc, double& dsl,
+        PrintOptions& opts);
 };
 

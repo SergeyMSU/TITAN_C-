@@ -99,6 +99,9 @@ public:
 
 	void Go(void); // «апуск расчЄта
 
+	void Save_cell_parameters(string filename);
+	void Download_cell_parameters(string filename);
+
 	//  ****************************************************************************
 	// ¬»«”јЋ»«ј÷»я ****************************************************************************
 	//	****************************************************************************
@@ -113,6 +116,13 @@ public:
 
 	void Tecplot_print_all_lush_in_3D(string name);
 	void Tecplot_print_all_cell_in_3D();
+
+	void Tecplot_print_cell_plane_parameters(); 
+	// Ѕыстрый просмотр результатов, печатает просто центры €чеек и значени€ плазмы в них 
+	// (дл€ €чеек на первой плоскости вращени€)
+
+
+
 	void Tecplot_print_krug_yzel_in_3D(int num);
 	void Tecplot_print_opor_yzel_in_luchs_3D(string name);
 	void Tecplot_print_all_lush_in_2D();
