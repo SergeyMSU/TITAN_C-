@@ -218,7 +218,7 @@ void Setka::Init_physics(void)
 	}
 }
 
-void Setka::Go(bool is_inner_area)
+void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 {
 	// заполняем коррдинаты узлов на другом временном слое
 	for (auto& i : this->All_Yzel)
@@ -232,7 +232,7 @@ void Setka::Go(bool is_inner_area)
 	this->Test_geometr();
 	// Все настройки расчёта считываются из файла Setter.txt
 	// Сначала реализовываем расчёт без движения сетки
-	unsigned int steps = 30;
+	unsigned int steps = steps__;
 
 	unsigned short int now1 = 1;
 	unsigned short int now2 = 0;
@@ -261,8 +261,11 @@ void Setka::Go(bool is_inner_area)
 
 	for (unsigned int step = 1; step <= steps; step++)
 	{
-		cout << "Global step = " << step << endl;
-		whach(time);
+		if (step % 100 == 0)
+		{
+			cout << "Global step = " << step << endl;
+			whach(time);
+		}
 
 		now2 = now1;
 		now1 = (now1 + 1)%2;
@@ -334,7 +337,7 @@ void Setka::Go(bool is_inner_area)
 
 				double w = 0.0;
 
-				this->phys_param->chlld(1, gran->normal[now1][0], gran->normal[now1][1], gran->normal[now1][2],
+				this->phys_param->chlld(metod, gran->normal[now1][0], gran->normal[now1][1], gran->normal[now1][2],
 					w, qqq1, qqq2, qqq, false, 1,
 					konvect_left, konvect_right, konvect, dsr, dsc, dsl,
 					Option);

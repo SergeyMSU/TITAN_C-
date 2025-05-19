@@ -30,12 +30,12 @@ void Setka::Set_geo()
     this->geo.N4 = 10;
     this->geo.N5 = 8;
 
-    this->geo.M0 = 14;//14;
+    this->geo.M0 = 40;//14;
     this->geo.M1 = 15;//15;
     this->geo.M11 = 3;
-    this->geo.M2 = 10;//10;
+    this->geo.M2 = 25;//10;
     this->geo.M3 = 20;
-    this->geo.M4 = 30;
+    this->geo.M4 = 15;
     this->geo.MF = 5;//4;
 
     this->geo.R0 = 1.0;

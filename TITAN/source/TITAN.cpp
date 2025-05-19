@@ -30,14 +30,34 @@ int main()
 
     cout << "E " << endl;
 
-    S1.Go(true);
-    S1.Go(false);
+    S1.Go(true, 100, 1);
+    S1.Go(false, 200, 1);
+    S1.Go(true, 300, 2);
+    S1.Go(false, 300, 2);
+    S1.Go(true, 500);
+    S1.Go(false, 500);
+    S1.Tecplot_print_cell_plane_parameters();
+    S1.Go(true, 1000);
+    S1.Go(false, 1000);
+    S1.Tecplot_print_cell_plane_parameters();
+    S1.Go(true, 1000);
+    for (int i = 0; i < 10; i++)
+    {
+        cout << "IIIII = " << i << endl;
+        S1.Go(false, 10000, 2);
+        S1.Tecplot_print_cell_plane_parameters();
+        S1.Save_cell_parameters("parameters_0000.bin");
+    }
+
+
+
+
+    S1.Save_cell_parameters("parameters_0001.bin");
 
     cout << "F " << endl;
 
     S1.Tecplot_print_cell_plane_parameters();
 
-    S1.Save_cell_parameters("parameters_123.bin");
 
     cout << "YSPEX" << endl;
 

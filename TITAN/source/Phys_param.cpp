@@ -307,6 +307,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     double suL = SL - vL(0);
     double SM = (suR * r2 * vR(0) - ptR + ptL - suL * r1 * vL(0))
         / (suR * r2 - suL * r1);
+    dsc = SM;
 
     double upt1 = (kv(u1) + kv(v1) + kv(w1)) / 2.0;
     double sbv1 = u1 * bx1 + v1 * by1 + w1 * bz1;
@@ -355,7 +356,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
     if (null_bn == true) UZ[5] = 0.0;
 
-    if (n_state == 1)
+    if (n_state == 1)   // HLL
     {
         double dq[8];
         double FW[8];
@@ -407,7 +408,6 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         Eigen::Vector3d qb;
 
         qqq[0] = (TR * FL[0] - TL * FR[0] + a * dq[0]) / b - FW[0];
-        qqq[8] = (TR * FL[8] - TL * FR[8] + a * dq[8]) / b - FW[8];
         qqq[4] = (TR * FL[4] - TL * FR[4] + a * dq[4]) / b - FW[4];
         for (short unsigned int ik = 1; ik < 4; ik++)
         {
@@ -417,6 +417,187 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         {
             qb(ik - 5) = (TR * FL[ik] - TL * FR[ik] + a * dq[ik]) / b - FW[ik];
         }
+
+        for (short unsigned int ik = 0; ik < 3; ik++)
+        {
+            qqq[ik + 1] = n(ik) * qv(0) + t(ik) * qv(1) + m(ik) * qv(2);
+            qqq[ik + 5] = n(ik) * qb(0) + t(ik) * qb(1) + m(ik) * qb(2);
+        }
+
+        return;
+    }
+
+    if (n_state == 2) // HLLC
+    {
+        double suRm = suR / (SR - SM);
+        double suLm = suL / (SL - SM);
+        double rzR = r2 * suRm;
+        double rzL = r1 * suLm;
+
+        Eigen::Vector3d vzR, vzL, bzR, bzL;
+
+        vzR[0] = SM;
+        vzL[0] = SM;
+
+        double ptz = (suR * r2 * ptL - suL * r1 * ptR +
+            r1 * r2 * suR * suL * (vR[0] - vL[0]))
+            / (suR * r2 - suL * r1);
+
+        bzR[0] = UZ[5];   // bR[0]
+        bzL[0] = UZ[5];   // bL[0]
+
+        vzR[1] = UZ[2] / UZ[0];
+        vzR[2] = UZ[3] / UZ[0];
+        vzL[1] = vzR[1];
+        vzL[2] = vzR[2];
+
+        vzR[1] = vR[1] + UZ[5] * (bR[1] - UZ[6]) / suR / r2;
+        vzR[2] = vR[2] + UZ[5] * (bR[2] - UZ[7]) / suR / r2;
+        vzL[1] = vL[1] + UZ[5] * (bL[1] - UZ[6]) / suL / r1;
+        vzL[2] = vL[2] + UZ[5] * (bL[2] - UZ[7]) / suL / r1;
+
+        bzR[1] = UZ[6];
+        bzR[2] = UZ[7];
+        bzL[1] = bzR[1];
+        bzL[2] = bzR[2];
+
+        double sbvz = (UZ[5] * UZ[1] + UZ[6] * UZ[2] + UZ[7] * UZ[3]) / UZ[0];
+
+        double ezR = e2 * suRm + (ptz * SM - ptR * vR[0] + UZ[5] * (sbv2 - sbvz)) / (SR - SM);
+        double ezL = e1 * suLm + (ptz * SM - ptL * vL[0] + UZ[5] * (sbv1 - sbvz)) / (SL - SM);
+
+        if (fabs(UZ[5]) <= epsb)
+        {
+            vzR[1] = vR[1];
+            vzR[2] = vR[2];
+            vzL[1] = vL[1];
+            vzL[2] = vL[2];
+            bzR[1] = bR[1] * suRm;
+            bzR[2] = bR[2] * suRm;
+            bzL[1] = bL[1] * suLm;
+            bzL[2] = bL[2] * suLm;
+        }
+
+        // Сгладим Скорость     Я добавил, не было изначально !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // vzR[1] = UZ[2] / UZ[0]
+        // vzR[2] = UZ[3] / UZ[0]
+        // vzL[1] = vzR[1]
+        // vzL[2] = vzR[2]
+
+        double UZL[8];
+        double UZR[8];
+
+        UZL[0] = rzL;
+        UZL[4] = ezL;
+        UZR[0] = rzR;
+        UZR[4] = ezR;
+
+        for (size_t ik = 0; ik < 3; ik++)
+        {
+            UZL[ik + 1] = vzL[ik] * rzL;
+            UZL[ik + 5] = bzL[ik];
+            UZR[ik + 1] = vzR[ik] * rzR;
+            UZR[ik + 5] = bzR[ik];
+        }
+
+        Eigen::Vector3d qv;
+        Eigen::Vector3d qb;
+
+        if (SL >= wv)
+        {
+            qqq[0] = FL[0] - wv * UL[0];
+            qqq[4] = FL[4] - wv * UL[4];
+
+            for (size_t ik = 1; ik < 4; ik++)
+            {
+                qv[ik - 1] = FL[ik] - wv * UL[ik];
+            }
+
+            for (size_t ik = 5; ik < 8; ik++)
+            {
+                qb[ik - 5] = FL[ik] - wv * UL[ik];
+            }
+        }
+        else if (SL <= wv && SM >= wv)
+        {
+            qqq[0] = FL[0] + SL * (rzL - r1) - wv * UZL[0];
+            qqq[4] = FL[4] + SL * (ezL - e1) - wv * UZL[4];
+
+            for (size_t ik = 1; ik < 4; ik++)
+            {
+                qv[ik - 1] = FL[ik] + SL * (UZL[ik] - UL[ik]) - wv * UZL[ik];
+            }
+
+            for (size_t ik = 5; ik < 8; ik++)
+            {
+                qb[ik - 5] = FL[ik] + SL * (UZL[ik] - UL[ik]) - wv * UZL[ik];
+            }
+        }
+        else if (SM <= wv && SR > wv)
+        {
+            qqq[0] = FR[0] + SR * (rzR - r2) - wv * UZR[0];
+            qqq[4] = FR[4] + SR * (ezR - e2) - wv * UZR[4];
+
+            for (size_t ik = 1; ik < 4; ik++)
+            {
+                qv[ik - 1] = FR[ik] + SR * (UZR[ik] - UR[ik]) - wv * UZR[ik];
+            }
+
+            for (size_t ik = 5; ik < 8; ik++)
+            {
+                qb[ik - 5] = FR[ik] + SR * (UZR[ik] - UR[ik]) - wv * UZR[ik];
+            }
+        }
+        else if (SR <= wv)
+        {
+            qqq[0] = FR[0] - wv * UR[0];
+            qqq[4] = FR[4] - wv * UR[4];
+
+            for (size_t ik = 1; ik < 4; ik++)
+            {
+                qv[ik - 1] = FR[ik] - wv * UR[ik];
+            }
+
+            for (size_t ik = 5; ik < 8; ik++)
+            {
+                qb[ik - 5] = FR[ik] - wv * UR[ik];
+            }
+        }
+        else
+        {
+            cout << "error  3423167452  " << endl;
+            for (short unsigned int ik = 0; ik < 8; ik++)
+            {
+                cout << "ik: " << qqq1[ik] << "   " << qqq2[ik] << ";" << endl;
+            }
+            whach(SR);
+            whach(SL);
+            whach(SM);
+            whach(wv);
+            exit(-1);
+        }
+
+        // Bn
+        double SN = max(fabs(SL), fabs(SR));
+
+        double wbn = 0.0;
+        if (wv > SR)
+        {
+            wbn = wv * bR[0];
+        }
+        else if(wv < SL)
+        {
+            wbn = wv * bL[0];
+        }
+        else
+        {
+            wbn = wv * (bL[0] + bR[0]) / 2.0;
+        }
+
+        qb[0] = -SN * (bR[0] - bL[0]) - wbn;
+
+        if (null_bn == true) qb[0] = 0.0;
+
 
         for (short unsigned int ik = 0; ik < 3; ik++)
         {

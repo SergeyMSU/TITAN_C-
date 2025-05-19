@@ -112,7 +112,7 @@ public:
 	void Init_physics(void); // Заполняет начальные значения параметров в ячейках и граничные на гранях
 	// Предлагается задавать граничные условия на гранях (должно быть проще это обрабатывать)
 
-	void Go(bool is_inner_area); // Запуск расчёта
+	void Go(bool is_inner_area, size_t steps__, short int metod = 1); // Запуск расчёта
 
 	void Save_cell_parameters(string filename);
 	void Download_cell_parameters(string filename);

@@ -95,12 +95,8 @@ Setka::Setka()
 		}
 	}
 
+	this->Tecplot_print_all_lush_in_2D();
 
-	if (this->Test_geometr() == false)
-	{
-		this->~Setka();
-		std::exit(EXIT_FAILURE);
-	}
 }
 
 Setka::~Setka()
