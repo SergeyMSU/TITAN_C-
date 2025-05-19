@@ -8,6 +8,7 @@ public:
 	vector<Yzel*> yzels;
 	vector<Gran*> grans;
 	int number = 0;                // номера начинаютс€ с единицы
+	bool is_inner = false;         // явл€етс€ ли €чейка внутренней (которые считаютс€ отдельно)
 
 	std::array < unordered_map<string, double>, 2> parameters;   // ѕараметры в €чейке (тут могут быть значени€
 	// плазменных полей, значени€ дивергенций и т.д.

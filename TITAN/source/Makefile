@@ -1,11 +1,11 @@
 CC=g++
 
-CFLAGS = -c -O3 -I/usr/include/eigen3
+CFLAGS = -c -O3 -I/usr/include/eigen3 -fopenmp
 
 all: hello
 
 hello: TITAN.o Cell.o Geo_param.o Phys_param.o Gran.o Help_funk.o Luch.o Setka.o Setka_physics.o Surfaces.o Yzel.o
-	$(CC) TITAN.o Cell.o Geo_param.o Phys_param.o Gran.o Help_funk.o Luch.o Setka.o Setka_physics.o Surfaces.o Yzel.o -o hello
+	$(CC) TITAN.o Cell.o Geo_param.o Phys_param.o Gran.o Help_funk.o Luch.o Setka.o Setka_physics.o Surfaces.o Yzel.o -o hello  -fopenmp
 
 TITAN.o: TITAN.cpp
 	$(CC) $(CFLAGS) TITAN.cpp

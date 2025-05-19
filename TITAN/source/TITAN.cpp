@@ -30,7 +30,8 @@ int main()
 
     cout << "E " << endl;
 
-    S1.Go();
+    S1.Go(true);
+    S1.Go(false);
 
     cout << "F " << endl;
 

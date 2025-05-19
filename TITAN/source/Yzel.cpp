@@ -7,6 +7,8 @@ Yzel::Yzel()
 	this->coord[1][0] = this->coord[1][1] = this->coord[1][2] = 0.0;
 	//this->luch = nullptr;
 	this->number = 0;
+	this->is_inner = false;
+	this->type = Type_yzel::Us;
 }
 
 Yzel::Yzel(const double& a, const double& b, const double& c)

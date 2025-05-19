@@ -11,6 +11,7 @@ public:
 	class Geo_param* geo;
 	class Phys_param* phys_param;
 
+
 	vector<Yzel*> All_Yzel;
 	vector <vector<Yzel*>> Yzel_2D;
 	vector <vector<Yzel*>> Krug_Yzel;         // Узлы в кругу (в головной области)  
@@ -18,10 +19,15 @@ public:
 	// Krug_Yzel и Yzel_2D пересекаются (крайтими узлами). Однако A_Luch и A2_Luch не пересекаются
 	vector <vector<Yzel*>> Krug_Yzel_2;       // Узлы в кругу (в хвосте)
 
+
 	vector<Gran*> All_Gran;
 	vector<Gran*> All_boundary_Gran;   // Список граничных граней (какой именно тип границы
 	// и его обработка указывается в самой грани
 	// определяется функцией  Init_boundary_grans()
+
+	vector<Gran*> Gran_inner_area;
+	vector<Gran*> Gran_outer_area;
+	// Грани для отдельно счёта внутренней и внешней области, у этих множеств есть пересечение
 
 	vector<Gran*> Gran_TS;  // Сюда добавляются только те грани, которые реально выделяются 
 	// (невыделяемое продолжение поверхностей сюда не добавляется)
@@ -29,10 +35,16 @@ public:
 	vector<Gran*> Gran_HP;
 	vector<Gran*> Gran_BS;
 
+
 	vector<Cell*> All_Cell;           // Все ячейки сетки
 	vector <vector<Cell*>> Cell_2D;   // Ячейки в части сетки, которая получена вращением 2Д сетки
 	vector <vector<Cell*>> Cell_layer_head;   // Ячейки в головной части сетки (вблизи оси)
 	vector <vector<Cell*>> Cell_layer_tail;   // Ячейки в хвостовой части сетки (вблизи оси)
+
+	vector<Cell*> Cell_inner_area;          
+	vector<Cell*> Cell_outer_area;          
+	// У этих множеств, в отличие от граней, нет пересечения
+
 
 	vector<Luch*> All_Luch;
 	// Лучи для конкретной реализации сетки (не универсальный блок программы)
@@ -93,11 +105,14 @@ public:
 	// ****************************************************************************
 	void Init_boundary_grans(void); // Объявляет какие грани являются граничными
 	// Создаёт список граничных граней
+	// Выдяляет ячейки во внутренней области, которые считаются отдельно,
+	// Также создаётся список граней для внутренней области, которые тоже считаются отдельно 
+	// А также грани на границе внётренней области, которые считаются также отдельно
 
 	void Init_physics(void); // Заполняет начальные значения параметров в ячейках и граничные на гранях
 	// Предлагается задавать граничные условия на гранях (должно быть проще это обрабатывать)
 
-	void Go(void); // Запуск расчёта
+	void Go(bool is_inner_area); // Запуск расчёта
 
 	void Save_cell_parameters(string filename);
 	void Download_cell_parameters(string filename);

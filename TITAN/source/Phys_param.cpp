@@ -118,9 +118,10 @@ void Phys_param::Get_Potok(const double& rho, const double& p, const double& u, 
 
     n << n1, n2, n3;
 
-    if (Potok.size() != 8 || std::abs(n.norm() - 1.0) > 1e-6)
+    if (Potok.size() < 8 || std::abs(n.norm() - 1.0) > 1e-6)
     {
         cout << "Error 8765086751   " << n.norm() << "  " << Potok.size() << endl;
+        exit(-1);
     }
 
     get_bazis(n, t, m);

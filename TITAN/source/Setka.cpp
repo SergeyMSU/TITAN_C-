@@ -1315,6 +1315,7 @@ void Setka::New_initial()
 	if (true) 
 	{
 		// SET_PARAMETER   &INIT&
+		this->geo->R1 = 7.5;
 		this->geo->R2 = 20.0;
 		this->geo->R3 = 30.0;
 		this->geo->R4 = 140.0;

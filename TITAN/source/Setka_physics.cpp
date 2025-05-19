@@ -1,9 +1,103 @@
 #include "Setka.h"
 
+#include <omp.h>
+
 void Setka::Init_boundary_grans(void)
 {
 	this->Calculating_measure(0);
 
+	int k = 0;
+	// Выделяем внутренние узлы
+	for (auto& i : All_Luch)
+	{
+		if (i->type == "A_Luch" || i->type == "A2_Luch" || i->type == "B_Luch" ||
+			i->type == "C_Luch" || i->type == "C2_Luch")
+		{
+			for (size_t j = 0; j < this->geo->M0 + 1; j++)
+			{
+				i->Yzels[j]->is_inner = true;
+				k++;
+			}
+		}
+	}
+	whach(k);
+
+	// Разделяем внутренние и внешние ячейки
+	for (auto& i : this->All_Cell)
+	{
+		bool aa = true;  // внутренняя ли ячейка
+		for (auto& j : i->yzels)
+		{
+			if (j->is_inner == false)
+			{
+				aa = false;
+				break;
+			}
+		}
+
+		if (aa == true)
+		{
+			i->is_inner = true;
+			this->Cell_inner_area.push_back(i);
+		}
+		else
+		{
+			i->is_inner = false;
+			this->Cell_outer_area.push_back(i);
+		}
+	}
+
+	whach(this->Cell_inner_area.size());
+	whach(this->Cell_outer_area.size());
+	whach(this->All_Cell.size());
+
+	if (this->Cell_inner_area.size() + this->Cell_outer_area.size() != this->All_Cell.size())
+	{
+		cout << "Error 8564532456" << endl;
+		exit(-1);
+	}
+
+	// Заполняем внутренние и внешние грани
+	for (auto& i : this->All_Gran)
+	{
+		if (i->cells.size() == 1)
+		{
+			if (i->cells[0]->is_inner == true)
+			{
+				this->Gran_inner_area.push_back(i);
+			}
+			else
+			{
+				this->Gran_outer_area.push_back(i);
+			}
+		}
+		else
+		{
+			if (i->cells[0]->is_inner == true || i->cells[1]->is_inner == true)
+			{
+				this->Gran_inner_area.push_back(i);
+			}
+
+			if (i->cells[0]->is_inner == false || i->cells[1]->is_inner == false)
+			{
+				this->Gran_outer_area.push_back(i);
+			}
+		}
+	}
+
+	whach(this->Gran_inner_area.size());
+	whach(this->Gran_outer_area.size());
+	whach(this->All_Gran.size());
+
+	if (this->Gran_inner_area.size() > this->All_Gran.size() ||
+		this->Gran_outer_area.size() > this->All_Gran.size() ||
+		this->Gran_inner_area.size() + this->Gran_outer_area.size() <= this->All_Gran.size())
+	{
+		cout << "Error 6567876120" << endl;
+		exit(-1);
+	}
+
+	// Находим граничные грани
 	for (auto& i : this->All_Gran)
 	{
 		i->type = Type_Gran::Us;
@@ -124,8 +218,17 @@ void Setka::Init_physics(void)
 	}
 }
 
-void Setka::Go(void)
+void Setka::Go(bool is_inner_area)
 {
+	// заполняем коррдинаты узлов на другом временном слое
+	for (auto& i : this->All_Yzel)
+	{
+		for (unsigned short int j = 0; j < 3; j++)
+		{
+			i->coord[1][j] = i->coord[0][j];
+		}
+	}
+
 	this->Test_geometr();
 	// Все настройки расчёта считываются из файла Setter.txt
 	// Сначала реализовываем расчёт без движения сетки
@@ -134,15 +237,21 @@ void Setka::Go(void)
 	unsigned short int now1 = 1;
 	unsigned short int now2 = 0;
 
+	vector<Gran*>* gran_list;
+	vector<Cell*>* cell_list;
+
+	if (is_inner_area == true)
+	{
+		gran_list = &this->Gran_inner_area;
+		cell_list = &this->Cell_inner_area;
+	}
+	else
+	{
+		gran_list = &this->Gran_outer_area;
+		cell_list = &this->Cell_outer_area;
+	}
+
 	Cell* A, B;
-	std::vector<double> qqq, qqq1, qqq2;
-	std::vector<double> POTOK;
-	qqq.resize(8);
-	qqq1.resize(8);
-	qqq2.resize(8);
-	POTOK.resize(9);
-	std::vector<double> konvect_left, konvect_right, konvect;
-	PrintOptions Option = PrintOptions{};
 	double dsr, dsc, dsl;
 
 
@@ -161,10 +270,28 @@ void Setka::Go(void)
 		time = loc_time;
 		loc_time = 100000000.0;
 
+		omp_set_num_threads(32);
+
 
 		// Расчитываем потоки через грани
-		for (auto& gran : this->All_Gran)
+		// в private не добавляются нормально vectora, надо либо обычные массивы делать, либо 
+		// создавать их внутри в каждом потоке
+#pragma omp parallel for private(A, B, dsr, dsc, dsl) \
+		reduction(min:loc_time)
+		for(size_t i_step = 0; i_step < gran_list->size(); i_step++)
 		{
+			// omp_get_thread_num()  - номер нити
+			// omp_get_num_threads() - всего потоков
+			//cout << "i_step = " << i_step << "  potok = " << omp_get_thread_num() << "  Vsego = " << 
+			//	omp_get_num_threads() << endl;
+
+			auto& gran = (*gran_list)[i_step];
+			std::vector<double> qqq, qqq1, qqq2;
+			qqq.resize(8);
+			qqq1.resize(8);
+			qqq2.resize(8);
+			std::vector<double> konvect_left, konvect_right, konvect;
+			PrintOptions Option = PrintOptions{};
 			double area = gran->area[now1];
 			if (gran->type == Type_Gran::Us) // Обычная грань
 			{
@@ -289,11 +416,20 @@ void Setka::Go(void)
 			}
 		}
 
+#pragma omp barrier
+
+
 		// Расчитываем законы сохранения в ячейках
-		for (auto& cell : this->All_Cell)
+#pragma omp parallel for
+		for (size_t i_step = 0; i_step < cell_list->size(); i_step++)
 		{
+			auto& cell = (*cell_list)[i_step];
 			double Volume = cell->volume[now1];
 			double Volume2 = cell->volume[now2];
+
+			std::vector<double> POTOK;
+			POTOK.resize(9);
+
 
 			POTOK[0] = POTOK[1] = POTOK[2] = POTOK[3] = POTOK[4] = POTOK[5] = 
 				POTOK[6] = POTOK[7] = POTOK[8] = 0.0;
@@ -370,8 +506,9 @@ void Setka::Go(void)
 			cell->parameters[now2]["By"] = by3;
 			cell->parameters[now2]["Bz"] = bz3;
 			cell->parameters[now2]["p"] = p3;
-		
 		}
+
+#pragma omp barrier
 	}
 }
 

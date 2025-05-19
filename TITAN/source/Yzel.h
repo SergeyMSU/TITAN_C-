@@ -19,6 +19,7 @@ public:
 	int number = 0;                // номера начинаются с единицы
 	vector<Gran*> grans;
 	Type_yzel type = Type_yzel::Us;  // по умолчанию создаём обычный узел
+	bool is_inner = false;
 
 	Yzel();
 	Yzel(const double& a, const double& b, const double& c);

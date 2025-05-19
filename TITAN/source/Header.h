@@ -34,6 +34,7 @@ class Surfaces;
 #include <cstdlib>
 #include <Eigen/Dense>
 #include <optional>
+#include <omp.h>
 
 const double const_pi = 3.14159265358979323846;
 const double cpi4 = 4.0 * const_pi;
