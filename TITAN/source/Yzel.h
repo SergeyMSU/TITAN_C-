@@ -8,7 +8,11 @@ enum class Type_yzel{
 	TS,    // 0    узел на TS
 	HP, // 1       узел на HP
 	BS, // 2       узел на BS
-	Us // 3       обычный узел
+	Us, // 3       обычный узел
+	Zone_1,  // 4   узел до TS
+	Zone_2,  // 5   узел между TS и HP
+	Zone_3,  // 6   узел между HP и BS
+	Zone_4  // 7   узел после BS
 };
 
 class Yzel

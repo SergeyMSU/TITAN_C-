@@ -131,23 +131,25 @@ void Phys_param::Get_Potok(const double& rho, const double& p, const double& u, 
     double vt = scalarProductFast(u, v, w, t(0), t(1), t(2));
     double vm = scalarProductFast(u, v, w, m(0), m(1), m(2));
 
-    double Bn = scalarProductFast(bx, by, bz, n1, n2, n3);
-    double Bt = scalarProductFast(bx, by, bz, t(0), t(1), t(2));
-    double Bm = scalarProductFast(bx, by, bz, m(0), m(1), m(2));
+    double Bn = scalarProductFast(bx, by, bz, n1, n2, n3) / spi4;
+    double Bt = scalarProductFast(bx, by, bz, t(0), t(1), t(2)) / spi4;
+    double Bm = scalarProductFast(bx, by, bz, m(0), m(1), m(2)) / spi4;
 
-    double bb = kvv(bx, by, bz);
+    double bb = kvv(bx, by, bz) / spi4 / spi4;
     double vv = kvv(u, v, w);
 
     double e = this->energy(rho, p, vv, bb);
     double pT = p + bb / 2.0;
 
     Potok[0] = rho * vn; 
-    Potok[7] = (e + pT) * vn - Bn * scalarProductFast(bx, by, bz, u, v, w);
+    Potok[7] = (e + pT) * vn - Bn * scalarProductFast(bx, by, bz, u, v, w) / spi4;
     double Pvn = rho * kv(vn) + pT - kv(Bn);
     double Pvt = rho * vn * vt - Bn * Bt;
     double Pvm = rho * vn * vm - Bn * Bm;
     double Pbt = Bt * vn - Bn * vt;
     double Pbm = Bm * vn - Bn * vm;
+    Pbt *= spi4;
+    Pbm *= spi4;
     Potok[1] = Pvn * n(0) + Pvt * t(0) + Pvm * m(0);
     Potok[2] = Pvn * n(1) + Pvt * t(1) + Pvm * m(1);
     Potok[3] = Pvn * n(2) + Pvt * t(2) + Pvm * m(2);
@@ -223,6 +225,9 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
     get_bazis(n, t, m);
 
+    //t << 0.0, 0.707107, 0.707107;
+    //m << 0.0, 0.707107, -0.707107;
+
     Eigen::Vector3d vL;
     Eigen::Vector3d vR;
     Eigen::Vector3d bL;
@@ -245,7 +250,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     bR(1) = scalarProductFast(t(0), t(1), t(2), bx2, by2, bz2);
     bR(2) = scalarProductFast(m(0), m(1), m(2), bx2, by2, bz2);
 
-
+    
     double aaL = bL(0) / sqrt(r1);
     double b2L = bL.dot(bL);
     double b21 = b2L / r1;
@@ -295,6 +300,11 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         SL = oo * SL_1 + oo1 * SL_2;
         SR = oo * SR_1 + oo1 * SR_2;
     }
+    else if (n_disc == 3)
+    {
+        SL = min(vL[0], vR[0]) - max(cfL, cfR);
+        SR = max(vL[0], vR[0]) + max(cfL, cfR);
+    }
     else
     {
         cout << "Error 8654354789" << endl;
@@ -334,12 +344,17 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     FR[4] = (e2 + ptR) * vR[0] - bR[0] * sbv2;
     FR[5] = 0.0;
     FR[6] = vR[0] * bR[1] - vR[1] * bR[0];
-    FR[7] = vR[0] * bR[2] - vR[2] * bR[0];
+    FR[7] = vR[0] * bR[2] - vR[2] * bR[0];   // ***
 
     UL[0] = r1;
     UL[4] = e1;
     UR[0] = r2;
     UR[4] = e2;
+
+    //whach(SL);
+    //whach(SR);
+    //whach(SM);
+
 
     for (short unsigned int i = 0; i < 3; i++)
     {
@@ -398,6 +413,9 @@ void Phys_param::chlld(unsigned short int n_state, // метод
             {
                 cout << "ik: " << qqq1[ik] << "   " << qqq2[ik] << ";" << endl;
             }
+            if (opts.x) whach(*opts.x);
+            if (opts.y) whach(*opts.y);
+            if (opts.z) whach(*opts.z);
             exit(-1);
         }
 
@@ -418,10 +436,33 @@ void Phys_param::chlld(unsigned short int n_state, // метод
             qb(ik - 5) = (TR * FL[ik] - TL * FR[ik] + a * dq[ik]) / b - FW[ik];
         }
 
+        double SN = max(fabs(SL), fabs(SR));
+        double wbn = 0.0;
+        if (wv >= SR)
+        {
+            wbn = wv * bR[0];
+        }
+        else if (wv <= SL)
+        {
+            wbn = wv * bL[0];
+        }
+        else
+        {
+            wbn = wv * (bL[0] + bR[0]) / 2.0;
+        }
+
+        qb[0] = -SN * (bR[0] - bL[0]) - wbn;
+        if (null_bn == true) qb[0] = 0.0;
+
+        //whach(qb(0));
+        //whach(qb(1));
+        //whach(qb(2));
+
         for (short unsigned int ik = 0; ik < 3; ik++)
         {
             qqq[ik + 1] = n(ik) * qv(0) + t(ik) * qv(1) + m(ik) * qv(2);
             qqq[ik + 5] = n(ik) * qb(0) + t(ik) * qb(1) + m(ik) * qb(2);
+            qqq[ik + 5] = spi4 * qqq[ik + 5];
         }
 
         return;
@@ -603,10 +644,55 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         {
             qqq[ik + 1] = n(ik) * qv(0) + t(ik) * qv(1) + m(ik) * qv(2);
             qqq[ik + 5] = n(ik) * qb(0) + t(ik) * qb(1) + m(ik) * qb(2);
+            qqq[ik + 5] = spi4 * qqq[ik + 5];
         }
 
         return;
     }
 
     return;
+}
+
+void Phys_param::raspad_testing(void)
+{
+    std::vector<double> qqq, qqq1, qqq2;
+    qqq.resize(8);
+    qqq1.resize(8);
+    qqq2.resize(8);
+
+    std::vector<double> konvect_left, konvect_right, konvect;
+    PrintOptions Option = PrintOptions{};
+
+    double dsr, dsc, dsl;
+
+    qqq1[0] = 1.0;
+    qqq1[1] = 1.0;
+    qqq1[2] = 1.0;
+    qqq1[3] = 1.0;
+    qqq1[4] = 1.0;
+    qqq1[5] = 5.0;
+    qqq1[6] = 1.0;
+    qqq1[7] = 1.0;
+
+    qqq2[0] = 1.0;
+    qqq2[1] = 1.0;
+    qqq2[2] = 1.0;
+    qqq2[3] = 1.0;
+    qqq2[4] = 1.0;
+    qqq2[5] = 1.0;
+    qqq2[6] = 1.0;
+    qqq2[7] = 1.0;
+
+    double w = 0.0;
+
+    this->chlld(1, 1.0, 0.0, 0.0,
+        w, qqq1, qqq2, qqq, false, 3,
+        konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+        Option);
+
+    for (size_t ff = 0; ff < 8; ff++)
+    {
+        whach(ff);
+        whach(qqq[ff]);
+    }
 }

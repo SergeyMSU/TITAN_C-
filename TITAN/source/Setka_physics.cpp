@@ -98,6 +98,9 @@ void Setka::Init_boundary_grans(void)
 	}
 
 	// Находим граничные грани
+	size_t oh = 0;
+	size_t ih = 0;
+	size_t os = 0;
 	for (auto& i : this->All_Gran)
 	{
 		i->type = Type_Gran::Us;
@@ -107,30 +110,39 @@ void Setka::Init_boundary_grans(void)
 		if (i->func_R(0) <= this->geo->R0 + 0.00001)
 		{
 			i->type = Type_Gran::Inner_Hard;
+			ih++;
 			this->All_boundary_Gran.push_back(i);
 		}
 		else if(i->center[0][0] > this->geo->L7 + 0.0001)
 		{
 			i->type = Type_Gran::Outer_Hard;
+			oh++;
 			this->All_boundary_Gran.push_back(i);
 		}
 		else
 		{
 			i->type = Type_Gran::Outer_Soft;
+			os++;
 			this->All_boundary_Gran.push_back(i);
 		}
 	}
+
+	cout << "Granichniy grans: " << endl;
+	whach(oh);
+	whach(ih);
+	whach(os);
 }
 
 void Setka::Init_physics(void)
 {
 	this->Calculating_measure(0);
+	this->Calculating_measure(1);
 	double x, y, z, r, the;
 	Eigen::Vector3d vec, cc, vv;
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// Задаём начальные условия на сетке
-	if (true)
+	if (false)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -139,9 +151,34 @@ void Setka::Init_physics(void)
 			z = i->center[0][2];
 			r = i->func_R(0);
 
-			if (false)//(r < this->geo->R0 * 30.0)
+			if (r < this->geo->R0 * 10.0)
 			{
+				vec << x, y, z;
 
+				cc = this->phys_param->Matr2 * vec;
+				the = acos(cc(2) / r);
+
+				BR = -this->phys_param->B_0 * kv(this->phys_param->R_0 / r);
+				BPHI = -BR * sin(the) * (r / this->phys_param->R_0);
+
+				dekard_skorost(cc(2), cc(0), cc(1), BR, BPHI, 0.0, V3, V1, V2);
+
+				vv << V1, V2, V3;
+
+				the = -the + const_pi / 2.0;   // Т.к.в данных по СВ на 1 а.е.угол от - 90 до 90 у Алексашова
+				cc = this->phys_param->Matr * vv;
+
+				mV = this->phys_param->Get_v_0(the);
+
+				i->parameters[0]["rho"] = this->phys_param->Get_rho_0(the) * pow(this->phys_param->R_0 /r, 2);
+				i->parameters[0]["p"] = this->phys_param->p_0 * pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
+				i->parameters[0]["Vx"] = mV * vec(0);
+				i->parameters[0]["Vy"] = mV * vec(1);
+				i->parameters[0]["Vz"] = mV * vec(2);
+				i->parameters[0]["Bx"] = cc(0);
+				i->parameters[0]["By"] = cc(1);
+				i->parameters[0]["Bz"] = cc(2);
+				i->parameters[0]["Q"] = i->parameters[0]["rho"];
 			}
 			else
 			{
@@ -204,8 +241,8 @@ void Setka::Init_physics(void)
 
 				mV = this->phys_param->Get_v_0(the);
 
-				i->parameters["rho"] = this->phys_param->Get_rho_0(the);
-				i->parameters["p"] = this->phys_param->p_0;
+				i->parameters["rho"] = this->phys_param->Get_rho_0(the) * pow(this->phys_param->R_0 / r, 2);
+				i->parameters["p"] = this->phys_param->p_0 * pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
 				i->parameters["Vx"] = mV * vec(0);
 				i->parameters["Vy"] = mV * vec(1);
 				i->parameters["Vz"] = mV * vec(2);
@@ -273,7 +310,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		time = loc_time;
 		loc_time = 100000000.0;
 
-		omp_set_num_threads(32);
+		omp_set_num_threads(32); // 32
 
 
 		// Расчитываем потоки через грани
@@ -337,8 +374,12 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				double w = 0.0;
 
+				Option.x = gran->center[now1][0];
+				Option.y = gran->center[now1][1];
+				Option.z = gran->center[now1][2];
+
 				this->phys_param->chlld(metod, gran->normal[now1][0], gran->normal[now1][1], gran->normal[now1][2],
-					w, qqq1, qqq2, qqq, false, 1,
+					w, qqq1, qqq2, qqq, false, 3,
 					konvect_left, konvect_right, konvect, dsr, dsc, dsl,
 					Option);
 
@@ -346,7 +387,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					A->center[now1][1] - B->center[now1][1],
 					A->center[now1][2] - B->center[now1][2])/2.0;
 
-				loc_time = min(loc_time, 0.9 * dist / (max(fabs(dsl), fabs(dsr)) + fabs(w)));
+				loc_time = min(loc_time, 0.7 * dist / (max(fabs(dsl), fabs(dsr)) + fabs(w)));
 
 				gran->parameters["Pm"] = qqq[0] * area;
 				gran->parameters["PVx"] = qqq[1] * area;
@@ -381,6 +422,49 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					gran->normal[now1][1], gran->normal[now1][2],
 					gran->parameters["Bx"], gran->parameters["By"], 
 					gran->parameters["Bz"]) * area;
+
+				//if (gran->type == Type_Gran::Outer_Hard)
+				if (false)
+				{
+					cout << "AAA" << endl;
+					for (size_t ff = 0; ff < 8; ff++)
+					{
+						whach(qqq[ff]);
+					}
+
+					qqq1[0] = gran->parameters["rho"];
+					qqq1[1] = gran->parameters["Vx"];
+					qqq1[2] = gran->parameters["Vy"];
+					qqq1[3] = gran->parameters["Vz"];
+					qqq1[4] = gran->parameters["p"];
+					qqq1[5] = gran->parameters["Bx"];
+					qqq1[6] = gran->parameters["By"];
+					qqq1[7] = gran->parameters["Bz"];
+
+					qqq2[0] = gran->parameters["rho"];
+					qqq2[1] = gran->parameters["Vx"];
+					qqq2[2] = gran->parameters["Vy"];
+					qqq2[3] = gran->parameters["Vz"];
+					qqq2[4] = gran->parameters["p"];
+					qqq2[5] = gran->parameters["Bx"];
+					qqq2[6] = gran->parameters["By"];
+					qqq2[7] = gran->parameters["Bz"];
+
+					double w = 0.0;
+
+					this->phys_param->chlld(metod, gran->normal[now1][0], gran->normal[now1][1], gran->normal[now1][2],
+						w, qqq1, qqq2, qqq, false, 3,
+						konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+						Option);
+
+					cout << "BBB" << endl;
+					for (size_t ff = 0; ff < 8; ff++)
+					{
+						whach(qqq[ff]);
+					}
+
+					exit(-1);
+				}
 			}
 			else if (gran->type == Type_Gran::Outer_Soft)
 			{
@@ -420,7 +504,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		}
 
 #pragma omp barrier
-
+		//cout << "barrier" << endl;
 
 		// Расчитываем законы сохранения в ячейках
 #pragma omp parallel for
@@ -429,6 +513,13 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			auto& cell = (*cell_list)[i_step];
 			double Volume = cell->volume[now1];
 			double Volume2 = cell->volume[now2];
+
+
+			if (Volume != Volume2)
+			{
+				cout << "Error 8767654534" << endl;
+				exit(-1);
+			}
 
 			std::vector<double> POTOK;
 			POTOK.resize(9);
@@ -468,6 +559,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 			rho3 = rho * Volume / Volume2
 				- time * POTOK[0] / Volume2;
+
+			if (rho3 < 0.0000000001)
+			{
+				rho3 = 0.000001;
+			}
 
 			u3 = (rho * vx * Volume / Volume2 - time * (POTOK[1] + (bx / cpi4) * POTOK[8]) / Volume2) / rho3;
 			v3 = (rho * vy * Volume / Volume2 - time * (POTOK[2] + (by / cpi4) * POTOK[8]) / Volume2) / rho3;
@@ -571,6 +667,7 @@ void Setka::Download_cell_parameters(string filename)
 			in.read(reinterpret_cast<char*>(&value), sizeof(double));
 
 			ii->parameters[0][key] = value;
+			ii->parameters[1][key] = value;
 		}
 	}
 }

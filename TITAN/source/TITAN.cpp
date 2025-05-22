@@ -11,6 +11,10 @@ int main()
     cout << "Start Programm" << endl;
     Setka S1 = Setka();
 
+    //S1.phys_param->raspad_testing();
+
+    //return 0;
+
     S1.Read_old_surface("ASurf_Save00591.bin");
     S1.Move_to_surf(S1.Surf1);
 
@@ -26,25 +30,23 @@ int main()
     S1.Init_physics();
     cout << "D " << endl;
 
-    //S1.Download_cell_parameters("parameters_123.bin");
+    S1.Download_cell_parameters("parameters_0002.bin");
 
     cout << "E " << endl;
 
-    S1.Go(true, 100, 1);
-    S1.Go(false, 200, 1);
-    S1.Go(true, 300, 2);
-    S1.Go(false, 300, 2);
+    S1.Go(true, 300, 1);
+    S1.Go(false, 300, 1);
+    S1.Tecplot_print_cell_plane_parameters();
     S1.Go(true, 500);
     S1.Go(false, 500);
     S1.Tecplot_print_cell_plane_parameters();
     S1.Go(true, 1000);
     S1.Go(false, 1000);
-    S1.Tecplot_print_cell_plane_parameters();
-    S1.Go(true, 1000);
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 3; i++)
     {
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 10000, 2);
+        S1.Go(false, 10000, 1);
+        S1.Go(true, 300, 1);
         S1.Tecplot_print_cell_plane_parameters();
         S1.Save_cell_parameters("parameters_0000.bin");
     }
@@ -52,7 +54,7 @@ int main()
 
 
 
-    S1.Save_cell_parameters("parameters_0001.bin");
+    S1.Save_cell_parameters("parameters_0003.bin");
 
     cout << "F " << endl;
 

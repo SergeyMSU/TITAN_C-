@@ -2,9 +2,9 @@
 #include "Header.h"
 
 struct PrintOptions {
-    std::optional<double> dsl;
-    std::optional<double> dsp;
-    std::optional<double> dsc;
+    std::optional<double> x;
+    std::optional<double> y;
+    std::optional<double> z;
 };
 
 class Phys_param
@@ -65,5 +65,7 @@ public:
         std::vector<double>& konvect, // Дополнительные переменные конвективного переноса ПОТОКИ
         double& dsr, double& dsc, double& dsl,
         PrintOptions& opts);
+
+    void raspad_testing(void);
 };
 
