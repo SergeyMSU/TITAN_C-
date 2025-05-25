@@ -276,6 +276,8 @@ void Setka::Init_TVD(void)
 			if (ggr == gr) continue;
 
 			auto cel = Get_Sosed(A, ggr); // —осед €чейки A через грань ggr
+			if(cel == nullptr) continue;
+
 			normalizedCurrent << cel->center[0][0] - gr->center[0][0],
 				cel->center[0][1] - gr->center[0][1], cel->center[0][2] - gr->center[0][2];
 			normalizedCurrent = normalizedCurrent.normalized();
@@ -310,6 +312,8 @@ void Setka::Init_TVD(void)
 			if (ggr == gr) continue;
 
 			auto cel = Get_Sosed(A, ggr); // —осед €чейки A через грань ggr
+			if (cel == nullptr) continue;
+
 			normalizedCurrent << cel->center[0][0] - gr->center[0][0],
 				cel->center[0][1] - gr->center[0][1], cel->center[0][2] - gr->center[0][2];
 			normalizedCurrent = normalizedCurrent.normalized();
@@ -528,12 +532,12 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 
 	if (gr->type == Type_Gran::Us) // ќбычна€ грань
 	{
+		auto A = gr->cells[0];
+		auto B = gr->cells[1];
+
 		// Ѕез TVD
 		if (this->phys_param->TVD == false)
 		{
-			auto A = gr->cells[0];
-			auto B = gr->cells[1];
-
 			if (regim_otladki == true)
 			{
 				if (A->parameters[now].find("rho") == A->parameters[now].end() ||
@@ -577,36 +581,36 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 
 		}
 
-			double w = 0.0;
+		double w = 0.0;
 
-			Option.x = gr->center[now][0];
-			Option.y = gr->center[now][1];
-			Option.z = gr->center[now][2];
+		Option.x = gr->center[now][0];
+		Option.y = gr->center[now][1];
+		Option.z = gr->center[now][2];
 
-			this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
-				w, qqq1, qqq2, qqq, false, 3,
-				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-				Option);
+		this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
+			w, qqq1, qqq2, qqq, false, 3,
+			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+			Option);
 
-			double dist = norm2(A->center[now][0] - B->center[now][0],
-				A->center[now][1] - B->center[now][1],
-				A->center[now][2] - B->center[now][2]) / 2.0;
+		double dist = norm2(A->center[now][0] - B->center[now][0],
+			A->center[now][1] - B->center[now][1],
+			A->center[now][2] - B->center[now][2]) / 2.0;
 
-			double loc_time = this->phys_param->KFL * dist / (max(fabs(dsl), fabs(dsr)) + fabs(w));
+		double loc_time = this->phys_param->KFL * dist / (max(fabs(dsl), fabs(dsr)) + fabs(w));
 
-			gr->parameters["Pm"] = qqq[0] * area;
-			gr->parameters["PVx"] = qqq[1] * area;
-			gr->parameters["PVy"] = qqq[2] * area;
-			gr->parameters["PVz"] = qqq[3] * area;
-			gr->parameters["Pe"] = qqq[4] * area;
-			gr->parameters["PBx"] = qqq[5] * area;
-			gr->parameters["PBy"] = qqq[6] * area;
-			gr->parameters["PBz"] = qqq[7] * area;
-			gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
-				gr->normal[now][1], gr->normal[now][2],
-				qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
+		gr->parameters["Pm"] = qqq[0] * area;
+		gr->parameters["PVx"] = qqq[1] * area;
+		gr->parameters["PVy"] = qqq[2] * area;
+		gr->parameters["PVz"] = qqq[3] * area;
+		gr->parameters["Pe"] = qqq[4] * area;
+		gr->parameters["PBx"] = qqq[5] * area;
+		gr->parameters["PBy"] = qqq[6] * area;
+		gr->parameters["PBz"] = qqq[7] * area;
+		gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
+			gr->normal[now][1], gr->normal[now][2],
+			qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
 
-			return loc_time;
+		return loc_time;
 		
 	}
 	else if (gr->type == Type_Gran::Inner_Hard || gr->type == Type_Gran::Outer_Hard)

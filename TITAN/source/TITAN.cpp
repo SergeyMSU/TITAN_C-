@@ -32,12 +32,12 @@ int main()
     S1.Init_TVD();
     cout << "D2 " << endl;
 
-    S1.Download_cell_parameters("parameters_0003.bin");
+    S1.Download_cell_parameters("parameters_0004.bin");
 
     cout << "E " << endl;
 
-    //S1.Go(true, 300, 1);
-    //S1.Go(false, 300, 1);
+    S1.Go(true, 200, 1);
+    S1.Go(false, 1000, 1);
     //S1.Tecplot_print_cell_plane_parameters();
     for (int i = 0; i < 10; i++)
     {
@@ -45,13 +45,13 @@ int main()
         S1.Go(false, 10000, 1);
         S1.Go(true, 300, 1);
         S1.Tecplot_print_cell_plane_parameters();
-        S1.Save_cell_parameters("parameters_0000.bin");
+        //S1.Save_cell_parameters("parameters_0000.bin");
     }
 
 
 
 
-    S1.Save_cell_parameters("parameters_0004.bin");
+    //S1.Save_cell_parameters("parameters_0004.bin");
 
     cout << "F " << endl;
 
