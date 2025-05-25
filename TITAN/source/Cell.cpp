@@ -1,5 +1,20 @@
 #include "Cell.h"
 
+Cell* Cell::Get_Sosed(Gran* gr)
+{
+	if(gr->cells.size() == 1) return nullptr;
+
+	if (gr->cells[0]->number == this->number)
+	{
+		return gr->cells[1];
+	}
+	else
+	{
+		return gr->cells[0];
+	}
+	return nullptr;
+}
+
 void Cell::Culc_center(unsigned short int st_time)
 {
 	double xc, yc, zc;

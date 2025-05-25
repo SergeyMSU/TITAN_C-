@@ -12,6 +12,9 @@ public:
 	class Phys_param* phys_param;
 
 
+	bool regim_otladki = true;
+
+
 	vector<Yzel*> All_Yzel;
 	vector <vector<Yzel*>> Yzel_2D;
 	vector <vector<Yzel*>> Krug_Yzel;         // Узлы в кругу (в головной области)  
@@ -112,7 +115,14 @@ public:
 	void Init_physics(void); // Заполняет начальные значения параметров в ячейках и граничные на гранях
 	// Предлагается задавать граничные условия на гранях (должно быть проще это обрабатывать)
 
+	void Init_TVD(void);
+	// Инициализация соседей грани для ТВД процедуры
+
 	void Go(bool is_inner_area, size_t steps__, short int metod = 1); // Запуск расчёта
+
+	double Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod);  // Расчитывает поток через грань
+	// все случаи реализуются внутри
+	// возвращает шаг по времени
 
 	void Save_cell_parameters(string filename);
 	void Download_cell_parameters(string filename);

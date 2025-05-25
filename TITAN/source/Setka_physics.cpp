@@ -255,6 +255,84 @@ void Setka::Init_physics(void)
 	}
 }
 
+void Setka::Init_TVD(void)
+{
+	// Эта функция работает после определения нормалей, центра грани и центров ячеек
+	// Пробегаемся по всем граням, добавляем ТВД соседей 
+	for (auto& gr : this->All_Gran)
+	{
+		Eigen::Vector3d vec;
+		Eigen::Vector3d normalizedCurrent;
+
+		vec << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
+
+		auto A = gr->cells[0];
+		double maxOppositeScore = 2.0; // Максимальное значение косинуса
+		size_t bestIndex = -1;
+		size_t Index = -1;
+		for (auto& ggr : A->grans)
+		{
+			Index++;
+			if (ggr == gr) continue;
+
+			auto cel = Get_Sosed(A, ggr); // Сосед ячейки A через грань ggr
+			normalizedCurrent << cel->center[0][0] - gr->center[0][0],
+				cel->center[0][1] - gr->center[0][1], cel->center[0][2] - gr->center[0][2];
+			normalizedCurrent = normalizedCurrent.normalized();
+
+			double cosine = vec.dot(normalizedCurrent);
+
+			// Ищем вектор с минимальным косинусом (ближе всего к 180 градусам)
+			if (cosine < maxOppositeScore) {
+				maxOppositeScore = cosine;
+				bestIndex = Index;
+			}
+		}
+
+		if (this->regim_otladki && bestIndex == -1)
+		{
+			cout << "Error 7689098909" << endl;
+			exit(-1);
+		}
+
+		gr->cells_TVD.push_back(Get_Sosed(A, A->grans[bestIndex]));
+
+
+		if (gr->cells.size() == 1) continue;
+		A = gr->cells[1];
+		vec = vec * -1.0;
+		maxOppositeScore = 2.0; // Максимальное значение косинуса
+		bestIndex = -1;
+		Index = -1;
+		for (auto& ggr : A->grans)
+		{
+			Index++;
+			if (ggr == gr) continue;
+
+			auto cel = Get_Sosed(A, ggr); // Сосед ячейки A через грань ggr
+			normalizedCurrent << cel->center[0][0] - gr->center[0][0],
+				cel->center[0][1] - gr->center[0][1], cel->center[0][2] - gr->center[0][2];
+			normalizedCurrent = normalizedCurrent.normalized();
+
+			double cosine = vec.dot(normalizedCurrent);
+
+			// Ищем вектор с минимальным косинусом (ближе всего к 180 градусам)
+			if (cosine < maxOppositeScore) {
+				maxOppositeScore = cosine;
+				bestIndex = Index;
+			}
+		}
+
+		if (this->regim_otladki && bestIndex == -1)
+		{
+			cout << "Error 8764531245" << endl;
+			exit(-1);
+		}
+
+		gr->cells_TVD.push_back(Get_Sosed(A, A->grans[bestIndex]));
+	}
+}
+
 void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 {
 	// заполняем коррдинаты узлов на другом временном слое
@@ -310,15 +388,14 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		time = loc_time;
 		loc_time = 100000000.0;
 
-		omp_set_num_threads(32); // 32
+		//omp_set_num_threads(32); // 32
 
 
 		// Расчитываем потоки через грани
 		// в private не добавляются нормально vectora, надо либо обычные массивы делать, либо 
 		// создавать их внутри в каждом потоке
-#pragma omp parallel for private(A, B, dsr, dsc, dsl) \
-		reduction(min:loc_time)
-		for(size_t i_step = 0; i_step < gran_list->size(); i_step++)
+#pragma omp parallel for reduction(min:loc_time)
+		for(int i_step = 0; i_step < gran_list->size(); i_step++)
 		{
 			// omp_get_thread_num()  - номер нити
 			// omp_get_num_threads() - всего потоков
@@ -326,181 +403,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			//	omp_get_num_threads() << endl;
 
 			auto& gran = (*gran_list)[i_step];
-			std::vector<double> qqq, qqq1, qqq2;
-			qqq.resize(8);
-			qqq1.resize(8);
-			qqq2.resize(8);
-			std::vector<double> konvect_left, konvect_right, konvect;
-			PrintOptions Option = PrintOptions{};
-			double area = gran->area[now1];
-			if (gran->type == Type_Gran::Us) // Обычная грань
-			{
-				auto A = gran->cells[0];
-				auto B = gran->cells[1];
 
-				if (A->parameters[now1].find("rho") == A->parameters[now1].end() ||
-					B->parameters[now1].find("rho") == B->parameters[now1].end())
-				{
-					cout << "Error  0956453978" << endl;
-					exit(-1);
-				}
-
-				if (std::isnan(A->parameters[now1]["rho"]) || std::fpclassify(A->parameters[now1]["rho"]) == FP_SUBNORMAL)
-				{
-					cout << "Error 0907675453" << endl;
-					for (const auto& [key, value] : A->parameters[now1]) {
-						std::cout << key << ": " << value << std::endl;
-					}
-					exit(-1);
-				}
-
-				qqq1[0] = A->parameters[now1]["rho"];
-				qqq1[1] = A->parameters[now1]["Vx"];
-				qqq1[2] = A->parameters[now1]["Vy"];
-				qqq1[3] = A->parameters[now1]["Vz"];
-				qqq1[4] = A->parameters[now1]["p"];
-				qqq1[5] = A->parameters[now1]["Bx"];
-				qqq1[6] = A->parameters[now1]["By"];
-				qqq1[7] = A->parameters[now1]["Bz"];
-
-				qqq2[0] = B->parameters[now1]["rho"];
-				qqq2[1] = B->parameters[now1]["Vx"];
-				qqq2[2] = B->parameters[now1]["Vy"];
-				qqq2[3] = B->parameters[now1]["Vz"];
-				qqq2[4] = B->parameters[now1]["p"];
-				qqq2[5] = B->parameters[now1]["Bx"];
-				qqq2[6] = B->parameters[now1]["By"];
-				qqq2[7] = B->parameters[now1]["Bz"];
-
-				double w = 0.0;
-
-				Option.x = gran->center[now1][0];
-				Option.y = gran->center[now1][1];
-				Option.z = gran->center[now1][2];
-
-				this->phys_param->chlld(metod, gran->normal[now1][0], gran->normal[now1][1], gran->normal[now1][2],
-					w, qqq1, qqq2, qqq, false, 3,
-					konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-					Option);
-
-				double dist = norm2(A->center[now1][0] - B->center[now1][0],
-					A->center[now1][1] - B->center[now1][1],
-					A->center[now1][2] - B->center[now1][2])/2.0;
-
-				loc_time = min(loc_time, 0.7 * dist / (max(fabs(dsl), fabs(dsr)) + fabs(w)));
-
-				gran->parameters["Pm"] = qqq[0] * area;
-				gran->parameters["PVx"] = qqq[1] * area;
-				gran->parameters["PVy"] = qqq[2] * area;
-				gran->parameters["PVz"] = qqq[3] * area;
-				gran->parameters["Pe"] = qqq[4] * area;
-				gran->parameters["PBx"] = qqq[5] * area;
-				gran->parameters["PBy"] = qqq[6] * area;
-				gran->parameters["PBz"] = qqq[7] * area;
-				gran->parameters["PdivB"] = 0.5 * scalarProductFast(gran->normal[now1][0], 
-					gran->normal[now1][1], gran->normal[now1][2], 
-					qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
-			}
-			else if (gran->type == Type_Gran::Inner_Hard || gran->type == Type_Gran::Outer_Hard)
-			{
-				this->phys_param->Get_Potok(gran->parameters["rho"], gran->parameters["p"],
-					gran->parameters["Vx"], gran->parameters["Vy"], gran->parameters["Vz"],
-					gran->parameters["Bx"], gran->parameters["By"], gran->parameters["Bz"],
-					gran->normal[now1][0], gran->normal[now1][1], gran->normal[now1][2],
-					qqq);
-
-				gran->parameters["Pm"] = qqq[0] * area;
-				gran->parameters["PVx"] = qqq[1] * area;
-				gran->parameters["PVy"] = qqq[2] * area;
-				gran->parameters["PVz"] = qqq[3] * area;
-				gran->parameters["Pe"] = qqq[7] * area;
-				gran->parameters["PBx"] = qqq[4] * area;
-				gran->parameters["PBy"] = qqq[5] * area;
-				gran->parameters["PBz"] = qqq[6] * area;
-
-				gran->parameters["PdivB"] = scalarProductFast(gran->normal[now1][0],
-					gran->normal[now1][1], gran->normal[now1][2],
-					gran->parameters["Bx"], gran->parameters["By"], 
-					gran->parameters["Bz"]) * area;
-
-				//if (gran->type == Type_Gran::Outer_Hard)
-				if (false)
-				{
-					cout << "AAA" << endl;
-					for (size_t ff = 0; ff < 8; ff++)
-					{
-						whach(qqq[ff]);
-					}
-
-					qqq1[0] = gran->parameters["rho"];
-					qqq1[1] = gran->parameters["Vx"];
-					qqq1[2] = gran->parameters["Vy"];
-					qqq1[3] = gran->parameters["Vz"];
-					qqq1[4] = gran->parameters["p"];
-					qqq1[5] = gran->parameters["Bx"];
-					qqq1[6] = gran->parameters["By"];
-					qqq1[7] = gran->parameters["Bz"];
-
-					qqq2[0] = gran->parameters["rho"];
-					qqq2[1] = gran->parameters["Vx"];
-					qqq2[2] = gran->parameters["Vy"];
-					qqq2[3] = gran->parameters["Vz"];
-					qqq2[4] = gran->parameters["p"];
-					qqq2[5] = gran->parameters["Bx"];
-					qqq2[6] = gran->parameters["By"];
-					qqq2[7] = gran->parameters["Bz"];
-
-					double w = 0.0;
-
-					this->phys_param->chlld(metod, gran->normal[now1][0], gran->normal[now1][1], gran->normal[now1][2],
-						w, qqq1, qqq2, qqq, false, 3,
-						konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-						Option);
-
-					cout << "BBB" << endl;
-					for (size_t ff = 0; ff < 8; ff++)
-					{
-						whach(qqq[ff]);
-					}
-
-					exit(-1);
-				}
-			}
-			else if (gran->type == Type_Gran::Outer_Soft)
-			{
-				auto C = gran->cells[0];
-				gran->parameters["rho"] = C->parameters[now1]["rho"];
-				gran->parameters["p"] = C->parameters[now1]["p"];
-				gran->parameters["Vx"] = C->parameters[now1]["Vx"];
-				gran->parameters["Vy"] = C->parameters[now1]["Vy"];
-				gran->parameters["Vz"] = C->parameters[now1]["Vz"];
-				gran->parameters["Bx"] = C->parameters[now1]["Bx"];
-				gran->parameters["By"] = C->parameters[now1]["By"];
-				gran->parameters["Bz"] = C->parameters[now1]["Bz"];
-				this->phys_param->Get_Potok(gran->parameters["rho"], gran->parameters["p"],
-					gran->parameters["Vx"], gran->parameters["Vy"], gran->parameters["Vz"],
-					gran->parameters["Bx"], gran->parameters["By"], gran->parameters["Bz"],
-					gran->normal[now1][0], gran->normal[now1][1], gran->normal[now1][2],
-					qqq);
-
-				gran->parameters["Pm"] = qqq[0] * area;
-				gran->parameters["PVx"] = qqq[1] * area;
-				gran->parameters["PVy"] = qqq[2] * area;
-				gran->parameters["PVz"] = qqq[3] * area;
-				gran->parameters["Pe"] = qqq[7] * area;
-				gran->parameters["PBx"] = qqq[4] * area;
-				gran->parameters["PBy"] = qqq[5] * area;
-				gran->parameters["PBz"] = qqq[6] * area;
-				gran->parameters["PdivB"] = scalarProductFast(gran->normal[now1][0],
-					gran->normal[now1][1], gran->normal[now1][2],
-					gran->parameters["Bx"], gran->parameters["By"],
-					gran->parameters["Bz"]) * area;
-			}
-			else
-			{
-				cout << "Error 6323145345" << endl;
-				exit(-1);
-			}
+			loc_time = min(loc_time, this->Culc_Gran_Potok(gran, now1, metod));  // Считает потоки через данную грань (записывает результат в параметры грани)
 		}
 
 #pragma omp barrier
@@ -608,6 +512,163 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		}
 
 #pragma omp barrier
+	}
+}
+
+double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
+{
+	double dsr, dsc, dsl;
+	std::vector<double> qqq, qqq1, qqq2;
+	qqq.resize(8);
+	qqq1.resize(8);
+	qqq2.resize(8);
+	std::vector<double> konvect_left, konvect_right, konvect;
+	PrintOptions Option = PrintOptions{};
+	double area = gr->area[now];
+
+	if (gr->type == Type_Gran::Us) // Обычная грань
+	{
+		// Без TVD
+		if (this->phys_param->TVD == false)
+		{
+			auto A = gr->cells[0];
+			auto B = gr->cells[1];
+
+			if (regim_otladki == true)
+			{
+				if (A->parameters[now].find("rho") == A->parameters[now].end() ||
+					B->parameters[now].find("rho") == B->parameters[now].end())
+				{
+					cout << "Error  0956453978" << endl;
+					exit(-1);
+				}
+
+
+				if (std::isnan(A->parameters[now]["rho"]) || std::fpclassify(A->parameters[now]["rho"]) == FP_SUBNORMAL)
+				{
+					cout << "Error 0907675453" << endl;
+					for (const auto& [key, value] : A->parameters[now]) {
+						std::cout << key << ": " << value << std::endl;
+					}
+					exit(-1);
+				}
+			}
+
+			qqq1[0] = A->parameters[now]["rho"];
+			qqq1[1] = A->parameters[now]["Vx"];
+			qqq1[2] = A->parameters[now]["Vy"];
+			qqq1[3] = A->parameters[now]["Vz"];
+			qqq1[4] = A->parameters[now]["p"];
+			qqq1[5] = A->parameters[now]["Bx"];
+			qqq1[6] = A->parameters[now]["By"];
+			qqq1[7] = A->parameters[now]["Bz"];
+
+			qqq2[0] = B->parameters[now]["rho"];
+			qqq2[1] = B->parameters[now]["Vx"];
+			qqq2[2] = B->parameters[now]["Vy"];
+			qqq2[3] = B->parameters[now]["Vz"];
+			qqq2[4] = B->parameters[now]["p"];
+			qqq2[5] = B->parameters[now]["Bx"];
+			qqq2[6] = B->parameters[now]["By"];
+			qqq2[7] = B->parameters[now]["Bz"];
+		}
+		else // TVD
+		{
+
+		}
+
+			double w = 0.0;
+
+			Option.x = gr->center[now][0];
+			Option.y = gr->center[now][1];
+			Option.z = gr->center[now][2];
+
+			this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
+				w, qqq1, qqq2, qqq, false, 3,
+				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+				Option);
+
+			double dist = norm2(A->center[now][0] - B->center[now][0],
+				A->center[now][1] - B->center[now][1],
+				A->center[now][2] - B->center[now][2]) / 2.0;
+
+			double loc_time = this->phys_param->KFL * dist / (max(fabs(dsl), fabs(dsr)) + fabs(w));
+
+			gr->parameters["Pm"] = qqq[0] * area;
+			gr->parameters["PVx"] = qqq[1] * area;
+			gr->parameters["PVy"] = qqq[2] * area;
+			gr->parameters["PVz"] = qqq[3] * area;
+			gr->parameters["Pe"] = qqq[4] * area;
+			gr->parameters["PBx"] = qqq[5] * area;
+			gr->parameters["PBy"] = qqq[6] * area;
+			gr->parameters["PBz"] = qqq[7] * area;
+			gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
+				gr->normal[now][1], gr->normal[now][2],
+				qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
+
+			return loc_time;
+		
+	}
+	else if (gr->type == Type_Gran::Inner_Hard || gr->type == Type_Gran::Outer_Hard)
+	{
+		this->phys_param->Get_Potok(gr->parameters["rho"], gr->parameters["p"],
+			gr->parameters["Vx"], gr->parameters["Vy"], gr->parameters["Vz"],
+			gr->parameters["Bx"], gr->parameters["By"], gr->parameters["Bz"],
+			gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
+			qqq);
+
+		gr->parameters["Pm"] = qqq[0] * area;
+		gr->parameters["PVx"] = qqq[1] * area;
+		gr->parameters["PVy"] = qqq[2] * area;
+		gr->parameters["PVz"] = qqq[3] * area;
+		gr->parameters["Pe"] = qqq[7] * area;
+		gr->parameters["PBx"] = qqq[4] * area;
+		gr->parameters["PBy"] = qqq[5] * area;
+		gr->parameters["PBz"] = qqq[6] * area;
+
+		gr->parameters["PdivB"] = scalarProductFast(gr->normal[now][0],
+			gr->normal[now][1], gr->normal[now][2],
+			gr->parameters["Bx"], gr->parameters["By"],
+			gr->parameters["Bz"]) * area;
+
+		return 1000000.0;   // возвращаем большой шаг по времени
+	}
+	else if (gr->type == Type_Gran::Outer_Soft)
+	{
+		auto C = gr->cells[0];
+		gr->parameters["rho"] = C->parameters[now]["rho"];
+		gr->parameters["p"] = C->parameters[now]["p"];
+		gr->parameters["Vx"] = C->parameters[now]["Vx"];
+		gr->parameters["Vy"] = C->parameters[now]["Vy"];
+		gr->parameters["Vz"] = C->parameters[now]["Vz"];
+		gr->parameters["Bx"] = C->parameters[now]["Bx"];
+		gr->parameters["By"] = C->parameters[now]["By"];
+		gr->parameters["Bz"] = C->parameters[now]["Bz"];
+		this->phys_param->Get_Potok(gr->parameters["rho"], gr->parameters["p"],
+			gr->parameters["Vx"], gr->parameters["Vy"], gr->parameters["Vz"],
+			gr->parameters["Bx"], gr->parameters["By"], gr->parameters["Bz"],
+			gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
+			qqq);
+
+		gr->parameters["Pm"] = qqq[0] * area;
+		gr->parameters["PVx"] = qqq[1] * area;
+		gr->parameters["PVy"] = qqq[2] * area;
+		gr->parameters["PVz"] = qqq[3] * area;
+		gr->parameters["Pe"] = qqq[7] * area;
+		gr->parameters["PBx"] = qqq[4] * area;
+		gr->parameters["PBy"] = qqq[5] * area;
+		gr->parameters["PBz"] = qqq[6] * area;
+		gr->parameters["PdivB"] = scalarProductFast(gr->normal[now][0],
+			gr->normal[now][1], gr->normal[now][2],
+			gr->parameters["Bx"], gr->parameters["By"],
+			gr->parameters["Bz"]) * area;
+
+		return 1000000.0;   // возвращаем большой шаг по времени
+	}
+	else
+	{
+		cout << "Error 6323145345" << endl;
+		exit(-1);
 	}
 }
 

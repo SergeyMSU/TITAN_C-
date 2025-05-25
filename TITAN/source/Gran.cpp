@@ -85,6 +85,8 @@ Gran::Gran()
 {
 	this->yzels.reserve(4);
 	this->cells.reserve(2);
+	this->cells_TVD.reserve(2);
+	this->area[0] = this->area[1] = 0.0;
 }
 
 double Gran::func_R(unsigned short int i_time)

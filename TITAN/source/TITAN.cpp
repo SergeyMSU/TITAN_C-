@@ -29,20 +29,17 @@ int main()
     cout << "C " << endl;
     S1.Init_physics();
     cout << "D " << endl;
+    S1.Init_TVD();
+    cout << "D2 " << endl;
 
-    S1.Download_cell_parameters("parameters_0002.bin");
+    S1.Download_cell_parameters("parameters_0003.bin");
 
     cout << "E " << endl;
 
-    S1.Go(true, 300, 1);
-    S1.Go(false, 300, 1);
-    S1.Tecplot_print_cell_plane_parameters();
-    S1.Go(true, 500);
-    S1.Go(false, 500);
-    S1.Tecplot_print_cell_plane_parameters();
-    S1.Go(true, 1000);
-    S1.Go(false, 1000);
-    for (int i = 0; i < 3; i++)
+    //S1.Go(true, 300, 1);
+    //S1.Go(false, 300, 1);
+    //S1.Tecplot_print_cell_plane_parameters();
+    for (int i = 0; i < 10; i++)
     {
         cout << "IIIII = " << i << endl;
         S1.Go(false, 10000, 1);
@@ -54,7 +51,7 @@ int main()
 
 
 
-    S1.Save_cell_parameters("parameters_0003.bin");
+    S1.Save_cell_parameters("parameters_0004.bin");
 
     cout << "F " << endl;
 

@@ -196,3 +196,19 @@ double tetrahedronVolume(
 	// Объём равен 1/6 модуля этого произведения
 	return std::abs(dot_product) / 6.0;
 }
+
+
+Cell* Get_Sosed(Cell* C, Gran* gr)
+{
+	if (gr->cells.size() == 1) return nullptr;
+
+	if (gr->cells[0] == C)
+	{
+		return gr->cells[1];
+	}
+	else
+	{
+		return gr->cells[0];
+	}
+	return nullptr;
+}
