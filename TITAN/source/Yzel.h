@@ -25,6 +25,8 @@ public:
 	Type_yzel type = Type_yzel::Us;  // по умолчанию создаЄм обычный узел
 	bool is_inner = false;
 
+	unordered_map<string, double> parameters;   // ѕараметры в узле (дл€ интерпол€ции надо)
+
 	Yzel();
 	Yzel(const double& a, const double& b, const double& c);
 

@@ -15,6 +15,12 @@ public:
 	// "rho", 'p', 'Vx', 'Vy', 'Vz', 'Bx', 'By', 'Bz'
 	// 'Q' - ма€чок дл€ переноса и определени€ HP
 
+	unordered_map<string, Eigen::VectorXd> interpolate_alpha;
+
+
+	void Get_RBF_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par);
+	void Get_IDW_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par);
+
 	Cell* Get_Sosed(Gran* gr); // ѕолучить соседа через данную грань
 	// возвращает nullptr, если соседа через данную грань нет, т.е. грань гранична€
 	// ƒл€ работы функции номера €чеек должны быть актуальны
@@ -27,6 +33,7 @@ public:
 
 	double center[2][3];           // ÷ентр грани (также в предыдущий и следуюoий момент времени)
 	double volume[2];
+
 
 	void Culc_center(unsigned short int st_time);
 	void Culc_volume(unsigned short int st_time, unsigned short int method = 1);

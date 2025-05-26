@@ -1,6 +1,11 @@
 ﻿#include "Help_funk.h"
 #include "Yzel.h"
 
+double rbfKernel(double r, double epsilon) 
+{
+	return std::sqrt(1 + (epsilon * r) * (epsilon * r));
+}
+
 double polar_angle(const double& x, const double& y)
 {
 	if (fabs(x) + fabs(y) < 0.000001)

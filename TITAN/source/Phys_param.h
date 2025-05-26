@@ -1,6 +1,8 @@
 #pragma once
 #include "Header.h"
 
+vector<string> H_name;   // имена дополнительных жидкостей 
+
 struct PrintOptions {
     std::optional<double> x;
     std::optional<double> y;
@@ -10,11 +12,17 @@ struct PrintOptions {
 class Phys_param
 {
 public:
+
+    vector<string> param_names;
+    // Все имена параметров, наличие которых мы ожидаем в ячейках!
+
+
     double Velosity_inf = -2.54327;   // Значение скорости смеси на бесконечности
     double B_inf = 8.91006;           // Значение МОДУЛЯ магнитного поля на бесконечности
     double alphaB_inf = 0.698132;     // Направление магнитного поля на бесконечности
     double B_0 = 114.037;             // Магнитное поле на 1 а.е.
     double p_0 = 3118.94;             // давление на 1 а.е.
+    double par_a_2 = 0.102046;         // Параметр в сечении перезарядки
 
     // параметры
     double gamma = (5.0 / 3.0);       // показатель адиабаты

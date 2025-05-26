@@ -2,6 +2,25 @@
 
 Phys_param::Phys_param()
 {
+
+
+    param_names.push_back("rho"); 
+    param_names.push_back("p"); 
+    param_names.push_back("Vx"); 
+    param_names.push_back("Vy");
+    param_names.push_back("Vz"); 
+    param_names.push_back("Bx"); 
+    param_names.push_back("By"); 
+    param_names.push_back("Bz");
+    param_names.push_back("Q");
+    param_names.push_back("rho_H4");
+    param_names.push_back("Vx_H4"); 
+    param_names.push_back("Vy_H4");
+    param_names.push_back("Vz_H4"); 
+    param_names.push_back("p_H4"); 
+
+
+
 	this->Matr << -0.9958639688067077,  0.01776569097515556,  0.08910295088675518,
 		           0.07561695085992419, 0.7057402284561812,   0.7044237408557894,
 		          -0.05036896241933166, 0.7082479157489926,  -0.7041646522383864;

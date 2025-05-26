@@ -56,6 +56,11 @@ using namespace std;
 
 Setka::Setka()
 {
+	// Задаём имена дополнительных жидкостей
+	H_name.push_back("_H4");
+
+
+
 	this->Surf1 = nullptr;
 	this->geo = new Geo_param();
 	this->phys_param = new Phys_param();
@@ -136,6 +141,7 @@ Cell* Setka::Find_cell_point(const double& x, const double& y, const double& z, 
 	}
 
 	Cell* next;
+	Cell* next2;
 	bool b, b2;
 	unsigned int kkk = 0;
 
@@ -144,7 +150,7 @@ Cell* Setka::Find_cell_point(const double& x, const double& y, const double& z, 
 		kkk++;
 		if (kkk > 1000000)
 		{
-			cout << "Ne naydeno! A " << endl;
+			//cout << "Ne naydeno! A " << endl;
 			return nullptr;
 		}
 
@@ -153,6 +159,7 @@ Cell* Setka::Find_cell_point(const double& x, const double& y, const double& z, 
 
 		if (b == true || next == nullptr)
 		{
+			next2 = next;
 			b2 = previos->Belong_point(x, y, z, now, false, next);
 			if (b2 == true)
 			{
@@ -167,7 +174,10 @@ Cell* Setka::Find_cell_point(const double& x, const double& y, const double& z, 
 					b2 = C->Belong_point(x, y, z, now, false, next);
 					if(b2 == true) return C;
 				}
-				cout << "Ne naydeno! B" << endl;
+
+				if(next2 == nullptr) cout << "Ne naydeno! B1    " << x << " " << y << " " << z << endl;
+				if(next2 != nullptr) cout << "Ne naydeno! B2    " << endl;
+
 				return nullptr;
 			}
 		}
@@ -3450,4 +3460,75 @@ void Setka::Tecplot_print_gran_with_condition()
 		fout << endl;
 		k += C->yzels.size();
 	}
+}
+
+void Setka::Tecplot_print_plane_interpolation(Eigen::Vector3d A, Eigen::Vector3d v1, 
+	Eigen::Vector3d v2, int l1, int r1, int l2, int r2)
+{
+	cout << "Start: Tecplot_print_plane_interpolation" << endl;
+	ofstream fout;
+	string name_f = "Tecplot_print_plane_interpolation.txt";
+	Eigen::Vector3d P;
+	Cell* previos = nullptr;
+	Cell* cel = nullptr;
+	unordered_map<string, double> par;
+
+	vector<string> names;
+	names.push_back("rho");
+	names.push_back("p");
+	names.push_back("Vx");
+	names.push_back("Vy");
+	names.push_back("Vz");
+	names.push_back("Bx");
+	names.push_back("By");
+	names.push_back("Bz");
+
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = X, Y";
+
+	for (auto& nam : names)
+	{
+		fout << ", " << nam;
+	}
+
+	fout << endl;
+
+
+	for (int i = l1; i <= r1; i++)
+	{
+		for (int j = l2; j <= r2; j++)
+		{
+			//cout << "i - " << i << "    j - " << j << endl;
+			par.clear();
+			P = A + i * v1 + j * v2;
+
+			if (P.norm() < this->geo->R0 - 0.0000001) continue;
+			if(P(0) < this->geo->L7 - 0.000001) continue;
+			if(norm2(0.0, P(1), P(2)) > this->geo->R5 + 0.000001) continue;
+			if(P.norm() > this->geo->R5 + 0.000001 && P(0) > 0.00000001) continue;
+
+
+			cel = this->Find_cell_point(P(0), P(1), P(2), 0, previos);
+			previos = cel;
+
+			if (cel != nullptr)
+			{
+				//cel->Get_RBF_interpolation(P(0), P(1), P(2), par);
+				cel->Get_IDW_interpolation(P(0), P(1), P(2), par);
+
+				fout << i * v1.norm() << " " << j * v2.norm();
+				for (auto& nam : names)
+				{
+					fout << " " << par[nam];
+				}
+				fout << endl;
+			}
+			else
+			{
+				//cout << "NO = " << P(0) << " " << P(1) << " " << P(2) << endl;
+			}
+		}
+	}
+
+	cout << "End: Tecplot_print_plane_interpolation" << endl;
 }

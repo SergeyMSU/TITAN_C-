@@ -2,6 +2,122 @@
 
 #include <omp.h>
 
+
+void Setka::Set_Gran_par_for_interpolate(void)
+{
+	cout << "Start: Set_Gran_par_for_interpolate" << endl;
+
+	vector<string> names;
+	names.push_back("rho");
+	names.push_back("p");
+	names.push_back("Vx");
+	names.push_back("Vy");
+	names.push_back("Vz");
+	names.push_back("Bx");
+	names.push_back("By");
+	names.push_back("Bz");
+
+	// Заполняем параметры на грани
+	for (auto& gr : this->All_Gran)
+	{
+		if (gr->cells.size() == 1)
+		{
+			for (auto& nam : names)
+			{
+				gr->parameters[nam] = gr->cells[0]->parameters[0][nam];
+			}
+		}
+		else
+		{
+			Eigen::Vector3d vec1, vec2;
+			vec1 << gr->center[0][0] - gr->cells[0]->center[0][0],
+				gr->center[0][1] - gr->cells[0]->center[0][1],
+				gr->center[0][2] - gr->cells[0]->center[0][2];
+			vec2 << gr->center[0][0] - gr->cells[1]->center[0][0],
+				gr->center[0][1] - gr->cells[1]->center[0][1],
+				gr->center[0][2] - gr->cells[1]->center[0][2];
+
+			for (auto& nam : names)
+			{
+				gr->parameters[nam] = (gr->cells[0]->parameters[0][nam] * vec2.norm() +
+					gr->cells[1]->parameters[0][nam] * vec1.norm()) / (vec1.norm() + vec2.norm());
+			}
+		}
+	}
+
+	cout << "A" << endl;
+	// Заполняем параметры в узлах
+	for (auto& yz : this->All_Yzel)
+	{
+		double xc, yc, zc;
+		xc = yz->coord[0][0];
+		yc = yz->coord[0][1];
+		zc = yz->coord[0][2];
+
+
+		if (yz->grans.size() == 0)
+		{
+			cout << "Error  9764397648" << endl;
+			continue;
+		}
+
+		for (auto& nam : names)
+		{
+
+			double sum_weights = 0.0;
+			double sum_weighted_values = 0.0;
+
+			for (auto& gr : yz->grans)
+			{
+				if (gr->parameters.find(nam) == gr->parameters.end()) continue;
+
+				double dist = norm2(gr->center[0][0] - xc,
+					gr->center[0][1] - yc, gr->center[0][2] - zc);
+				double weight = 1.0 / std::pow(dist, 1.0);
+				sum_weights += weight;
+				sum_weighted_values += weight * gr->parameters[nam];
+			}
+
+
+			yz->parameters[nam] = sum_weighted_values / sum_weights;
+		}
+	}
+
+	cout << "B" << endl;
+	// Находим интерполяцию в ячейке
+	for (auto& cell : this->All_Cell)
+	{
+		std::vector<Eigen::Vector3d> points;
+		std::vector<double> values;
+
+		for (auto& p : cell->yzels)
+		{
+			Eigen::Vector3d ppp;
+			ppp << p->coord[0][0], p->coord[0][1],
+				p->coord[0][2];
+			points.push_back(ppp);
+			values.push_back(p->parameters["rho"]);
+		}
+
+		size_t n = points.size();
+		Eigen::MatrixXd A(n, n);
+
+		for (size_t i = 0; i < n; ++i) {
+			for (size_t j = 0; j < n; ++j) {
+				A(i, j) = rbfKernel((points[i] - points[j]).norm());
+			}
+		}
+
+		cell->interpolate_alpha["rho"] = A.colPivHouseholderQr().solve(
+			Eigen::Map<const Eigen::VectorXd>(values.data(), n));
+
+	}
+
+
+	cout << "End: Set_Gran_par_for_interpolate" << endl;
+}
+
+
 void Setka::Init_boundary_grans(void)
 {
 	this->Calculating_measure(0);
@@ -113,7 +229,8 @@ void Setka::Init_boundary_grans(void)
 			ih++;
 			this->All_boundary_Gran.push_back(i);
 		}
-		else if(i->center[0][0] > 0.0) // this->geo->L7 + 0.0001)
+		else if(i->center[0][0] > 0.0)
+		//else if(this->geo->L7 + 0.0001)
 		{
 			i->type = Type_Gran::Outer_Hard;
 			oh++;
@@ -140,6 +257,46 @@ void Setka::Init_physics(void)
 	double x, y, z, r, the;
 	Eigen::Vector3d vec, cc, vv;
 	double BR, BPHI, V1, V2, V3, mV;
+
+
+	// Если ввели какие-то новые переменные, их надо заполнить
+	if (true)
+	{
+		for (auto& i : this->All_Cell)
+		{
+			i->parameters[0]["Q"] = 100.0;
+			i->parameters[0]["rho_H4"] = 0.2;
+			i->parameters[0]["Vx_H4"] = this->phys_param->Velosity_inf;
+			i->parameters[0]["Vy_H4"] = 0.0;
+			i->parameters[0]["Vz_H4"] = 0.0;
+			i->parameters[0]["p_H4"] = 0.15;
+
+			for (short unsigned int j = 1; j < i->parameters.size(); j++)
+			{
+				i->parameters[j] = i->parameters[0];
+			}
+		}
+	}
+
+	bool tt1 = false;
+	// Проверяем наличие всех необходимых переменных (инициализируем их, если их нет)
+	for (auto& i : this->All_Cell)
+	{
+		for (auto& num : this->phys_param->param_names)
+		{
+			if (i->parameters[0].find(num) == i->parameters[0].end())
+			{
+				cout << "Parameters: " << num << "    ne opredelen v cells" << endl;
+				tt1 = true;
+			}
+		}
+		if (tt1 == true)
+		{
+			cout << "Error 4532896514" << endl;
+			exit(-1);
+		}
+	}
+
 
 	// Задаём начальные условия на сетке
 	if (false)
@@ -216,6 +373,12 @@ void Setka::Init_physics(void)
 				i->parameters["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
 				i->parameters["Bz"] = 0.0;
 				i->parameters["Q"] = 100.0;
+
+				i->parameters["rho_H4"] = 1.0;
+				i->parameters["Vx_H4"] = this->phys_param->Velosity_inf;
+				i->parameters["Vy_H4"] = 0.0;
+				i->parameters["Vz_H4"] = 0.0;
+				i->parameters["p_H4"] = 0.5;
 			}
 			else if(i->type == Type_Gran::Inner_Hard)
 			{
@@ -337,6 +500,101 @@ void Setka::Init_TVD(void)
 	}
 }
 
+void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2> SOURSE, short int now)
+{
+	short int N1 = SOURSE.shape()[0];
+	short int N2 = SOURSE.shape()[1];
+
+	boost::multi_array<double, 1> U_M_H(boost::extents[N1 - 1]);
+	boost::multi_array<double, 1> U_H(boost::extents[N1 - 1]);
+	boost::multi_array<double, 1> sigma(boost::extents[N1 - 1]);
+	boost::multi_array<double, 1> nu(boost::extents[N1 - 1]);
+
+	boost::multi_array<double, 1> kk(boost::extents[N1 - 1]);
+	for (int i = 0; i < N1 - 1; i++)
+	{
+		kk[i] = 0.0;
+	}
+
+	// Следующая настройка только вручную((
+	kk[0] = 1.0;  // Если есть только четвёртый сорт
+
+
+	double S1 = 0.0;
+	double S2 = 0.0;
+
+
+	int i = 0;
+	for (auto& nam : H_name)
+	{
+		U_M_H(i) = sqrt(kv(C->parameters[now]["Vx"] - C->parameters[now]["Vx" + nam])
+			+ kv(C->parameters[now]["Vy"] - C->parameters[now]["Vy" + nam])
+			+ kv(C->parameters[now]["Vz"] - C->parameters[now]["Vz" + nam])
+			+ (64.0 / (9.0 * const_pi)) *
+			(C->parameters[now]["p"] / C->parameters[now]["rho"]
+				+ 2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam]));
+
+		U_H(i) = sqrt(kv(C->parameters[now]["Vx"] - C->parameters[now]["Vx" + nam])
+			+ kv(C->parameters[now]["Vy"] - C->parameters[now]["Vy" + nam])
+			+ kv(C->parameters[now]["Vz"] - C->parameters[now]["Vz" + nam])
+			+ (4.0 / const_pi) *
+			(C->parameters[now]["p"] / C->parameters[now]["rho"]
+				+ 2.0 C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam]));
+
+
+		sigma(i) = kv(1.0 - this->phys_param->par_a_2 * log(U_M_H(i)));
+		nu(i) = C->parameters[now]["rho"] *
+			C->parameters[now]["rho" + nam] * U_M_H(i) * sigma(i);
+
+		i++;
+	}
+
+
+	i = 0;
+	for (auto& nam : H_name)
+	{
+		SOURSE[i + 1][1] = SOURSE[i][1] + nu(i) *
+			(C->parameters[now]["Vx" + nam] - C->parameters[now]["Vx"]);
+		SOURSE[i + 1][2] = SOURSE[i][2] + nu(i) *
+			(C->parameters[now]["Vy" + nam] - C->parameters[now]["Vy"]);
+		SOURSE[i + 1][3] = SOURSE[i][3] + nu(i) *
+			(C->parameters[now]["Vz" + nam] - C->parameters[now]["Vz"]);
+		SOURSE[i + 1][4] = SOURSE[i][4] + nu(i) *
+			((kvv(C->parameters[now]["Vx" + nam], C->parameters[now]["Vy" + nam],
+				C->parameters[now]["Vz" + nam]) -
+				kvv(C->parameters[now]["Vx"], C->parameters[now]["Vy"],
+					C->parameters[now]["Vz"])) / 2.0 +
+				(U_H(i) / U_M_H(i)) *
+				(2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam]
+					- C->parameters[now]["p"] / C->parameters[now]["rho"]));
+			i++;
+	}
+
+	i = 0;
+	for (auto& nam : H_name)
+	{
+		S1 = S1 + nu(i);
+		S2 = S2 + nu(i) *
+			(kvv(C->parameters[now]["Vx"], C->parameters[now]["Vy"],
+				C->parameters[now]["Vz"]) / 2.0
+				+ (U_H(i) / U_M_H(i)) * (C->parameters[now]["p"] / C->parameters[now]["rho"]));
+		i++;
+	}
+
+	i = 0;
+	for (auto& nam : H_name)
+	{
+		sourse(1, i + 1) = (par_n_H_LISM_ / par_Kn) * (kk(i) * S1 - nu(i))
+			!sourse(2, i + 1) = (par_n_H_LISM_ / par_Kn) * (kk(i) * S1 * plasma(2) - nu(i) * fluid(2, i))
+			!sourse(3, i + 1) = (par_n_H_LISM_ / par_Kn) * (kk(i) * S1 * plasma(3) - nu(i) * fluid(3, i))
+			!sourse(4, i + 1) = (par_n_H_LISM_ / par_Kn) * (kk(i) * S1 * plasma(4) - nu(i) * fluid(4, i))
+			!sourse(5, i + 1) = (par_n_H_LISM_ / par_Kn) * (kk(i) * S2 - nu(i) * ((fluid(2, i) * *2 + fluid(3, i) * *2 + fluid(4, i) * *2) / 2.0 + &
+				!(U_H(i) / U_M_H(i)) * 2.0 * (fluid(5, i) / fluid(1, i))))
+	}
+
+
+}
+
 void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 {
 	// заполняем коррдинаты узлов на другом временном слое
@@ -395,6 +653,26 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		//omp_set_num_threads(32); // 32
 
 
+		// Зададим условие для 4-го сорта водорода вблизи звезды
+		for (auto& gran : this->All_boundary_Gran)
+		{
+			if (gran->type == Type_Gran::Inner_Hard)
+			{
+				gran->parameters["rho_H4"] = gran->cells[0]->parameters[now1]["rho_H4"];
+				gran->parameters["p_H4"] = gran->cells[0]->parameters[now1]["p_H4"];
+				gran->parameters["Vx_H4"] = gran->cells[0]->parameters[now1]["Vx_H4"];
+				gran->parameters["Vy_H4"] = gran->cells[0]->parameters[now1]["Vy_H4"];
+				gran->parameters["Vz_H4"] = gran->cells[0]->parameters[now1]["Vz_H4"];
+
+				if (gran->parameters["rho_H4"] < 0.001)
+				{
+					gran->parameters["rho_H4"] = 0.001;
+					gran->parameters["p_H4"] = 0.0005;
+				}
+			}
+		}
+
+
 		// Расчитываем потоки через грани
 		// в private не добавляются нормально vectora, надо либо обычные массивы делать, либо 
 		// создавать их внутри в каждом потоке
@@ -432,6 +710,19 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			std::vector<double> POTOK;
 			POTOK.resize(9);
 
+			boost::multi_array<double, 2> POTOK_F(boost::extents[this->H_num][5]);
+			for (short int i = 0; i < this->H_num; ++i) {
+				for (short int j = 0; j < 5; ++j) {
+					POTOK_F[i][j] = 0.0;
+				}
+			}
+
+			boost::multi_array<double, 2> SOURSE(boost::extents[this->H_num + 1][5]);
+			for (short int i = 0; i < this->H_num + 1; ++i) {
+				for (short int j = 0; j < 5; ++j) {
+					POTOK_F[i][j] = 0.0;
+				}
+			}
 
 			POTOK[0] = POTOK[1] = POTOK[2] = POTOK[3] = POTOK[4] = POTOK[5] = 
 				POTOK[6] = POTOK[7] = POTOK[8] = 0.0;
@@ -439,7 +730,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			for (auto& gran : cell->grans)
 			{
 				short int sign_potok = 1;
-				if(gran->cells[0] != cell) sign_potok = -1;
+				if (gran->cells[0] != cell) sign_potok = -1;
 
 				POTOK[0] += sign_potok * gran->parameters["Pm"];
 				POTOK[1] += sign_potok * gran->parameters["PVx"];
@@ -450,9 +741,18 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				POTOK[6] += sign_potok * gran->parameters["PBy"];
 				POTOK[7] += sign_potok * gran->parameters["PBz"];
 				POTOK[8] += sign_potok * gran->parameters["PdivB"];
+
+				for (short int i = 0; i < this->H_num; i++)
+				{
+					POTOK_F[i][0] += sign_potok * gran->parameters["Pm" + this->H_name[i]];
+					POTOK_F[i][1] += sign_potok * gran->parameters["PVx" + this->H_name[i]];
+					POTOK_F[i][2] += sign_potok * gran->parameters["PVy" + this->H_name[i]];
+					POTOK_F[i][3] += sign_potok * gran->parameters["PVz" + this->H_name[i]];
+					POTOK_F[i][4] += sign_potok * gran->parameters["Pe" + this->H_name[i]];
+				}
 			}
 
-			
+
 
 			double rho3, u3, v3, w3, bx3, by3, bz3, p3;
 			double rho = cell->parameters[now1]["rho"];
@@ -465,8 +765,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			double bz = cell->parameters[now1]["Bz"];
 			double dsk = scalarProductFast(vx, vy, vz, bx, by, bz);
 
-			rho3 = rho * Volume / Volume2
-				- time * POTOK[0] / Volume2;
+			rho3 = rho * Volume / Volume2 - time * POTOK[0] / Volume2;
 
 			if (rho3 < 0.0000000001)
 			{
@@ -530,6 +829,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 	PrintOptions Option = PrintOptions{};
 	double area = gr->area[now];
 
+
 	if (gr->type == Type_Gran::Us) // Обычная грань
 	{
 		auto A = gr->cells[0];
@@ -587,7 +887,8 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 		Option.y = gr->center[now][1];
 		Option.z = gr->center[now][2];
 
-		this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
+		this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1], 
+			gr->normal[now][2],
 			w, qqq1, qqq2, qqq, false, 3,
 			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
 			Option);
@@ -609,6 +910,60 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 		gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
 			gr->normal[now][1], gr->normal[now][2],
 			qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
+
+		// Теперь считаем для водорода
+
+		konvect_left.clear();
+		konvect_right.clear(); 
+		konvect.clear();
+
+		for (auto& nam : this->H_name)
+		{
+			if (this->phys_param->TVD == false)
+			{
+				qqq1[0] = A->parameters[now]["rho" + nam];
+				qqq1[1] = A->parameters[now]["Vx" + nam];
+				qqq1[2] = A->parameters[now]["Vy" + nam];
+				qqq1[3] = A->parameters[now]["Vz" + nam];
+				qqq1[4] = A->parameters[now]["p" + nam];
+				qqq1[5] = 0.0;
+				qqq1[6] = 0.0;
+				qqq1[7] = 0.0;
+
+				qqq2[0] = B->parameters[now]["rho" + nam];
+				qqq2[1] = B->parameters[now]["Vx" + nam];
+				qqq2[2] = B->parameters[now]["Vy" + nam];
+				qqq2[3] = B->parameters[now]["Vz" + nam];
+				qqq2[4] = B->parameters[now]["p" + nam];
+				qqq2[5] = 0.0;
+				qqq2[6] = 0.0;
+				qqq2[7] = 0.0;
+			}
+			else // TVD
+			{
+
+			}
+
+			double w = 0.0;
+
+			this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
+				gr->normal[now][2],
+				w, qqq1, qqq2, qqq, false, 3,
+				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+				Option);
+
+
+			loc_time = min(loc_time, this->phys_param->KFL * dist
+				/ (max(fabs(dsl), fabs(dsr)) + fabs(w)));
+
+			gr->parameters["Pm" + nam] = qqq[0] * area;
+			gr->parameters["PVx" + nam] = qqq[1] * area;
+			gr->parameters["PVy" + nam] = qqq[2] * area;
+			gr->parameters["PVz" + nam] = qqq[3] * area;
+			gr->parameters["Pe" + nam] = qqq[4] * area;
+
+		}
+
 
 		return loc_time;
 		
@@ -635,6 +990,21 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 			gr->parameters["Bx"], gr->parameters["By"],
 			gr->parameters["Bz"]) * area;
 
+		for (auto& nam : this->H_name)
+		{
+			this->phys_param->Get_Potok(gr->parameters["rho" + nam], gr->parameters["p" + nam],
+				gr->parameters["Vx" + nam], gr->parameters["Vy" + nam], gr->parameters["Vz" + nam],
+				0.0, 0.0, 0.0,
+				gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
+				qqq);
+
+			gr->parameters["Pm" + nam] = qqq[0] * area;
+			gr->parameters["PVx" + nam] = qqq[1] * area;
+			gr->parameters["PVy" + nam] = qqq[2] * area;
+			gr->parameters["PVz" + nam] = qqq[3] * area;
+			gr->parameters["Pe" + nam] = qqq[7] * area;
+		}
+
 		return 1000000.0;   // возвращаем большой шаг по времени
 	}
 	else if (gr->type == Type_Gran::Outer_Soft)
@@ -658,6 +1028,15 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 			gr->parameters["Vz"] = 0.0;
 		}
 
+		if (gr->normal[now][0] < 0.9) // Для задней границы
+		{
+			// Отсос
+			if (gr->parameters["Vx"] > this->phys_param->Velosity_inf / 5.0)
+			{
+				gr->parameters["Vx"] = this->phys_param->Velosity_inf / 3.0;
+			}
+		}
+
 		this->phys_param->Get_Potok(gr->parameters["rho"], gr->parameters["p"],
 			gr->parameters["Vx"], gr->parameters["Vy"], gr->parameters["Vz"],
 			gr->parameters["Bx"], gr->parameters["By"], gr->parameters["Bz"],
@@ -676,6 +1055,30 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 			gr->normal[now][1], gr->normal[now][2],
 			gr->parameters["Bx"], gr->parameters["By"],
 			gr->parameters["Bz"]) * area;
+
+		for (auto& nam : this->H_name)
+		{
+			gr->parameters["rho" + nam] = C->parameters[now]["rho" + nam];
+			gr->parameters["p" + nam] = C->parameters[now]["p" + nam];
+			gr->parameters["Vx" + nam] = C->parameters[now]["Vx" + nam];
+			gr->parameters["Vy" + nam] = C->parameters[now]["Vy" + nam];
+			gr->parameters["Vz" + nam] = C->parameters[now]["Vz" + nam];
+
+
+			this->phys_param->Get_Potok(gr->parameters["rho" + nam], gr->parameters["p" + nam],
+				gr->parameters["Vx" + nam], gr->parameters["Vy" + nam], gr->parameters["Vz" + nam],
+				0.0, 0.0, 0.0,
+				gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
+				qqq);
+
+			gr->parameters["Pm" + nam] = qqq[0] * area;
+			gr->parameters["PVx" + nam] = qqq[1] * area;
+			gr->parameters["PVy" + nam] = qqq[2] * area;
+			gr->parameters["PVz" + nam] = qqq[3] * area;
+			gr->parameters["Pe" + nam] = qqq[7] * area;
+
+		}
+
 
 		return 1000000.0;   // возвращаем большой шаг по времени
 	}

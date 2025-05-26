@@ -1,5 +1,106 @@
 ﻿#include "Cell.h"
 
+void Cell::Get_RBF_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par)
+{
+	Eigen::Vector3d point;
+	Eigen::Vector3d point2;
+
+	point << x, y, z;
+
+	if (this->interpolate_alpha.find("rho") != this->interpolate_alpha.end())
+	{
+		double result = 0.0;
+		for (size_t i = 0; i < this->yzels.size(); ++i) 
+		{
+			point2 << this->yzels[i]->coord[0][0], this->yzels[i]->coord[0][1],
+				this->yzels[i]->coord[0][2];
+			result += this->interpolate_alpha["rho"][i] * rbfKernel((point - point2).norm());
+		}
+		par["rho"] = result;
+	}
+}
+
+void Cell::Get_IDW_interpolation(const double& x, const double& y, const double& z, 
+	unordered_map<string, double>& par)
+{
+	Eigen::Vector3d point;
+	Eigen::Vector3d point2;
+
+	point << x, y, z;
+
+	vector<string> param_names;
+	param_names.push_back("rho");
+	param_names.push_back("p");
+	param_names.push_back("Vx");
+	param_names.push_back("Vy");
+	param_names.push_back("Vz");
+	param_names.push_back("Bx");
+	param_names.push_back("By");
+	param_names.push_back("Bz");
+
+	unordered_map<string, double> sum_weights;
+	unordered_map<string, double> sum_weighted_values;
+
+	for (auto& nam : param_names)
+	{
+		sum_weights[nam] = 0.0;
+		sum_weighted_values[nam] = 0.0;
+	}
+
+	//double sum_weights = 0.0;
+	//double sum_weighted_values = 0.0;
+
+	for (size_t i = 0; i < this->yzels.size(); ++i)
+	{
+			
+		point2 << this->yzels[i]->coord[0][0], 
+			this->yzels[i]->coord[0][1], this->yzels[i]->coord[0][2];
+		double dist = 0.0001 + (point - point2).norm();
+		double weight = 1.0 / std::pow(dist, 1.0);
+
+		for (auto& nam : param_names)
+		{
+			if (this->yzels[i]->parameters.find(nam) != this->yzels[i]->parameters.end())
+			{
+
+				sum_weights[nam] += weight;
+				sum_weighted_values[nam] += weight * this->yzels[i]->parameters[nam];
+				//cout << this->yzels[i]->parameters["rho"] << endl;
+			}
+		}
+	}
+
+
+	// Добавим центр ячейки
+	point2 << this->center[0][0],
+		this->center[0][1], this->center[0][2];
+	double dist = 0.0001 + (point - point2).norm();
+	double weight = 1.0 / std::pow(dist, 1.0);
+
+	for (auto& nam : param_names)
+	{
+		if (this->parameters[0].find(nam) != this->parameters[0].end())
+		{
+
+			sum_weights[nam] += weight;
+			sum_weighted_values[nam] += weight * this->parameters[0][nam];
+			//cout << this->yzels[i]->parameters["rho"] << endl;
+		}
+	}
+
+	for (auto& nam : param_names)
+	{
+		if (sum_weights[nam] > 0.00001)
+		{
+			par[nam] = sum_weighted_values[nam] / sum_weights[nam];
+		}
+		else
+		{
+			par[nam] = 0.0;
+		}
+	}
+}
+
 Cell* Cell::Get_Sosed(Gran* gr)
 {
 	if(gr->cells.size() == 1) return nullptr;
@@ -40,15 +141,15 @@ bool isPointInsideTetrahedron(const Eigen::Vector3d& P, const Eigen::Vector3d& A
 	}
 
 	double u = determinant4x4(P4, B4, C4, D4) / detABCD;
-	if (u <= 0.0) return false;
+	if (u < -0.0000001) return false;
 	double v = determinant4x4(A4, P4, C4, D4) / detABCD;
-	if (v <= 0.0) return false;
+	if (v < -0.0000001) return false;
 	double w = determinant4x4(A4, B4, P4, D4) / detABCD;
-	if (w <= 0.0) return false;
+	if (w < -0.0000001) return false;
 	double t = determinant4x4(A4, B4, C4, P4) / detABCD;
-	if (t <= 0.0) return false;
+	if (t < -0.0000001) return false;
 
-	return (std::fabs(u + v + w + t - 1.0) < 1e-7);
+	return (std::fabs(u + v + w + t - 1.0) < 1e-5);
 }
 
 
@@ -98,6 +199,8 @@ bool Cell::Belong_point(const double& x, const double& y, const double& z, short
 
 		for (auto& gr : this->grans)
 		{
+			if (gr->cells.size() != 2) continue;
+
 			B << gr->center[now][0], gr->center[now][1], gr->center[now][2];
 			C << gr->normal[now][0], gr->normal[now][1], gr->normal[now][2];
 
@@ -105,7 +208,7 @@ bool Cell::Belong_point(const double& x, const double& y, const double& z, short
 
 			D = P - B;
 
-			if (C.dot(D) < 0.0) 
+			if (C.dot(D) < -0.0000001) 
 			{
 				Next = this->Get_Sosed(gr);
 				return false;
@@ -116,6 +219,7 @@ bool Cell::Belong_point(const double& x, const double& y, const double& z, short
 
 	return false;
 }
+
 
 void Cell::Culc_center(unsigned short int st_time)
 {

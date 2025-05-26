@@ -2,6 +2,8 @@
 #include <math.h>
 #include "Header.h"
 
+double rbfKernel(double r, double epsilon = 1.0);
+
 double polar_angle(const double& x, const double& y);
 
 void dekard_skorost(const double& z, const double& x, const double& y,
