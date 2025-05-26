@@ -22,6 +22,9 @@ public:
 	friend Cell* Get_Sosed(Cell* C, Gran* gr);
 	// Как предыдущая, но сравнение идёт по указателю, не требует номеров ячеек
 
+	bool Belong_point(const double& x, const double& y, const double& z, short int now, bool fast, Cell*& Next);
+	// Принадлежит ли точка ячейке
+
 	double center[2][3];           // Центр грани (также в предыдущий и следуюoий момент времени)
 	double volume[2];
 

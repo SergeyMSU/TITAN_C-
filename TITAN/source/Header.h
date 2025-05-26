@@ -35,6 +35,7 @@ class Surfaces;
 #include <Eigen/Dense>
 #include <optional>
 #include <omp.h>
+#include <chrono>
 
 
 const double const_pi = 3.14159265358979323846;

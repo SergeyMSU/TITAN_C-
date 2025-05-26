@@ -113,7 +113,7 @@ void Setka::Init_boundary_grans(void)
 			ih++;
 			this->All_boundary_Gran.push_back(i);
 		}
-		else if(i->center[0][0] > this->geo->L7 + 0.0001)
+		else if(i->center[0][0] > 0.0) // this->geo->L7 + 0.0001)
 		{
 			i->type = Type_Gran::Outer_Hard;
 			oh++;
@@ -648,6 +648,16 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 		gr->parameters["Bx"] = C->parameters[now]["Bx"];
 		gr->parameters["By"] = C->parameters[now]["By"];
 		gr->parameters["Bz"] = C->parameters[now]["Bz"];
+
+		// Запрещаем затекание жидкости через мягкие граничные условия
+		if (gr->parameters["Vx"] * gr->normal[now][0] + gr->parameters["Vy"] * gr->normal[now][1] +
+			gr->parameters["Vz"] * gr->normal[now][2] < 0.0)
+		{
+			gr->parameters["Vx"] = 0.0;
+			gr->parameters["Vy"] = 0.0;
+			gr->parameters["Vz"] = 0.0;
+		}
+
 		this->phys_param->Get_Potok(gr->parameters["rho"], gr->parameters["p"],
 			gr->parameters["Vx"], gr->parameters["Vy"], gr->parameters["Vz"],
 			gr->parameters["Bx"], gr->parameters["By"], gr->parameters["Bz"],

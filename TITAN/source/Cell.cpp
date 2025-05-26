@@ -1,4 +1,4 @@
-#include "Cell.h"
+п»ї#include "Cell.h"
 
 Cell* Cell::Get_Sosed(Gran* gr)
 {
@@ -15,6 +15,108 @@ Cell* Cell::Get_Sosed(Gran* gr)
 	return nullptr;
 }
 
+double determinant4x4(const Eigen::Vector4d& a, const Eigen::Vector4d& b, 
+	const Eigen::Vector4d& c, const Eigen::Vector4d& d) 
+{
+	Eigen::Matrix4d mat;
+	mat << a, b, c, d;
+	return mat.determinant();
+}
+
+bool isPointInsideTetrahedron(const Eigen::Vector3d& P, const Eigen::Vector3d& A, const Eigen::Vector3d& B, 
+	const Eigen::Vector3d& C, const Eigen::Vector3d& D) 
+{
+	// Р”РѕР±Р°РІР»СЏРµРј 4-СЋ РєРѕРѕСЂРґРёРЅР°С‚Сѓ (1) РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ 4Г—4 РјР°С‚СЂРёС†Р°РјРё
+	Eigen::Vector4d A4(A(0), A(1), A(2), 1.0);
+	Eigen::Vector4d B4(B(0), B(1), B(2), 1.0);
+	Eigen::Vector4d C4(C(0), C(1), C(2), 1.0);
+	Eigen::Vector4d D4(D(0), D(1), D(2), 1.0);
+	Eigen::Vector4d P4(P(0), P(1), P(2), 1.0);
+
+	double detABCD = determinant4x4(A4, B4, C4, D4);
+	if (std::abs(detABCD) < 1e-10) {
+		std::cerr << "Degenerate tetrahedron (zero volume)!" << std::endl;
+		return false;
+	}
+
+	double u = determinant4x4(P4, B4, C4, D4) / detABCD;
+	if (u <= 0.0) return false;
+	double v = determinant4x4(A4, P4, C4, D4) / detABCD;
+	if (v <= 0.0) return false;
+	double w = determinant4x4(A4, B4, P4, D4) / detABCD;
+	if (w <= 0.0) return false;
+	double t = determinant4x4(A4, B4, C4, P4) / detABCD;
+	if (t <= 0.0) return false;
+
+	return (std::fabs(u + v + w + t - 1.0) < 1e-7);
+}
+
+
+bool Cell::Belong_point(const double& x, const double& y, const double& z, short int now, bool fast, Cell*& Next)
+{
+	// fast = false - РїСЂР°РІРёР»СЊРЅС‹Р№ Р°Р»РіРѕСЂРёС‚Рј
+	// fast = true - Р±С‹СЃС‚СЂС‹Р№ Р°Р»РіРѕСЂРёС‚Рј (РЅРѕ РёРјРµРµС‚ РїРѕРіСЂРµС€РЅРѕСЃС‚СЊ)
+
+	Eigen::Vector3d P(x, y, z); // РўРѕС‡РєР°
+	Next = nullptr;  // Next - СЃР»РµРґСѓСЋС‰Р°СЏ СЏС‡РµР№РєР° РѕРїСЂРµРґРµР»СЏРµС‚СЃСЏ С‚РѕР»СЊРєРѕ РµСЃР»Рё fast == true
+	// Р°Р»РіРѕСЂРёС‚Рј РґР»СЏ fast == false РЅРµ РїРѕР·РІРѕР»СЏРµС‚ РЅР°Р№С‚Рё СЃР»РµРґСѓСЋС‰СѓСЋ СЏС‡РµР№РєСѓ
+
+	//double xc = this->center[now][0];
+	//double yc = this->center[now][1];
+	//double zc = this->center[now][2];
+
+	// Р§РµСЃС‚РЅРѕРµ РѕРїСЂРµРґРµР»РµРЅРёРµ РїСЂРёРЅР°РґР»РµР¶РЅРѕСЃС‚Рё
+	if (fast == false)
+	{
+		Eigen::Vector3d A(this->center[now][0], this->center[now][1], this->center[now][2]);
+		Eigen::Vector3d B, C, D;
+		bool is_in = false;
+		for (auto& gr : this->grans)
+		{
+			//double x1 = gr->center[now][0];
+			//double y1 = gr->center[now][1];
+			//double z1 = gr->center[now][2];
+			B << gr->center[now][0], gr->center[now][1], gr->center[now][2];
+
+			int n_yz = gr->yzels.size();
+			for (short int i = 0; i < n_yz; i++)
+			{
+				int j = i + 1;
+				if (j >= n_yz) j = 0;
+				C << gr->yzels[i]->coord[now][0], gr->yzels[i]->coord[now][1], gr->yzels[i]->coord[now][2];
+				D << gr->yzels[j]->coord[now][0], gr->yzels[j]->coord[now][1], gr->yzels[j]->coord[now][2];
+				is_in = isPointInsideTetrahedron(P, A, B, C, D);
+				if (is_in == true) return true;
+			}
+		}
+
+		return false;
+	}
+	else
+	{
+		Eigen::Vector3d B, C, D;
+
+		for (auto& gr : this->grans)
+		{
+			B << gr->center[now][0], gr->center[now][1], gr->center[now][2];
+			C << gr->normal[now][0], gr->normal[now][1], gr->normal[now][2];
+
+			if (gr->cells[0]->number == this->number) C = -C;
+
+			D = P - B;
+
+			if (C.dot(D) < 0.0) 
+			{
+				Next = this->Get_Sosed(gr);
+				return false;
+			}
+		}
+		return true;
+	}
+
+	return false;
+}
+
 void Cell::Culc_center(unsigned short int st_time)
 {
 	double xc, yc, zc;
@@ -23,7 +125,7 @@ void Cell::Culc_center(unsigned short int st_time)
 	yc = 0.0;
 	zc = 0.0;
 
-	// Вычисляем центр грани
+	// Р’С‹С‡РёСЃР»СЏРµРј С†РµРЅС‚СЂ РіСЂР°РЅРё
 	for (auto& i : this->yzels)
 	{
 		xc += i->coord[st_time][0];
@@ -40,12 +142,12 @@ void Cell::Culc_center(unsigned short int st_time)
 
 void Cell::Culc_volume(unsigned short int st_time, unsigned short int method)
 {
-	// 0 - быстрый вариант (нужны посчанные площади граней и их центры)
-	// 1 - медленный вариант (нужны посчитанные только центры граней)
-	// для ровных граней оба методы работают одинаково, но чем более кривая грань, 
-	// тем большее расхождения получается.
-	// медленный вариант более правильный (но это не точно). 
-	// Думаю всегда можно выбирать вариант "0"
+	// 0 - Р±С‹СЃС‚СЂС‹Р№ РІР°СЂРёР°РЅС‚ (РЅСѓР¶РЅС‹ РїРѕСЃС‡Р°РЅРЅС‹Рµ РїР»РѕС‰Р°РґРё РіСЂР°РЅРµР№ Рё РёС… С†РµРЅС‚СЂС‹)
+	// 1 - РјРµРґР»РµРЅРЅС‹Р№ РІР°СЂРёР°РЅС‚ (РЅСѓР¶РЅС‹ РїРѕСЃС‡РёС‚Р°РЅРЅС‹Рµ С‚РѕР»СЊРєРѕ С†РµРЅС‚СЂС‹ РіСЂР°РЅРµР№)
+	// РґР»СЏ СЂРѕРІРЅС‹С… РіСЂР°РЅРµР№ РѕР±Р° РјРµС‚РѕРґС‹ СЂР°Р±РѕС‚Р°СЋС‚ РѕРґРёРЅР°РєРѕРІРѕ, РЅРѕ С‡РµРј Р±РѕР»РµРµ РєСЂРёРІР°СЏ РіСЂР°РЅСЊ, 
+	// С‚РµРј Р±РѕР»СЊС€РµРµ СЂР°СЃС…РѕР¶РґРµРЅРёСЏ РїРѕР»СѓС‡Р°РµС‚СЃСЏ.
+	// РјРµРґР»РµРЅРЅС‹Р№ РІР°СЂРёР°РЅС‚ Р±РѕР»РµРµ РїСЂР°РІРёР»СЊРЅС‹Р№ (РЅРѕ СЌС‚Рѕ РЅРµ С‚РѕС‡РЅРѕ). 
+	// Р”СѓРјР°СЋ РІСЃРµРіРґР° РјРѕР¶РЅРѕ РІС‹Р±РёСЂР°С‚СЊ РІР°СЂРёР°РЅС‚ "0"
 	if (method == 0)
 	{
 		double xg, yg, zg, h;
@@ -92,7 +194,6 @@ void Cell::Culc_volume(unsigned short int st_time, unsigned short int method)
 		return;
 	}
 }
-
 
 double Cell ::func_R(unsigned short int i_time)
 {

@@ -25,6 +25,14 @@ int main()
     S1.Calculating_measure(1);
     cout << "B2 " << endl;
 
+    //Проверка
+    /*Cell* previos = nullptr;
+    Cell* aaa = S1.Find_cell_point(20.0, 100.0, 1.0, 0, previos);
+    if (aaa == nullptr) cout << "Error " << endl;
+    cout << aaa->number << endl;*/
+
+    //return 0;
+
     S1.Init_boundary_grans();
     cout << "C " << endl;
     S1.Init_physics();
@@ -39,19 +47,24 @@ int main()
     S1.Go(true, 200, 1);
     S1.Go(false, 1000, 1);
     //S1.Tecplot_print_cell_plane_parameters();
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 6 * 2; i++)
     {
+        auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 10000, 1);
+        S1.Go(false, 5000, 1);
         S1.Go(true, 300, 1);
         S1.Tecplot_print_cell_plane_parameters();
-        //S1.Save_cell_parameters("parameters_0000.bin");
+        S1.Save_cell_parameters("parameters_0000.bin");
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+        std::cout << "Execution time: " << duration.count()/1000.0 << " seconds" << std::endl;
     }
 
 
 
 
-    //S1.Save_cell_parameters("parameters_0004.bin");
+    S1.Save_cell_parameters("parameters_0005.bin");
 
     cout << "F " << endl;
 

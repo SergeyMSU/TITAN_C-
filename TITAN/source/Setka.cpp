@@ -126,6 +126,60 @@ Setka::~Setka()
 	this->All_Luch.clear();
 }
 
+Cell* Setka::Find_cell_point(const double& x, const double& y, const double& z, short int now, Cell*& previos)
+{
+	// now - какие координаты сейчас актуальны (0 по умолчанию)
+
+	if (previos == nullptr)
+	{
+		previos = this->All_Cell[50];
+	}
+
+	Cell* next;
+	bool b, b2;
+	unsigned int kkk = 0;
+
+	while (true)
+	{
+		kkk++;
+		if (kkk > 1000000)
+		{
+			cout << "Ne naydeno! A " << endl;
+			return nullptr;
+		}
+
+
+		b = previos->Belong_point(x, y, z, now, true, next);
+
+		if (b == true || next == nullptr)
+		{
+			b2 = previos->Belong_point(x, y, z, now, false, next);
+			if (b2 == true)
+			{
+				return previos;
+			}
+			else
+			{
+				for (auto& gr : previos->grans)
+				{
+					auto C = previos->Get_Sosed(gr);
+					if (C == nullptr) continue;
+					b2 = C->Belong_point(x, y, z, now, false, next);
+					if(b2 == true) return C;
+				}
+				cout << "Ne naydeno! B" << endl;
+				return nullptr;
+			}
+		}
+		else
+		{
+			previos = next;
+			continue;
+		}
+
+	}
+}
+
 void Setka::Renumerate(void)
 {
 	int kkk = 1;

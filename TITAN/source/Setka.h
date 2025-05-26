@@ -85,6 +85,9 @@ public:
 	void Calculating_measure(unsigned short int st_time);
 	// Вычисление площадей, центров и нормалей граней, объёмов и центров ячеек
 
+	Cell* Find_cell_point(const double& x, const double& y, const double& z, short int now, Cell*& previos);
+	// Если нет previos, то он должен быть = nullptr
+
 	void Renumerate(void); // Перенумерует все элементы сетки (необходимо в случае добавления новых или удаления)
 	bool Test_geometr(void);  // Тестируем геометрию сетки (что всё связано и работает корректно)
 
