@@ -51,11 +51,12 @@ const double eps_d = 1E-3;
 #include "boost/multi_array.hpp"
 #include <boost/parameter.hpp>
 
+using namespace std;
 
+#include "Phys_param.h"
+#include "Geo_param.h"
 #include "Setka.h"
 #include "Help_funk.h"
-#include "Geo_param.h"
-#include "Phys_param.h"
 #include "Luch.h"
 #include "Gran.h"
 #include "Cell.h"
@@ -63,7 +64,6 @@ const double eps_d = 1E-3;
 #include "Surfaces.h"
 
 
-using namespace std;
 
 
 

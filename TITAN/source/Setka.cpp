@@ -56,11 +56,6 @@ using namespace std;
 
 Setka::Setka()
 {
-	// Задаём имена дополнительных жидкостей
-	H_name.push_back("_H4");
-
-
-
 	this->Surf1 = nullptr;
 	this->geo = new Geo_param();
 	this->phys_param = new Phys_param();
@@ -3307,18 +3302,31 @@ void Setka::Tecplot_print_cell_plane_parameters()
 
 
 	fout.open(name_f);
-	fout << "TITLE = HP  VARIABLES = X, Y, RHO, p, vx, vy, vz, bx, by, bz" << endl;
+	fout << "TITLE = HP  VARIABLES = X, Y";
+	for (auto& nn : this->phys_param->param_names)
+	{
+		fout << ", " << nn;
+	}
+	fout << endl;
 
 	int kkk = 1;
 
 
 	for (auto& i : this->Cell_2D[0])
 	{
-		fout << i->center[0][0] << " " << norm2(0.0, i->center[0][1], i->center[0][2]) <<
-			" " << i->parameters[0]["rho"] << " " << i->parameters[0]["p"] <<
-			" " << i->parameters[0]["Vx"] << " " << i->parameters[0]["Vy"] <<
-			" " << i->parameters[0]["Vz"] << " " << i->parameters[0]["Bx"] <<
-			" " << i->parameters[0]["By"] << " " << i->parameters[0]["Bz"] << endl;
+		fout << i->center[0][0] << " " << norm2(0.0, i->center[0][1], i->center[0][2]);
+		for (auto& nn : this->phys_param->param_names)
+		{
+			if (i->parameters[0].find(nn) != i->parameters[0].end())
+			{
+				fout << " " << i->parameters[0][nn];
+			}
+			else
+			{
+				fout << " " << 0.0;
+			}
+		}
+		fout << endl;
 	}
 
 	fout.close();
@@ -3473,15 +3481,7 @@ void Setka::Tecplot_print_plane_interpolation(Eigen::Vector3d A, Eigen::Vector3d
 	Cell* cel = nullptr;
 	unordered_map<string, double> par;
 
-	vector<string> names;
-	names.push_back("rho");
-	names.push_back("p");
-	names.push_back("Vx");
-	names.push_back("Vy");
-	names.push_back("Vz");
-	names.push_back("Bx");
-	names.push_back("By");
-	names.push_back("Bz");
+	auto names = this->phys_param->param_names;
 
 	fout.open(name_f);
 	fout << "TITLE = HP  VARIABLES = X, Y";
@@ -3514,7 +3514,7 @@ void Setka::Tecplot_print_plane_interpolation(Eigen::Vector3d A, Eigen::Vector3d
 			if (cel != nullptr)
 			{
 				//cel->Get_RBF_interpolation(P(0), P(1), P(2), par);
-				cel->Get_IDW_interpolation(P(0), P(1), P(2), par);
+				cel->Get_IDW_interpolation(P(0), P(1), P(2), par, this->phys_param);
 
 				fout << i * v1.norm() << " " << j * v2.norm();
 				for (auto& nam : names)

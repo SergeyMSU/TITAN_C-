@@ -19,7 +19,7 @@ public:
 
 
 	void Get_RBF_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par);
-	void Get_IDW_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par);
+	void Get_IDW_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par, Phys_param* phys_param);
 
 	Cell* Get_Sosed(Gran* gr); // Получить соседа через данную грань
 	// возвращает nullptr, если соседа через данную грань нет, т.е. грань граничная

@@ -7,15 +7,7 @@ void Setka::Set_Gran_par_for_interpolate(void)
 {
 	cout << "Start: Set_Gran_par_for_interpolate" << endl;
 
-	vector<string> names;
-	names.push_back("rho");
-	names.push_back("p");
-	names.push_back("Vx");
-	names.push_back("Vy");
-	names.push_back("Vz");
-	names.push_back("Bx");
-	names.push_back("By");
-	names.push_back("Bz");
+	auto names = this->phys_param->param_names;
 
 	// Заполняем параметры на грани
 	for (auto& gr : this->All_Gran)
@@ -500,17 +492,23 @@ void Setka::Init_TVD(void)
 	}
 }
 
-void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2> SOURSE, short int now)
+void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE, short int now)
 {
 	short int N1 = SOURSE.shape()[0];
 	short int N2 = SOURSE.shape()[1];
 
-	boost::multi_array<double, 1> U_M_H(boost::extents[N1 - 1]);
+	double* U_M_H = new double[N1 - 1];
+	double* U_H = new double[N1 - 1];
+	double* sigma = new double[N1 - 1];
+	double* nu = new double[N1 - 1];
+	double* kk  = new double[N1 - 1];
+
+	/*boost::multi_array<double, 1> U_M_H(boost::extents[N1 - 1]);
 	boost::multi_array<double, 1> U_H(boost::extents[N1 - 1]);
 	boost::multi_array<double, 1> sigma(boost::extents[N1 - 1]);
 	boost::multi_array<double, 1> nu(boost::extents[N1 - 1]);
+	boost::multi_array<double, 1> kk(boost::extents[N1 - 1]);*/
 
-	boost::multi_array<double, 1> kk(boost::extents[N1 - 1]);
 	for (int i = 0; i < N1 - 1; i++)
 	{
 		kk[i] = 0.0;
@@ -525,71 +523,76 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2> SOURSE, short 
 
 
 	int i = 0;
-	for (auto& nam : H_name)
+	for (auto& nam : this->phys_param->H_name)
 	{
-		U_M_H(i) = sqrt(kv(C->parameters[now]["Vx"] - C->parameters[now]["Vx" + nam])
+		U_M_H[i] = sqrt(kv(C->parameters[now]["Vx"] - C->parameters[now]["Vx" + nam])
 			+ kv(C->parameters[now]["Vy"] - C->parameters[now]["Vy" + nam])
 			+ kv(C->parameters[now]["Vz"] - C->parameters[now]["Vz" + nam])
 			+ (64.0 / (9.0 * const_pi)) *
 			(C->parameters[now]["p"] / C->parameters[now]["rho"]
 				+ 2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam]));
 
-		U_H(i) = sqrt(kv(C->parameters[now]["Vx"] - C->parameters[now]["Vx" + nam])
+		U_H[i] = sqrt(kv(C->parameters[now]["Vx"] - C->parameters[now]["Vx" + nam])
 			+ kv(C->parameters[now]["Vy"] - C->parameters[now]["Vy" + nam])
 			+ kv(C->parameters[now]["Vz"] - C->parameters[now]["Vz" + nam])
 			+ (4.0 / const_pi) *
 			(C->parameters[now]["p"] / C->parameters[now]["rho"]
-				+ 2.0 C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam]));
+				+ 2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam]));
 
 
-		sigma(i) = kv(1.0 - this->phys_param->par_a_2 * log(U_M_H(i)));
-		nu(i) = C->parameters[now]["rho"] *
-			C->parameters[now]["rho" + nam] * U_M_H(i) * sigma(i);
+		sigma[i] = kv(1.0 - this->phys_param->par_a_2 * log(U_M_H[i]));
+		nu[i] = C->parameters[now]["rho"] *
+			C->parameters[now]["rho" + nam] * U_M_H[i] * sigma[i];
 
 		i++;
 	}
 
+	SOURSE[0][0] = 0.0;
 
 	i = 0;
-	for (auto& nam : H_name)
+	for (auto& nam : this->phys_param->H_name)
 	{
-		SOURSE[i + 1][1] = SOURSE[i][1] + nu(i) *
-			(C->parameters[now]["Vx" + nam] - C->parameters[now]["Vx"]);
-		SOURSE[i + 1][2] = SOURSE[i][2] + nu(i) *
-			(C->parameters[now]["Vy" + nam] - C->parameters[now]["Vy"]);
-		SOURSE[i + 1][3] = SOURSE[i][3] + nu(i) *
-			(C->parameters[now]["Vz" + nam] - C->parameters[now]["Vz"]);
-		SOURSE[i + 1][4] = SOURSE[i][4] + nu(i) *
-			((kvv(C->parameters[now]["Vx" + nam], C->parameters[now]["Vy" + nam],
-				C->parameters[now]["Vz" + nam]) -
-				kvv(C->parameters[now]["Vx"], C->parameters[now]["Vy"],
-					C->parameters[now]["Vz"])) / 2.0 +
-				(U_H(i) / U_M_H(i)) *
-				(2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam]
-					- C->parameters[now]["p"] / C->parameters[now]["rho"]));
-			i++;
+		SOURSE[0][1] += nu[i] * (C->parameters[now]["Vx" + nam] - C->parameters[now]["Vx"]);
+		SOURSE[0][2] += nu[i] * (C->parameters[now]["Vy" + nam] - C->parameters[now]["Vy"]);
+		SOURSE[0][3] += nu[i] * (C->parameters[now]["Vz" + nam] - C->parameters[now]["Vz"]);
+		SOURSE[0][4] += nu[i] * ((kvv(C->parameters[now]["Vx" + nam], C->parameters[now]["Vy" + nam],
+			C->parameters[now]["Vz" + nam]) - kvv(C->parameters[now]["Vx"], C->parameters[now]["Vy"]
+				, C->parameters[now]["Vz"])) / 2.0 + (U_H[i] / U_M_H[i]) *
+			(2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam] - C->parameters[now]["p"] / C->parameters[now]["rho"]));
+		i++;
 	}
 
+	double ddp = (this->phys_param->par_n_p_LISM / this->phys_param->par_Kn);
+	SOURSE[0][1] *= ddp;
+	SOURSE[0][2] *= ddp;
+	SOURSE[0][3] *= ddp;
+	SOURSE[0][4] *= ddp;
+
+
 	i = 0;
-	for (auto& nam : H_name)
+	for (auto& nam : this->phys_param->H_name)
 	{
-		S1 = S1 + nu(i);
-		S2 = S2 + nu(i) *
+		S1 = S1 + nu[i];
+		S2 = S2 + nu[i] *
 			(kvv(C->parameters[now]["Vx"], C->parameters[now]["Vy"],
 				C->parameters[now]["Vz"]) / 2.0
-				+ (U_H(i) / U_M_H(i)) * (C->parameters[now]["p"] / C->parameters[now]["rho"]));
+				+ (U_H[i] / U_M_H[i]) * (C->parameters[now]["p"] / C->parameters[now]["rho"]));
 		i++;
 	}
 
 	i = 0;
-	for (auto& nam : H_name)
+	for (auto& nam : this->phys_param->H_name)
 	{
-		sourse(1, i + 1) = (par_n_H_LISM_ / par_Kn) * (kk(i) * S1 - nu(i))
-			!sourse(2, i + 1) = (par_n_H_LISM_ / par_Kn) * (kk(i) * S1 * plasma(2) - nu(i) * fluid(2, i))
-			!sourse(3, i + 1) = (par_n_H_LISM_ / par_Kn) * (kk(i) * S1 * plasma(3) - nu(i) * fluid(3, i))
-			!sourse(4, i + 1) = (par_n_H_LISM_ / par_Kn) * (kk(i) * S1 * plasma(4) - nu(i) * fluid(4, i))
-			!sourse(5, i + 1) = (par_n_H_LISM_ / par_Kn) * (kk(i) * S2 - nu(i) * ((fluid(2, i) * *2 + fluid(3, i) * *2 + fluid(4, i) * *2) / 2.0 + &
-				!(U_H(i) / U_M_H(i)) * 2.0 * (fluid(5, i) / fluid(1, i))))
+		double VHx = C->parameters[now]["Vx" + nam];
+		double VHy = C->parameters[now]["Vy" + nam];
+		double VHz = C->parameters[now]["Vz" + nam];
+
+		SOURSE[i + 1][0] = ddp * (kk[i] * S1 - nu[i]);
+		SOURSE[i + 1][1] = ddp * (kk[i] * S1 * C->parameters[now]["Vx"] - nu[i] * C->parameters[now]["Vx" + nam]);
+		SOURSE[i + 1][2] = ddp * (kk[i] * S1 * C->parameters[now]["Vy"] - nu[i] * C->parameters[now]["Vy" + nam]);
+		SOURSE[i + 1][3] = ddp * (kk[i] * S1 * C->parameters[now]["Vz"] - nu[i] * C->parameters[now]["Vz" + nam]);
+		SOURSE[i + 1][4] = ddp * (kk[i] * S2 - nu[i] * (kvv(VHx, VHy, VHz) / 2.0 +
+			(U_H[i] / U_M_H[i]) * 2.0 * (C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam])));
 	}
 
 
@@ -650,7 +653,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		time = loc_time;
 		loc_time = 100000000.0;
 
-		//omp_set_num_threads(32); // 32
+		//omp_set_num_threads(1); // 32
 
 
 		// Зададим условие для 4-го сорта водорода вблизи звезды
@@ -710,17 +713,19 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			std::vector<double> POTOK;
 			POTOK.resize(9);
 
-			boost::multi_array<double, 2> POTOK_F(boost::extents[this->H_num][5]);
-			for (short int i = 0; i < this->H_num; ++i) {
+			boost::multi_array<double, 2> POTOK_F(boost::extents[this->phys_param->H_name.size()][5]);
+			for (short int i = 0; i < this->phys_param->H_name.size(); ++i) {
 				for (short int j = 0; j < 5; ++j) {
 					POTOK_F[i][j] = 0.0;
 				}
 			}
 
-			boost::multi_array<double, 2> SOURSE(boost::extents[this->H_num + 1][5]);
-			for (short int i = 0; i < this->H_num + 1; ++i) {
+			boost::multi_array<double, 2> SOURSE(boost::extents[this->phys_param->H_name.size() + 1][5]);
+			
+			for (short int i = 0; i < this->phys_param->H_name.size() + 1; ++i) 
+			{
 				for (short int j = 0; j < 5; ++j) {
-					POTOK_F[i][j] = 0.0;
+					SOURSE[i][j] = 0.0;
 				}
 			}
 
@@ -742,19 +747,20 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				POTOK[7] += sign_potok * gran->parameters["PBz"];
 				POTOK[8] += sign_potok * gran->parameters["PdivB"];
 
-				for (short int i = 0; i < this->H_num; i++)
+				for (short int i = 0; i < this->phys_param->H_name.size(); i++)
 				{
-					POTOK_F[i][0] += sign_potok * gran->parameters["Pm" + this->H_name[i]];
-					POTOK_F[i][1] += sign_potok * gran->parameters["PVx" + this->H_name[i]];
-					POTOK_F[i][2] += sign_potok * gran->parameters["PVy" + this->H_name[i]];
-					POTOK_F[i][3] += sign_potok * gran->parameters["PVz" + this->H_name[i]];
-					POTOK_F[i][4] += sign_potok * gran->parameters["Pe" + this->H_name[i]];
+					POTOK_F[i][0] += sign_potok * gran->parameters["Pm" + this->phys_param->H_name[i]];
+					POTOK_F[i][1] += sign_potok * gran->parameters["PVx" + this->phys_param->H_name[i]];
+					POTOK_F[i][2] += sign_potok * gran->parameters["PVy" + this->phys_param->H_name[i]];
+					POTOK_F[i][3] += sign_potok * gran->parameters["PVz" + this->phys_param->H_name[i]];
+					POTOK_F[i][4] += sign_potok * gran->parameters["Pe" + this->phys_param->H_name[i]];
 				}
 			}
 
-
+			this->Calc_sourse_MF(cell, SOURSE, now1);
 
 			double rho3, u3, v3, w3, bx3, by3, bz3, p3;
+
 			double rho = cell->parameters[now1]["rho"];
 			double vx = cell->parameters[now1]["Vx"];
 			double vy = cell->parameters[now1]["Vy"];
@@ -772,16 +778,19 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				rho3 = 0.000001;
 			}
 
-			u3 = (rho * vx * Volume / Volume2 - time * (POTOK[1] + (bx / cpi4) * POTOK[8]) / Volume2) / rho3;
-			v3 = (rho * vy * Volume / Volume2 - time * (POTOK[2] + (by / cpi4) * POTOK[8]) / Volume2) / rho3;
-			w3 = (rho * vz * Volume / Volume2 - time * (POTOK[3] + (bz / cpi4) * POTOK[8]) / Volume2) / rho3;
+			u3 = (rho * vx * Volume / Volume2 - time * (POTOK[1] + (bx / cpi4) * POTOK[8]) / Volume2 
+				+ time * SOURSE[0][1]) / rho3;
+			v3 = (rho * vy * Volume / Volume2 - time * (POTOK[2] + (by / cpi4) * POTOK[8]) / Volume2 
+				+ time * SOURSE[0][2]) / rho3;
+			w3 = (rho * vz * Volume / Volume2 - time * (POTOK[3] + (bz / cpi4) * POTOK[8]) / Volume2 
+				+ time * SOURSE[0][3]) / rho3;
 
 			bx3 = bx * Volume / Volume2 - time * (POTOK[5] + vx * POTOK[8]) / Volume2;
 			by3 = by * Volume / Volume2 - time * (POTOK[6] + vy * POTOK[8]) / Volume2;
 			bz3 = bz * Volume / Volume2 - time * (POTOK[7] + vz * POTOK[8]) / Volume2;
 
 			p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz) + kvv(bx, by, bz) / 25.13274122871834590768) * Volume / Volume2
-				- time * (POTOK[4] + (dsk / cpi4) * POTOK[8]) / Volume2) -
+				- time * (POTOK[4] + (dsk / cpi4) * POTOK[8]) / Volume2 + time * SOURSE[0][4]) -
 				0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
 
 			if (std::isnan(rho3) || std::fpclassify(rho3) == FP_SUBNORMAL)
@@ -812,6 +821,49 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			cell->parameters[now2]["By"] = by3;
 			cell->parameters[now2]["Bz"] = bz3;
 			cell->parameters[now2]["p"] = p3;
+
+			// Теперь считаем для остальных жидкостей
+			int i = 0;
+			for (auto& nam : this->phys_param->H_name)
+			{
+				rho = cell->parameters[now1]["rho" + nam];
+				vx = cell->parameters[now1]["Vx" + nam];
+				vy = cell->parameters[now1]["Vy" + nam];
+				vz = cell->parameters[now1]["Vz" + nam];
+				p = cell->parameters[now1]["p" + nam];
+
+				rho3 = rho * Volume / Volume2 - time * POTOK_F[i][0] / Volume2 + time * SOURSE[i + 1][0];
+
+				if (rho3 < 0.0000000001)
+				{
+					rho3 = 0.000001;
+				}
+
+				u3 = (rho * vx * Volume / Volume2 - time * (POTOK_F[i][1]) / Volume2
+					+ time * SOURSE[i + 1][1]) / rho3;
+				v3 = (rho * vy * Volume / Volume2 - time * (POTOK_F[i][2]) / Volume2
+					+ time * SOURSE[i + 1][2]) / rho3;
+				w3 = (rho * vz * Volume / Volume2 - time * (POTOK_F[i][3]) / Volume2
+					+ time * SOURSE[i + 1][3]) / rho3;
+
+
+				p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz)) * Volume / Volume2
+					- time * (POTOK_F[i][4]) / Volume2 + time * SOURSE[i + 1][4]) -
+					0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
+
+				if (p3 < 0.0000000001)
+				{
+					p3 = 0.000001;
+				}
+
+				cell->parameters[now2]["rho" + nam] = rho3;
+				cell->parameters[now2]["Vx" + nam] = u3;
+				cell->parameters[now2]["Vy" + nam] = v3;
+				cell->parameters[now2]["Vz" + nam] = w3;
+				cell->parameters[now2]["p" + nam] = p3;
+
+				i++;
+			}
 		}
 
 #pragma omp barrier
@@ -917,7 +969,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 		konvect_right.clear(); 
 		konvect.clear();
 
-		for (auto& nam : this->H_name)
+		for (auto& nam : this->phys_param->H_name)
 		{
 			if (this->phys_param->TVD == false)
 			{
@@ -990,7 +1042,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 			gr->parameters["Bx"], gr->parameters["By"],
 			gr->parameters["Bz"]) * area;
 
-		for (auto& nam : this->H_name)
+		for (auto& nam : this->phys_param->H_name)
 		{
 			this->phys_param->Get_Potok(gr->parameters["rho" + nam], gr->parameters["p" + nam],
 				gr->parameters["Vx" + nam], gr->parameters["Vy" + nam], gr->parameters["Vz" + nam],
@@ -1056,7 +1108,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 			gr->parameters["Bx"], gr->parameters["By"],
 			gr->parameters["Bz"]) * area;
 
-		for (auto& nam : this->H_name)
+		for (auto& nam : this->phys_param->H_name)
 		{
 			gr->parameters["rho" + nam] = C->parameters[now]["rho" + nam];
 			gr->parameters["p" + nam] = C->parameters[now]["p" + nam];

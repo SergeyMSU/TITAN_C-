@@ -21,27 +21,17 @@ void Cell::Get_RBF_interpolation(const double& x, const double& y, const double&
 }
 
 void Cell::Get_IDW_interpolation(const double& x, const double& y, const double& z, 
-	unordered_map<string, double>& par)
+	unordered_map<string, double>& par, Phys_param* phys_param)
 {
 	Eigen::Vector3d point;
 	Eigen::Vector3d point2;
 
 	point << x, y, z;
 
-	vector<string> param_names;
-	param_names.push_back("rho");
-	param_names.push_back("p");
-	param_names.push_back("Vx");
-	param_names.push_back("Vy");
-	param_names.push_back("Vz");
-	param_names.push_back("Bx");
-	param_names.push_back("By");
-	param_names.push_back("Bz");
-
 	unordered_map<string, double> sum_weights;
 	unordered_map<string, double> sum_weighted_values;
 
-	for (auto& nam : param_names)
+	for (auto& nam : phys_param->param_names)
 	{
 		sum_weights[nam] = 0.0;
 		sum_weighted_values[nam] = 0.0;
@@ -58,7 +48,7 @@ void Cell::Get_IDW_interpolation(const double& x, const double& y, const double&
 		double dist = 0.0001 + (point - point2).norm();
 		double weight = 1.0 / std::pow(dist, 1.0);
 
-		for (auto& nam : param_names)
+		for (auto& nam : phys_param->param_names)
 		{
 			if (this->yzels[i]->parameters.find(nam) != this->yzels[i]->parameters.end())
 			{
@@ -77,7 +67,7 @@ void Cell::Get_IDW_interpolation(const double& x, const double& y, const double&
 	double dist = 0.0001 + (point - point2).norm();
 	double weight = 1.0 / std::pow(dist, 1.0);
 
-	for (auto& nam : param_names)
+	for (auto& nam : phys_param->param_names)
 	{
 		if (this->parameters[0].find(nam) != this->parameters[0].end())
 		{
@@ -88,7 +78,7 @@ void Cell::Get_IDW_interpolation(const double& x, const double& y, const double&
 		}
 	}
 
-	for (auto& nam : param_names)
+	for (auto& nam : phys_param->param_names)
 	{
 		if (sum_weights[nam] > 0.00001)
 		{
