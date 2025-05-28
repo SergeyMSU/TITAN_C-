@@ -3319,7 +3319,14 @@ void Setka::Tecplot_print_cell_plane_parameters()
 		{
 			if (i->parameters[0].find(nn) != i->parameters[0].end())
 			{
-				fout << " " << i->parameters[0][nn];
+				if (nn != "Q")
+				{
+					fout << " " << i->parameters[0][nn];
+				}
+				else
+				{
+					fout << " " << i->parameters[0]["Q"]/ i->parameters[0]["rho"];
+				}
 			}
 			else
 			{

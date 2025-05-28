@@ -10,8 +10,6 @@ class Setka
 public:
 	class Geo_param* geo;
 	class Phys_param* phys_param;
-
-	int H_num = 1;   // Число дополнительных жидкостей (например, водород)
 	
 
 

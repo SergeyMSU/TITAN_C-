@@ -121,7 +121,7 @@ void Setka::Init_boundary_grans(void)
 		if (i->type == "A_Luch" || i->type == "A2_Luch" || i->type == "B_Luch" ||
 			i->type == "C_Luch" || i->type == "C2_Luch")
 		{
-			for (size_t j = 0; j < this->geo->M0 + 1; j++)
+			for (size_t j = 0; j < this->geo->M0 + 1 + 7; j++) // this->geo->M0 + 1
 			{
 				i->Yzels[j]->is_inner = true;
 				k++;
@@ -221,8 +221,8 @@ void Setka::Init_boundary_grans(void)
 			ih++;
 			this->All_boundary_Gran.push_back(i);
 		}
-		else if(i->center[0][0] > 0.0)
-		//else if(this->geo->L7 + 0.0001)
+		//else if(i->center[0][0] > 0.0)
+		else if(this->geo->L7 + 0.0001)
 		{
 			i->type = Type_Gran::Outer_Hard;
 			oh++;
@@ -250,9 +250,36 @@ void Setka::Init_physics(void)
 	Eigen::Vector3d vec, cc, vv;
 	double BR, BPHI, V1, V2, V3, mV;
 
+	// Редактирование каких-то переменных
+	if (true)
+	{
+		for (auto& i : this->All_Cell)
+		{
+			if (kv(i->center[0][1]) + kv(i->center[0][2]) > 300)
+			{
+				i->parameters[0]["rho"] = 1.0;
+				i->parameters[0]["p"] = 1.0;
+				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
+				i->parameters[0]["Vy"] = 0.0;
+				i->parameters[0]["Vz"] = 0.0;
+				i->parameters[0]["Bx"] = -this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
+				i->parameters[0]["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
+				i->parameters[0]["Bz"] = 0.0;
+				i->parameters[0]["Q"] = 100.0;
+
+				i->parameters[0]["rho_H4"] = 1.0;
+				i->parameters[0]["Vx_H4"] = this->phys_param->Velosity_inf;
+				i->parameters[0]["Vy_H4"] = 0.0;
+				i->parameters[0]["Vz_H4"] = 0.0;
+				i->parameters[0]["p_H4"] = 0.5;
+
+				i->parameters[1] = i->parameters[0];
+			}
+		}
+	}
 
 	// Если ввели какие-то новые переменные, их надо заполнить
-	if (true)
+	if (false)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -497,11 +524,11 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE, short
 	short int N1 = SOURSE.shape()[0];
 	short int N2 = SOURSE.shape()[1];
 
-	double* U_M_H = new double[N1 - 1];
-	double* U_H = new double[N1 - 1];
-	double* sigma = new double[N1 - 1];
-	double* nu = new double[N1 - 1];
-	double* kk  = new double[N1 - 1];
+	std::vector<double> U_M_H(N1 - 1);
+	std::vector<double> U_H(N1 - 1);
+	std::vector<double> sigma(N1 - 1);
+	std::vector<double> nu(N1 - 1);
+	std::vector<double> kk(N1 - 1);
 
 	/*boost::multi_array<double, 1> U_M_H(boost::extents[N1 - 1]);
 	boost::multi_array<double, 1> U_H(boost::extents[N1 - 1]);
@@ -515,7 +542,7 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE, short
 	}
 
 	// Следующая настройка только вручную((
-	kk[0] = 1.0;  // Если есть только четвёртый сорт
+	if(kk.size() > 0) kk[0] = 1.0;  // Если есть только четвёртый сорт
 
 
 	double S1 = 0.0;
@@ -609,6 +636,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		}
 	}
 
+
+
 	this->Test_geometr();
 	// Все настройки расчёта считываются из файла Setter.txt
 	// Сначала реализовываем расчёт без движения сетки
@@ -620,15 +649,24 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	vector<Gran*>* gran_list;
 	vector<Cell*>* cell_list;
 
-	if (is_inner_area == true)
+	// Если хотим отдельно считать внутреннюю и наружную области
+	if (false)
 	{
-		gran_list = &this->Gran_inner_area;
-		cell_list = &this->Cell_inner_area;
+		if (is_inner_area == true)
+		{
+			gran_list = &this->Gran_inner_area;
+			cell_list = &this->Cell_inner_area;
+		}
+		else
+		{
+			gran_list = &this->Gran_outer_area;
+			cell_list = &this->Cell_outer_area;
+		}
 	}
 	else
 	{
-		gran_list = &this->Gran_outer_area;
-		cell_list = &this->Cell_outer_area;
+		gran_list = &this->All_Gran;
+		cell_list = &this->All_Cell;
 	}
 
 	Cell* A, B;
@@ -638,13 +676,19 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	double time = 0.000001;  // Текущий шаг по времени
 	double loc_time = 0.000001;  // Текущий шаг по времени
 
+	double xc_min = 0.0, yc_min = 0.0, zc_min = 0.0;
+
 
 	for (unsigned int step = 1; step <= steps; step++)
 	{
-		if (step % 100 == 0)
+		if (step % 50 == 0)
 		{
 			cout << "Global step = " << step << endl;
 			whach(time);
+			whach(xc_min);
+			whach(yc_min);
+			whach(zc_min);
+			cout << "__________________" << endl;
 		}
 
 		now2 = now1;
@@ -652,6 +696,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 		time = loc_time;
 		loc_time = 100000000.0;
+
+		
 
 		//omp_set_num_threads(1); // 32
 
@@ -667,10 +713,10 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				gran->parameters["Vy_H4"] = gran->cells[0]->parameters[now1]["Vy_H4"];
 				gran->parameters["Vz_H4"] = gran->cells[0]->parameters[now1]["Vz_H4"];
 
-				if (gran->parameters["rho_H4"] < 0.001)
+				if (gran->parameters["rho_H4"] < 0.0001)
 				{
-					gran->parameters["rho_H4"] = 0.001;
-					gran->parameters["p_H4"] = 0.0005;
+					gran->parameters["rho_H4"] = 0.0001;
+					gran->parameters["p_H4"] = 0.00005;
 				}
 			}
 		}
@@ -682,6 +728,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 #pragma omp parallel for reduction(min:loc_time)
 		for(int i_step = 0; i_step < gran_list->size(); i_step++)
 		{
+			//whach(GG->parameters["rho_H4"]);
 			// omp_get_thread_num()  - номер нити
 			// omp_get_num_threads() - всего потоков
 			//cout << "i_step = " << i_step << "  potok = " << omp_get_thread_num() << "  Vsego = " << 
@@ -689,7 +736,15 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 			auto& gran = (*gran_list)[i_step];
 
-			loc_time = min(loc_time, this->Culc_Gran_Potok(gran, now1, metod));  // Считает потоки через данную грань (записывает результат в параметры грани)
+			double ntnt = this->Culc_Gran_Potok(gran, now1, metod);
+
+			if (ntnt < loc_time)
+			{
+				loc_time = min(loc_time, ntnt);  // Считает потоки через данную грань (записывает результат в параметры грани)
+				xc_min = gran->center[now1][0];
+				yc_min = gran->center[now1][1];
+				zc_min = gran->center[now1][2];
+			}
 		}
 
 #pragma omp barrier
@@ -713,6 +768,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			std::vector<double> POTOK;
 			POTOK.resize(9);
 
+			std::vector<double> POTOK2; // Для конвективных параметров
+			POTOK2.resize(1);
+
 			boost::multi_array<double, 2> POTOK_F(boost::extents[this->phys_param->H_name.size()][5]);
 			for (short int i = 0; i < this->phys_param->H_name.size(); ++i) {
 				for (short int j = 0; j < 5; ++j) {
@@ -732,20 +790,27 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			POTOK[0] = POTOK[1] = POTOK[2] = POTOK[3] = POTOK[4] = POTOK[5] = 
 				POTOK[6] = POTOK[7] = POTOK[8] = 0.0;
 
+			POTOK2[0] = 0.0;
+
 			for (auto& gran : cell->grans)
 			{
 				short int sign_potok = 1;
 				if (gran->cells[0] != cell) sign_potok = -1;
 
-				POTOK[0] += sign_potok * gran->parameters["Pm"];
-				POTOK[1] += sign_potok * gran->parameters["PVx"];
-				POTOK[2] += sign_potok * gran->parameters["PVy"];
-				POTOK[3] += sign_potok * gran->parameters["PVz"];
-				POTOK[4] += sign_potok * gran->parameters["Pe"];
-				POTOK[5] += sign_potok * gran->parameters["PBx"];
-				POTOK[6] += sign_potok * gran->parameters["PBy"];
-				POTOK[7] += sign_potok * gran->parameters["PBz"];
-				POTOK[8] += sign_potok * gran->parameters["PdivB"];
+				if (this->phys_param->culc_plasma == true)
+				{
+					POTOK[0] += sign_potok * gran->parameters["Pm"];
+					POTOK[1] += sign_potok * gran->parameters["PVx"];
+					POTOK[2] += sign_potok * gran->parameters["PVy"];
+					POTOK[3] += sign_potok * gran->parameters["PVz"];
+					POTOK[4] += sign_potok * gran->parameters["Pe"];
+					POTOK[5] += sign_potok * gran->parameters["PBx"];
+					POTOK[6] += sign_potok * gran->parameters["PBy"];
+					POTOK[7] += sign_potok * gran->parameters["PBz"];
+					POTOK[8] += sign_potok * gran->parameters["PdivB"];
+
+					POTOK2[0] += sign_potok * gran->parameters["PQ"];
+				}
 
 				for (short int i = 0; i < this->phys_param->H_name.size(); i++)
 				{
@@ -757,70 +822,99 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				}
 			}
 
-			this->Calc_sourse_MF(cell, SOURSE, now1);
+			//this->Calc_sourse_MF(cell, SOURSE, now1);
 
-			double rho3, u3, v3, w3, bx3, by3, bz3, p3;
+			double rho3, u3, v3, w3, bx3, by3, bz3, p3, Q3;
+			double rho, vx, vy, vz, p, bx, by, bz, dsk, Q;
 
-			double rho = cell->parameters[now1]["rho"];
-			double vx = cell->parameters[now1]["Vx"];
-			double vy = cell->parameters[now1]["Vy"];
-			double vz = cell->parameters[now1]["Vz"];
-			double p = cell->parameters[now1]["p"];
-			double bx = cell->parameters[now1]["Bx"];
-			double by = cell->parameters[now1]["By"];
-			double bz = cell->parameters[now1]["Bz"];
-			double dsk = scalarProductFast(vx, vy, vz, bx, by, bz);
-
-			rho3 = rho * Volume / Volume2 - time * POTOK[0] / Volume2;
-
-			if (rho3 < 0.0000000001)
+			if (this->phys_param->culc_plasma == true)
 			{
-				rho3 = 0.000001;
-			}
-
-			u3 = (rho * vx * Volume / Volume2 - time * (POTOK[1] + (bx / cpi4) * POTOK[8]) / Volume2 
-				+ time * SOURSE[0][1]) / rho3;
-			v3 = (rho * vy * Volume / Volume2 - time * (POTOK[2] + (by / cpi4) * POTOK[8]) / Volume2 
-				+ time * SOURSE[0][2]) / rho3;
-			w3 = (rho * vz * Volume / Volume2 - time * (POTOK[3] + (bz / cpi4) * POTOK[8]) / Volume2 
-				+ time * SOURSE[0][3]) / rho3;
-
-			bx3 = bx * Volume / Volume2 - time * (POTOK[5] + vx * POTOK[8]) / Volume2;
-			by3 = by * Volume / Volume2 - time * (POTOK[6] + vy * POTOK[8]) / Volume2;
-			bz3 = bz * Volume / Volume2 - time * (POTOK[7] + vz * POTOK[8]) / Volume2;
-
-			p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz) + kvv(bx, by, bz) / 25.13274122871834590768) * Volume / Volume2
-				- time * (POTOK[4] + (dsk / cpi4) * POTOK[8]) / Volume2 + time * SOURSE[0][4]) -
-				0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
-
-			if (std::isnan(rho3) || std::fpclassify(rho3) == FP_SUBNORMAL)
-			{
-				whach(Volume);
-				whach(Volume2);
-				whach(rho);
-				whach(time);
-
-				for (short unsigned int ik = 0; ik < 9; ik++)
+				rho = cell->parameters[now1]["rho"];
+				if (cell->parameters[now1].find("Q") != cell->parameters[now1].end())
 				{
-					cout << "ik: " << POTOK[ik] << endl;
+					Q = cell->parameters[now1]["rho"];
 				}
-				exit(-1);
+				else
+				{
+					Q = 0.0;
+				}
+				vx = cell->parameters[now1]["Vx"];
+				vy = cell->parameters[now1]["Vy"];
+				vz = cell->parameters[now1]["Vz"];
+				p = cell->parameters[now1]["p"];
+				bx = cell->parameters[now1]["Bx"];
+				by = cell->parameters[now1]["By"];
+				bz = cell->parameters[now1]["Bz"];
+				dsk = scalarProductFast(vx, vy, vz, bx, by, bz);
+
+				rho3 = rho * Volume / Volume2 - time * POTOK[0] / Volume2;
+
+				if (cell->parameters[now1].find("Q") != cell->parameters[now1].end())
+				{
+					Q3 = Q * Volume / Volume2 - time * POTOK2[0] / Volume2;
+				}
+				else
+				{
+					Q3 = 0.0;
+				}
+
+				if (rho3 < 0.0000000001)
+				{
+					rho3 = 0.001;
+					Q3 = Q / rho * rho3;
+				}
+
+				u3 = (rho * vx * Volume / Volume2 - time * (POTOK[1] + (bx / cpi4) * POTOK[8]) / Volume2
+					+ time * SOURSE[0][1]) / rho3;
+				v3 = (rho * vy * Volume / Volume2 - time * (POTOK[2] + (by / cpi4) * POTOK[8]) / Volume2
+					+ time * SOURSE[0][2]) / rho3;
+				w3 = (rho * vz * Volume / Volume2 - time * (POTOK[3] + (bz / cpi4) * POTOK[8]) / Volume2
+					+ time * SOURSE[0][3]) / rho3;
+
+				bx3 = bx * Volume / Volume2 - time * (POTOK[5] + vx * POTOK[8]) / Volume2;
+				by3 = by * Volume / Volume2 - time * (POTOK[6] + vy * POTOK[8]) / Volume2;
+				bz3 = bz * Volume / Volume2 - time * (POTOK[7] + vz * POTOK[8]) / Volume2;
+
+				p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz) + kvv(bx, by, bz) / 25.13274122871834590768) * Volume / Volume2
+					- time * (POTOK[4] + (dsk / cpi4) * POTOK[8]) / Volume2 + time * SOURSE[0][4]) -
+					0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
+
+
+				if (std::isnan(rho3) || std::fpclassify(rho3) == FP_SUBNORMAL || 
+					std::isnan(Q3) || std::fpclassify(Q3) == FP_SUBNORMAL)
+				{
+					whach(Volume);
+					whach(Volume2);
+					whach(rho);
+					whach(time);
+					whach(Q);
+
+					for (short unsigned int ik = 0; ik < 9; ik++)
+					{
+						cout << "ik: " << POTOK[ik] << endl;
+					}
+					exit(-1);
+				}
+
+
+				if (p3 < 0.0000000001)
+				{
+					p3 = 0.0000001;
+				}
+
+				cell->parameters[now2]["rho"] = rho3;
+				if (cell->parameters[now1].find("Q") != cell->parameters[now1].end())
+				{
+					cell->parameters[now2]["Q"] = Q3;
+				}
+				cell->parameters[now2]["Vx"] = u3;
+				cell->parameters[now2]["Vy"] = v3;
+				cell->parameters[now2]["Vz"] = w3;
+				cell->parameters[now2]["Bx"] = bx3;
+				cell->parameters[now2]["By"] = by3;
+				cell->parameters[now2]["Bz"] = bz3;
+				cell->parameters[now2]["p"] = p3;
 			}
-
-
-			if (p3 < 0.0000000001)
-			{
-				p3 = 0.000001;
-			}
-
-			cell->parameters[now2]["rho"] = rho3;
-			cell->parameters[now2]["Vx"] = u3;
-			cell->parameters[now2]["Vy"] = v3;
-			cell->parameters[now2]["Vz"] = w3;
-			cell->parameters[now2]["Bx"] = bx3;
-			cell->parameters[now2]["By"] = by3;
-			cell->parameters[now2]["Bz"] = bz3;
-			cell->parameters[now2]["p"] = p3;
 
 			// Теперь считаем для остальных жидкостей
 			int i = 0;
@@ -836,7 +930,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				if (rho3 < 0.0000000001)
 				{
-					rho3 = 0.000001;
+					rho3 = 0.01;
 				}
 
 				u3 = (rho * vx * Volume / Volume2 - time * (POTOK_F[i][1]) / Volume2
@@ -853,7 +947,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				if (p3 < 0.0000000001)
 				{
-					p3 = 0.000001;
+					p3 = 0.005;
 				}
 
 				cell->parameters[now2]["rho" + nam] = rho3;
@@ -887,81 +981,97 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 		auto A = gr->cells[0];
 		auto B = gr->cells[1];
 
-		// Без TVD
-		if (this->phys_param->TVD == false)
-		{
-			if (regim_otladki == true)
-			{
-				if (A->parameters[now].find("rho") == A->parameters[now].end() ||
-					B->parameters[now].find("rho") == B->parameters[now].end())
-				{
-					cout << "Error  0956453978" << endl;
-					exit(-1);
-				}
-
-
-				if (std::isnan(A->parameters[now]["rho"]) || std::fpclassify(A->parameters[now]["rho"]) == FP_SUBNORMAL)
-				{
-					cout << "Error 0907675453" << endl;
-					for (const auto& [key, value] : A->parameters[now]) {
-						std::cout << key << ": " << value << std::endl;
-					}
-					exit(-1);
-				}
-			}
-
-			qqq1[0] = A->parameters[now]["rho"];
-			qqq1[1] = A->parameters[now]["Vx"];
-			qqq1[2] = A->parameters[now]["Vy"];
-			qqq1[3] = A->parameters[now]["Vz"];
-			qqq1[4] = A->parameters[now]["p"];
-			qqq1[5] = A->parameters[now]["Bx"];
-			qqq1[6] = A->parameters[now]["By"];
-			qqq1[7] = A->parameters[now]["Bz"];
-
-			qqq2[0] = B->parameters[now]["rho"];
-			qqq2[1] = B->parameters[now]["Vx"];
-			qqq2[2] = B->parameters[now]["Vy"];
-			qqq2[3] = B->parameters[now]["Vz"];
-			qqq2[4] = B->parameters[now]["p"];
-			qqq2[5] = B->parameters[now]["Bx"];
-			qqq2[6] = B->parameters[now]["By"];
-			qqq2[7] = B->parameters[now]["Bz"];
-		}
-		else // TVD
-		{
-
-		}
-
-		double w = 0.0;
-
-		Option.x = gr->center[now][0];
-		Option.y = gr->center[now][1];
-		Option.z = gr->center[now][2];
-
-		this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1], 
-			gr->normal[now][2],
-			w, qqq1, qqq2, qqq, false, 3,
-			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-			Option);
-
+		double loc_time = 10000000.0;
 		double dist = norm2(A->center[now][0] - B->center[now][0],
 			A->center[now][1] - B->center[now][1],
 			A->center[now][2] - B->center[now][2]) / 2.0;
 
-		double loc_time = this->phys_param->KFL * dist / (max(fabs(dsl), fabs(dsr)) + fabs(w));
+		if (this->phys_param->culc_plasma == true)
+		{
+			// Без TVD
+			if (this->phys_param->TVD == false)
+			{
+				if (regim_otladki == true)
+				{
+					if (A->parameters[now].find("rho") == A->parameters[now].end() ||
+						B->parameters[now].find("rho") == B->parameters[now].end())
+					{
+						cout << "Error  0956453978" << endl;
+						exit(-1);
+					}
 
-		gr->parameters["Pm"] = qqq[0] * area;
-		gr->parameters["PVx"] = qqq[1] * area;
-		gr->parameters["PVy"] = qqq[2] * area;
-		gr->parameters["PVz"] = qqq[3] * area;
-		gr->parameters["Pe"] = qqq[4] * area;
-		gr->parameters["PBx"] = qqq[5] * area;
-		gr->parameters["PBy"] = qqq[6] * area;
-		gr->parameters["PBz"] = qqq[7] * area;
-		gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
-			gr->normal[now][1], gr->normal[now][2],
-			qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
+
+					if (std::isnan(A->parameters[now]["rho"]) || std::fpclassify(A->parameters[now]["rho"]) == FP_SUBNORMAL)
+					{
+						cout << "Error 0907675453" << endl;
+						for (const auto& [key, value] : A->parameters[now]) {
+							std::cout << key << ": " << value << std::endl;
+						}
+						exit(-1);
+					}
+				}
+
+				qqq1[0] = A->parameters[now]["rho"];
+				qqq1[1] = A->parameters[now]["Vx"];
+				qqq1[2] = A->parameters[now]["Vy"];
+				qqq1[3] = A->parameters[now]["Vz"];
+				qqq1[4] = A->parameters[now]["p"];
+				qqq1[5] = A->parameters[now]["Bx"];
+				qqq1[6] = A->parameters[now]["By"];
+				qqq1[7] = A->parameters[now]["Bz"];
+
+				qqq2[0] = B->parameters[now]["rho"];
+				qqq2[1] = B->parameters[now]["Vx"];
+				qqq2[2] = B->parameters[now]["Vy"];
+				qqq2[3] = B->parameters[now]["Vz"];
+				qqq2[4] = B->parameters[now]["p"];
+				qqq2[5] = B->parameters[now]["Bx"];
+				qqq2[6] = B->parameters[now]["By"];
+				qqq2[7] = B->parameters[now]["Bz"];
+			}
+			else // TVD
+			{
+
+			}
+
+			double w = 0.0;
+
+			Option.x = gr->center[now][0];
+			Option.y = gr->center[now][1];
+			Option.z = gr->center[now][2];
+
+			if(A->parameters[now].find("Q") != A->parameters[now].end())
+			{
+				konvect_left.push_back(A->parameters[now]["Q"]);
+				konvect_right.push_back(B->parameters[now]["Q"]);
+				konvect.push_back(0.0);
+			}
+
+			this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
+				gr->normal[now][2],
+				w, qqq1, qqq2, qqq, false, 3,
+				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+				Option);
+
+			loc_time = min(loc_time, this->phys_param->KFL * dist / (max(fabs(dsl), fabs(dsr)) + fabs(w)));
+
+			gr->parameters["Pm"] = qqq[0] * area;
+			gr->parameters["PVx"] = qqq[1] * area;
+			gr->parameters["PVy"] = qqq[2] * area;
+			gr->parameters["PVz"] = qqq[3] * area;
+			gr->parameters["Pe"] = qqq[4] * area;
+			gr->parameters["PBx"] = qqq[5] * area;
+			gr->parameters["PBy"] = qqq[6] * area;
+			gr->parameters["PBz"] = qqq[7] * area;
+			gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
+				gr->normal[now][1], gr->normal[now][2],
+				qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
+
+			if (A->parameters[now].find("Q") != A->parameters[now].end())
+			{
+				gr->parameters["PQ"] = konvect[0] * area; // Может быть неправльный порядок при других конвективных переменных
+			}
+		}
 
 		// Теперь считаем для водорода
 
@@ -1022,25 +1132,32 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 	}
 	else if (gr->type == Type_Gran::Inner_Hard || gr->type == Type_Gran::Outer_Hard)
 	{
-		this->phys_param->Get_Potok(gr->parameters["rho"], gr->parameters["p"],
-			gr->parameters["Vx"], gr->parameters["Vy"], gr->parameters["Vz"],
-			gr->parameters["Bx"], gr->parameters["By"], gr->parameters["Bz"],
-			gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
-			qqq);
+		if (this->phys_param->culc_plasma == true)
+		{
+			this->phys_param->Get_Potok(gr->parameters["rho"], gr->parameters["p"],
+				gr->parameters["Vx"], gr->parameters["Vy"], gr->parameters["Vz"],
+				gr->parameters["Bx"], gr->parameters["By"], gr->parameters["Bz"],
+				gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
+				qqq);
 
-		gr->parameters["Pm"] = qqq[0] * area;
-		gr->parameters["PVx"] = qqq[1] * area;
-		gr->parameters["PVy"] = qqq[2] * area;
-		gr->parameters["PVz"] = qqq[3] * area;
-		gr->parameters["Pe"] = qqq[7] * area;
-		gr->parameters["PBx"] = qqq[4] * area;
-		gr->parameters["PBy"] = qqq[5] * area;
-		gr->parameters["PBz"] = qqq[6] * area;
+			gr->parameters["Pm"] = qqq[0] * area;
+			gr->parameters["PVx"] = qqq[1] * area;
+			gr->parameters["PVy"] = qqq[2] * area;
+			gr->parameters["PVz"] = qqq[3] * area;
+			gr->parameters["Pe"] = qqq[7] * area;
+			gr->parameters["PBx"] = qqq[4] * area;
+			gr->parameters["PBy"] = qqq[5] * area;
+			gr->parameters["PBz"] = qqq[6] * area;
+			if (gr->parameters.find("Q") != gr->parameters.end())
+			{
+				gr->parameters["PQ"] = gr->parameters["Q"] * qqq[0]/ gr->parameters["rho"] * area;
+			}
 
-		gr->parameters["PdivB"] = scalarProductFast(gr->normal[now][0],
-			gr->normal[now][1], gr->normal[now][2],
-			gr->parameters["Bx"], gr->parameters["By"],
-			gr->parameters["Bz"]) * area;
+			gr->parameters["PdivB"] = scalarProductFast(gr->normal[now][0],
+				gr->normal[now][1], gr->normal[now][2],
+				gr->parameters["Bx"], gr->parameters["By"],
+				gr->parameters["Bz"]) * area;
+		}
 
 		for (auto& nam : this->phys_param->H_name)
 		{
@@ -1062,51 +1179,148 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 	else if (gr->type == Type_Gran::Outer_Soft)
 	{
 		auto C = gr->cells[0];
-		gr->parameters["rho"] = C->parameters[now]["rho"];
-		gr->parameters["p"] = C->parameters[now]["p"];
-		gr->parameters["Vx"] = C->parameters[now]["Vx"];
-		gr->parameters["Vy"] = C->parameters[now]["Vy"];
-		gr->parameters["Vz"] = C->parameters[now]["Vz"];
-		gr->parameters["Bx"] = C->parameters[now]["Bx"];
-		gr->parameters["By"] = C->parameters[now]["By"];
-		gr->parameters["Bz"] = C->parameters[now]["Bz"];
+		double loc_time = 10000000.0;
+		double dist = norm2(C->center[now][0] - gr->center[now][0],
+			C->center[now][1] - gr->center[now][1],
+			C->center[now][2] - gr->center[now][2]);
 
-		// Запрещаем затекание жидкости через мягкие граничные условия
-		if (gr->parameters["Vx"] * gr->normal[now][0] + gr->parameters["Vy"] * gr->normal[now][1] +
-			gr->parameters["Vz"] * gr->normal[now][2] < 0.0)
+		if (this->phys_param->culc_plasma == true)
 		{
-			gr->parameters["Vx"] = 0.0;
-			gr->parameters["Vy"] = 0.0;
-			gr->parameters["Vz"] = 0.0;
-		}
+			qqq1[0] = C->parameters[now]["rho"];
+			qqq1[1] = C->parameters[now]["Vx"];
+			qqq1[2] = C->parameters[now]["Vy"];
+			qqq1[3] = C->parameters[now]["Vz"];
+			qqq1[4] = C->parameters[now]["p"];
+			qqq1[5] = C->parameters[now]["Bx"];
+			qqq1[6] = C->parameters[now]["By"];
+			qqq1[7] = C->parameters[now]["Bz"];
 
-		if (gr->normal[now][0] < 0.9) // Для задней границы
-		{
-			// Отсос
-			if (gr->parameters["Vx"] > this->phys_param->Velosity_inf / 5.0)
+			qqq2[0] = qqq1[0];
+			qqq2[1] = qqq1[1];
+			qqq2[2] = qqq1[2];
+			qqq2[3] = qqq1[3];
+			qqq2[4] = qqq1[4];
+			qqq2[5] = qqq1[5];
+			qqq2[6] = qqq1[6];
+			qqq2[7] = qqq1[7];
+
+			if (C->parameters[now].find("Q") != C->parameters[now].end())
 			{
-				gr->parameters["Vx"] = this->phys_param->Velosity_inf / 3.0;
+				konvect_left.push_back(C->parameters[now]["Q"]);
+				konvect_right.push_back(C->parameters[now]["Q"]);
+				konvect.push_back(0.0);
 			}
+
+			// Запрещаем затекание жидкости через мягкие граничные условия
+			if (qqq2[1] * gr->normal[now][0] + qqq2[2] * gr->normal[now][1] +
+				qqq2[3] * gr->normal[now][2] < 0.0)
+			{
+				qqq2[1] = 0.0;
+				qqq2[2] = 0.0;
+				qqq2[3] = 0.0;
+			}
+
+			if (gr->normal[now][0] < -0.9) // Для задней границы
+			{
+				// Отсос
+				if (qqq2[1] > this->phys_param->Velosity_inf / 7.0)
+				{
+					qqq2[1] = this->phys_param->Velosity_inf / 5.0;
+				}
+			}
+
+			double w = 0.0;
+			Option.x = gr->center[now][0];
+			Option.y = gr->center[now][1];
+			Option.z = gr->center[now][2];
+
+			this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
+				gr->normal[now][2],
+				w, qqq1, qqq2, qqq, false, 3,
+				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+				Option);
+
+			loc_time = min(loc_time, this->phys_param->KFL * dist / (max(fabs(dsl), fabs(dsr)) + fabs(w)));
+
+			gr->parameters["Pm"] = qqq[0] * area;
+			gr->parameters["PVx"] = qqq[1] * area;
+			gr->parameters["PVy"] = qqq[2] * area;
+			gr->parameters["PVz"] = qqq[3] * area;
+			gr->parameters["Pe"] = qqq[4] * area;
+			gr->parameters["PBx"] = qqq[5] * area;
+			gr->parameters["PBy"] = qqq[6] * area;
+			gr->parameters["PBz"] = qqq[7] * area;
+			gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
+				gr->normal[now][1], gr->normal[now][2],
+				qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
+
+			if (C->parameters[now].find("Q") != C->parameters[now].end())
+			{
+				gr->parameters["PQ"] = konvect[0] * area; // Может быть неправльный порядок при других конвективных переменных
+			}
+
 		}
+			
 
-		this->phys_param->Get_Potok(gr->parameters["rho"], gr->parameters["p"],
-			gr->parameters["Vx"], gr->parameters["Vy"], gr->parameters["Vz"],
-			gr->parameters["Bx"], gr->parameters["By"], gr->parameters["Bz"],
-			gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
-			qqq);
+		if (false)//(this->phys_param->culc_plasma == true)
+		{
+			gr->parameters["rho"] = C->parameters[now]["rho"];
+			gr->parameters["p"] = C->parameters[now]["p"];
+			gr->parameters["Vx"] = C->parameters[now]["Vx"];
+			gr->parameters["Vy"] = C->parameters[now]["Vy"];
+			gr->parameters["Vz"] = C->parameters[now]["Vz"];
+			gr->parameters["Bx"] = C->parameters[now]["Bx"];
+			gr->parameters["By"] = C->parameters[now]["By"];
+			gr->parameters["Bz"] = C->parameters[now]["Bz"];
 
-		gr->parameters["Pm"] = qqq[0] * area;
-		gr->parameters["PVx"] = qqq[1] * area;
-		gr->parameters["PVy"] = qqq[2] * area;
-		gr->parameters["PVz"] = qqq[3] * area;
-		gr->parameters["Pe"] = qqq[7] * area;
-		gr->parameters["PBx"] = qqq[4] * area;
-		gr->parameters["PBy"] = qqq[5] * area;
-		gr->parameters["PBz"] = qqq[6] * area;
-		gr->parameters["PdivB"] = scalarProductFast(gr->normal[now][0],
-			gr->normal[now][1], gr->normal[now][2],
-			gr->parameters["Bx"], gr->parameters["By"],
-			gr->parameters["Bz"]) * area;
+			if (C->parameters[now].find("Q") != C->parameters[now].end())
+			{
+				gr->parameters["Q"] = C->parameters[now]["Q"];
+			}
+
+			// Запрещаем затекание жидкости через мягкие граничные условия
+			if (gr->parameters["Vx"] * gr->normal[now][0] + gr->parameters["Vy"] * gr->normal[now][1] +
+				gr->parameters["Vz"] * gr->normal[now][2] < 0.0)
+			{
+				gr->parameters["Vx"] = 0.0;
+				gr->parameters["Vy"] = 0.0;
+				gr->parameters["Vz"] = 0.0;
+			}
+
+			if (gr->normal[now][0] < -0.9) // Для задней границы
+			{
+				// Отсос
+				if (gr->parameters["Vx"] > this->phys_param->Velosity_inf / 7.0)
+				{
+					gr->parameters["Vx"] = this->phys_param->Velosity_inf / 5.0;
+				}
+
+				// Сильно большой отсос тоже плохо
+				if (gr->parameters["Vx"] < 5.0 * this->phys_param->Velosity_inf)
+				{
+					gr->parameters["Vx"] = this->phys_param->Velosity_inf;
+				}
+			}
+
+			this->phys_param->Get_Potok(gr->parameters["rho"], gr->parameters["p"],
+				gr->parameters["Vx"], gr->parameters["Vy"], gr->parameters["Vz"],
+				gr->parameters["Bx"], gr->parameters["By"], gr->parameters["Bz"],
+				gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
+				qqq);
+
+			gr->parameters["Pm"] = qqq[0] * area;
+			gr->parameters["PVx"] = qqq[1] * area;
+			gr->parameters["PVy"] = qqq[2] * area;
+			gr->parameters["PVz"] = qqq[3] * area;
+			gr->parameters["Pe"] = qqq[7] * area;
+			gr->parameters["PBx"] = qqq[4] * area;
+			gr->parameters["PBy"] = qqq[5] * area;
+			gr->parameters["PBz"] = qqq[6] * area;
+			gr->parameters["PdivB"] = scalarProductFast(gr->normal[now][0],
+				gr->normal[now][1], gr->normal[now][2],
+				gr->parameters["Bx"], gr->parameters["By"],
+				gr->parameters["Bz"]) * area;
+		}
 
 		for (auto& nam : this->phys_param->H_name)
 		{
@@ -1132,7 +1346,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 		}
 
 
-		return 1000000.0;   // возвращаем большой шаг по времени
+		return loc_time;   // возвращаем большой шаг по времени
 	}
 	else
 	{
