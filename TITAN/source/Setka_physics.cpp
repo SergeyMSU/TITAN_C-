@@ -221,8 +221,8 @@ void Setka::Init_boundary_grans(void)
 			ih++;
 			this->All_boundary_Gran.push_back(i);
 		}
-		//else if(i->center[0][0] > 0.0)
-		else if(this->geo->L7 + 0.0001)
+		else if(i->center[0][0] > 0.0)
+		//else if(i->center[0][0] > this->geo->L7 + 0.0001)
 		{
 			i->type = Type_Gran::Outer_Hard;
 			oh++;
@@ -251,29 +251,30 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// Редактирование каких-то переменных
-	if (true)
+	if (false)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			if (kv(i->center[0][1]) + kv(i->center[0][2]) > 300)
+			if ( sqrt(kv(i->center[0][1]) + kv(i->center[0][2])) > 300)
 			{
-				i->parameters[0]["rho"] = 1.0;
+				/*i->parameters[0]["rho"] = 1.0;
 				i->parameters[0]["p"] = 1.0;
 				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters[0]["Vy"] = 0.0;
 				i->parameters[0]["Vz"] = 0.0;
 				i->parameters[0]["Bx"] = -this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
 				i->parameters[0]["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
-				i->parameters[0]["Bz"] = 0.0;
+				i->parameters[0]["Bz"] = 0.0;*/
 				i->parameters[0]["Q"] = 100.0;
+				i->parameters[1]["Q"] = 100.0;
 
-				i->parameters[0]["rho_H4"] = 1.0;
+				/*i->parameters[0]["rho_H4"] = 1.0;
 				i->parameters[0]["Vx_H4"] = this->phys_param->Velosity_inf;
 				i->parameters[0]["Vy_H4"] = 0.0;
 				i->parameters[0]["Vz_H4"] = 0.0;
-				i->parameters[0]["p_H4"] = 0.5;
+				i->parameters[0]["p_H4"] = 0.5;*/
 
-				i->parameters[1] = i->parameters[0];
+				//i->parameters[1] = i->parameters[0];
 			}
 		}
 	}
@@ -650,7 +651,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	vector<Cell*>* cell_list;
 
 	// Если хотим отдельно считать внутреннюю и наружную области
-	if (false)
+	if (true)
 	{
 		if (is_inner_area == true)
 		{
@@ -681,7 +682,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	for (unsigned int step = 1; step <= steps; step++)
 	{
-		if (step % 50 == 0)
+		if (step % 250 == 0)
 		{
 			cout << "Global step = " << step << endl;
 			whach(time);
@@ -832,7 +833,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				rho = cell->parameters[now1]["rho"];
 				if (cell->parameters[now1].find("Q") != cell->parameters[now1].end())
 				{
-					Q = cell->parameters[now1]["rho"];
+					Q = cell->parameters[now1]["Q"];
 				}
 				else
 				{
