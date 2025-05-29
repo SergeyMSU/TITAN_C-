@@ -13,6 +13,7 @@ class Surfaces;
 
 
 #define kv(x) ((x) * (x))
+#define kyb(x) ((x) * (x) * (x))
 #define kvv(x, y, z) ((x) * (x) + (y) * (y) + (z) * (z))
 #define norm2(x, y, z) (sqrt(kvv(x, y, z)))
 #define whach(x) cout << #x <<": " << (x) << endl

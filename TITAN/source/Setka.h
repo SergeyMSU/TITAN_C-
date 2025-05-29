@@ -40,6 +40,10 @@ public:
 	vector<Gran*> Gran_BS;
 
 
+	Cell* Cell_Center;               // Фиктивная ячейка в центре системы координат
+	// На неё не будут ссылаться никакие грани чтобы не нарушать алгоритмы
+	// В ней будет рассчитываться H2, H3, H4
+
 	vector<Cell*> All_Cell;           // Все ячейки сетки
 	vector <vector<Cell*>> Cell_2D;   // Ячейки в части сетки, которая получена вращением 2Д сетки
 	vector <vector<Cell*>> Cell_layer_head;   // Ячейки в головной части сетки (вблизи оси)
@@ -156,6 +160,13 @@ public:
 	// Для Tecplot
 	void Tecplot_print_all_yzel_in_3D(string name);
 	// Печатает все узлы (но по слоям, чтобы можно было удобно их просмотреть)
+
+	void Tecplot_print_cut_plane_parameters(const Eigen::Vector3d & A, 
+		const Eigen::Vector3d & v1,
+		const Eigen::Vector3d & v2);
+	// Лучшая функция 2Д вывода.
+	// Разрезает каждую ячейку плоскостью и печатает четырёх угольники
+	// со значением параметров в узлах. Текплот мгновенно строит их них карты
 
 	void Tecplot_print_all_yzel_with_condition();
 	// Печатает узлы с каким-то условием

@@ -470,6 +470,32 @@ void Setka::Init_physics(void)
 			}
 		}
 	}
+
+	// «аполн€ем центральную фиктивную €чейку значени€ми
+	if (true)
+	{
+		for (auto& num : this->phys_param->param_names)
+		{
+			this->Cell_Center->parameters[0][num] = 0.0;
+		}
+		int nk = 0;
+
+		for (auto& i : this->All_boundary_Gran)
+		{
+			if (i->type != Type_Gran::Inner_Hard) continue;
+
+			nk++;
+			for (auto& num : this->phys_param->param_names)
+			{
+				this->Cell_Center->parameters[0][num] += i->parameters[num];
+			}
+		}
+
+		for (auto& num : this->phys_param->param_names)
+		{
+			this->Cell_Center->parameters[0][num] /= nk;
+		}
+	}
 }
 
 void Setka::Init_TVD(void)
@@ -785,7 +811,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		// » дл€ остальных сортов м€гкие на границе
 		for (auto& gran : this->All_boundary_Gran)
 		{
-			if (gran->type == Type_Gran::Inner_Hard)
+			// ѕока заменил на фиктивную центральную €чейку, если она работает это можно убрать
+			if (false)//(gran->type == Type_Gran::Inner_Hard)
 			{
 				double u1, v1, w1;
 				u1 = gran->cells[0]->parameters[now1]["Vx_H4"];
@@ -1090,6 +1117,82 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		}
 
 #pragma omp barrier
+
+		// —читаем фиктивную центральную €чейку
+		if(true) 
+			{
+				auto& cell = this->Cell_Center;
+				double Volume = 4.0 * const_pi * kyb(this->geo->R0)/3.0;
+
+				boost::multi_array<double, 2> POTOK_F(boost::extents[this->phys_param->H_name.size()][5]);
+				for (short int i = 0; i < this->phys_param->H_name.size(); ++i) {
+					for (short int j = 0; j < 5; ++j) {
+						POTOK_F[i][j] = 0.0;
+					}
+				}
+
+				for (auto& gran : this->All_boundary_Gran)
+				{
+					if (gran->type != Type_Gran::Inner_Hard) continue;
+
+					short int sign_potok = -1;
+
+					for (short int i = 1; i < this->phys_param->H_name.size(); i++)
+					{
+						POTOK_F[i][0] += sign_potok * gran->parameters["Pm" + this->phys_param->H_name[i]];
+						POTOK_F[i][1] += sign_potok * gran->parameters["PVx" + this->phys_param->H_name[i]];
+						POTOK_F[i][2] += sign_potok * gran->parameters["PVy" + this->phys_param->H_name[i]];
+						POTOK_F[i][3] += sign_potok * gran->parameters["PVz" + this->phys_param->H_name[i]];
+						POTOK_F[i][4] += sign_potok * gran->parameters["Pe" + this->phys_param->H_name[i]];
+					}
+				}
+
+				double rho3, u3, v3, w3, bx3, by3, bz3, p3, Q3;
+				double rho, vx, vy, vz, p, bx, by, bz, dsk, Q;
+
+				// “еперь считаем дл€ остальных жидкостей
+				int i = 1;
+				for (auto& nam : this->phys_param->H_name)
+				{
+					if (nam == "_H1") continue;
+
+					rho = cell->parameters[now1]["rho" + nam];
+					vx = cell->parameters[now1]["Vx" + nam];
+					vy = cell->parameters[now1]["Vy" + nam];
+					vz = cell->parameters[now1]["Vz" + nam];
+					p = cell->parameters[now1]["p" + nam];
+
+					rho3 = rho - time * POTOK_F[i][0] / Volume;
+
+					if (rho3 < 0.0000000001)
+					{
+						rho3 = 0.00001;
+					}
+
+					u3 = (rho * vx - time * (POTOK_F[i][1]) / Volume) / rho3;
+					v3 = (rho * vy - time * (POTOK_F[i][2]) / Volume) / rho3;
+					w3 = (rho * vz - time * (POTOK_F[i][3]) / Volume) / rho3;
+
+
+					p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz))
+						- time * (POTOK_F[i][4]) / Volume) -
+						0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
+
+					if (p3 < 0.0000000001)
+					{
+						p3 = 0.00001;
+					}
+
+					cell->parameters[now2]["rho" + nam] = rho3;
+					cell->parameters[now2]["Vx" + nam] = u3;
+					cell->parameters[now2]["Vy" + nam] = v3;
+					cell->parameters[now2]["Vz" + nam] = w3;
+					cell->parameters[now2]["p" + nam] = p3;
+
+					i++;
+				}
+			}
+
 	}
 }
 
@@ -1302,17 +1405,64 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 		for (auto& nam : this->phys_param->H_name)
 		{
-			this->phys_param->Get_Potok(gr->parameters["rho" + nam], gr->parameters["p" + nam],
-				gr->parameters["Vx" + nam], gr->parameters["Vy" + nam], gr->parameters["Vz" + nam],
-				0.0, 0.0, 0.0,
-				gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
-				qqq);
+			if (gr->type == Type_Gran::Outer_Hard || (nam == "_H1") )
+			{
+				this->phys_param->Get_Potok(gr->parameters["rho" + nam], gr->parameters["p" + nam],
+					gr->parameters["Vx" + nam], gr->parameters["Vy" + nam], gr->parameters["Vz" + nam],
+					0.0, 0.0, 0.0,
+					gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
+					qqq);
 
-			gr->parameters["Pm" + nam] = qqq[0] * area;
-			gr->parameters["PVx" + nam] = qqq[1] * area;
-			gr->parameters["PVy" + nam] = qqq[2] * area;
-			gr->parameters["PVz" + nam] = qqq[3] * area;
-			gr->parameters["Pe" + nam] = qqq[7] * area;
+				gr->parameters["Pm" + nam] = qqq[0] * area;
+				gr->parameters["PVx" + nam] = qqq[1] * area;
+				gr->parameters["PVy" + nam] = qqq[2] * area;
+				gr->parameters["PVz" + nam] = qqq[3] * area;
+				gr->parameters["Pe" + nam] = qqq[7] * area;
+			}
+			else // ƒл€  H2  H3  H4    и  Inner_Hard  -  делаем через центральную фиктувную €чейку
+			{
+				auto A = gr->cells[0];
+				auto B = this->Cell_Center;
+
+				if (this->phys_param->TVD == false)
+				{
+					qqq1[0] = A->parameters[now]["rho" + nam];
+					qqq1[1] = A->parameters[now]["Vx" + nam];
+					qqq1[2] = A->parameters[now]["Vy" + nam];
+					qqq1[3] = A->parameters[now]["Vz" + nam];
+					qqq1[4] = A->parameters[now]["p" + nam];
+					qqq1[5] = 0.0;
+					qqq1[6] = 0.0;
+					qqq1[7] = 0.0;
+
+					qqq2[0] = B->parameters[now]["rho" + nam];
+					qqq2[1] = B->parameters[now]["Vx" + nam];
+					qqq2[2] = B->parameters[now]["Vy" + nam];
+					qqq2[3] = B->parameters[now]["Vz" + nam];
+					qqq2[4] = B->parameters[now]["p" + nam];
+					qqq2[5] = 0.0;
+					qqq2[6] = 0.0;
+					qqq2[7] = 0.0;
+				}
+				else // TVD
+				{
+
+				}
+
+				double w = 0.0;
+
+				this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
+					gr->normal[now][2],
+					w, qqq1, qqq2, qqq, false, 3,
+					konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+					Option);
+
+				gr->parameters["Pm" + nam] = qqq[0] * area;
+				gr->parameters["PVx" + nam] = qqq[1] * area;
+				gr->parameters["PVy" + nam] = qqq[2] * area;
+				gr->parameters["PVz" + nam] = qqq[3] * area;
+				gr->parameters["Pe" + nam] = qqq[4] * area;
+			}
 		}
 
 		return 1000000.0;   // возвращаем большой шаг по времени

@@ -79,6 +79,8 @@ Setka::Setka()
 	this->name_luch.push_back("H_Luch");
 	this->name_luch.push_back("G_Luch");
 
+	this->Cell_Center = new Cell;
+
 	this->New_initial();                     // Начальное создание узлов и ячеек
 	this->New_connect();                     // Начальное создание граней и связывание их с ячейками
 	// Также добавляет соседей для каждой ячеки
@@ -124,6 +126,11 @@ Setka::~Setka()
 		delete i;
 	}
 	this->All_Luch.clear();
+
+	delete this->Cell_Center;
+	delete this->geo;
+	delete this->phys_param;
+
 }
 
 Cell* Setka::Find_cell_point(const double& x, const double& y, const double& z, short int now, Cell*& previos)
@@ -3292,6 +3299,86 @@ void Setka::Tecplot_print_all_cell_in_3D()
 	}
 
 	fout.close();
+}
+
+void Setka::Tecplot_print_cut_plane_parameters(const Eigen::Vector3d& A,
+	const Eigen::Vector3d& v1,
+	const Eigen::Vector3d& v2)
+{
+	Eigen::Vector3d B, C;
+	Eigen::Vector3d B1, B2;
+
+	Eigen::Vector3d n;
+	n = v1.cross(v2);
+
+	bool a1, a2;
+
+	// Строим уравнение плоскости
+
+
+
+	for (auto& cell : this->All_Cell)
+	{
+		a1 = false;
+		a2 = false;
+		// Сначала надо понять разрезает ли плоскость ячейку
+		for (auto& yz : cell->yzels)
+		{
+			B << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
+			C = B - A;
+			if (n.dot(C) >= 0.0)
+			{
+				a1 = true;
+			}
+			else
+			{
+				a2 = true;
+			}
+		}
+
+		if (a1 == false || a2 == false) continue; // Ячейка не пересекается плоскостью
+
+		// Далее надо найти все стороны в пересечении
+		for (auto& gran : cell->grans)
+		{
+			int ii;
+			for (int i = 0; i < gran->yzels.size(); i++)
+			{
+				ii = i + 1;
+				if (ii >= gran->yzels.size()) ii = 0;
+				auto Y1 = gran->yzels[i];
+				auto Y2 = gran->yzels[ii];
+				a1 = false;
+				a2 = false;
+
+				// проверим находятся ли эти узлы по разную сторону от плоскости
+				B1 << Y1->coord[0][0], Y1->coord[0][1], Y1->coord[0][2];
+				C = B1 - A;
+				if (n.dot(C) >= 0.0)
+				{
+					a1 = true;
+				}
+				else
+				{
+					a2 = true;
+				}
+
+				B2 << Y1->coord[0][0], Y1->coord[0][1], Y1->coord[0][2];
+				C = B2 - A;
+				if (n.dot(C) >= 0.0)
+				{
+					a1 = true;
+				}
+				else
+				{
+					a2 = true;
+				}
+
+				if (a1 == false || a2 == false) continue
+
+			}
+		}
+	}
 }
 
 void Setka::Tecplot_print_cell_plane_parameters()
