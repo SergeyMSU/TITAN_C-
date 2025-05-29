@@ -3374,7 +3374,7 @@ void Setka::Tecplot_print_cut_plane_parameters(const Eigen::Vector3d& A,
 					a2 = true;
 				}
 
-				if (a1 == false || a2 == false) continue
+				if (a1 == false || a2 == false) continue;
 
 			}
 		}
