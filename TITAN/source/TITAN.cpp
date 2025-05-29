@@ -30,7 +30,7 @@ int main()
     S1.Init_TVD();
     cout << "D2 " << endl;
 
-    S1.Download_cell_parameters("parameters_0009.bin");
+    S1.Download_cell_parameters("parameters_0010.bin");
 
     S1.Init_physics();
 
@@ -45,15 +45,15 @@ int main()
 
 
     S1.Tecplot_print_cell_plane_parameters();
-    for (int i = 1; i <= 2 * 20 * 8; i++) // 6 * 2
+    for (int i = 1; i <= 2; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
         S1.Go(false, 1000, 1);
-        S1.Init_physics();
+        //S1.Init_physics();
         S1.Tecplot_print_cell_plane_parameters();
-        S1.Go(true, 100, 1);
-        S1.Tecplot_print_cell_plane_parameters();
+        //S1.Go(true, 100, 1);
+        //S1.Tecplot_print_cell_plane_parameters();
 
         //S1.Init_physics();
 
@@ -65,7 +65,7 @@ int main()
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-        std::cout << "Execution time: " << duration.count()/1000.0 << " seconds" << std::endl;
+        std::cout << "Execution time: " << duration.count()/1000.0/60.0 << " minutes" << std::endl;
     }
 
 
@@ -73,7 +73,7 @@ int main()
 
 
 
-    S1.Save_cell_parameters("parameters_0010.bin");
+    S1.Save_cell_parameters("parameters_0011.bin");
 
     S1.Set_Gran_par_for_interpolate();
 

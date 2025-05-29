@@ -251,7 +251,7 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// Редактирование каких-то переменных
-	if (true)
+	if (false)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -279,16 +279,33 @@ void Setka::Init_physics(void)
 	}
 
 	// Если ввели какие-то новые переменные, их надо заполнить
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			i->parameters[0]["Q"] = 100.0;
-			i->parameters[0]["rho_H4"] = 0.2;
+			i->parameters[0]["rho_H1"] = 0.0001;
+			i->parameters[0]["Vx_H1"] = 0.0;
+			i->parameters[0]["Vy_H1"] = 0.0;
+			i->parameters[0]["Vz_H1"] = 0.0;
+			i->parameters[0]["p_H1"] = 0.0001;
+
+			i->parameters[0]["rho_H2"] = 0.0001;
+			i->parameters[0]["Vx_H2"] = 0.0;
+			i->parameters[0]["Vy_H2"] = 0.0;
+			i->parameters[0]["Vz_H2"] = 0.0;
+			i->parameters[0]["p_H2"] = 0.0001;
+
+			i->parameters[0]["rho_H3"] = 0.0001;
+			i->parameters[0]["Vx_H3"] = 0.0;
+			i->parameters[0]["Vy_H3"] = 0.0;
+			i->parameters[0]["Vz_H3"] = 0.0;
+			i->parameters[0]["p_H3"] = 0.0001;
+
+			i->parameters[0]["rho_H4"] = 1.0;
 			i->parameters[0]["Vx_H4"] = this->phys_param->Velosity_inf;
 			i->parameters[0]["Vy_H4"] = 0.0;
 			i->parameters[0]["Vz_H4"] = 0.0;
-			i->parameters[0]["p_H4"] = 0.15;
+			i->parameters[0]["p_H4"] = 0.5;
 
 			for (short unsigned int j = 1; j < i->parameters.size(); j++)
 			{
@@ -432,6 +449,24 @@ void Setka::Init_physics(void)
 				i->parameters["By"] = cc(1);
 				i->parameters["Bz"] = cc(2);
 				i->parameters["Q"] = i->parameters["rho"];
+
+				i->parameters["rho_H1"] = 0.0001;
+				i->parameters["Vx_H1"] = mV * vec(0);
+				i->parameters["Vy_H1"] = mV * vec(1);
+				i->parameters["Vz_H1"] = mV * vec(2);
+				i->parameters["p_H1"] = 0.0001;
+
+				i->parameters["rho_H2"] = 0.0001;
+				i->parameters["Vx_H2"] = mV * vec(0);
+				i->parameters["Vy_H2"] = mV * vec(1);
+				i->parameters["Vz_H2"] = mV * vec(2);
+				i->parameters["p_H2"] = 0.0001;
+
+				i->parameters["rho_H3"] = 0.0001;
+				i->parameters["Vx_H3"] = mV * vec(0);
+				i->parameters["Vy_H3"] = mV * vec(1);
+				i->parameters["Vz_H3"] = mV * vec(2);
+				i->parameters["p_H3"] = 0.0001;
 			}
 		}
 	}
@@ -519,7 +554,8 @@ void Setka::Init_TVD(void)
 	}
 }
 
-void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE, short int now)
+void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE, 
+	short int now, short int zone)
 {
 	short int N1 = SOURSE.shape()[0];
 	short int N2 = SOURSE.shape()[1];
@@ -530,19 +566,14 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE, short
 	std::vector<double> nu(N1 - 1);
 	std::vector<double> kk(N1 - 1);
 
-	/*boost::multi_array<double, 1> U_M_H(boost::extents[N1 - 1]);
-	boost::multi_array<double, 1> U_H(boost::extents[N1 - 1]);
-	boost::multi_array<double, 1> sigma(boost::extents[N1 - 1]);
-	boost::multi_array<double, 1> nu(boost::extents[N1 - 1]);
-	boost::multi_array<double, 1> kk(boost::extents[N1 - 1]);*/
-
 	for (int i = 0; i < N1 - 1; i++)
 	{
 		kk[i] = 0.0;
 	}
 
-	// Следующая настройка только вручную((
-	if(kk.size() > 0) kk[0] = 1.0;  // Если есть только четвёртый сорт
+	// Следующая настройка только вручную    &INIT&
+	kk[zone - 1] = 1.0;
+
 
 
 	double S1 = 0.0;
@@ -620,9 +651,55 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE, short
 		SOURSE[i + 1][3] = ddp * (kk[i] * S1 * C->parameters[now]["Vz"] - nu[i] * C->parameters[now]["Vz" + nam]);
 		SOURSE[i + 1][4] = ddp * (kk[i] * S2 - nu[i] * (kvv(VHx, VHy, VHz) / 2.0 +
 			(U_H[i] / U_M_H[i]) * 2.0 * (C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam])));
+		i++;
+	}
+}
+
+int Setka::determ_zone(Cell* C, short int now)
+{
+	double rho = C->parameters[now]["rho"];
+	double p = C->parameters[now]["p"];
+	double u = C->parameters[now]["Vx"];
+	double v = C->parameters[now]["Vy"];
+	double w = C->parameters[now]["Vz"];
+	double M = norm2(u, v, w) / sqrt(this->phys_param->gamma * p / rho);
+
+	if (C->parameters[now]["Q"] < 50.0)
+	{
+		if (M > 1)
+		{
+			return 1;
+		}
+		else
+		{
+			return 2;
+		}
+	}
+	else
+	{
+		if (M > 1)
+		{
+			return 4;
+		}
+		else
+		{
+			return 3;
+		}
 	}
 
-
+	if (this->regim_otladki)
+	{
+		cout << "Error 7642343620" << endl;
+		whach(rho);
+		whach(p);
+		whach(u);
+		whach(v);
+		whach(w);
+		whach(M);
+		whach(C->parameters[now]["Q"]);
+		exit(-1);
+	}
+	return 0;
 }
 
 void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
@@ -650,7 +727,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	vector<Cell*>* cell_list;
 
 	// Если хотим отдельно считать внутреннюю и наружную области
-	if (true)
+	if (false)
 	{
 		if (is_inner_area == true)
 		{
@@ -677,17 +754,19 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	double loc_time = 0.000001;  // Текущий шаг по времени
 
 	double xc_min = 0.0, yc_min = 0.0, zc_min = 0.0;
+	string name_min_time = "___";
 
 
 	for (unsigned int step = 1; step <= steps; step++)
 	{
-		if (step % 250 == 0)
+		if (step % 25 == 0)
 		{
 			cout << "Global step = " << step << endl;
 			whach(time);
 			whach(xc_min);
 			whach(yc_min);
 			whach(zc_min);
+			whach(name_min_time);
 			cout << "__________________" << endl;
 		}
 
@@ -703,20 +782,66 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 
 		// Зададим условие для 4-го сорта водорода вблизи звезды
+		// И для остальных сортов мягкие на границе
 		for (auto& gran : this->All_boundary_Gran)
 		{
 			if (gran->type == Type_Gran::Inner_Hard)
 			{
-				gran->parameters["rho_H4"] = gran->cells[0]->parameters[now1]["rho_H4"];
-				gran->parameters["p_H4"] = gran->cells[0]->parameters[now1]["p_H4"];
-				gran->parameters["Vx_H4"] = gran->cells[0]->parameters[now1]["Vx_H4"];
-				gran->parameters["Vy_H4"] = gran->cells[0]->parameters[now1]["Vy_H4"];
-				gran->parameters["Vz_H4"] = gran->cells[0]->parameters[now1]["Vz_H4"];
+				double u1, v1, w1;
+				u1 = gran->cells[0]->parameters[now1]["Vx_H4"];
+				v1 = gran->cells[0]->parameters[now1]["Vy_H4"];
+				w1 = gran->cells[0]->parameters[now1]["Vz_H4"];
+				if (u1 * gran->normal[now1][0] + u1 * gran->normal[now1][1] +
+					u1 * gran->normal[now1][2] > 0.0)
+				{
+					gran->parameters["rho_H4"] = gran->cells[0]->parameters[now1]["rho_H4"];
+					gran->parameters["p_H4"] = gran->cells[0]->parameters[now1]["p_H4"];
+					gran->parameters["Vx_H4"] = gran->cells[0]->parameters[now1]["Vx_H4"];
+					gran->parameters["Vy_H4"] = gran->cells[0]->parameters[now1]["Vy_H4"];
+					gran->parameters["Vz_H4"] = gran->cells[0]->parameters[now1]["Vz_H4"];
+				}
+				else
+				{
+					gran->parameters["rho_H4"] = 0.0001;
+					gran->parameters["p_H4"] = 0.0001;
+					gran->parameters["Vx_H4"] = gran->cells[0]->parameters[now1]["Vx"];
+					gran->parameters["Vy_H4"] = gran->cells[0]->parameters[now1]["Vy"];
+					gran->parameters["Vz_H4"] = gran->cells[0]->parameters[now1]["Vz"];
+				}
 
-				if (gran->parameters["rho_H4"] < 0.0001)
+				/*if (gran->parameters["rho_H4"] < 0.0001)
 				{
 					gran->parameters["rho_H4"] = 0.0001;
 					gran->parameters["p_H4"] = 0.00005;
+				}*/
+			}
+			else if (gran->type == Type_Gran::Outer_Hard)
+			{
+				double u1, v1, w1;
+				for (auto& nam : this->phys_param->H_name)
+				{
+					if (nam == "_H4") continue;
+
+					u1 = gran->cells[0]->parameters[now1]["Vx" + nam];
+					v1 = gran->cells[0]->parameters[now1]["Vy" + nam];
+					w1 = gran->cells[0]->parameters[now1]["Vz" + nam];
+					if (u1 * gran->normal[now1][0] + u1 * gran->normal[now1][1] +
+						u1 * gran->normal[now1][2] > 0.0)
+					{
+						gran->parameters["rho" + nam] = gran->cells[0]->parameters[now1]["rho" + nam];
+						gran->parameters["p" + nam] = gran->cells[0]->parameters[now1]["p" + nam];
+						gran->parameters["Vx" + nam] = u1;
+						gran->parameters["Vy" + nam] = v1;
+						gran->parameters["Vz" + nam] = w1;
+					}
+					else
+					{
+						gran->parameters["rho" + nam] = gran->cells[0]->parameters[now1]["rho" + nam];
+						gran->parameters["p" + nam] = gran->cells[0]->parameters[now1]["p" + nam];
+						gran->parameters["Vx" + nam] = 0.0001 * gran->normal[now1][0];
+						gran->parameters["Vy" + nam] = 0.0001 * gran->normal[now1][1];
+						gran->parameters["Vz" + nam] = 0.0001 * gran->normal[now1][2];
+					}
 				}
 			}
 		}
@@ -736,7 +861,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 			auto& gran = (*gran_list)[i_step];
 
-			double ntnt = this->Culc_Gran_Potok(gran, now1, metod);
+			string nmnm;
+			double ntnt = this->Culc_Gran_Potok(gran, now1, metod, nmnm);
 
 			if (ntnt < loc_time)
 			{
@@ -744,6 +870,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				xc_min = gran->center[now1][0];
 				yc_min = gran->center[now1][1];
 				zc_min = gran->center[now1][2];
+				name_min_time = nmnm;
 			}
 		}
 
@@ -757,6 +884,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			auto& cell = (*cell_list)[i_step];
 			double Volume = cell->volume[now1];
 			double Volume2 = cell->volume[now2];
+			int zone;
 
 
 			if (Volume != Volume2)
@@ -822,7 +950,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				}
 			}
 
-			//this->Calc_sourse_MF(cell, SOURSE, now1);
+			zone = this->determ_zone(cell, now1);
+			this->Calc_sourse_MF(cell, SOURSE, now1, zone);
 
 			double rho3, u3, v3, w3, bx3, by3, bz3, p3, Q3;
 			double rho, vx, vy, vz, p, bx, by, bz, dsk, Q;
@@ -964,7 +1093,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	}
 }
 
-double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
+double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod, string& name)
 {
 	double dsr, dsc, dsl;
 	std::vector<double> qqq, qqq1, qqq2;
@@ -1053,7 +1182,14 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
 				Option);
 
-			loc_time = min(loc_time, this->phys_param->KFL * dist / (max(fabs(dsl), fabs(dsr)) + fabs(w)));
+			double dnt = this->phys_param->KFL * dist
+				/ (max(fabs(dsl), fabs(dsr)) + fabs(w));
+
+			if (dnt < loc_time)
+			{
+				loc_time = min(loc_time, dnt);
+				name = "plasma";
+			}
 
 			gr->parameters["Pm"] = qqq[0] * area;
 			gr->parameters["PVx"] = qqq[1] * area;
@@ -1114,9 +1250,14 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod)
 				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
 				Option);
 
+			double dnt = this->phys_param->KFL * dist
+				/ (max(fabs(dsl), fabs(dsr)) + fabs(w));
 
-			loc_time = min(loc_time, this->phys_param->KFL * dist
-				/ (max(fabs(dsl), fabs(dsr)) + fabs(w)));
+			if (dnt < loc_time)
+			{
+				loc_time = min(loc_time, dnt);
+				name = nam;
+			}
 
 			gr->parameters["Pm" + nam] = qqq[0] * area;
 			gr->parameters["PVx" + nam] = qqq[1] * area;

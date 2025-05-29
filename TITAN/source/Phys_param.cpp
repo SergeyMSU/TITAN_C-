@@ -12,14 +12,35 @@ Phys_param::Phys_param()
     this->param_names.push_back("Bz");
     this->param_names.push_back("Q");
 
-    //this->param_names.push_back("rho_H4");
-    //this->param_names.push_back("Vx_H4");
-    //this->param_names.push_back("Vy_H4");
-    //this->param_names.push_back("Vz_H4");
-    //this->param_names.push_back("p_H4");
+    this->param_names.push_back("rho_H1");
+    this->param_names.push_back("Vx_H1");
+    this->param_names.push_back("Vy_H1");
+    this->param_names.push_back("Vz_H1");
+    this->param_names.push_back("p_H1");
+
+    this->param_names.push_back("rho_H2");
+    this->param_names.push_back("Vx_H2");
+    this->param_names.push_back("Vy_H2");
+    this->param_names.push_back("Vz_H2");
+    this->param_names.push_back("p_H2");
+
+    this->param_names.push_back("rho_H3");
+    this->param_names.push_back("Vx_H3");
+    this->param_names.push_back("Vy_H3");
+    this->param_names.push_back("Vz_H3");
+    this->param_names.push_back("p_H3");
+
+    this->param_names.push_back("rho_H4");
+    this->param_names.push_back("Vx_H4");
+    this->param_names.push_back("Vy_H4");
+    this->param_names.push_back("Vz_H4");
+    this->param_names.push_back("p_H4");
 
     // Задаём имена дополнительных жидкостей
-    //this->H_name.push_back("_H4");
+    this->H_name.push_back("_H1");
+    this->H_name.push_back("_H2");
+    this->H_name.push_back("_H3");
+    this->H_name.push_back("_H4");
 
 
 

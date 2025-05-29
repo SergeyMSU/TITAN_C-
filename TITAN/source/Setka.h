@@ -127,7 +127,10 @@ public:
 	// Также создаётся список граней для внутренней области, которые тоже считаются отдельно 
 	// А также грани на границе внётренней области, которые считаются также отдельно
 
-	void Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE, short int now);
+	int determ_zone(Cell* C, short int now); // Определить зону, в которой находится ячейка
+
+	void Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
+		short int now, short int zone);
 
 	void Init_physics(void); // Заполняет начальные значения параметров в ячейках и граничные на гранях
 	// Предлагается задавать граничные условия на гранях (должно быть проще это обрабатывать)
@@ -137,7 +140,8 @@ public:
 
 	void Go(bool is_inner_area, size_t steps__, short int metod = 1); // Запуск расчёта
 
-	double Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod);  // Расчитывает поток через грань
+	double Culc_Gran_Potok(Gran* gr, unsigned short int now, 
+		short int metod, string& name);  // Расчитывает поток через грань
 	// все случаи реализуются внутри
 	// возвращает шаг по времени
 
