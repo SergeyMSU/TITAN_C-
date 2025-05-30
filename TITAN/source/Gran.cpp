@@ -89,6 +89,26 @@ Gran::Gran()
 	this->area[0] = this->area[1] = 0.0;
 }
 
+double Gran::culc_velosity(short int now1)
+{
+	int now2 = (now1 + 1) % 2;
+	Eigen::Vector3d n, dx;
+	n << this->normal[now1][0], this->normal[now1][1], this->normal[now1][2];
+	double ddot = 0.0;
+
+	for (auto& i : this->yzels)
+	{
+		dx(0) = i->coord[now2][0] - i->coord[now1][0];
+		dx(1) = i->coord[now2][1] - i->coord[now1][1];
+		dx(2) = i->coord[now2][2] - i->coord[now1][2];
+		ddot = ddot + dx.dot(n);
+		//V = V + dx.dot(n) * n;
+	}
+
+	ddot = ddot / this->yzels.size();
+	return ddot;
+}
+
 double Gran::func_R(unsigned short int i_time)
 {
 	return norm2(this->center[i_time][0], this->center[i_time][1], this->center[i_time][2]);

@@ -221,8 +221,8 @@ void Setka::Init_boundary_grans(void)
 			ih++;
 			this->All_boundary_Gran.push_back(i);
 		}
-		else if(i->center[0][0] > 0.0)
-		//else if(i->center[0][0] > this->geo->L7 + 0.0001)
+		//else if(i->center[0][0] > 0.0)
+		else if(i->center[0][0] > this->geo->L7 + 0.0001)
 		{
 			i->type = Type_Gran::Outer_Hard;
 			oh++;
@@ -251,7 +251,7 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// –едактирование каких-то переменных
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -689,10 +689,16 @@ int Setka::determ_zone(Cell* C, short int now)
 	double v = C->parameters[now]["Vy"];
 	double w = C->parameters[now]["Vz"];
 	double M = norm2(u, v, w) / sqrt(this->phys_param->gamma * p / rho);
+	
 
 	if (C->parameters[now]["Q"] < 50.0)
 	{
-		if (M > 1)
+		double x = C->center[now][0];
+		double y = C->center[now][1];
+		double z = C->center[now][2];
+		double r = norm2(x, y, z);
+
+		if (M > 1 && r < 45)
 		{
 			return 1;
 		}
@@ -785,7 +791,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	for (unsigned int step = 1; step <= steps; step++)
 	{
-		if (step % 25 == 0)
+		if (step % 5 == 0)
 		{
 			cout << "Global step = " << step << endl;
 			whach(time);
@@ -873,6 +879,18 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			}
 		}
 
+		// —читаем скорости граней и сразу передвигаем опорные узлы
+		this->Culc_Velocity_surface(now1, time, 1);
+
+
+		// ѕерестраиваем сетку
+#pragma omp parallel for
+		for (int i_step = 0; i_step < this->All_Luch.size(); i_step++)
+		{
+			auto lu = this->All_Luch[i_step];
+			lu->dvigenie(now2);
+		}
+		this->Calculating_measure(now2);
 
 		// –асчитываем потоки через грани
 		// в private не добавл€ютс€ нормально vectora, надо либо обычные массивы делать, либо 
@@ -914,11 +932,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			int zone;
 
 
-			if (Volume != Volume2)
+			/*if (Volume != Volume2)
 			{
 				cout << "Error 8767654534" << endl;
 				exit(-1);
-			}
+			}*/
 
 			std::vector<double> POTOK;
 			POTOK.resize(9);
@@ -1218,6 +1236,8 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			A->center[now][1] - B->center[now][1],
 			A->center[now][2] - B->center[now][2]) / 2.0;
 
+		double w = gr->culc_velosity(now);
+
 		if (this->phys_param->culc_plasma == true)
 		{
 			// Ѕез TVD
@@ -1265,8 +1285,6 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			{
 
 			}
-
-			double w = 0.0;
 
 			Option.x = gr->center[now][0];
 			Option.y = gr->center[now][1];
@@ -1345,7 +1363,6 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 			}
 
-			double w = 0.0;
 
 			this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
 				gr->normal[now][2],

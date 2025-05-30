@@ -32,6 +32,7 @@ public:
 	// вычисляет normal, center, area
 	// для корректной работы определения нормали центры ячеек должны быть актуальны
 
+	double culc_velosity(short int now1);
 	double func_R(unsigned short int i_time); // Расстояние от центра до начала координат
 
 	// Функция сравнения по набору узлов

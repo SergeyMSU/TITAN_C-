@@ -4,8 +4,8 @@ CFLAGS = -c -O3 -I/usr/include/eigen3 -fopenmp
 
 all: hello
 
-hello: TITAN.o Cell.o Geo_param.o Phys_param.o Gran.o Help_funk.o Luch.o Setka.o Setka_physics.o Surfaces.o Yzel.o
-	$(CC) TITAN.o Cell.o Geo_param.o Phys_param.o Gran.o Help_funk.o Luch.o Setka.o Setka_physics.o Surfaces.o Yzel.o -o hello  -fopenmp
+hello: TITAN.o Cell.o Geo_param.o Phys_param.o Gran.o Help_funk.o Luch.o Setka.o Setka_physics.o Setka_move.o Surfaces.o Yzel.o
+	$(CC) TITAN.o Cell.o Geo_param.o Phys_param.o Gran.o Help_funk.o Luch.o Setka.o Setka_physics.o Setka_move.o Surfaces.o Yzel.o -o hello  -fopenmp
 
 TITAN.o: TITAN.cpp
 	$(CC) $(CFLAGS) TITAN.cpp
@@ -30,6 +30,10 @@ Setka.o: Setka.cpp
 
 Setka_physics.o: Setka_physics.cpp
 	$(CC) $(CFLAGS) Setka_physics.cpp
+
+Setka_move.o: Setka_move.cpp
+	$(CC) $(CFLAGS) Setka_move.cpp
+
 
 Surfaces.o: Surfaces.cpp
 	$(CC) $(CFLAGS) Surfaces.cpp

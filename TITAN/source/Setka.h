@@ -136,6 +136,8 @@ public:
 	void Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		short int now, short int zone);
 
+	void Culc_Velocity_surface(short int now, const double& time, short int metod = 1);
+
 	void Init_physics(void); // Заполняет начальные значения параметров в ячейках и граничные на гранях
 	// Предлагается задавать граничные условия на гранях (должно быть проще это обрабатывать)
 

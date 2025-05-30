@@ -25,6 +25,9 @@ public:
 	Type_yzel type = Type_yzel::Us;  // по умолчанию создаЄм обычный узел
 	bool is_inner = false;
 
+	double velocity[3];
+	int num_velocity = 0;
+
 	unordered_map<string, double> parameters;   // ѕараметры в узле (дл€ интерпол€ции надо)
 
 	Yzel();
