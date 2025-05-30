@@ -147,7 +147,7 @@ public:
 	void Go(bool is_inner_area, size_t steps__, short int metod = 1); // Запуск расчёта
 
 	double Culc_Gran_Potok(Gran* gr, unsigned short int now, 
-		short int metod, string& name);  // Расчитывает поток через грань
+		short int metod, string& name, const double& time);  // Расчитывает поток через грань
 	// все случаи реализуются внутри
 	// возвращает шаг по времени
 

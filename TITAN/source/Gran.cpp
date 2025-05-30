@@ -89,7 +89,7 @@ Gran::Gran()
 	this->area[0] = this->area[1] = 0.0;
 }
 
-double Gran::culc_velosity(short int now1)
+double Gran::culc_velosity(short int now1, const double& time)
 {
 	int now2 = (now1 + 1) % 2;
 	Eigen::Vector3d n, dx;
@@ -105,7 +105,7 @@ double Gran::culc_velosity(short int now1)
 		//V = V + dx.dot(n) * n;
 	}
 
-	ddot = ddot / this->yzels.size();
+	ddot = ddot / this->yzels.size()/time;
 	return ddot;
 }
 

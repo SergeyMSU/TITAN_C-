@@ -251,7 +251,7 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// Редактирование каких-то переменных
-	if (true)
+	if (false)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -791,7 +791,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	for (unsigned int step = 1; step <= steps; step++)
 	{
-		if (step % 5 == 0)
+		if (step % 25 == 0)
 		{
 			cout << "Global step = " << step << endl;
 			whach(time);
@@ -907,7 +907,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			auto& gran = (*gran_list)[i_step];
 
 			string nmnm;
-			double ntnt = this->Culc_Gran_Potok(gran, now1, metod, nmnm);
+			double ntnt = this->Culc_Gran_Potok(gran, now1, metod, nmnm, time);
 
 			if (ntnt < loc_time)
 			{
@@ -1214,7 +1214,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	}
 }
 
-double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod, string& name)
+double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod, string& name, const double& time)
 {
 	double dsr, dsc, dsl;
 	std::vector<double> qqq, qqq1, qqq2;
@@ -1236,7 +1236,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			A->center[now][1] - B->center[now][1],
 			A->center[now][2] - B->center[now][2]) / 2.0;
 
-		double w = gr->culc_velosity(now);
+		double w = gr->culc_velosity(now, time);
 
 		if (this->phys_param->culc_plasma == true)
 		{
