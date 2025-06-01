@@ -745,6 +745,10 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		}
 	}
 
+	whach(this->Gran_TS.size());
+	whach(this->Gran_HP.size());
+	whach(this->Gran_BS.size());
+
 
 
 	this->Test_geometr();
@@ -815,6 +819,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 		// Зададим условие для 4-го сорта водорода вблизи звезды
 		// И для остальных сортов мягкие на границе
+		
 		for (auto& gran : this->All_boundary_Gran)
 		{
 			// Пока заменил на фиктивную центральную ячейку, если она работает это можно убрать
@@ -878,19 +883,21 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				}
 			}
 		}
+		
 
 		// Считаем скорости граней и сразу передвигаем опорные узлы
-		this->Culc_Velocity_surface(now1, time, 1);
-
-
-		// Перестраиваем сетку
-#pragma omp parallel for
-		for (int i_step = 0; i_step < this->All_Luch.size(); i_step++)
+		if (is_inner_area == false)
 		{
-			auto lu = this->All_Luch[i_step];
-			lu->dvigenie(now2);
+			this->Culc_Velocity_surface(now1, time, 1);
+
+			// Перестраиваем сетку
+			for (int i_step = 0; i_step < this->All_Luch.size(); i_step++)
+			{
+				auto lu = this->All_Luch[i_step];
+				lu->dvigenie(now2);
+			}
+			this->Calculating_measure(now2);
 		}
-		this->Calculating_measure(now2);
 
 		// Расчитываем потоки через грани
 		// в private не добавляются нормально vectora, надо либо обычные массивы делать, либо 
@@ -1688,6 +1695,34 @@ void Setka::Save_cell_parameters(string filename)
 			out.write(reinterpret_cast<const char*>(&pair.second), sizeof(double));
 		}
 	}
+
+	bool bb;
+
+	
+	// Записываем координаты узлов
+	bb = true;
+	out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+	size_t size = this->All_Yzel.size();
+	out.write(reinterpret_cast<const char*>(&size), sizeof(size_t));
+	for (auto& yz : this->All_Yzel)
+	{
+		double x = yz->coord[0][0];
+		double y = yz->coord[0][1];
+		double z = yz->coord[0][2];
+		out.write(reinterpret_cast<const char*>(&x), sizeof(double));
+		out.write(reinterpret_cast<const char*>(&y), sizeof(double));
+		out.write(reinterpret_cast<const char*>(&z), sizeof(double));
+	}
+
+
+
+	// Записываем для будующих считываний
+	bb = false;
+	for (int i = 0; i < 1000; i++)
+	{
+
+		out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+	}
 }
 
 void Setka::Download_cell_parameters(string filename)
@@ -1722,4 +1757,37 @@ void Setka::Download_cell_parameters(string filename)
 			ii->parameters[1][key] = value;
 		}
 	}
+
+
+	bool bb;
+
+	// Читаем координаты узлов
+	in.read(reinterpret_cast<char*>(&bb), sizeof(bb));
+	if (bb == true)
+	{
+		size_t size;
+		in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
+		double x, y, z;
+
+		// Чтение координат каждого узла
+		for (size_t i = 0; i < size; ++i) 
+		{
+			in.read(reinterpret_cast<char*>(&x), sizeof(double));
+			in.read(reinterpret_cast<char*>(&y), sizeof(double));
+			in.read(reinterpret_cast<char*>(&z), sizeof(double));
+
+			// Заполняем координаты узла
+			auto yz = this->All_Yzel[i];
+			yz->coord[0][0] = x;
+			yz->coord[0][1] = y;
+			yz->coord[0][2] = z;
+
+			yz->coord[1][0] = x;
+			yz->coord[1][1] = y;
+			yz->coord[1][2] = z;
+		}
+	}
+
+
+	in.close();
 }

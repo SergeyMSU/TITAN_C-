@@ -5,6 +5,9 @@
 	A->yzels[n]->coord[0][1] = y; \
 	A->yzels[n]->coord[0][2] = z
 
+
+// Ётот макрос заполн€ет Gran_TS   Gran_HP    Gran_BS
+// ќни заполн€ютс€ после того, как узлам распределили их Type_yzel::
 #define  macros2(name) for (auto& i : this->All_Gran)\
 	{ \
 		b1 = true; \
@@ -2005,6 +2008,7 @@ void Setka::New_append_surfaces()
 	}
 
 	bool b1 = false;
+	// “ут заполн€ютс€ Gran_TS, Gran_HP, Gran_BS
 	macros2(TS);
 	macros2(HP);
 	macros2(BS);
