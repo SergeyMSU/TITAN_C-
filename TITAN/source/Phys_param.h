@@ -38,7 +38,7 @@ public:
 
     // Настройки расчёта
     double KFL = 0.8;                   // критерий Куранта
-    bool TVD = false;                   // Делаем ли ТВД?
+    bool TVD = true;                   // Делаем ли ТВД?
 
     bool culc_plasma = true;           // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
     bool move_HP = true;

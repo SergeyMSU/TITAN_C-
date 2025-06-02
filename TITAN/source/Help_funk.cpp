@@ -1,6 +1,45 @@
 ﻿#include "Help_funk.h"
 #include "Yzel.h"
 
+short int signum(const double& x)
+{
+	if (x > 0.00000001)
+	{
+		return 1;
+	}
+	else if (x < -0.00000001)
+	{
+		return -1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+double minmod(const double& x, const double& y)
+{
+	if (signum(x) + signum(y) == 0)
+	{
+		return 0.0;
+	}
+	else
+	{
+		return  ((signum(x) + signum(y)) / 2.0) * min(fabs(x), fabs(y));
+	}
+}
+
+double linear(const double& x1, const double& t1, const double& x2, 
+	const double& t2, const double& x3, const double& t3, 
+	const double& y)
+{
+	//Главное значение с параметрами 2
+	//Строим линии между 1 и 2, 2 и 3, потом находим минмодом значение в y
+	double d = minmod((t1 - t2) / (x1 - x2), (t2 - t3) / (x2 - x3));
+		return (d * (y - x2) + t2);
+}
+
 double rbfKernel(double r, double epsilon) 
 {
 	return std::sqrt(1 + (epsilon * r) * (epsilon * r));

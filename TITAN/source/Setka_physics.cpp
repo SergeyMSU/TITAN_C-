@@ -221,8 +221,8 @@ void Setka::Init_boundary_grans(void)
 			ih++;
 			this->All_boundary_Gran.push_back(i);
 		}
-		//else if(i->center[0][0] > 0.0)
-		else if(i->center[0][0] > this->geo->L7 + 0.0001)
+		else if(i->center[0][0] > 0.0)
+		//else if(i->center[0][0] > this->geo->L7 + 0.00001)
 		{
 			i->type = Type_Gran::Outer_Hard;
 			oh++;
@@ -577,6 +577,22 @@ void Setka::Init_TVD(void)
 		}
 
 		gr->cells_TVD.push_back(Get_Sosed(A, A->grans[bestIndex]));
+
+		// Теперь проверим, если ячейка совсем в другой стороне, то удалим её
+		vec << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
+		Eigen::Vector3d k1, k2, k3;
+		k1 << gr->center[0][0], gr->center[0][1], gr->center[0][2];
+		k2 << gr->cells_TVD[0]->center[0][0],
+			gr->cells_TVD[0]->center[0][1], gr->cells_TVD[0]->center[0][2];
+		k3 = k2 - k1;
+		k3.normalize();
+		if (-vec.dot(k3) < 0.1) gr->cells_TVD[0] = nullptr;
+
+		k2 << gr->cells_TVD[1]->center[0][0],
+			gr->cells_TVD[1]->center[0][1], gr->cells_TVD[1]->center[0][2];
+		k3 = k2 - k1;
+		k3.normalize();
+		if (vec.dot(k3) < 0.1) gr->cells_TVD[1] = nullptr;
 	}
 }
 
@@ -1231,85 +1247,68 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 	std::vector<double> konvect_left, konvect_right, konvect;
 	PrintOptions Option = PrintOptions{};
 	double area = gr->area[now];
+	name = "______";
 
+	unordered_map<string, double> par_left, par_right;
+	double w = gr->culc_velosity(now, time);
+	double loc_time = 10000000.0;
 
-	if (gr->type == Type_Gran::Us) // Обычная грань
+	double dist;
+	if (gr->type == Type_Gran::Us)
 	{
 		auto A = gr->cells[0];
 		auto B = gr->cells[1];
-
-		double loc_time = 10000000.0;
-		double dist = norm2(A->center[now][0] - B->center[now][0],
+		dist = norm2(A->center[now][0] - B->center[now][0],
 			A->center[now][1] - B->center[now][1],
 			A->center[now][2] - B->center[now][2]) / 2.0;
+	}
 
-		double w = gr->culc_velosity(now, time);
+	this->Snos_on_Gran(gr, par_left, par_right, now);
 
-		if (this->phys_param->culc_plasma == true)
+	Option.x = gr->center[now][0];
+	Option.y = gr->center[now][1];
+	Option.z = gr->center[now][2];
+
+	if (this->phys_param->culc_plasma == true)
+	{
+		Option.x = gr->center[now][0];
+		Option.y = gr->center[now][1];
+		Option.z = gr->center[now][2];
+
+		qqq1[0] = par_left["rho"];
+		qqq1[1] = par_left["Vx"];
+		qqq1[2] = par_left["Vy"];
+		qqq1[3] = par_left["Vz"];
+		qqq1[4] = par_left["p"];
+		qqq1[5] = par_left["Bx"];
+		qqq1[6] = par_left["By"];
+		qqq1[7] = par_left["Bz"];
+
+		qqq2[0] = par_right["rho"];
+		qqq2[1] = par_right["Vx"];
+		qqq2[2] = par_right["Vy"];
+		qqq2[3] = par_right["Vz"];
+		qqq2[4] = par_right["p"];
+		qqq2[5] = par_right["Bx"];
+		qqq2[6] = par_right["By"];
+		qqq2[7] = par_right["Bz"];
+
+
+		if (par_left.find("Q") != par_left.end())
 		{
-			// Без TVD
-			if (this->phys_param->TVD == false)
-			{
-				if (regim_otladki == true)
-				{
-					if (A->parameters[now].find("rho") == A->parameters[now].end() ||
-						B->parameters[now].find("rho") == B->parameters[now].end())
-					{
-						cout << "Error  0956453978" << endl;
-						exit(-1);
-					}
+			konvect_left.push_back(par_left["Q"]);
+			konvect_right.push_back(par_right["Q"]);
+			konvect.push_back(0.0);
+		}
 
+		this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
+			gr->normal[now][2],
+			w, qqq1, qqq2, qqq, false, 3,
+			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+			Option);
 
-					if (std::isnan(A->parameters[now]["rho"]) || std::fpclassify(A->parameters[now]["rho"]) == FP_SUBNORMAL)
-					{
-						cout << "Error 0907675453" << endl;
-						for (const auto& [key, value] : A->parameters[now]) {
-							std::cout << key << ": " << value << std::endl;
-						}
-						exit(-1);
-					}
-				}
-
-				qqq1[0] = A->parameters[now]["rho"];
-				qqq1[1] = A->parameters[now]["Vx"];
-				qqq1[2] = A->parameters[now]["Vy"];
-				qqq1[3] = A->parameters[now]["Vz"];
-				qqq1[4] = A->parameters[now]["p"];
-				qqq1[5] = A->parameters[now]["Bx"];
-				qqq1[6] = A->parameters[now]["By"];
-				qqq1[7] = A->parameters[now]["Bz"];
-
-				qqq2[0] = B->parameters[now]["rho"];
-				qqq2[1] = B->parameters[now]["Vx"];
-				qqq2[2] = B->parameters[now]["Vy"];
-				qqq2[3] = B->parameters[now]["Vz"];
-				qqq2[4] = B->parameters[now]["p"];
-				qqq2[5] = B->parameters[now]["Bx"];
-				qqq2[6] = B->parameters[now]["By"];
-				qqq2[7] = B->parameters[now]["Bz"];
-			}
-			else // TVD
-			{
-
-			}
-
-			Option.x = gr->center[now][0];
-			Option.y = gr->center[now][1];
-			Option.z = gr->center[now][2];
-
-			if(A->parameters[now].find("Q") != A->parameters[now].end())
-			{
-				konvect_left.push_back(A->parameters[now]["Q"]);
-				konvect_right.push_back(B->parameters[now]["Q"]);
-				konvect.push_back(0.0);
-			}
-
-			this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
-				gr->normal[now][2],
-				w, qqq1, qqq2, qqq, false, 3,
-				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-				Option);
-
+		if (gr->type == Type_Gran::Us)
+		{
 			double dnt = this->phys_param->KFL * dist
 				/ (max(fabs(dsl), fabs(dsr)) + fabs(w));
 
@@ -1318,65 +1317,60 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 				loc_time = min(loc_time, dnt);
 				name = "plasma";
 			}
-
-			gr->parameters["Pm"] = qqq[0] * area;
-			gr->parameters["PVx"] = qqq[1] * area;
-			gr->parameters["PVy"] = qqq[2] * area;
-			gr->parameters["PVz"] = qqq[3] * area;
-			gr->parameters["Pe"] = qqq[4] * area;
-			gr->parameters["PBx"] = qqq[5] * area;
-			gr->parameters["PBy"] = qqq[6] * area;
-			gr->parameters["PBz"] = qqq[7] * area;
-			gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
-				gr->normal[now][1], gr->normal[now][2],
-				qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
-
-			if (A->parameters[now].find("Q") != A->parameters[now].end())
-			{
-				gr->parameters["PQ"] = konvect[0] * area; // Может быть неправльный порядок при других конвективных переменных
-			}
 		}
 
-		// Теперь считаем для водорода
+		gr->parameters["Pm"] = qqq[0] * area;
+		gr->parameters["PVx"] = qqq[1] * area;
+		gr->parameters["PVy"] = qqq[2] * area;
+		gr->parameters["PVz"] = qqq[3] * area;
+		gr->parameters["Pe"] = qqq[4] * area;
+		gr->parameters["PBx"] = qqq[5] * area;
+		gr->parameters["PBy"] = qqq[6] * area;
+		gr->parameters["PBz"] = qqq[7] * area;
+		gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
+			gr->normal[now][1], gr->normal[now][2],
+			qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
 
-		konvect_left.clear();
-		konvect_right.clear(); 
-		konvect.clear();
-
-		for (auto& nam : this->phys_param->H_name)
+		if (par_left.find("Q") != par_left.end())
 		{
-			if (this->phys_param->TVD == false)
-			{
-				qqq1[0] = A->parameters[now]["rho" + nam];
-				qqq1[1] = A->parameters[now]["Vx" + nam];
-				qqq1[2] = A->parameters[now]["Vy" + nam];
-				qqq1[3] = A->parameters[now]["Vz" + nam];
-				qqq1[4] = A->parameters[now]["p" + nam];
-				qqq1[5] = 0.0;
-				qqq1[6] = 0.0;
-				qqq1[7] = 0.0;
+			gr->parameters["PQ"] = konvect[0] * area; // Может быть неправльный порядок при других конвективных переменных
+		}
+	}
 
-				qqq2[0] = B->parameters[now]["rho" + nam];
-				qqq2[1] = B->parameters[now]["Vx" + nam];
-				qqq2[2] = B->parameters[now]["Vy" + nam];
-				qqq2[3] = B->parameters[now]["Vz" + nam];
-				qqq2[4] = B->parameters[now]["p" + nam];
-				qqq2[5] = 0.0;
-				qqq2[6] = 0.0;
-				qqq2[7] = 0.0;
-			}
-			else // TVD
-			{
+	konvect_left.clear();
+	konvect_right.clear();
+	konvect.clear();
 
-			}
+	for (auto& nam : this->phys_param->H_name)
+	{
+		qqq1[0] = par_left["rho" + nam];
+		qqq1[1] = par_left["Vx" + nam];
+		qqq1[2] = par_left["Vy" + nam];
+		qqq1[3] = par_left["Vz" + nam];
+		qqq1[4] = par_left["p" + nam];
+		qqq1[5] = 0.0;
+		qqq1[6] = 0.0;
+		qqq1[7] = 0.0;
+
+		qqq2[0] = par_right["rho" + nam];
+		qqq2[1] = par_right["Vx" + nam];
+		qqq2[2] = par_right["Vy" + nam];
+		qqq2[3] = par_right["Vz" + nam];
+		qqq2[4] = par_right["p" + nam];
+		qqq2[5] = 0.0;
+		qqq2[6] = 0.0;
+		qqq2[7] = 0.0;
 
 
-			this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
-				gr->normal[now][2],
-				w, qqq1, qqq2, qqq, false, 3,
-				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-				Option);
+		this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
+			gr->normal[now][2],
+			w, qqq1, qqq2, qqq, false, 3,
+			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+			Option);
 
+		
+		if (gr->type == Type_Gran::Us)
+		{
 			double dnt = this->phys_param->KFL * dist
 				/ (max(fabs(dsl), fabs(dsr)) + fabs(w));
 
@@ -1385,289 +1379,18 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 				loc_time = min(loc_time, dnt);
 				name = nam;
 			}
-
-			gr->parameters["Pm" + nam] = qqq[0] * area;
-			gr->parameters["PVx" + nam] = qqq[1] * area;
-			gr->parameters["PVy" + nam] = qqq[2] * area;
-			gr->parameters["PVz" + nam] = qqq[3] * area;
-			gr->parameters["Pe" + nam] = qqq[4] * area;
-
 		}
 
+		gr->parameters["Pm" + nam] = qqq[0] * area;
+		gr->parameters["PVx" + nam] = qqq[1] * area;
+		gr->parameters["PVy" + nam] = qqq[2] * area;
+		gr->parameters["PVz" + nam] = qqq[3] * area;
+		gr->parameters["Pe" + nam] = qqq[4] * area;
 
-		return loc_time;
-		
 	}
-	else if (gr->type == Type_Gran::Inner_Hard || gr->type == Type_Gran::Outer_Hard)
-	{
-		if (this->phys_param->culc_plasma == true)
-		{
-			this->phys_param->Get_Potok(gr->parameters["rho"], gr->parameters["p"],
-				gr->parameters["Vx"], gr->parameters["Vy"], gr->parameters["Vz"],
-				gr->parameters["Bx"], gr->parameters["By"], gr->parameters["Bz"],
-				gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
-				qqq);
-
-			gr->parameters["Pm"] = qqq[0] * area;
-			gr->parameters["PVx"] = qqq[1] * area;
-			gr->parameters["PVy"] = qqq[2] * area;
-			gr->parameters["PVz"] = qqq[3] * area;
-			gr->parameters["Pe"] = qqq[7] * area;
-			gr->parameters["PBx"] = qqq[4] * area;
-			gr->parameters["PBy"] = qqq[5] * area;
-			gr->parameters["PBz"] = qqq[6] * area;
-			if (gr->parameters.find("Q") != gr->parameters.end())
-			{
-				gr->parameters["PQ"] = gr->parameters["Q"] * qqq[0]/ gr->parameters["rho"] * area;
-			}
-
-			gr->parameters["PdivB"] = scalarProductFast(gr->normal[now][0],
-				gr->normal[now][1], gr->normal[now][2],
-				gr->parameters["Bx"], gr->parameters["By"],
-				gr->parameters["Bz"]) * area;
-		}
-
-		for (auto& nam : this->phys_param->H_name)
-		{
-			if (gr->type == Type_Gran::Outer_Hard || (nam == "_H1") )
-			{
-				this->phys_param->Get_Potok(gr->parameters["rho" + nam], gr->parameters["p" + nam],
-					gr->parameters["Vx" + nam], gr->parameters["Vy" + nam], gr->parameters["Vz" + nam],
-					0.0, 0.0, 0.0,
-					gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
-					qqq);
-
-				gr->parameters["Pm" + nam] = qqq[0] * area;
-				gr->parameters["PVx" + nam] = qqq[1] * area;
-				gr->parameters["PVy" + nam] = qqq[2] * area;
-				gr->parameters["PVz" + nam] = qqq[3] * area;
-				gr->parameters["Pe" + nam] = qqq[7] * area;
-			}
-			else // Для  H2  H3  H4    и  Inner_Hard  -  делаем через центральную фиктувную ячейку
-			{
-				auto A = gr->cells[0];
-				auto B = this->Cell_Center;
-
-				if (this->phys_param->TVD == false)
-				{
-					qqq1[0] = A->parameters[now]["rho" + nam];
-					qqq1[1] = A->parameters[now]["Vx" + nam];
-					qqq1[2] = A->parameters[now]["Vy" + nam];
-					qqq1[3] = A->parameters[now]["Vz" + nam];
-					qqq1[4] = A->parameters[now]["p" + nam];
-					qqq1[5] = 0.0;
-					qqq1[6] = 0.0;
-					qqq1[7] = 0.0;
-
-					qqq2[0] = B->parameters[now]["rho" + nam];
-					qqq2[1] = B->parameters[now]["Vx" + nam];
-					qqq2[2] = B->parameters[now]["Vy" + nam];
-					qqq2[3] = B->parameters[now]["Vz" + nam];
-					qqq2[4] = B->parameters[now]["p" + nam];
-					qqq2[5] = 0.0;
-					qqq2[6] = 0.0;
-					qqq2[7] = 0.0;
-				}
-				else // TVD
-				{
-
-				}
-
-				double w = 0.0;
-
-				this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
-					gr->normal[now][2],
-					w, qqq1, qqq2, qqq, false, 3,
-					konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-					Option);
-
-				gr->parameters["Pm" + nam] = qqq[0] * area;
-				gr->parameters["PVx" + nam] = qqq[1] * area;
-				gr->parameters["PVy" + nam] = qqq[2] * area;
-				gr->parameters["PVz" + nam] = qqq[3] * area;
-				gr->parameters["Pe" + nam] = qqq[4] * area;
-			}
-		}
-
-		return 1000000.0;   // возвращаем большой шаг по времени
-	}
-	else if (gr->type == Type_Gran::Outer_Soft)
-	{
-		auto C = gr->cells[0];
-		double loc_time = 10000000.0;
-		double dist = norm2(C->center[now][0] - gr->center[now][0],
-			C->center[now][1] - gr->center[now][1],
-			C->center[now][2] - gr->center[now][2]);
-
-		if (this->phys_param->culc_plasma == true)
-		{
-			qqq1[0] = C->parameters[now]["rho"];
-			qqq1[1] = C->parameters[now]["Vx"];
-			qqq1[2] = C->parameters[now]["Vy"];
-			qqq1[3] = C->parameters[now]["Vz"];
-			qqq1[4] = C->parameters[now]["p"];
-			qqq1[5] = C->parameters[now]["Bx"];
-			qqq1[6] = C->parameters[now]["By"];
-			qqq1[7] = C->parameters[now]["Bz"];
-
-			qqq2[0] = qqq1[0];
-			qqq2[1] = qqq1[1];
-			qqq2[2] = qqq1[2];
-			qqq2[3] = qqq1[3];
-			qqq2[4] = qqq1[4];
-			qqq2[5] = qqq1[5];
-			qqq2[6] = qqq1[6];
-			qqq2[7] = qqq1[7];
-
-			if (C->parameters[now].find("Q") != C->parameters[now].end())
-			{
-				konvect_left.push_back(C->parameters[now]["Q"]);
-				konvect_right.push_back(C->parameters[now]["Q"]);
-				konvect.push_back(0.0);
-			}
-
-			// Запрещаем затекание жидкости через мягкие граничные условия
-			if (qqq2[1] * gr->normal[now][0] + qqq2[2] * gr->normal[now][1] +
-				qqq2[3] * gr->normal[now][2] < 0.0)
-			{
-				qqq2[1] = 0.0;
-				qqq2[2] = 0.0;
-				qqq2[3] = 0.0;
-			}
-
-			if (gr->normal[now][0] < -0.9) // Для задней границы
-			{
-				// Отсос
-				if (qqq2[1] > this->phys_param->Velosity_inf / 7.0)
-				{
-					qqq2[1] = this->phys_param->Velosity_inf / 5.0;
-				}
-			}
-
-			double w = 0.0;
-			Option.x = gr->center[now][0];
-			Option.y = gr->center[now][1];
-			Option.z = gr->center[now][2];
-
-			this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
-				gr->normal[now][2],
-				w, qqq1, qqq2, qqq, false, 3,
-				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-				Option);
-
-			loc_time = min(loc_time, this->phys_param->KFL * dist / (max(fabs(dsl), fabs(dsr)) + fabs(w)));
-
-			gr->parameters["Pm"] = qqq[0] * area;
-			gr->parameters["PVx"] = qqq[1] * area;
-			gr->parameters["PVy"] = qqq[2] * area;
-			gr->parameters["PVz"] = qqq[3] * area;
-			gr->parameters["Pe"] = qqq[4] * area;
-			gr->parameters["PBx"] = qqq[5] * area;
-			gr->parameters["PBy"] = qqq[6] * area;
-			gr->parameters["PBz"] = qqq[7] * area;
-			gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
-				gr->normal[now][1], gr->normal[now][2],
-				qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
-
-			if (C->parameters[now].find("Q") != C->parameters[now].end())
-			{
-				gr->parameters["PQ"] = konvect[0] * area; // Может быть неправльный порядок при других конвективных переменных
-			}
-
-		}
-			
-
-		if (false)//(this->phys_param->culc_plasma == true)
-		{
-			gr->parameters["rho"] = C->parameters[now]["rho"];
-			gr->parameters["p"] = C->parameters[now]["p"];
-			gr->parameters["Vx"] = C->parameters[now]["Vx"];
-			gr->parameters["Vy"] = C->parameters[now]["Vy"];
-			gr->parameters["Vz"] = C->parameters[now]["Vz"];
-			gr->parameters["Bx"] = C->parameters[now]["Bx"];
-			gr->parameters["By"] = C->parameters[now]["By"];
-			gr->parameters["Bz"] = C->parameters[now]["Bz"];
-
-			if (C->parameters[now].find("Q") != C->parameters[now].end())
-			{
-				gr->parameters["Q"] = C->parameters[now]["Q"];
-			}
-
-			// Запрещаем затекание жидкости через мягкие граничные условия
-			if (gr->parameters["Vx"] * gr->normal[now][0] + gr->parameters["Vy"] * gr->normal[now][1] +
-				gr->parameters["Vz"] * gr->normal[now][2] < 0.0)
-			{
-				gr->parameters["Vx"] = 0.0;
-				gr->parameters["Vy"] = 0.0;
-				gr->parameters["Vz"] = 0.0;
-			}
-
-			if (gr->normal[now][0] < -0.9) // Для задней границы
-			{
-				// Отсос
-				if (gr->parameters["Vx"] > this->phys_param->Velosity_inf / 7.0)
-				{
-					gr->parameters["Vx"] = this->phys_param->Velosity_inf / 5.0;
-				}
-
-				// Сильно большой отсос тоже плохо
-				if (gr->parameters["Vx"] < 5.0 * this->phys_param->Velosity_inf)
-				{
-					gr->parameters["Vx"] = this->phys_param->Velosity_inf;
-				}
-			}
-
-			this->phys_param->Get_Potok(gr->parameters["rho"], gr->parameters["p"],
-				gr->parameters["Vx"], gr->parameters["Vy"], gr->parameters["Vz"],
-				gr->parameters["Bx"], gr->parameters["By"], gr->parameters["Bz"],
-				gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
-				qqq);
-
-			gr->parameters["Pm"] = qqq[0] * area;
-			gr->parameters["PVx"] = qqq[1] * area;
-			gr->parameters["PVy"] = qqq[2] * area;
-			gr->parameters["PVz"] = qqq[3] * area;
-			gr->parameters["Pe"] = qqq[7] * area;
-			gr->parameters["PBx"] = qqq[4] * area;
-			gr->parameters["PBy"] = qqq[5] * area;
-			gr->parameters["PBz"] = qqq[6] * area;
-			gr->parameters["PdivB"] = scalarProductFast(gr->normal[now][0],
-				gr->normal[now][1], gr->normal[now][2],
-				gr->parameters["Bx"], gr->parameters["By"],
-				gr->parameters["Bz"]) * area;
-		}
-
-		for (auto& nam : this->phys_param->H_name)
-		{
-			gr->parameters["rho" + nam] = C->parameters[now]["rho" + nam];
-			gr->parameters["p" + nam] = C->parameters[now]["p" + nam];
-			gr->parameters["Vx" + nam] = C->parameters[now]["Vx" + nam];
-			gr->parameters["Vy" + nam] = C->parameters[now]["Vy" + nam];
-			gr->parameters["Vz" + nam] = C->parameters[now]["Vz" + nam];
 
 
-			this->phys_param->Get_Potok(gr->parameters["rho" + nam], gr->parameters["p" + nam],
-				gr->parameters["Vx" + nam], gr->parameters["Vy" + nam], gr->parameters["Vz" + nam],
-				0.0, 0.0, 0.0,
-				gr->normal[now][0], gr->normal[now][1], gr->normal[now][2],
-				qqq);
-
-			gr->parameters["Pm" + nam] = qqq[0] * area;
-			gr->parameters["PVx" + nam] = qqq[1] * area;
-			gr->parameters["PVy" + nam] = qqq[2] * area;
-			gr->parameters["PVz" + nam] = qqq[3] * area;
-			gr->parameters["Pe" + nam] = qqq[7] * area;
-
-		}
-
-
-		return loc_time;   // возвращаем большой шаг по времени
-	}
-	else
-	{
-		cout << "Error 6323145345" << endl;
-		exit(-1);
-	}
+	return loc_time;
 }
 
 void Setka::Save_cell_parameters(string filename)
