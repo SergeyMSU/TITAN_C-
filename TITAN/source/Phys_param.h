@@ -42,6 +42,7 @@ public:
 
     bool culc_plasma = true;           // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
     bool move_HP = true;
+    bool move_BS = true;
 
     
      

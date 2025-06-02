@@ -136,6 +136,9 @@ public:
 	void Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		short int now, short int zone);
 
+	void Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
+		unordered_map<string, double>& par_right, short int now);
+
 	void Culc_Velocity_surface(short int now, const double& time, short int metod = 1);
 
 	void Init_physics(void); // Заполняет начальные значения параметров в ячейках и граничные на гранях
