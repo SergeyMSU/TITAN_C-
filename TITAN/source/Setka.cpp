@@ -53,7 +53,23 @@
 			}\
 		}
 
-
+// Этот макрос добавляет грани-соседи к Gran_TS   Gran_HP    Gran_BS
+#define  macros4(name) for (auto& i : this->Gran_##name)\
+	{\
+	auto A = i->cells[0];\
+	for (auto& j : A->grans)\
+	{\
+		if (j->number == i->number) continue;\
+		auto B = A->Get_Sosed(j);\
+		for (auto& k : B->grans)\
+		{\
+			if (k->type2 == Type_Gran_surf::name && k->number != i->number)\
+			{\
+				i->grans_surf.push_back(k);\
+			}\
+		}\
+	}\
+	}
 
 using namespace std;
 
@@ -87,7 +103,10 @@ Setka::Setka()
 	this->New_initial();                     // Начальное создание узлов и ячеек
 	this->New_connect();                     // Начальное создание граней и связывание их с ячейками
 	// Также добавляет соседей для каждой ячеки
+
 	this->New_append_surfaces();
+	// Создание граней на TS, HP, BS 
+	// связывание граничных граней с соседями
 
 	this->Renumerate();
 
@@ -2012,6 +2031,28 @@ void Setka::New_append_surfaces()
 	macros2(TS);
 	macros2(HP);
 	macros2(BS);
+
+	for (auto& i : this->Gran_TS)
+	{
+		i->type2 = Type_Gran_surf::TS;
+	}
+
+	for (auto& i : this->Gran_BS)
+	{
+		i->type2 = Type_Gran_surf::BS;
+	}
+
+	for (auto& i : this->Gran_HP)
+	{
+		i->type2 = Type_Gran_surf::HP;
+	}
+
+	this->Renumerate();
+
+	macros4(TS);
+	macros4(HP);
+	macros4(BS);
+
 }
 
 void Setka::Calculating_measure(unsigned short int st_time)
@@ -2046,7 +2087,8 @@ void Setka::Calculating_measure(unsigned short int st_time)
 
 void Setka::auto_set_luch_geo_parameter(int for_new)
 {
-	// for_new = 0 - значит это первый запуск функции и параметры двлеки от идеальных
+	// автоматическая настройки сгущений сетки с разных областях
+	// for_new = 0 - значит это первый запуск функции и параметры далеки от идеальных
 	// в этом случае движение изначально будет большое
 	// for_new = 1 - небольшое движение, если это не первый запуск и поверхности уже стоят где надо
 

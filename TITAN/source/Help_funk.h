@@ -2,6 +2,12 @@
 #include <math.h>
 #include "Header.h"
 
+void Sootnosheniya(const double& rho, const double& p, const double& rho_He,
+	const double& rho_Pui, const double& T_Pui,
+	const short int& zone,
+	double& rho_Th, double& rho_E, double& p_Th, double& p_Pui,
+	double& T_Th, double& T_E);
+
 short int signum(const double& x);
 
 double minmod(const double& x, const double& y);

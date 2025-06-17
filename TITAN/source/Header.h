@@ -47,6 +47,7 @@ const double eps = 1E-12;
 const double epsb = 1E-4;
 const double eps_p = 1E-6;
 const double eps_d = 1E-3;
+const double MF_meDmp = (1.0 / 1836.15);  // Отношения массы электрона к массе протона
 
 // Boost библиотека (надо подключать к компилятору отдельно)
 #include "boost/multi_array.hpp"

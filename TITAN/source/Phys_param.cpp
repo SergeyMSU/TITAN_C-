@@ -11,6 +11,7 @@ Phys_param::Phys_param()
     this->param_names.push_back("By");
     this->param_names.push_back("Bz");
     this->param_names.push_back("Q");
+    this->param_names.push_back("n_He");
 
     this->param_names.push_back("rho_H1");
     this->param_names.push_back("Vx_H1");

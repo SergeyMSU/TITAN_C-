@@ -279,33 +279,12 @@ void Setka::Init_physics(void)
 	}
 
 	// Если ввели какие-то новые переменные, их надо заполнить
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			i->parameters[0]["rho_H1"] = 0.0001;
-			i->parameters[0]["Vx_H1"] = 0.0;
-			i->parameters[0]["Vy_H1"] = 0.0;
-			i->parameters[0]["Vz_H1"] = 0.0;
-			i->parameters[0]["p_H1"] = 0.0001;
-
-			i->parameters[0]["rho_H2"] = 0.0001;
-			i->parameters[0]["Vx_H2"] = 0.0;
-			i->parameters[0]["Vy_H2"] = 0.0;
-			i->parameters[0]["Vz_H2"] = 0.0;
-			i->parameters[0]["p_H2"] = 0.0001;
-
-			i->parameters[0]["rho_H3"] = 0.0001;
-			i->parameters[0]["Vx_H3"] = 0.0;
-			i->parameters[0]["Vy_H3"] = 0.0;
-			i->parameters[0]["Vz_H3"] = 0.0;
-			i->parameters[0]["p_H3"] = 0.0001;
-
-			i->parameters[0]["rho_H4"] = 1.0;
-			i->parameters[0]["Vx_H4"] = this->phys_param->Velosity_inf;
-			i->parameters[0]["Vy_H4"] = 0.0;
-			i->parameters[0]["Vz_H4"] = 0.0;
-			i->parameters[0]["p_H4"] = 0.5;
+			i->parameters[0]["n_He"] = 0.000001;
+			i->parameters[0]["n_He"] = 0.000001;
 
 			for (short unsigned int j = 1; j < i->parameters.size(); j++)
 			{
@@ -315,7 +294,7 @@ void Setka::Init_physics(void)
 	}
 
 	bool tt1 = false;
-	// Проверяем наличие всех необходимых переменных (инициализируем их, если их нет)
+	// Проверяем наличие всех необходимых переменных
 	for (auto& i : this->All_Cell)
 	{
 		for (auto& num : this->phys_param->param_names)
@@ -400,8 +379,10 @@ void Setka::Init_physics(void)
 		{
 			if (i->type == Type_Gran::Outer_Hard)
 			{
-				i->parameters["rho"] = 1.0;
-				i->parameters["p"] = 1.0;
+				i->parameters["rho"] = 1.0 * (1.0 + this->phys_param->mn_He_inf);
+				i->parameters["n_He"] = this->phys_param->mn_He_inf;
+				i->parameters["p"] = 1 + (i->parameters["n_He"]) /
+					(i->parameters["rho"] - i->parameters["n_He"]);
 				i->parameters["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters["Vy"] = 0.0;
 				i->parameters["Vz"] = 0.0;
@@ -441,7 +422,10 @@ void Setka::Init_physics(void)
 				mV = this->phys_param->Get_v_0(the);
 
 				i->parameters["rho"] = this->phys_param->Get_rho_0(the) * pow(this->phys_param->R_0 / r, 2);
-				i->parameters["p"] = this->phys_param->p_0 * pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
+				i->parameters["n_He"] = this->phys_param->mn_He_0 * i->parameters["rho"];
+				i->parameters["rho"] = i->parameters["rho"] * (1.0 + this->phys_param->mn_He_0);
+				i->parameters["p"] = (1.0 + 3.0 * this->phys_param->mn_He_0 /2.0) * this->phys_param->p_0 *
+					pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
 				i->parameters["Vx"] = mV * vec(0);
 				i->parameters["Vy"] = mV * vec(1);
 				i->parameters["Vz"] = mV * vec(2);
@@ -614,7 +598,21 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 	}
 
 	// Следующая настройка только вручную    &INIT&
+	// zone   1, 2, 3, 4
 	kk[zone - 1] = 1.0;
+
+
+	double rho_Th;
+	double rho_E; 
+	double p_Th;
+	double p_Pui;
+	double T_Th; 
+	double T_E;
+
+	Sootnosheniya(C->parameters[now]["rho"], C->parameters[now]["p"],
+		C->parameters[now]["n_He"],
+		0.0, 0.0, zone,
+		rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
 
 
 
@@ -629,19 +627,19 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 			+ kv(C->parameters[now]["Vy"] - C->parameters[now]["Vy" + nam])
 			+ kv(C->parameters[now]["Vz"] - C->parameters[now]["Vz" + nam])
 			+ (64.0 / (9.0 * const_pi)) *
-			(C->parameters[now]["p"] / C->parameters[now]["rho"]
+			(p_Th / rho_Th
 				+ 2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam]));
 
 		U_H[i] = sqrt(kv(C->parameters[now]["Vx"] - C->parameters[now]["Vx" + nam])
 			+ kv(C->parameters[now]["Vy"] - C->parameters[now]["Vy" + nam])
 			+ kv(C->parameters[now]["Vz"] - C->parameters[now]["Vz" + nam])
 			+ (4.0 / const_pi) *
-			(C->parameters[now]["p"] / C->parameters[now]["rho"]
+			(p_Th / rho_Th
 				+ 2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam]));
 
 
 		sigma[i] = kv(1.0 - this->phys_param->par_a_2 * log(U_M_H[i]));
-		nu[i] = C->parameters[now]["rho"] *
+		nu[i] = rho_Th *
 			C->parameters[now]["rho" + nam] * U_M_H[i] * sigma[i];
 
 		i++;
@@ -658,7 +656,7 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		SOURSE[0][4] += nu[i] * ((kvv(C->parameters[now]["Vx" + nam], C->parameters[now]["Vy" + nam],
 			C->parameters[now]["Vz" + nam]) - kvv(C->parameters[now]["Vx"], C->parameters[now]["Vy"]
 				, C->parameters[now]["Vz"])) / 2.0 + (U_H[i] / U_M_H[i]) *
-			(2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam] - C->parameters[now]["p"] / C->parameters[now]["rho"]));
+			(2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam] - p_Th / rho_Th));
 		i++;
 	}
 
@@ -676,7 +674,7 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		S2 = S2 + nu[i] *
 			(kvv(C->parameters[now]["Vx"], C->parameters[now]["Vy"],
 				C->parameters[now]["Vz"]) / 2.0
-				+ (U_H[i] / U_M_H[i]) * (C->parameters[now]["p"] / C->parameters[now]["rho"]));
+				+ (U_H[i] / U_M_H[i]) * (p_Th / rho_Th));
 		i++;
 	}
 
@@ -778,7 +776,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	vector<Gran*>* gran_list;
 	vector<Cell*>* cell_list;
 
-	// Если хотим отдельно считать внутреннюю и наружную области
+	// Если хотим отдельно считать внутреннюю и наружнюю области
 	if (false)
 	{
 		if (is_inner_area == true)
@@ -930,11 +928,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			auto& gran = (*gran_list)[i_step];
 
 			string nmnm;
-			double ntnt = this->Culc_Gran_Potok(gran, now1, metod, nmnm, time);
+			double ntnt = this->Culc_Gran_Potok(gran, now1, metod, nmnm, time);  // Считает потоки через данную грань (записывает результат в параметры грани)
 
 			if (ntnt < loc_time)
 			{
-				loc_time = min(loc_time, ntnt);  // Считает потоки через данную грань (записывает результат в параметры грани)
+				loc_time = min(loc_time, ntnt); 
 				xc_min = gran->center[now1][0];
 				yc_min = gran->center[now1][1];
 				zc_min = gran->center[now1][2];
@@ -954,18 +952,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			double Volume2 = cell->volume[now2];
 			int zone;
 
-
-			/*if (Volume != Volume2)
-			{
-				cout << "Error 8767654534" << endl;
-				exit(-1);
-			}*/
-
 			std::vector<double> POTOK;
 			POTOK.resize(9);
 
 			std::vector<double> POTOK2; // Для конвективных параметров
-			POTOK2.resize(1);
+			POTOK2.resize(2);
 
 			boost::multi_array<double, 2> POTOK_F(boost::extents[this->phys_param->H_name.size()][5]);
 			for (short int i = 0; i < this->phys_param->H_name.size(); ++i) {
@@ -987,6 +978,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				POTOK[6] = POTOK[7] = POTOK[8] = 0.0;
 
 			POTOK2[0] = 0.0;
+			POTOK2[1] = 0.0;
 
 			for (auto& gran : cell->grans)
 			{
@@ -1006,6 +998,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					POTOK[8] += sign_potok * gran->parameters["PdivB"];
 
 					POTOK2[0] += sign_potok * gran->parameters["PQ"];
+					POTOK2[1] += sign_potok * gran->parameters["Pn_He"];
 				}
 
 				for (short int i = 0; i < this->phys_param->H_name.size(); i++)
@@ -1021,7 +1014,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			zone = this->determ_zone(cell, now1);
 			this->Calc_sourse_MF(cell, SOURSE, now1, zone);
 
-			double rho3, u3, v3, w3, bx3, by3, bz3, p3, Q3;
+			double rho3, u3, v3, w3, bx3, by3, bz3, p3, Q3, n_He3, n_He;
 			double rho, vx, vy, vz, p, bx, by, bz, dsk, Q;
 
 			if (this->phys_param->culc_plasma == true)
@@ -1035,6 +1028,18 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				{
 					Q = 0.0;
 				}
+
+				if (cell->parameters[now1].find("n_He") != cell->parameters[now1].end())
+				{
+					n_He = cell->parameters[now1]["n_He"];
+				}
+				else
+				{
+					n_He = 0.0;
+				}
+
+
+
 				vx = cell->parameters[now1]["Vx"];
 				vy = cell->parameters[now1]["Vy"];
 				vz = cell->parameters[now1]["Vz"];
@@ -1053,6 +1058,15 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				else
 				{
 					Q3 = 0.0;
+				}
+
+				if (cell->parameters[now1].find("n_He") != cell->parameters[now1].end())
+				{
+					n_He3 = n_He * Volume / Volume2 - time * POTOK2[1] / Volume2;
+				}
+				else
+				{
+					n_He3 = 0.0;
 				}
 
 				if (rho3 < 0.0000000001)
@@ -1085,6 +1099,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					whach(rho);
 					whach(time);
 					whach(Q);
+					whach(n_He);
 
 					for (short unsigned int ik = 0; ik < 9; ik++)
 					{
@@ -1103,6 +1118,10 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				if (cell->parameters[now1].find("Q") != cell->parameters[now1].end())
 				{
 					cell->parameters[now2]["Q"] = Q3;
+				}
+				if (cell->parameters[now1].find("n_He") != cell->parameters[now1].end())
+				{
+					cell->parameters[now2]["n_He"] = n_He3;
 				}
 				cell->parameters[now2]["Vx"] = u3;
 				cell->parameters[now2]["Vy"] = v3;
@@ -1301,6 +1320,13 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			konvect.push_back(0.0);
 		}
 
+		if (par_left.find("n_He") != par_left.end())
+		{
+			konvect_left.push_back(par_left["n_He"]);
+			konvect_right.push_back(par_right["n_He"]);
+			konvect.push_back(0.0);
+		}
+
 		this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
 			gr->normal[now][2],
 			w, qqq1, qqq2, qqq, false, 3,
@@ -1334,6 +1360,11 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		if (par_left.find("Q") != par_left.end())
 		{
 			gr->parameters["PQ"] = konvect[0] * area; // Может быть неправльный порядок при других конвективных переменных
+		}
+
+		if (par_left.find("n_He") != par_left.end())
+		{
+			gr->parameters["Pn_He"] = konvect[1] * area; // Может быть неправльный порядок при других конвективных переменных
 		}
 	}
 

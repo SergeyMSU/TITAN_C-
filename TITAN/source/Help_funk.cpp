@@ -256,3 +256,45 @@ Cell* Get_Sosed(Cell* C, Gran* gr)
 	}
 	return nullptr;
 }
+
+
+void Sootnosheniya(const double& rho, const double& p, const double& rho_He, 
+	const double& rho_Pui, const double& T_Pui, 
+	const short int& zone, 
+	double& rho_Th, double& rho_E, double& p_Th, double& p_Pui, 
+	double& T_Th, double& T_E)
+{
+	// Функция, определяющая температуры и концентрации гелия, пикапов и т.д.
+	// al - это заряд гелия
+	// если al = 1 то вне гелиопаузы
+	// если al = 2, то внутри гелиопаузы
+	// Th - термальные протоны, He - гелий, Pui - пикапы, E - электроны
+	// без параметров, это общие(те, что считаются в МГД)
+	short int al;
+
+	if (zone <= 2)
+	{
+		al = 2;
+	}
+	else
+	{
+		al = 1;
+	}
+	
+	rho_Th = -(MF_meDmp * al * rho_He + 4.0 * (-rho + rho_He)) / (4.0 * (1.0 + MF_meDmp)) - rho_Pui;
+
+	rho_E = MF_meDmp * (4.0 * rho + (-4.0 + al) * rho_He) / (4.0 * (1.0 + MF_meDmp));
+			
+
+	p_Th = (p - rho_Pui * T_Pui) * (-4.0 * rho + (4.0 + al * MF_meDmp) * rho_He + 4.0 * (1.0 + MF_meDmp) * rho_Pui) / 
+		(-8.0 * rho + (7.0 - al + (-1.0 + al) * MF_meDmp) * rho_He + 4.0 * (1.0 + MF_meDmp) * rho_Pui);
+					
+	p_Pui = T_Pui * rho_Pui;
+						
+	T_Th = -4.0 * (1.0 + MF_meDmp) * (p - rho_Pui * T_Pui) /
+		(-8.0 * rho + (7.0 - al + (-1.0 + al) * MF_meDmp) * rho_He + 4.0 * (1.0 - MF_meDmp) * rho_Pui);
+	
+	T_E = T_Th;
+
+	return;
+}

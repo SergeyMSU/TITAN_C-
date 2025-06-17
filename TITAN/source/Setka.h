@@ -132,6 +132,7 @@ public:
 	// А также грани на границе внётренней области, которые считаются также отдельно
 
 	int determ_zone(Cell* C, short int now); // Определить зону, в которой находится ячейка
+	// Зоны есть  1, 2, 3, 4
 
 	void Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		short int now, short int zone);

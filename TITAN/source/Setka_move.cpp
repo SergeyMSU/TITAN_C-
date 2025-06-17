@@ -275,6 +275,36 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 	// —глаживание поверхности (уже использу€ новые координаты узлов на поверхности)
 
+	if (this->phys_param->sglag_TS == true)
+	{
+		for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
+		{
+			auto gr = this->Gran_TS[i_step];
+			double r = 0.0;
+			for (auto& j : gr->grans_surf)
+			{
+				r += norm2(j->center[now2][0], j->center[now2][1], j->center[now2][2]);
+			}
+			r /= gr->grans_surf.size();
+
+			gr->parameters["rr"] = r;
+		}
+
+		for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
+		{
+			auto gr = this->Gran_TS[i_step];
+			double r = norm2(gr->center[now2][0], gr->center[now2][1], gr->center[now2][2]);
+			gr->center[now2][0] = gr->center[now2][0] +
+				this->phys_param->sglag_TS_k * gr->center[now2][0] *
+				(gr->parameters["rr"] / r - 1.0);
+			gr->center[now2][1] = gr->center[now2][1] +
+				this->phys_param->sglag_TS_k * gr->center[now2][1] *
+				(gr->parameters["rr"] / r - 1.0);
+			gr->center[now2][2] = gr->center[now2][2] +
+				this->phys_param->sglag_TS_k * gr->center[now2][2] *
+				(gr->parameters["rr"] / r - 1.0);
+		}
+	}
 
 
 	// ќстальные узлы на HP (невыдел€емой части) надо подвинуть
@@ -284,14 +314,14 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		short int NN = this->D_Luch[0].size() - 1;
 		for (auto& L : this->D_Luch)
 		{
-			double h1 = norm2(0.0, L[this->geo->N4]->Yzels_opor[1]->coord[now2][1],
-				L[this->geo->N4]->Yzels_opor[1]->coord[now2][2]);
+			double h1 = norm2(0.0, L[this->geo->N4 - 1]->Yzels_opor[1]->coord[now2][1],
+				L[this->geo->N4 - 1]->Yzels_opor[1]->coord[now2][2]);
 			double h2 = norm2(0.0, L[NN]->Yzels_opor[1]->coord[now2][1],
 				L[NN]->Yzels_opor[1]->coord[now2][2]);
 
-			for (short int i = this->geo->N4; i <= NN; i++)
+			for (short int i = this->geo->N4 - 1; i <= NN; i++)
 			{
-				double h = h1 + (i - this->geo->N4) * (h2 - h1) / (NN - this->geo->N4);
+				double h = h1 + (i - this->geo->N4 + 1) * (h2 - h1) / (NN - this->geo->N4 + 1);
 				auto yz = L[i]->Yzels_opor[1];
 				double hh = norm2(0.0, yz->coord[now2][1], yz->coord[now2][2]);
 				if (hh < 0.0000001 || h < 0.0000001 || std::isnan(hh) || std::isnan(h) ||

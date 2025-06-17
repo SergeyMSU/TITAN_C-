@@ -25,6 +25,8 @@ public:
     double par_a_2 = 0.102046;         // Параметр в сечении перезарядки
     double par_n_p_LISM = 3.0;
     double par_Kn = 39.3412;
+    double mn_He_0 = 0.035194;        // Множитель концентрации гелия на 1 АЕ
+    double mn_He_inf = 0.15;        // Множитель концентрации гелия на inf
 
     // параметры
     double gamma = (5.0 / 3.0);       // показатель адиабаты
@@ -41,8 +43,12 @@ public:
     bool TVD = true;                   // Делаем ли ТВД?
 
     bool culc_plasma = true;           // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
-    bool move_HP = true;
+    bool move_HP = true;               // Двигаем ли HP
     bool move_BS = true;
+    bool sglag_TS = true;              // Делаем ли сглаживание TS
+    double sglag_TS_k = 0.01;             
+    bool sglag_HP = false;
+    bool sglag_BS = false;
 
     
      
