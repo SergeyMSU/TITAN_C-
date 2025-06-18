@@ -11,9 +11,9 @@ int main()
     cout << "Start Programm" << endl;
     Setka S1 = Setka();
 
-    //S1.phys_param->raspad_testing();
+    S1.phys_param->raspad_testing();
 
-    //return 0;
+    return 0;
 
     S1.Read_old_surface("ASurf_Save00591.bin");
     S1.Move_to_surf(S1.Surf1);
@@ -28,7 +28,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0009.bin");
+    S1.Download_cell_parameters("parameters_0005.bin");
 
     S1.Init_TVD();
     cout << "D2 " << endl;
@@ -46,7 +46,7 @@ int main()
     S1.Tecplot_print_cell_plane_parameters();
     S1.Tecplot_print_all_lush_in_2D();
 
-    for (int i = 1; i <= 1; i++) // 6 * 2
+    for (int i = 1; i <= 6 * 4; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -54,12 +54,15 @@ int main()
         //S1.Init_physics();
         S1.Tecplot_print_cell_plane_parameters();
         S1.Tecplot_print_all_lush_in_2D();
+        S1.Tecplot_print_all_gran_in_surface("TS");
+        S1.Tecplot_print_all_gran_in_surface("HP");
+        S1.Tecplot_print_all_gran_in_surface("BS");
         //S1.Go(true, 100, 1);
         //S1.Tecplot_print_cell_plane_parameters();
 
         //S1.Init_physics();
 
-        if (i % 7 == 0)
+        if (i % 6 == 0)
         {
             string namn = "parameters_11" + to_string(i) + ".bin";
             S1.Save_cell_parameters(namn);
@@ -71,7 +74,7 @@ int main()
         std::cout << "Execution time: " << duration.count()/1000.0/60.0 << " minutes" << std::endl;
     }
 
-    S1.Save_cell_parameters("parameters_0010.bin");
+    S1.Save_cell_parameters("parameters_0006.bin");
 
     S1.Set_Gran_par_for_interpolate();
 

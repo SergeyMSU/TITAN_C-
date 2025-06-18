@@ -278,6 +278,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     //t << 0.0, 0.707107, 0.707107;
     //m << 0.0, 0.707107, -0.707107;
 
+
     Eigen::Vector3d vL;
     Eigen::Vector3d vR;
     Eigen::Vector3d bL;
@@ -440,7 +441,8 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
     if (null_bn == true) UZ[5] = 0.0;
 
-    if (n_state == 1)   // HLL
+    // HLL
+    if (n_state == 1)
     {
         double dq[8];
         double FW[8];
@@ -559,7 +561,6 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
         return;
     }
-
     if (n_state == 2) // HLLC
     {
         double suRm = suR / (SR - SM);
@@ -771,6 +772,394 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
         return;
     }
+    if (n_state == 3) // HLLD
+    {
+        Eigen::Vector3d vzR, vzL, vzzL, vzzR, bzR, bzL;
+
+        double ptz = (suR * r2 * ptL - suL * r1 * ptR +
+            r1 * r2 * suR * suL * (vR[0] - vL[0]))
+            / (suR * r2 - suL * r1);
+
+        vzL[0] = SM;
+        vzR[0] = SM;
+        vzzL[0] = SM;
+        vzzR[0] = SM;
+        double ptzL = ptz;
+        double ptzR = ptz;
+        double ptzzL = ptz;
+        double ptzzR = ptz;
+
+        double suRm = suR / (SR - SM);
+        double suLm = suL / (SL - SM);
+        double rzR = r2 * suRm;
+        double rzL = r1 * suLm;
+
+        vector<double> qzL(konvect_left.size());
+        vector<double> qzR(konvect_left.size());
+
+        for (short int ik = 0; ik < konvect_right.size(); ik++)
+        {
+            qzL[ik] = konvect_left[ik] * suLm;
+            qzR[ik] = konvect_right[ik] * suRm;
+        }
+
+        Eigen::Vector3d bzzL, bzzR;
+
+        double bn = UZ[5];
+        double bn2 = bn * bn;
+        bzL[0] = bn;
+        bzR[0] = bn;
+        bzzL[0] = bn;
+        bzzR[0] = bn;
+
+        double tvR, tbR;
+        double ttR = r2 * suR * (SR - SM) - bn2;
+        if (fabs(ttR) < 0.000000001)
+        {
+            tvR = 0.0;
+            tbR = 0.0;
+        }
+        else
+        {
+            tvR = (SM - vR[0]) / ttR;
+            tbR = (r2 * suR * suR - bn2) / ttR;
+        }
+
+        double tvL, tbL;
+        double ttL = r1 * suL * (SL - SM) - bn2;
+        if (fabs(ttL) < 0.000000001)
+        {
+            tvL = 0.0;
+            tbL = 0.0;
+        }
+        else
+        {
+            tvL = (SM - vL[0]) / ttL;
+            tbL = (r1 * suL * suL - bn2) / ttL;
+        }
+
+        vzL[1] = vL[1] - bn * bL[1] * tvL;
+        vzL[2] = vL[2] - bn * bL[2] * tvL;
+        vzR[1] = vR[1] - bn * bR[1] * tvR;
+        vzR[2] = vR[2] - bn * bR[2] * tvR;
+
+        bzL[1] = bL[1] * tbL;
+        bzL[2] = bL[2] * tbL;
+        bzR[1] = bR[1] * tbR;
+        bzR[2] = bR[2] * tbR;
+
+        double sbvL = bzL[0] * vzL[0] + bzL[1] * vzL[1] + bzL[2] * vzL[2];
+        double sbvR = bzR[0] * vzR[0] + bzR[1] * vzR[1] + bzR[2] * vzR[2];
+
+        double ezR = e2 * suRm + (ptz * SM - ptR * vR[0] + bn * (sbv2 - sbvR)) / (SR - SM);
+        double ezL = e1 * suLm + (ptz * SM - ptL * vL[0] + bn * (sbv1 - sbvL)) / (SL - SM);
+
+
+        vector<double> qzzL(konvect_left.size());
+        vector<double> qzzR(konvect_left.size());
+
+        vector<double> qzLs(konvect_left.size());
+        vector<double> qzRs(konvect_left.size());
+
+        double rzzR = rzR;
+        double rzzL = rzL;
+        for (short int ik = 0; ik < konvect_right.size(); ik++)
+        {
+            qzzR[ik] = qzR[ik];
+            qzzL[ik] = qzL[ik];
+        }
+
+        double rzRs = sqrt(rzR);
+        double rzLs = sqrt(rzL);
+
+        for (short int ik = 0; ik < konvect_right.size(); ik++)
+        {
+            qzRs[ik] = sqrt(qzR[ik]);
+            qzLs[ik] = sqrt(qzL[ik]);
+        }
+
+        double rzss = rzRs + rzLs;
+        double rzps = rzRs * rzLs;
+
+        vector<double> qzss(konvect_left.size());
+        vector<double> qzps(konvect_left.size());
+
+        for (short int ik = 0; ik < konvect_right.size(); ik++)
+        {
+            qzss[ik] = qzRs[ik] + qzLs[ik];
+            qzps[ik] = qzRs[ik] * qzLs[ik];
+        }
+
+        double SZL = SM - fabs(bn) / rzLs;
+        double SZR = SM + fabs(bn) / rzRs;
+
+        double sbn;
+        short int ibn = 0;
+        if (fabs(bn) > epsb)
+        {
+            sbn = fabs(bn) / bn;
+            ibn = 1;
+        }
+        else
+        {
+            sbn = 0.0;
+            ibn = 0;
+            SZL = SM;
+            SZR = SM;
+        }
+
+        vzzL[1] = (rzLs * vzL[1] + rzRs * vzR[1]
+            + sbn * (bzR[1] - bzL[1])) / rzss;
+        vzzL[2] = (rzLs * vzL[2] + rzRs * vzR[2]
+            + sbn * (bzR[2] - bzL[2])) / rzss;
+        vzzR[1] = vzzL[1];
+        vzzR[2] = vzzL[2];
+
+        bzzL[1] = (rzLs * bzR[1] + rzRs * bzL[1]
+            + sbn * rzps * (vzR[1] - vzL[1])) / rzss;
+        bzzL[2] = (rzLs * bzR[2] + rzRs * bzL[2]
+            + sbn * rzps * (vzR[2] - vzL[2])) / rzss;
+        bzzR[1] = bzzL[1];
+        bzzR[2] = bzzL[2];
+
+        double sbzz = bzzL[0] * vzzL[0] + bzzL[1] * vzzL[1] + bzzL[2] * vzzL[2];
+
+        double ezzR = ezR + rzRs * sbn * (sbvR - sbzz);
+        double ezzL = ezL - rzLs * sbn * (sbvL - sbzz);
+
+        double UZL[8];
+        double UZR[8];
+        vector<double> UZLk(konvect_left.size());
+        vector<double> UZRk(konvect_left.size());
+
+        for (short int ik = 0; ik < konvect_right.size(); ik++)
+        {
+            UZLk[ik] = qzL[ik];
+            UZRk[ik] = qzR[ik];
+        }
+
+        UZL[0] = rzL;
+        UZL[4] = ezL;
+        UZR[0] = rzR;
+        UZR[4] = ezR;
+        for (size_t ik = 0; ik < 3; ik++)
+        {
+            UZL[ik + 1] = vzL[ik] * rzL;
+            UZL[ik + 5] = bzL[ik];
+            UZR[ik + 1] = vzR[ik] * rzR;
+            UZR[ik + 5] = bzR[ik];
+        }
+
+        double UZZL[8];
+        double UZZR[8];
+        vector<double> UZZLk(konvect_left.size());
+        vector<double> UZZRk(konvect_left.size());
+
+        for (short int ik = 0; ik < konvect_right.size(); ik++)
+        {
+            UZZLk[ik] = qzzL[ik];
+            UZZRk[ik] = qzzR[ik];
+        }
+
+        UZZL[0] = rzzL;
+        UZZL[4] = ezzL;
+        UZZR[0] = rzzR;
+        UZZR[4] = ezzR;
+        for (size_t ik = 0; ik < 3; ik++)
+        {
+            UZZL[ik + 1] = vzzL[ik] * rzzL;
+            UZZL[ik + 5] = bzzL[ik];
+            UZZR[ik + 1] = vzzR[ik] * rzzR;
+            UZZR[ik + 5] = bzzR[ik];
+        }
+
+        short int j_ccs = -1;
+        short int ik;
+        Eigen::Vector3d qv;
+        Eigen::Vector3d qb;
+
+        if (SL >= wv)
+        {
+            qqq[0] = FL[0] - wv * UL[0];
+            qqq[4] = FL[4] - wv * UL[4];
+            for (size_t ik = 1; ik < 4; ik++)
+            {
+                qv[ik - 1] = FL[ik] - wv * UL[ik];
+            }
+            for (size_t ik = 5; ik < 8; ik++)
+            {
+                qb[ik - 5] = FL[ik] - wv * UL[ik];
+            }
+            for (short int ik = 0; ik < konvect_right.size(); ik++)
+            {
+                konvect[ik] = FLk[ik] - wv * ULk[ik];
+            }
+            j_ccs = 1;
+        }
+        else if (SL <= wv && SZL >= wv)
+        {
+            ik = 0;
+            qqq[ik] = FL[ik] + SL * (UZL[ik] - UL[ik]) - wv * UZL[ik];
+            ik = 4;
+            qqq[ik] = FL[ik] + SL * (UZL[ik] - UL[ik]) - wv * UZL[ik];
+
+
+            for (short int ik = 0; ik < konvect_right.size(); ik++)
+            {
+                konvect[ik] = FLk[ik] + SL * (UZLk[ik] - ULk[ik]) - wv * ULk[ik];
+            }
+
+            for (size_t ik = 1; ik < 4; ik++)
+            {
+                qv[ik - 1] = FL[ik] + SL * (UZL[ik] - UL[ik]) - wv * UZL[ik];
+            }
+            for (size_t ik = 5; ik < 8; ik++)
+            {
+                qb[ik - 5] = FL[ik] + SL * (UZL[ik] - UL[ik]) - wv * UZL[ik];
+            }
+            j_ccs = 2;
+        }
+
+        if (ibn == 1)
+        {
+            if (SZL <= wv && SM >= wv)
+            {
+                ik = 0;
+                qqq[ik] = FL[ik] + SZL * (UZZL[ik] - UZL[ik])
+                    + SL * (UZL[ik] - UL[ik]) - wv * UZZL[ik];
+                ik = 4;
+                qqq[ik] = FL[ik] + SZL * (UZZL[ik] - UZL[ik])
+                    + SL * (UZL[ik] - UL[ik]) - wv * UZZL[ik];
+
+                for (short int ik = 0; ik < konvect_right.size(); ik++)
+                {
+                    konvect[ik] = FLk[ik] + SZL * (UZZLk[ik] - UZLk[ik])
+                        + SL * (UZLk[ik] - ULk[ik]) - wv * UZZLk[ik];
+                }
+
+                for (size_t ik = 1; ik < 4; ik++)
+                {
+                    qv[ik - 1] = FL[ik] + SZL * (UZZL[ik] - UZL[ik])
+                        + SL * (UZL[ik] - UL[ik]) - wv * UZZL[ik];
+                }
+                for (size_t ik = 5; ik < 8; ik++)
+                {
+                    qb[ik - 5] = FL[ik] + SZL * (UZZL[ik] - UZL[ik])
+                        + SL * (UZL[ik] - UL[ik]) - wv * UZZL[ik];
+                }
+                j_ccs = 3;
+            }
+            else if (SM <= wv && SZR >= wv)
+            {
+                ik = 0;
+                qqq[ik] = FR[ik] + SZR * (UZZR[ik] - UZR[ik])
+                    + SR * (UZR[ik] - UR[ik]) - wv * UZZR[ik];
+                ik = 4;
+                qqq[ik] = FR[ik] + SZR * (UZZR[ik] - UZR[ik])
+                    + SR * (UZR[ik] - UR[ik]) - wv * UZZR[ik];
+                for (short int ik = 0; ik < konvect_right.size(); ik++)
+                {
+                    konvect[ik] = FRk[ik] + SZR * (UZZRk[ik] - UZRk[ik])
+                        + SR * (UZRk[ik] - URk[ik]) - wv * UZZRk[ik];
+                }
+                for (size_t ik = 1; ik < 4; ik++)
+                {
+                    qv[ik - 1] = FR[ik] + SZR * (UZZR[ik] - UZR[ik])
+                        + SR * (UZR[ik] - UR[ik]) - wv * UZZR[ik];
+                }
+                for (size_t ik = 5; ik < 8; ik++)
+                {
+                    qb[ik - 5] = FR[ik] + SZR * (UZZR[ik] - UZR[ik])
+                        + SR * (UZR[ik] - UR[ik]) - wv * UZZR[ik];
+                }
+                j_ccs = 4;
+            }
+        }
+
+        if (SZR <= wv && SR >= wv)
+        {
+            ik = 0;
+            qqq[ik] = FR[ik] + SR * (UZR[ik] - UR[ik]) - wv * UZR[ik];
+            ik = 4;
+            qqq[ik] = FR[ik] + SR * (UZR[ik] - UR[ik]) - wv * UZR[ik];
+
+            for (short int ik = 0; ik < konvect_right.size(); ik++)
+            {
+                konvect[ik] = FRk[ik] + SR * (UZRk[ik] - URk[ik]) - wv * UZRk[ik];
+            }
+
+            for (size_t ik = 1; ik < 4; ik++)
+            {
+                qv[ik - 1] = FR[ik] + SR * (UZR[ik] - UR[ik]) - wv * UZR[ik];
+            }
+            for (size_t ik = 5; ik < 8; ik++)
+            {
+                qb[ik - 5] = FR[ik] + SR * (UZR[ik] - UR[ik]) - wv * UZR[ik];
+            }
+            j_ccs = 5;
+        }
+        else if (SR <= wv)
+        {
+            qqq[0] = FR[0] - wv * UR[0];
+            qqq[4] = FR[4] - wv * UR[4];
+            for (short int ik = 0; ik < konvect_right.size(); ik++)
+            {
+                konvect[ik] = FRk[4] - wv * URk[4];
+            }
+
+            for (size_t ik = 1; ik < 4; ik++)
+            {
+                qv[ik - 1] = FR[ik] - wv * UR[ik];
+            }
+            for (size_t ik = 5; ik < 8; ik++)
+            {
+                qb[ik - 5] = FR[ik] - wv * UR[ik];
+            }
+            j_ccs = 6;
+        }
+
+        if (j_ccs == -1)
+        {
+            cout << "ERROR chlld_Q  HLLD solver, nstate=3, wrong choise!!!!  " << j_ccs << endl;
+            cout << "w SL SZL SM SZR SR" << endl;
+            exit(-1);
+        }
+
+        double SN = max(fabs(SL), fabs(SR));
+
+        double wbn = 0.0;
+        if (wv > SR)
+        {
+            wbn = wv * bR[0];
+        }
+        else if(wv < SL)
+        {
+            wbn = wv * bL[0];
+        }
+        else
+        {
+            wbn = wv * (bL[0] + bR[0]) / 2.0;
+        }
+
+        // wbn = 0.0; //   !Korolkov
+
+        qb[0] = -SN * (bR[0] - bL[0]) - wbn;
+        if (null_bn == true) qb[0] = 0.0;
+
+        for (short unsigned int ik = 0; ik < 3; ik++)
+        {
+            qqq[ik + 1] = n(ik) * qv(0) + t(ik) * qv(1) + m(ik) * qv(2);
+            qqq[ik + 5] = n(ik) * qb(0) + t(ik) * qb(1) + m(ik) * qb(2);
+            qqq[ik + 5] = spi4 * qqq[ik + 5];
+        }
+
+        return;
+    }
+    else
+    {
+        cout << "Error  8562085512" << endl;
+        exit(-1);
+    }
 
     return;
 }
@@ -789,25 +1178,30 @@ void Phys_param::raspad_testing(void)
 
     qqq1[0] = 1.0;
     qqq1[1] = 1.0;
+
     qqq1[2] = 1.0;
     qqq1[3] = 1.0;
     qqq1[4] = 1.0;
+
     qqq1[5] = 5.0;
     qqq1[6] = 1.0;
     qqq1[7] = 1.0;
 
+
     qqq2[0] = 1.0;
     qqq2[1] = 1.0;
+
     qqq2[2] = 1.0;
     qqq2[3] = 1.0;
     qqq2[4] = 1.0;
+
     qqq2[5] = 1.0;
     qqq2[6] = 1.0;
     qqq2[7] = 1.0;
 
     double w = 0.0;
 
-    this->chlld(1, 1.0, 0.0, 0.0,
+    this->chlld(3, 1.0, 0.0, 0.0,
         w, qqq1, qqq2, qqq, false, 3,
         konvect_left, konvect_right, konvect, dsr, dsc, dsl,
         Option);
