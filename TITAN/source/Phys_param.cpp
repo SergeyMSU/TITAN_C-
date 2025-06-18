@@ -550,10 +550,6 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         qb[0] = -SN * (bR[0] - bL[0]) - wbn;
         if (null_bn == true) qb[0] = 0.0;
 
-        //whach(qb(0));
-        //whach(qb(1));
-        //whach(qb(2));
-
         for (short unsigned int ik = 0; ik < 3; ik++)
         {
             qqq[ik + 1] = n(ik) * qv(0) + t(ik) * qv(1) + m(ik) * qv(2);
@@ -623,6 +619,14 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
         double UZL[8];
         double UZR[8];
+        vector<double> UZLk(konvect_left.size());
+        vector<double> UZRk(konvect_left.size());
+
+        for (short int ik = 0; ik < konvect_right.size(); ik++)
+        {
+            UZLk[ik] = konvect_left[ik] * suLm;
+            UZRk[ik] = konvect_right[ik] * suRm;
+        }
 
         UZL[0] = rzL;
         UZL[4] = ezL;
@@ -640,10 +644,17 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         Eigen::Vector3d qv;
         Eigen::Vector3d qb;
 
+        vector<double> FWk(konvect_left.size());
+
         if (SL >= wv)
         {
             qqq[0] = FL[0] - wv * UL[0];
             qqq[4] = FL[4] - wv * UL[4];
+
+            for (short int ik = 0; ik < konvect_right.size(); ik++)
+            {
+                konvect[ik] = FLk[ik] - wv * ULk[ik];
+            }
 
             for (size_t ik = 1; ik < 4; ik++)
             {
@@ -660,6 +671,11 @@ void Phys_param::chlld(unsigned short int n_state, // метод
             qqq[0] = FL[0] + SL * (rzL - r1) - wv * UZL[0];
             qqq[4] = FL[4] + SL * (ezL - e1) - wv * UZL[4];
 
+            for (short int ik = 0; ik < konvect_right.size(); ik++)
+            {
+                konvect[ik] = FLk[ik] + SL * (UZLk[ik] - konvect_left[ik]) - wv * UZLk[ik];
+            }
+
             for (size_t ik = 1; ik < 4; ik++)
             {
                 qv[ik - 1] = FL[ik] + SL * (UZL[ik] - UL[ik]) - wv * UZL[ik];
@@ -675,6 +691,11 @@ void Phys_param::chlld(unsigned short int n_state, // метод
             qqq[0] = FR[0] + SR * (rzR - r2) - wv * UZR[0];
             qqq[4] = FR[4] + SR * (ezR - e2) - wv * UZR[4];
 
+            for (short int ik = 0; ik < konvect_right.size(); ik++)
+            {
+                konvect[ik] = FRk[ik] + SR * (UZRk[ik] - konvect_right[ik]) - wv * UZRk[ik];
+            }
+
             for (size_t ik = 1; ik < 4; ik++)
             {
                 qv[ik - 1] = FR[ik] + SR * (UZR[ik] - UR[ik]) - wv * UZR[ik];
@@ -689,6 +710,11 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         {
             qqq[0] = FR[0] - wv * UR[0];
             qqq[4] = FR[4] - wv * UR[4];
+
+            for (short int ik = 0; ik < konvect_right.size(); ik++)
+            {
+                konvect[ik] = FRk[ik] - wv * URk[ik];
+            }
 
             for (size_t ik = 1; ik < 4; ik++)
             {

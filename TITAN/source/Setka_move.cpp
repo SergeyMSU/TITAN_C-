@@ -213,6 +213,102 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 	}
 
 
+	// —глаживание поверхностей (уже использу€ новые координаты узлов на поверхности)
+
+	if (this->phys_param->sglag_TS == true)
+	{
+		Eigen::Vector3d A, B, V;
+
+		for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
+		{
+			auto gr = this->Gran_TS[i_step];
+			A << gr->center[now][0], gr->center[now][1], gr->center[now][2];
+			double rr = A.norm();
+			double r = 0.0;
+			for (auto& j : gr->grans_surf)
+			{
+				r += norm2(j->center[now][0], j->center[now][1], j->center[now][2]);
+			}
+			r /= gr->grans_surf.size();
+
+			B = A * r / rr;
+
+			V = this->phys_param->sglag_TS_k * (B - A) / time;
+
+			for (auto& yz : gr->yzels)
+			{
+				yz->velocity[0] += V(0);
+				yz->velocity[1] += V(1);
+				yz->velocity[2] += V(2);
+				yz->num_velocity++;
+			}
+		}
+
+		
+	}
+
+
+	if (this->phys_param->sglag_HP == true)
+	{
+		Eigen::Vector3d A, B, V;
+
+		for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
+		{
+			auto gr = this->Gran_HP[i_step];
+			A << gr->center[now][0], gr->center[now][1], gr->center[now][2];
+			if (A(0) >= 0.0)
+			{
+				double rr = A.norm();
+				double r = 0.0;
+				for (auto& j : gr->grans_surf)
+				{
+					r += norm2(j->center[now][0], j->center[now][1], j->center[now][2]);
+				}
+				r /= gr->grans_surf.size();
+
+				B = A * r / rr;
+
+				V = this->phys_param->sglag_HP_k * (B - A) / time;
+			}
+			else if(false) // —фирическое сглаживание
+			{
+				double rr = norm2(0.0, A(1), A(2));
+				double r = 0.0;
+				for (auto& j : gr->grans_surf)
+				{
+					r += norm2(0.0, j->center[now][1], j->center[now][2]);
+				}
+				r /= gr->grans_surf.size();
+
+				B(0) = A(0);
+				B(1) = A(1) * r / rr;
+				B(2) = A(2) * r / rr;
+
+				V = this->phys_param->sglag_HP_k * (B - A) / time;
+			}
+			else
+			{
+				B << 0.0, 0.0, 0.0;
+				for (auto& j : gr->grans_surf)
+				{
+					B(0) += j->center[now][0];
+					B(1) += j->center[now][1];
+					B(2) += j->center[now][2];
+				}
+				B = B / gr->grans_surf.size();
+				V = this->phys_param->sglag_HP_k * (B - A) / time;
+			}
+
+			for (auto& yz : gr->yzels)
+			{
+				yz->velocity[0] += V(0);
+				yz->velocity[1] += V(1);
+				yz->velocity[2] += V(2);
+				yz->num_velocity++;
+			}
+		}
+	}
+
 	// ¬ычисл€ем новые координаты узлов на поверхности
 	for (auto& yz : this->All_Yzel)
 	{
@@ -271,41 +367,6 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			yz->coord[now2][2] = A[2];
 		}
 	}
-
-
-	// —глаживание поверхности (уже использу€ новые координаты узлов на поверхности)
-
-	if (this->phys_param->sglag_TS == true)
-	{
-		for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
-		{
-			auto gr = this->Gran_TS[i_step];
-			double r = 0.0;
-			for (auto& j : gr->grans_surf)
-			{
-				r += norm2(j->center[now2][0], j->center[now2][1], j->center[now2][2]);
-			}
-			r /= gr->grans_surf.size();
-
-			gr->parameters["rr"] = r;
-		}
-
-		for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
-		{
-			auto gr = this->Gran_TS[i_step];
-			double r = norm2(gr->center[now2][0], gr->center[now2][1], gr->center[now2][2]);
-			gr->center[now2][0] = gr->center[now2][0] +
-				this->phys_param->sglag_TS_k * gr->center[now2][0] *
-				(gr->parameters["rr"] / r - 1.0);
-			gr->center[now2][1] = gr->center[now2][1] +
-				this->phys_param->sglag_TS_k * gr->center[now2][1] *
-				(gr->parameters["rr"] / r - 1.0);
-			gr->center[now2][2] = gr->center[now2][2] +
-				this->phys_param->sglag_TS_k * gr->center[now2][2] *
-				(gr->parameters["rr"] / r - 1.0);
-		}
-	}
-
 
 	// ќстальные узлы на HP (невыдел€емой части) надо подвинуть
 	if (this->phys_param->move_HP == true)

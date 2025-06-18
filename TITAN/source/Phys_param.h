@@ -45,10 +45,15 @@ public:
     bool culc_plasma = true;           // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
     bool move_HP = true;               // Двигаем ли HP
     bool move_BS = true;
+
     bool sglag_TS = true;              // Делаем ли сглаживание TS
-    double sglag_TS_k = 0.01;             
-    bool sglag_HP = false;
+    double sglag_TS_k = 0.003;   
+
+    bool sglag_HP = true;
+    double sglag_HP_k = 0.0001;
+
     bool sglag_BS = false;
+    double sglag_BS_k = 0.05;
 
     
      
