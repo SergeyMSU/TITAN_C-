@@ -9,11 +9,12 @@ using namespace std;
 int main()
 {
     cout << "Start Programm" << endl;
-    Setka S1 = Setka();
-
-    //S1.phys_param->raspad_testing();
-
+    
+    //auto phys_param = new Phys_param();
+    //phys_param->raspad_testing();
     //return 0;
+
+    Setka S1 = Setka();
 
     S1.Read_old_surface("ASurf_Save00591.bin");
     S1.Move_to_surf(S1.Surf1);

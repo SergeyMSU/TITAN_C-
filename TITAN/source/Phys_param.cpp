@@ -275,8 +275,8 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
     get_bazis(n, t, m);
 
-    //t << 0.0, 0.707107, 0.707107;
-    //m << 0.0, 0.707107, -0.707107;
+    //t << 0.0, 1.0, 0.0;
+    //m << 0.0, 0.0, 1.0;
 
 
     Eigen::Vector3d vL;
@@ -296,6 +296,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     bL(0) = scalarProductFast(n(0), n(1), n(2), bx1, by1, bz1);
     bL(1) = scalarProductFast(t(0), t(1), t(2), bx1, by1, bz1);
     bL(2) = scalarProductFast(m(0), m(1), m(2), bx1, by1, bz1);
+
 
     bR(0) = scalarProductFast(n(0), n(1), n(2), bx2, by2, bz2);
     bR(1) = scalarProductFast(t(0), t(1), t(2), bx2, by2, bz2);
@@ -416,9 +417,6 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         URk[i] = konvect_right[i];
     }
 
-    //whach(SL);
-    //whach(SR);
-    //whach(SM);
 
 
     for (short unsigned int i = 0; i < 3; i++)
@@ -429,10 +427,13 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         UR[i + 5] = bR[i];
     }
 
+
     for (short unsigned int ik = 0; ik < 8; ik++)
     {
         UZ[ik] = (SR * UR[ik] - SL * UL[ik] + FL[ik] - FR[ik]) / (SR - SL);
     }
+
+
 
     for (short int ik = 0; ik < konvect_right.size(); ik++)
     {
@@ -597,8 +598,10 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
         double sbvz = (UZ[5] * UZ[1] + UZ[6] * UZ[2] + UZ[7] * UZ[3]) / UZ[0];
 
+
         double ezR = e2 * suRm + (ptz * SM - ptR * vR[0] + UZ[5] * (sbv2 - sbvz)) / (SR - SM);
         double ezL = e1 * suLm + (ptz * SM - ptL * vL[0] + UZ[5] * (sbv1 - sbvz)) / (SL - SM);
+
 
         if (fabs(UZ[5]) <= epsb)
         {
@@ -893,6 +896,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         double SZL = SM - fabs(bn) / rzLs;
         double SZR = SM + fabs(bn) / rzRs;
 
+
         double sbn;
         short int ibn = 0;
         if (fabs(bn) > epsb)
@@ -1051,6 +1055,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
             }
             else if (SM <= wv && SZR >= wv)
             {
+
                 ik = 0;
                 qqq[ik] = FR[ik] + SZR * (UZZR[ik] - UZR[ik])
                     + SR * (UZR[ik] - UR[ik]) - wv * UZZR[ik];
@@ -1177,29 +1182,31 @@ void Phys_param::raspad_testing(void)
     double dsr, dsc, dsl;
 
     qqq1[0] = 1.0;
-    qqq1[1] = 1.0;
 
+    qqq1[1] = 1.0;
     qqq1[2] = 1.0;
     qqq1[3] = 1.0;
+
     qqq1[4] = 1.0;
 
-    qqq1[5] = 5.0;
-    qqq1[6] = 1.0;
-    qqq1[7] = 1.0;
+    qqq1[5] = 1.1;
+    qqq1[6] = 1.2;
+    qqq1[7] = 1.3;
 
 
     qqq2[0] = 1.0;
-    qqq2[1] = 1.0;
 
+    qqq2[1] = -1.0;
     qqq2[2] = 1.0;
     qqq2[3] = 1.0;
-    qqq2[4] = 1.0;
 
-    qqq2[5] = 1.0;
-    qqq2[6] = 1.0;
-    qqq2[7] = 1.0;
+    qqq2[4] = 6.0;
 
-    double w = 0.0;
+    qqq2[5] = 3.1;
+    qqq2[6] = 1.2;
+    qqq2[7] = 1.3;
+
+    double w = -6.0;
 
     this->chlld(3, 1.0, 0.0, 0.0,
         w, qqq1, qqq2, qqq, false, 3,
