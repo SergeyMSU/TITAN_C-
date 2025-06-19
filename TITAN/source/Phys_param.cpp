@@ -1,5 +1,7 @@
 ﻿#include "Phys_param.h"
 
+#define zone_info false
+
 Phys_param::Phys_param()
 {
     this->param_names.push_back("rho"); 
@@ -433,12 +435,11 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         UZ[ik] = (SR * UR[ik] - SL * UL[ik] + FL[ik] - FR[ik]) / (SR - SL);
     }
 
-
-
     for (short int ik = 0; ik < konvect_right.size(); ik++)
     {
         UZk[ik] = (SR * URk[ik] - SL * ULk[ik] + FLk[ik] - FRk[ik]) / (SR - SL);
     }
+
 
     if (null_bn == true) UZ[5] = 0.0;
 
@@ -984,6 +985,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
         if (SL >= wv)
         {
+            if(zone_info) cout << "Zone 1" << endl;
             qqq[0] = FL[0] - wv * UL[0];
             qqq[4] = FL[4] - wv * UL[4];
             for (size_t ik = 1; ik < 4; ik++)
@@ -1002,6 +1004,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         }
         else if (SL <= wv && SZL >= wv)
         {
+            if (zone_info) cout << "Zone 2" << endl;
             ik = 0;
             qqq[ik] = FL[ik] + SL * (UZL[ik] - UL[ik]) - wv * UZL[ik];
             ik = 4;
@@ -1010,7 +1013,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
             for (short int ik = 0; ik < konvect_right.size(); ik++)
             {
-                konvect[ik] = FLk[ik] + SL * (UZLk[ik] - ULk[ik]) - wv * ULk[ik];
+                konvect[ik] = FLk [ik] + SL * (UZLk[ik] - ULk[ik]) - wv * UZLk[ik];
             }
 
             for (size_t ik = 1; ik < 4; ik++)
@@ -1028,6 +1031,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         {
             if (SZL <= wv && SM >= wv)
             {
+                if (zone_info) cout << "Zone 3" << endl;
                 ik = 0;
                 qqq[ik] = FL[ik] + SZL * (UZZL[ik] - UZL[ik])
                     + SL * (UZL[ik] - UL[ik]) - wv * UZZL[ik];
@@ -1055,7 +1059,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
             }
             else if (SM <= wv && SZR >= wv)
             {
-
+                if (zone_info) cout << "Zone 4" << endl;
                 ik = 0;
                 qqq[ik] = FR[ik] + SZR * (UZZR[ik] - UZR[ik])
                     + SR * (UZR[ik] - UR[ik]) - wv * UZZR[ik];
@@ -1083,6 +1087,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
         if (SZR <= wv && SR >= wv)
         {
+            if (zone_info) cout << "Zone 5" << endl;
             ik = 0;
             qqq[ik] = FR[ik] + SR * (UZR[ik] - UR[ik]) - wv * UZR[ik];
             ik = 4;
@@ -1105,11 +1110,12 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         }
         else if (SR <= wv)
         {
+            if (zone_info) cout << "Zone 6" << endl;
             qqq[0] = FR[0] - wv * UR[0];
             qqq[4] = FR[4] - wv * UR[4];
             for (short int ik = 0; ik < konvect_right.size(); ik++)
             {
-                konvect[ik] = FRk[4] - wv * URk[4];
+                konvect[ik] = FRk[ik] - wv * URk[ik];
             }
 
             for (size_t ik = 1; ik < 4; ik++)
@@ -1194,7 +1200,7 @@ void Phys_param::raspad_testing(void)
     qqq1[7] = 1.3;
 
 
-    qqq2[0] = 1.0;
+    qqq2[0] = 2.0;
 
     qqq2[1] = -1.0;
     qqq2[2] = 1.0;
@@ -1206,7 +1212,7 @@ void Phys_param::raspad_testing(void)
     qqq2[6] = 1.2;
     qqq2[7] = 1.3;
 
-    double w = 0.0;
+    double w = -4.0;
 
     konvect_left.push_back(10.0);
     konvect_right.push_back(20.0);

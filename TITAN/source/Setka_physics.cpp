@@ -362,7 +362,7 @@ void Setka::Init_physics(void)
 				i->parameters[0]["Bx"] = -this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
 				i->parameters[0]["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
 				i->parameters[0]["Bz"] = 0.0;
-				i->parameters[0]["Q"] = 100.0;
+				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
 			}
 
 			for (short unsigned int j = 1; j < i->parameters.size(); j++)
@@ -389,7 +389,7 @@ void Setka::Init_physics(void)
 				i->parameters["Bx"] = -this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
 				i->parameters["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
 				i->parameters["Bz"] = 0.0;
-				i->parameters["Q"] = 100.0;
+				i->parameters["Q"] = 100.0 * i->parameters["rho"];
 
 				i->parameters["rho_H4"] = 1.0;
 				i->parameters["Vx_H4"] = this->phys_param->Velosity_inf;
@@ -1094,6 +1094,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				if (std::isnan(rho3) || std::fpclassify(rho3) == FP_SUBNORMAL || 
 					std::isnan(Q3) || std::fpclassify(Q3) == FP_SUBNORMAL)
 				{
+					cout << "Error  9851234578" << endl;
 					whach(Volume);
 					whach(Volume2);
 					whach(rho);
