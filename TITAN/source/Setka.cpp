@@ -2000,28 +2000,118 @@ void Setka::New_append_surfaces()
 	{
 		if (i->type == "A_Luch" || i->type == "A2_Luch")
 		{
+			for (size_t j = 0; j < i->Yzels.size(); j++)
+			{
+				if (j < this->geo->M0 + 1 + this->geo->M1 + 1)
+				{
+					i->Yzels[j]->type = Type_yzel::Zone_1;
+				}
+				else if (j < this->geo->M0 + 1 + this->geo->M1 + 1 + this->geo->M2 + 1)
+				{
+					i->Yzels[j]->type = Type_yzel::Zone_2;
+				}
+				else if (j < this->geo->M0 + 1 + this->geo->M1 
+					+ 1 + this->geo->M2 + 1 + this->geo->M3 + 1)
+				{
+					i->Yzels[j]->type = Type_yzel::Zone_3;
+				}
+				else
+				{
+					i->Yzels[j]->type = Type_yzel::Zone_4;
+				}
+			}
+
 			i->Yzels_opor[1]->type = Type_yzel::TS;
 			i->Yzels_opor[2]->type = Type_yzel::HP;
 			i->Yzels_opor[3]->type = Type_yzel::BS;
 		}
 		else if (i->type == "B_Luch")
 		{
+			for (size_t j = 0; j < i->Yzels.size(); j++)
+			{
+				if (j < this->geo->M0 + 1 + this->geo->M1 + 1)
+				{
+					i->Yzels[j]->type = Type_yzel::Zone_1;
+				}
+				else if (j < this->geo->M0 + 1 + this->geo->M1 + 1 + this->geo->M2 + 1)
+				{
+					i->Yzels[j]->type = Type_yzel::Zone_2;
+				}
+				else if (j < this->geo->M0 + 1 + this->geo->M1
+					+ 1 + this->geo->M2 + 1 + this->geo->M3 + 1)
+				{
+					i->Yzels[j]->type = Type_yzel::Zone_3;
+				}
+				else
+				{
+					i->Yzels[j]->type = Type_yzel::Zone_4;
+				}
+			}
+
 			i->Yzels_opor[1]->type = Type_yzel::TS;
 			i->Yzels_opor[2]->type = Type_yzel::HP;
 		}
 		else if (i->type == "C_Luch" || i->type == "C2_Luch")
 		{
+			for (size_t j = 0; j < i->Yzels.size(); j++)
+			{
+				if (j < this->geo->M0 + 1 + this->geo->M1 + 1)
+				{
+					i->Yzels[j]->type = Type_yzel::Zone_1;
+				}
+				else
+				{
+					i->Yzels[j]->type = Type_yzel::Zone_2;
+				}
+			}
+
 			i->Yzels_opor[1]->type = Type_yzel::TS;
 		}
 		else if (i->type == "E_Luch")
 		{
+			short int kl = 1;
+			for (size_t j = 0; j < i->Yzels.size(); j++)
+			{
+				if (i->Yzels[j] == i->Yzels_opor[1]) kl++;
+				if (i->Yzels[j] == i->Yzels_opor[2]) kl++;
+
+				if(kl == 1) i->Yzels[j]->type = Type_yzel::Zone_2;
+				if(kl == 2) i->Yzels[j]->type = Type_yzel::Zone_3;
+				if(kl == 3) i->Yzels[j]->type = Type_yzel::Zone_4;
+			}
+
 			i->Yzels_opor[1]->type = Type_yzel::HP;
 		}
 		else if (i->type == "D_Luch")
 		{
+			short int kl = 1;
+			for (size_t j = 0; j < i->Yzels.size(); j++)
+			{
+				if (i->Yzels[j] == i->Yzels_opor[1]) kl++;
+				if (i->Yzels[j] == i->Yzels_opor[2]) kl++;
+
+				if (kl == 1) i->Yzels[j]->type = Type_yzel::Zone_2;
+				if (kl == 2) i->Yzels[j]->type = Type_yzel::Zone_3;
+				if (kl == 3) i->Yzels[j]->type = Type_yzel::Zone_4;
+			}
+
 			if (i->Yzels_opor[1]->coord[0][0] >= this->geo->L6 - 0.00001)
 			{
 				i->Yzels_opor[1]->type = Type_yzel::HP;
+			}
+		}
+		else if (i->type == "H_Luch")
+		{
+			for (size_t j = 0; j < i->Yzels.size(); j++)
+			{
+				i->Yzels[j]->type = Type_yzel::Zone_2;
+			}
+		}
+		else if (i->type == "G_Luch")
+		{
+			for (size_t j = 0; j < i->Yzels.size() - 1; j++)
+			{
+				i->Yzels[j]->type = Type_yzel::Zone_2;
 			}
 		}
 	}
@@ -2048,6 +2138,56 @@ void Setka::New_append_surfaces()
 	}
 
 	this->Renumerate();
+
+	// Зададим зону ячейкам
+	if (true)
+	{
+		for (auto& Cell : this->All_Cell)
+		{
+			int z1 = 0;
+			int z2 = 0;
+			int z3 = 0;
+			int z4 = 0;
+
+			for (auto& yz : Cell->yzels)
+			{
+				if (yz->type == Type_yzel::Zone_1)
+				{
+					z1++;
+				}
+				if (yz->type == Type_yzel::Zone_2)
+				{
+					z2++;
+				}
+				if (yz->type == Type_yzel::Zone_3)
+				{
+					z3++;
+				}
+				if (yz->type == Type_yzel::Zone_4)
+				{
+					z4++;
+				}
+			}
+
+			if (z1 > z2 && z1 > z3 && z1 > z4)
+			{
+				Cell->type = Type_cell::Zone_1;
+			}
+			else if (z2 > z1 && z2 > z3 && z2 > z4)
+			{
+				Cell->type = Type_cell::Zone_2;
+			}
+			else if (z3 > z1 && z3 > z2 && z3 > z4)
+			{
+				Cell->type = Type_cell::Zone_3;
+			}
+			else
+			{
+				Cell->type = Type_cell::Zone_4;
+			}
+		}
+	}
+
 
 	macros4(TS);
 	macros4(HP);
@@ -3322,11 +3462,8 @@ void Setka::Tecplot_print_all_cell_in_3D()
 
 	for (auto& i : this->All_Cell)
 	{
-
-		if (kkk > 1000)
-		{
-			break;
-		}
+		if (i->type != Type_cell::Zone_1) continue;
+		if (kkk > 1000) continue;
 
 		fout << "ZONE T=HP, N = " << i->yzels.size() << ", E = " << i->yzels.size() - 1 << ", F=FEPOINT, ET=LINESEG, SOLUTIONTIME = " << kkk << endl;
 		kkk++;
@@ -3440,6 +3577,7 @@ void Setka::Tecplot_print_cell_plane_parameters()
 	{
 		fout << ", " << nn;
 	}
+	fout << ", my_zone";
 	fout << endl;
 
 	int kkk = 1;
@@ -3466,6 +3604,28 @@ void Setka::Tecplot_print_cell_plane_parameters()
 				fout << " " << 0.0;
 			}
 		}
+
+		if (i->type == Type_cell::Zone_1)
+		{
+			fout << " " << 1.0;
+		}
+		else if (i->type == Type_cell::Zone_2) 
+		{
+			fout << " " << 2.0;
+		}
+		else if (i->type == Type_cell::Zone_3)
+		{
+			fout << " " << 3.0;
+		}
+		else if (i->type == Type_cell::Zone_4)
+		{
+			fout << " " << 4.0;
+		}
+		else
+		{
+			fout << " " << 0.0;
+		}
+
 		fout << endl;
 	}
 

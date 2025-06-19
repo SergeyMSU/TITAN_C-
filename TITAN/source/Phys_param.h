@@ -50,7 +50,7 @@ public:
     double sglag_TS_k = 0.004;   
 
     bool sglag_HP = true;
-    double sglag_HP_k = 0.001;
+    double sglag_HP_k = 0.005;
 
     bool sglag_BS = false;
     double sglag_BS_k = 0.05;

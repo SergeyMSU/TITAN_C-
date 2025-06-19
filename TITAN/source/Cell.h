@@ -1,6 +1,13 @@
 #pragma once
 #include"Header.h"
 
+enum class Type_cell {
+	none,   // 0
+	Zone_1,  // 1   
+	Zone_2,  // 2  
+	Zone_3,  // 3   
+	Zone_4  // 4   
+};
 
 class Cell
 {
@@ -9,6 +16,8 @@ public:
 	vector<Gran*> grans;
 	int number = 0;                // номера начинаютс€ с единицы
 	bool is_inner = false;         // явл€етс€ ли €чейка внутренней (которые считаютс€ отдельно)
+
+	Type_cell type = Type_cell::none;  // по умолчанию создаЄм обычный узел
 
 	std::array < unordered_map<string, double>, 2> parameters;   // ѕараметры в €чейке (тут могут быть значени€
 	// плазменных полей, значени€ дивергенций и т.д.

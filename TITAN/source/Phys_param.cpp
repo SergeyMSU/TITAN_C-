@@ -1206,9 +1206,13 @@ void Phys_param::raspad_testing(void)
     qqq2[6] = 1.2;
     qqq2[7] = 1.3;
 
-    double w = -6.0;
+    double w = 0.0;
 
-    this->chlld(3, 1.0, 0.0, 0.0,
+    konvect_left.push_back(10.0);
+    konvect_right.push_back(20.0);
+    konvect.push_back(0.0);
+
+    this->chlld(2, 1.0, 0.0, 0.0,
         w, qqq1, qqq2, qqq, false, 3,
         konvect_left, konvect_right, konvect, dsr, dsc, dsl,
         Option);
@@ -1218,4 +1222,6 @@ void Phys_param::raspad_testing(void)
         whach(ff);
         whach(qqq[ff]);
     }
+
+    whach(konvect[0]);
 }
