@@ -3770,6 +3770,55 @@ void Setka::Tecplot_print_gran_with_condition()
 	}
 }
 
+void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin, 
+	const Eigen::Vector3d& vec, string name, const double& leng)
+{
+	ofstream fout;
+	string name_f = "Tecplot_Tecplot_print_1D" + name + ".txt";
+
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = R, X, Y, Z";
+
+	for (auto& nam : Int1->param_names)
+	{
+		fout << ", " << nam;
+	}
+	fout << endl;
+
+	unsigned int N = 5000;
+	Eigen::Vector3d C;
+	std::unordered_map<string, double> parameters;
+	Cell_handle next_cell;
+	Cell_handle prev_cell = Cell_handle();
+	bool fine_int;
+
+	for (size_t i = 0; i < N; i++)
+	{
+		C = Origin + i * vec / N * leng;
+		fine_int = Int1->Get_param(C(0), C(1), C(2), parameters, prev_cell, next_cell);
+		if (fine_int == false) continue;
+		prev_cell = next_cell;
+
+		fout << 1.0 * i / N * leng << " " << C(0) << " " << C(1) << " " << C(2);
+		for (auto& nam : Int1->param_names)
+		{
+			if (nam != "Q")
+			{
+				fout << " " << parameters[nam];
+			}
+			else
+			{
+				fout << " " << parameters["Q"]/ parameters["rho"];
+			}
+		}
+		fout << endl;
+
+	}
+
+	fout.close();
+
+}
+
 void Setka::Tecplot_print_plane_interpolation(Eigen::Vector3d A, Eigen::Vector3d v1, 
 	Eigen::Vector3d v2, int l1, int r1, int l2, int r2)
 {

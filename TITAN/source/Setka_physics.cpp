@@ -1340,7 +1340,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 		// Если это контакт, записываем магнитное давление в обычное
 		// И удаляем магнитные поля
-		if (gr->type2 == Type_Gran_surf::HP)
+		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
 		{
 			if (metod_ == 3) metod_ = 2;
 
@@ -1452,6 +1452,73 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 
 	return loc_time;
+}
+
+void Setka::Save_for_interpolate(string filename)
+{
+	std::ofstream out(filename, std::ios::binary);
+	if (!out) {
+		cout << "Error 097564537  Can not open file to writing: " + filename << endl;
+		exit(-1);
+	}
+
+	// Записываем количество строк
+	size_t size = this->phys_param->param_names.size();
+	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+	// Записываем каждую строку
+	for (const auto& str : this->phys_param->param_names) {
+		// Сначала записываем длину строки
+		size_t str_size = str.size();
+		out.write(reinterpret_cast<const char*>(&str_size), sizeof(str_size));
+		// Затем саму строку
+		out.write(str.data(), str_size);
+	}
+
+	// Записываем количество ячеек
+	size = this->All_Cell.size();
+	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+	for (const auto& Cel : this->All_Cell)
+	{
+		double aa = Cel->center[0][0];
+		double bb = Cel->center[0][1];
+		double cc = Cel->center[0][2];
+		out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+		out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+		out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+		for (const auto& i : this->phys_param->param_names)
+		{
+			aa = Cel->parameters[0][i];
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+		}
+	}
+
+	// Записываем центральную точку
+	if (true)
+	{
+		double aa = 0.0;
+		double bb = 0.0;
+		double cc = 0.0;
+		out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+		out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+		out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+		for (const auto& i : this->phys_param->param_names)
+		{
+			aa = this->Cell_Center->parameters[0][i];
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+		}
+	}
+
+	for (size_t i = 0; i < 1000; i++)
+	{
+		bool aa = false;
+		out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+	}
+
+	out.close();
 }
 
 void Setka::Save_cell_parameters(string filename)

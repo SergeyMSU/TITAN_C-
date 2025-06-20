@@ -10,6 +10,8 @@ class Luch;
 class Cell;
 class Gran;
 class Surfaces;
+class Interpol;
+class Int_point;
 
 
 #define kv(x) ((x) * (x))
@@ -41,6 +43,13 @@ class Surfaces;
 #include <CGAL/Delaunay_triangulation_3.h>
 #include <CGAL/Triangulation_vertex_base_with_info_3.h>
 
+typedef CGAL::Exact_predicates_inexact_constructions_kernel KKexact;
+typedef CGAL::Triangulation_vertex_base_with_info_3<size_t, KKexact> Vb;
+typedef CGAL::Triangulation_data_structure_3<Vb> Tds;
+typedef CGAL::Delaunay_triangulation_3<KKexact, Tds> Delaunay;
+typedef Delaunay::Cell_handle Cell_handle;
+typedef Delaunay::Vertex_handle Vertex_handle;
+
 
 
 
@@ -70,6 +79,7 @@ using namespace std;
 #include "Yzel.h"
 #include "Surfaces.h"
 #include "Interpol.h"
+#include "Int_point.h"
 
 
 

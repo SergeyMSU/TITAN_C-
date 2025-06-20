@@ -163,6 +163,8 @@ public:
 	void Save_cell_parameters(string filename);
 	void Download_cell_parameters(string filename);
 
+	void Save_for_interpolate(string filename);
+
 	//  ****************************************************************************
 	// ВИЗУАЛИЗАЦИЯ ****************************************************************************
 	//	****************************************************************************
@@ -207,5 +209,9 @@ public:
 	// печатает грани на поверхности
 
 	void Tecplot_print_gran_with_condition();
+
+
+	void Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
+		const Eigen::Vector3d& vec, string name, const double& leng);
 };
 

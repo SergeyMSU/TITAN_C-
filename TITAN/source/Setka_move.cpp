@@ -252,7 +252,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			// Записываем магнитное давление в обычное
 			// И удаляем магнитные поля
-			if (true)
+			if (this->phys_param->bn_in_p_on_HP == true)
 			{
 				if (metod_ == 3) metod_ = 2;
 

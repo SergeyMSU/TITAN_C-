@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0005.bin");  // 8
+    S1.Download_cell_parameters("parameters_0005.bin");  // 11
 
     S1.Init_TVD();
     cout << "D2 " << endl;
@@ -48,7 +48,7 @@ int main()
     S1.Tecplot_print_all_lush_in_2D();
     S1.Tecplot_print_all_cell_in_3D();
 
-    for (int i = 1; i <= 6 * 1; i++) // 6 * 2
+    for (int i = 1; i <= 6 * 3; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -78,14 +78,29 @@ int main()
 
     S1.Save_cell_parameters("parameters_0006.bin");
 
-    S1.Set_Gran_par_for_interpolate();
+    S1.Save_for_interpolate("For_intertpolate_1.bin");
+    Interpol SS = Interpol("For_intertpolate_1.bin");
 
-    Eigen::Vector3d A(0.0, 0.0, 0.0);
-    Eigen::Vector3d v1(1.0, 0.0, 0.0);
-    Eigen::Vector3d v2(0.0, 1.0, 0.0);
+    
+
+    S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+        Eigen::Vector3d(1.0, 0.0, 0.0), "_(1, 0, 0)_", 500.0);
+
+    S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+        Eigen::Vector3d(-1.0, 0.0, 0.0), "_(-1, 0, 0)_", 500.0);
+
+    S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+        Eigen::Vector3d(0.0, 1.0, 0.0), "_(0, 1, 0)_", 500.0);
 
 
-    S1.Tecplot_print_plane_interpolation(A, v1, v2, -2000, 4000, -4000, 4000);
+    //S1.Set_Gran_par_for_interpolate();
+
+    //Eigen::Vector3d A(0.0, 0.0, 0.0);
+    //Eigen::Vector3d v1(1.0, 0.0, 0.0);
+    //Eigen::Vector3d v2(0.0, 1.0, 0.0);
+
+
+    //S1.Tecplot_print_plane_interpolation(A, v1, v2, -2000, 4000, -4000, 4000);
 
     cout << "F " << endl;
 
