@@ -52,7 +52,7 @@ B = A;\
 B[1] *= r1 / p[1];\
 B[2] *= r1 / p[1];\
 \
-V = this->phys_param->sglag_HP_k * (B - A) / time;\
+V = this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / time;\
 \
 AA->velocity[0] += V[0];\
 AA->velocity[1] += V[1];\
@@ -63,7 +63,7 @@ B = A;\
 B[1] *= r2 / p[1];\
 B[2] *= r2 / p[1];\
 \
-V = this->phys_param->sglag_HP_k * (B - A) / time;\
+V = this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / time;\
 \
 AA->velocity[0] += V[0];\
 AA->velocity[1] += V[1];\
@@ -74,7 +74,7 @@ B = A;\
 B[1] *= r3 / p[1];\
 B[2] *= r3 / p[1];\
 \
-V = this->phys_param->sglag_HP_k * (B - A) / time;\
+V = this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / time;\
 \
 AA->velocity[0] += V[0];\
 AA->velocity[1] += V[1];\
@@ -85,7 +85,7 @@ B = A;\
 B[1] *= r4 / p[1];\
 B[2] *= r4 / p[1];\
 \
-V = this->phys_param->sglag_HP_k * (B - A) / time;\
+V = this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / time;\
 \
 AA->velocity[0] += V[0];\
 AA->velocity[1] += V[1];\
@@ -115,6 +115,7 @@ void solveQuadraticEquation(const double& x1, const double& y1,
 void Setka::Culc_Velocity_surface(short int now, const double& time, short int metod)
 {
 	double dsr, dsc, dsl;
+	short int metod_ = metod;
 	
 	int now2 = (now + 1) % 2;
 
@@ -200,6 +201,27 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			auto A = gr->cells[0];
 			auto B = gr->cells[1];
 
+
+			if (this->phys_param->null_bn_on_HP == true)
+			{
+				// Обнуляем bn в ячейках
+				Eigen::Vector3d nnn;
+				nnn << gr->normal[now][0], gr->normal[now][1], gr->normal[now][2];
+				double dtpr = scalarProductFast(nnn[0], nnn[1], nnn[2],
+					A->parameters[now]["Bx"], A->parameters[now]["By"],
+					A->parameters[now]["Bz"]);
+				A->parameters[now]["Bx"] -= dtpr * nnn[0];
+				A->parameters[now]["By"] -= dtpr * nnn[1];
+				A->parameters[now]["Bz"] -= dtpr * nnn[2];
+
+				dtpr = scalarProductFast(nnn[0], nnn[1], nnn[2],
+					B->parameters[now]["Bx"], B->parameters[now]["By"],
+					B->parameters[now]["Bz"]);
+				B->parameters[now]["Bx"] -= dtpr * nnn[0];
+				B->parameters[now]["By"] -= dtpr * nnn[1];
+				B->parameters[now]["Bz"] -= dtpr * nnn[2];
+			}
+
 			std::vector<double> qqq, qqq1, qqq2;
 			qqq.resize(8);
 			qqq1.resize(8);
@@ -228,7 +250,20 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			double w = 0.0;
 
-			this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
+			// Записываем магнитное давление в обычное
+			// И удаляем магнитные поля
+			if (true)
+			{
+				if (metod_ == 3) metod_ = 2;
+
+				qqq1[4] += norm2(qqq1[5], qqq1[6], qqq1[7]) / (8.0 * const_pi);
+				qqq1[5] = qqq1[6] = qqq1[7] = 0.0;
+
+				qqq2[4] += norm2(qqq2[5], qqq2[6], qqq2[7]) / (8.0 * const_pi);
+				qqq2[5] = qqq2[6] = qqq2[7] = 0.0;
+			}
+
+			this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
 				gr->normal[now][2],
 				w, qqq1, qqq2, qqq, false, 3,
 				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
@@ -344,8 +379,15 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			r /= gr->grans_surf.size();
 
 			B = A * r / rr;
+			
+			double pk = this->phys_param->sglag_TS_k;
+			double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+			if (phi < this->geo->tetta0 || phi > this->geo->tetta1)
+			{
+				pk *= 1.3;
+			}
 
-			V = this->phys_param->sglag_TS_k * (B - A) / time;
+			V = pk * (B - A) / time;
 
 			for (auto& yz : gr->yzels)
 			{

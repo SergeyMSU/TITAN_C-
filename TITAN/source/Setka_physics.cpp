@@ -1268,6 +1268,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 	PrintOptions Option = PrintOptions{};
 	double area = gr->area[now];
 	name = "______";
+	short int metod_ = metod;
 
 	unordered_map<string, double> par_left, par_right;
 	double w = gr->culc_velosity(now, time);
@@ -1276,6 +1277,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 	double dist;
 	if (gr->type == Type_Gran::Us)
 	{
+		// Это для расчёта шага по времени
 		auto A = gr->cells[0];
 		auto B = gr->cells[1];
 		dist = norm2(A->center[now][0] - B->center[now][0],
@@ -1328,7 +1330,20 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			konvect.push_back(0.0);
 		}
 
-		this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
+		// Если это контакт, записываем магнитное давление в обычное
+		// И удаляем магнитные поля
+		if (gr->type2 == Type_Gran_surf::HP)
+		{
+			if (metod_ == 3) metod_ = 2;
+
+			qqq1[4] += norm2(qqq1[5], qqq1[6], qqq1[7]) / (8.0 * const_pi);
+			qqq1[5] = qqq1[6] = qqq1[7] = 0.0;
+
+			qqq2[4] += norm2(qqq2[5], qqq2[6], qqq2[7]) / (8.0 * const_pi);
+			qqq2[5] = qqq2[6] = qqq2[7] = 0.0;
+		}
+
+		this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
 			gr->normal[now][2],
 			w, qqq1, qqq2, qqq, false, 3,
 			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
@@ -1357,6 +1372,12 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
 			gr->normal[now][1], gr->normal[now][2],
 			qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
+
+		// Для контакта поток Bn равен нулю
+		if (gr->type2 == Type_Gran_surf::HP)
+		{
+			gr->parameters["PdivB"] = 0.0;
+		}
 
 		if (par_left.find("Q") != par_left.end())
 		{

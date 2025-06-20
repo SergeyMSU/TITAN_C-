@@ -51,9 +51,14 @@ public:
 
     bool sglag_HP = true;
     double sglag_HP_k = 0.003;
+    double sglag_HP_angle = 1.2;    // Можно немного усилить сглаживание по углу
+    double sglag_HP_along = 1.0;    // Можно немного усилить сглаживание вдоль х
 
     bool sglag_BS = false;
     double sglag_BS_k = 0.05;
+
+
+    bool null_bn_on_HP = true;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
 
     
      
