@@ -257,21 +257,29 @@ void Setka::Init_physics(void)
 		{
 			if ( sqrt(kv(i->center[0][1]) + kv(i->center[0][2])) > 300)
 			{
-				i->parameters[0]["rho"] = 1.0;
-				i->parameters[0]["p"] = 1.0;
-				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
-				i->parameters[0]["Vy"] = 0.0;
-				i->parameters[0]["Vz"] = 0.0;
-				i->parameters[0]["Bx"] = -this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
-				i->parameters[0]["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
-				i->parameters[0]["Bz"] = 0.0;
-				i->parameters[0]["Q"] = 100.0;
 
-				/*i->parameters[0]["rho_H4"] = 1.0;
-				i->parameters[0]["Vx_H4"] = this->phys_param->Velosity_inf;
-				i->parameters[0]["Vy_H4"] = 0.0;
-				i->parameters[0]["Vz_H4"] = 0.0;
-				i->parameters[0]["p_H4"] = 0.5;*/
+				i->parameters[0]["rho_H1"] = 0.000001;
+				i->parameters[0]["Vx_H1"] = 0.0;
+				i->parameters[0]["Vy_H1"] = 0.0;
+				i->parameters[0]["Vz_H1"] = 0.0;
+				i->parameters[0]["p_H1"] = 0.000001;
+
+				i->parameters[0]["rho_H2"] = 0.000001;
+				i->parameters[0]["Vx_H2"] = 0.0;
+				i->parameters[0]["Vy_H2"] = 0.0;
+				i->parameters[0]["Vz_H2"] = 0.0;
+				i->parameters[0]["p_H2"] = 0.000001;
+
+				i->parameters[1] = i->parameters[0];
+			}
+
+			if (i->type == Type_cell::Zone_1)
+			{
+				i->parameters[0]["rho_H2"] = 0.000001;
+				i->parameters[0]["Vx_H2"] = 0.0;
+				i->parameters[0]["Vy_H2"] = 0.0;
+				i->parameters[0]["Vz_H2"] = 0.0;
+				i->parameters[0]["p_H2"] = 0.000001;
 
 				i->parameters[1] = i->parameters[0];
 			}
@@ -311,7 +319,6 @@ void Setka::Init_physics(void)
 			exit(-1);
 		}
 	}
-
 
 	// Задаём начальные условия на сетке
 	if (false)
@@ -440,11 +447,11 @@ void Setka::Init_physics(void)
 				i->parameters["Vz_H1"] = mV * vec(2);
 				i->parameters["p_H1"] = 0.0001;
 
-				i->parameters["rho_H2"] = 0.0001;
-				i->parameters["Vx_H2"] = mV * vec(0);
-				i->parameters["Vy_H2"] = mV * vec(1);
-				i->parameters["Vz_H2"] = mV * vec(2);
-				i->parameters["p_H2"] = 0.0001;
+				i->parameters["rho_H2"] = 0.00001;
+				i->parameters["Vx_H2"] = 2.0 * fabs(this->phys_param->Velosity_inf) * vec(0);
+				i->parameters["Vy_H2"] = 2.0 * fabs(this->phys_param->Velosity_inf) * vec(1);
+				i->parameters["Vz_H2"] = 2.0 * fabs(this->phys_param->Velosity_inf) * vec(2);
+				i->parameters["p_H2"] = 0.00001;
 
 				i->parameters["rho_H3"] = 0.0001;
 				i->parameters["Vx_H3"] = mV * vec(0);
@@ -1216,6 +1223,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				for (auto& nam : this->phys_param->H_name)
 				{
 					if (nam == "_H1") continue;
+					if (nam == "_H2") continue;
 
 					rho = cell->parameters[now1]["rho" + nam];
 					vx = cell->parameters[now1]["Vx" + nam];
@@ -1415,7 +1423,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		qqq2[7] = 0.0;
 
 		// metod
-		this->phys_param->chlld(2, gr->normal[now][0], gr->normal[now][1],
+		this->phys_param->chlld(1, gr->normal[now][0], gr->normal[now][1],
 			gr->normal[now][2],
 			w, qqq1, qqq2, qqq, false, 3,
 			konvect_left, konvect_right, konvect, dsr, dsc, dsl,

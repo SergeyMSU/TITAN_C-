@@ -69,6 +69,7 @@ using namespace std;
 #include "Cell.h"
 #include "Yzel.h"
 #include "Surfaces.h"
+#include "Interpol.h"
 
 
 
