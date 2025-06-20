@@ -3821,15 +3821,8 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 
 void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, const double& c, const double& d, string name)
 {
-	std::vector< std::array<double, 3> > all_point;
-	std::vector< std::array<double, 3> > kyb_point;
-	std::array<double, 3> P1;
-	std::array<double, 3> P2;
-	std::array<double, 3> outIntersection;
-
-
 	// Находим нормаль к плоскости
-
+	cout << "Start: Tecplot_print_2D " << name << endl;
 	std::array<double, 3> normal;
 	normal[0] = a;
 	normal[1] = b;
@@ -3842,6 +3835,26 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 		normal[1] /= length;
 		normal[2] /= length;
 	}
+
+	// Выбираем произвольное направление для сортировки (например, ось OX в плоскости)
+	std::array<double, 3> reference_dir;
+	if (std::abs(normal[0]) > 0.9)
+	{ // Если нормаль близка к OX, выбираем OY
+		reference_dir = { 0.0, 1.0, 0.0 };
+	}
+	else
+	{
+		reference_dir = { 1.0, 0.0, 0.0 };
+	}
+
+	// Находим вектор в плоскости, перпендикулярный нормали
+	std::array<double, 3>  tangent_dir = {
+		reference_dir[1] * normal[2] - reference_dir[2] * normal[1],
+		reference_dir[2] * normal[0] - reference_dir[0] * normal[2],
+		reference_dir[0] * normal[1] - reference_dir[1] * normal[0]
+	};
+
+
 
 	std::vector< std::array<short int, 2> > rebro;
 	rebro.resize(12);
@@ -3861,20 +3874,54 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 	Yzel* A1;
 	Yzel* A2;
 
+	std::vector < std::vector< std::array<double, 3> >> all_setka;
+
 	bool aa;
 
+	cout << "Tecplot_print_2D: srez" << endl;
+
+	// Находим срез сетки
 	for (const auto& cell : this->All_Cell)
 	{
+		std::vector< std::array<double, 3> > all_point;
+		std::array<double, 3> P1;
+		std::array<double, 3> P2;
+		std::array<double, 3> outIntersection;
+
 		for (size_t i = 0; i < 12; i++) // Пробегаемся по рёбрам
 		{
-			A1 = cell->yzels[rebro[i][0]];
-			A2 = cell->yzels[rebro[i][1]];
+			A1 = cell->yzels[rebro[i][0] - 1];
+			A2 = cell->yzels[rebro[i][1] - 1];
 
 			P1 = { A1->coord[0][0], A1->coord[0][1], A1->coord[0][2] };
 			P2 = { A2->coord[0][0], A2->coord[0][1], A2->coord[0][2] };
 
+			//cout << "A" << endl;
 			aa = findIntersection(P1, P2, a, b, c, d, outIntersection);
+			//cout << "B" << endl;
 			if (aa == true) all_point.push_back(outIntersection);
+
+			if (fabs(a * outIntersection[0] + b * outIntersection[1] + c * outIntersection[2] + d) > 0.001)
+			{
+				cout << "Error  798646575467845456" << endl;
+				cout << outIntersection[0] << endl;
+				cout << outIntersection[1] << endl;
+				cout << outIntersection[2] << endl;
+				cout << fabs(a * outIntersection[0] + b * outIntersection[1] + c * outIntersection[2] + d) << endl;
+				exit(-1);
+			}
+
+			//cout << "C" << endl;
+		}
+
+		//cout << "________" << endl;
+
+		if (all_point.size() == 0) continue;
+		
+		if (all_point.size() < 3)
+		{
+			cout << "Error 9867531090    " << all_point.size() << endl;
+			continue;
 		}
 
 
@@ -3891,23 +3938,6 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 		centroid[1] /= all_point.size();
 		centroid[2] /= all_point.size();
 
-		// Выбираем произвольное направление для сортировки (например, ось OX в плоскости)
-		std::array<double, 3> reference_dir;
-		if (std::abs(normal[0]) > 0.9)
-		{ // Если нормаль близка к OX, выбираем OY
-			reference_dir = { 0.0, 1.0, 0.0 };
-		}
-		else
-		{
-			reference_dir = { 1.0, 0.0, 0.0 };
-		}
-
-		// Находим вектор в плоскости, перпендикулярный нормали
-		std::array<double, 3>  tangent_dir = {
-			reference_dir[1] * normal[2] - reference_dir[2] * normal[1],
-			reference_dir[2] * normal[0] - reference_dir[0] * normal[2],
-			reference_dir[0] * normal[1] - reference_dir[1] * normal[0]
-		};
 
 		// Сортируем точки по углу относительно tangent_dir
 		std::sort(all_point.begin(), all_point.end(), [centroid, &tangent_dir]
@@ -3937,7 +3967,116 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 				return angle_a < angle_b;
 			});
 
+
+		all_setka.push_back(all_point);
 	}
+
+	unsigned int NN = 0;
+	unsigned int NN2 = 0;
+
+	for (const auto& i : all_setka)
+	{
+		NN += i.size() + 1;
+		NN2 += i.size();
+	}
+
+	cout << "Tecplot_print_2D: print" << endl;
+	ofstream fout;
+	string name_f = "Tecplot_Tecplot_print_2D_" + name + ".txt";
+
+	fout.open(name_f);
+	fout << "TITLE = HP" << endl;
+	fout << "VARIABLES = X, Y, Z";
+
+	for (auto& nam : Int1->param_names)
+	{
+		fout << ", " << nam;
+	}
+	fout << endl;
+
+	fout << "ZONE T=\"Polygon Zone\", ";
+
+	fout << "NODES = " << NN << ", ELEMENTS = " << NN2 << ", F = FEPOINT, ET = TRIANGLE" << endl;
+
+	Eigen::Vector3d C;
+	Eigen::Vector3d C2;
+	std::unordered_map<string, double> parameters;
+	Cell_handle next_cell;
+	Cell_handle prev_cell = Cell_handle();
+	bool fine_int;
+
+	for (const auto& i : all_setka)
+	{
+		auto kj = i;
+		C2 << 0.0, 0.0, 0.0;
+
+		for (const auto& j : i)
+		{
+			C(0) = j[0];
+			C(1) = j[1];
+			C(2) = j[2];
+			C2 += C;
+		}
+		C2 /= i.size();
+
+		kj.push_back({ C2[0], C2[1], C2[2] });
+
+		for (const auto& j : kj)
+		{
+			C(0) = j[0];
+			C(1) = j[1];
+			C(2) = j[2];
+			fine_int = Int1->Get_param(C(0), C(1), C(2), parameters, prev_cell, next_cell);
+			fout << C(0) << " " << C(1) << " " << C(2);
+
+			/*if (fabs(C(2)) > 0.001)
+			{
+				cout << "Error   5674567547546746765756" << endl;
+				cout << C(0) << endl;
+				cout << C(1) << endl;
+				cout << C(2) << endl;
+				exit(-1);
+			}*/
+
+
+			for (auto& nam : Int1->param_names)
+			{
+				if (fine_int == true)
+				{
+					if (nam != "Q")
+					{
+						fout << " " << parameters[nam];
+					}
+					else
+					{
+						fout << " " << parameters["Q"] / parameters["rho"];
+					}
+				}
+				else
+				{
+					fout << " " << 0.0;
+				}
+			}
+			fout << endl;
+		}
+	}
+
+	size_t all_k = 1;
+	for (const auto& i : all_setka)
+	{
+		size_t k1 = i.size();
+		for (size_t ii = 0; ii < k1; ii++)
+		{
+			size_t k2 = ii + 1;
+			if (k2 >= k1) k2 = 0;
+			fout << all_k + k1 << " " << all_k + ii << " " << all_k + k2 << endl;
+		}
+
+		all_k = all_k + k1;
+	}
+
+	fout.close();
+	cout << "End: Tecplot_print_2D " << name << endl;
 
 }
 
