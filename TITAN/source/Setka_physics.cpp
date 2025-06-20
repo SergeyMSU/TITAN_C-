@@ -1127,6 +1127,15 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				cell->parameters[now2]["p"] = p3;
 			}
 
+			/*if (norm2(cell->center[now1][0], cell->center[now1][1], cell->center[now1][2]) < 3.0)
+			{
+				SOURSE[2][0] = 0.0;
+				SOURSE[2][1] = 0.0;
+				SOURSE[2][2] = 0.0;
+				SOURSE[2][3] = 0.0;
+				SOURSE[2][4] = 0.0;
+			}*/
+
 			// Теперь считаем для остальных жидкостей
 			int i = 0;
 			for (auto& nam : this->phys_param->H_name)
@@ -1219,9 +1228,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 					rho3 = rho - time * POTOK_F[i][0] / Volume;
 
-					if (rho3 < 0.0000001)
+					if (rho3 < 0.0001)
 					{
-						rho3 = 0.0000001;
+						rho3 = 0.0001;
 					}
 
 					u3 = (rho * vx - time * (POTOK_F[i][1]) / Volume) / rho3;
@@ -1233,9 +1242,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 						- time * (POTOK_F[i][4]) / Volume) -
 						0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
 
-					if (p3 < 0.0000001)
+					if (p3 < 0.0001)
 					{
-						p3 = 0.0000001;
+						p3 = 0.0001;
 					}
 
 					cell->parameters[now2]["rho" + nam] = rho3;
@@ -1368,7 +1377,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
 
 		// Для контакта поток Bn равен нулю
-		if (gr->type2 == Type_Gran_surf::HP)
+		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
 		{
 			gr->parameters["PdivB"] = 0.0;
 		}

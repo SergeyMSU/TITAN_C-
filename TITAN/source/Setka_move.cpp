@@ -201,6 +201,8 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			auto A = gr->cells[0];
 			auto B = gr->cells[1];
 
+			if (gr->type2 != Type_Gran_surf::HP) cout << "Error 7823467276345679264978234" << endl;
+
 
 			if (this->phys_param->null_bn_on_HP == true)
 			{
