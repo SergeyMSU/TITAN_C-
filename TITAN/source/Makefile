@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -c -O3 -I/usr/include/eigen3 -fopenmp
+CFLAGS = -c -O3 -I/usr/include/eigen3 -fopenmp -lgmp -lmpfr
 LDFLAGS = -fopenmp
 SRC = TITAN.cpp Cell.cpp Geo_param.cpp Phys_param.cpp Gran.cpp Help_funk.cpp Luch.cpp Setka.cpp Setka_physics.cpp Setka_move.cpp Setka_gran_snos.cpp Surfaces.cpp Yzel.cpp
 OBJ = $(SRC:.cpp=.o)

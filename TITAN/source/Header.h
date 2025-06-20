@@ -37,6 +37,11 @@ class Surfaces;
 #include <optional>
 #include <omp.h>
 #include <chrono>
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Delaunay_triangulation_3.h>
+#include <CGAL/Triangulation_vertex_base_with_info_3.h>
+
+
 
 
 const double const_pi = 3.14159265358979323846;

@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0011.bin");  // 8
+    S1.Download_cell_parameters("parameters_0005.bin");  // 8
 
     S1.Init_TVD();
     cout << "D2 " << endl;
@@ -76,7 +76,7 @@ int main()
         std::cout << "Execution time: " << duration.count()/1000.0/60.0 << " minutes" << std::endl;
     }
 
-    S1.Save_cell_parameters("parameters_0005.bin");
+    S1.Save_cell_parameters("parameters_0006.bin");
 
     S1.Set_Gran_par_for_interpolate();
 
