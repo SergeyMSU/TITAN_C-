@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0005.bin");  // 11
+    S1.Download_cell_parameters("parameters_0011.bin");  // 11
 
     S1.Init_TVD();
     cout << "D2 " << endl;
@@ -48,7 +48,7 @@ int main()
     S1.Tecplot_print_all_lush_in_2D();
     S1.Tecplot_print_all_cell_in_3D();
 
-    for (int i = 1; i <= 6 * 3; i++) // 6 * 2
+    for (int i = 1; i <= 6 * 2; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;

@@ -50,20 +50,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					par_right["Vy" + nam] = par_left["Vy" + nam];
 					par_right["Vz" + nam] = par_left["Vz" + nam];
 				}
-				else if (gr->type == Type_Gran::Inner_Hard && (nam == "_H2"))
-				{
-					par_left["rho" + nam] = gr->parameters["rho" + nam];
-					par_left["p" + nam] = gr->parameters["p" + nam];
-					par_left["Vx" + nam] = gr->parameters["Vx" + nam];
-					par_left["Vy" + nam] = gr->parameters["Vy" + nam];
-					par_left["Vz" + nam] = gr->parameters["Vz" + nam];
-
-					par_right["rho" + nam] = par_left["rho" + nam];
-					par_right["p" + nam] = par_left["p" + nam];
-					par_right["Vx" + nam] = par_left["Vx" + nam];
-					par_right["Vy" + nam] = par_left["Vy" + nam];
-					par_right["Vz" + nam] = par_left["Vz" + nam];
-				}
 				else // ƒл€  H2  H3  H4    и  Inner_Hard  -  делаем через центральную фиктивную €чейку
 				{
 					auto A = gr->cells[0];

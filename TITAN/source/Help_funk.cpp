@@ -298,3 +298,44 @@ void Sootnosheniya(const double& rho, const double& p, const double& rho_He,
 
 	return;
 }
+
+bool findIntersection(const std::array<double, 3>& P1, const std::array<double, 3>& P2,
+	const double& a, const double& b, const double& c, const double& d,
+	std::array<double, 3>& outIntersection)
+{
+	double D = a * P1[0] + b * P1[1] + c * P1[2] + d;
+	double N = a * (P2[0] - P1[0]) + b * (P2[1] - P1[1]) + c * (P2[2] - P1[2]);
+
+	// Отрезок параллелен плоскости
+	if (std::abs(N) < 1e-10)
+	{
+		if (std::abs(D) < 1e-10)
+		{
+			// Отрезок лежит в плоскости (бесконечно много пересечений)
+			// Можно вернуть, например, P1 или P2
+			outIntersection = P1;
+			return true;
+		}
+		else
+		{
+			// Нет пересечения
+			return false;
+		}
+	}
+
+	double t = -D / N;
+
+	// Проверяем, что t ∈ [0, 1]
+	if (t >= 0.0 && t <= 1.0)
+	{
+		outIntersection[0] = P1[0] + t * (P2[0] - P1[0]);
+		outIntersection[1] = P1[1] + t * (P2[1] - P1[1]);
+		outIntersection[2] = P1[2] + t * (P2[2] - P1[2]);
+		return true;
+	}
+	else
+	{
+		// Пересечение за пределами отрезка
+		return false;
+	}
+}

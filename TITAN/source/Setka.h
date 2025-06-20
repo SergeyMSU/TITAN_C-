@@ -210,8 +210,16 @@ public:
 
 	void Tecplot_print_gran_with_condition();
 
+	// *************************************************
+	// High_level_of_visualization
+	// *************************************************
 
 	void Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 		const Eigen::Vector3d& vec, string name, const double& leng);
+
+	void Tecplot_print_2D(Interpol* Int1, const double& a, const double& b,
+		const double& c, const double& d,
+		string name);
+	// Плоскость   a x + b y + c z + d = 0;
 };
 

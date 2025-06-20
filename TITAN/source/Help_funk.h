@@ -47,3 +47,7 @@ double tetrahedronVolume(
 	const double& x3, const double& y3, const double& z3,  // Вершина C
 	const double& x4, const double& y4, const double& z4);  // Вершина D
 
+bool findIntersection(const std::array<double, 3>& P1, const std::array<double, 3>& P2,
+	const double& a, const double& b, const double& c, const double& d,
+	std::array<double, 3>& outIntersection);
+

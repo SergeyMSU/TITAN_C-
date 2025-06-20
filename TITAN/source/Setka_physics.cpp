@@ -273,16 +273,6 @@ void Setka::Init_physics(void)
 				i->parameters[1] = i->parameters[0];
 			}
 
-			if (i->type == Type_cell::Zone_1)
-			{
-				i->parameters[0]["rho_H2"] = 0.000001;
-				i->parameters[0]["Vx_H2"] = 0.0;
-				i->parameters[0]["Vy_H2"] = 0.0;
-				i->parameters[0]["Vz_H2"] = 0.0;
-				i->parameters[0]["p_H2"] = 0.000001;
-
-				i->parameters[1] = i->parameters[0];
-			}
 		}
 	}
 
@@ -441,23 +431,11 @@ void Setka::Init_physics(void)
 				i->parameters["Bz"] = cc(2);
 				i->parameters["Q"] = i->parameters["rho"];
 
-				i->parameters["rho_H1"] = 0.0001;
+				i->parameters["rho_H1"] = 0.00001;
 				i->parameters["Vx_H1"] = mV * vec(0);
 				i->parameters["Vy_H1"] = mV * vec(1);
 				i->parameters["Vz_H1"] = mV * vec(2);
-				i->parameters["p_H1"] = 0.0001;
-
-				i->parameters["rho_H2"] = 0.00001;
-				i->parameters["Vx_H2"] = 2.0 * fabs(this->phys_param->Velosity_inf) * vec(0);
-				i->parameters["Vy_H2"] = 2.0 * fabs(this->phys_param->Velosity_inf) * vec(1);
-				i->parameters["Vz_H2"] = 2.0 * fabs(this->phys_param->Velosity_inf) * vec(2);
-				i->parameters["p_H2"] = 0.00001;
-
-				i->parameters["rho_H3"] = 0.0001;
-				i->parameters["Vx_H3"] = mV * vec(0);
-				i->parameters["Vy_H3"] = mV * vec(1);
-				i->parameters["Vz_H3"] = mV * vec(2);
-				i->parameters["p_H3"] = 0.0001;
+				i->parameters["p_H1"] = 0.00001;
 			}
 		}
 	}
@@ -478,7 +456,8 @@ void Setka::Init_physics(void)
 			nk++;
 			for (auto& num : this->phys_param->param_names)
 			{
-				this->Cell_Center->parameters[0][num] += i->parameters[num];
+				//this->Cell_Center->parameters[0][num] += i->parameters[num];
+				this->Cell_Center->parameters[0][num] += i->cells[0]->parameters[0][num];
 			}
 		}
 
@@ -486,6 +465,8 @@ void Setka::Init_physics(void)
 		{
 			this->Cell_Center->parameters[0][num] /= nk;
 		}
+
+		this->Cell_Center->parameters[1] = this->Cell_Center->parameters[0];
 	}
 }
 
@@ -939,11 +920,17 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 			if (ntnt < loc_time)
 			{
-				loc_time = min(loc_time, ntnt); 
-				xc_min = gran->center[now1][0];
-				yc_min = gran->center[now1][1];
-				zc_min = gran->center[now1][2];
-				name_min_time = nmnm;
+				#pragma omp critical 
+				{
+					if (ntnt < loc_time)
+					{
+						loc_time = min(loc_time, ntnt);
+						xc_min = gran->center[now1][0];
+						yc_min = gran->center[now1][1];
+						zc_min = gran->center[now1][2];
+						name_min_time = nmnm;
+					}
+				}
 			}
 		}
 
@@ -1223,7 +1210,6 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				for (auto& nam : this->phys_param->H_name)
 				{
 					if (nam == "_H1") continue;
-					if (nam == "_H2") continue;
 
 					rho = cell->parameters[now1]["rho" + nam];
 					vx = cell->parameters[now1]["Vx" + nam];
@@ -1233,9 +1219,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 					rho3 = rho - time * POTOK_F[i][0] / Volume;
 
-					if (rho3 < 0.0000000001)
+					if (rho3 < 0.0000001)
 					{
-						rho3 = 0.00001;
+						rho3 = 0.0000001;
 					}
 
 					u3 = (rho * vx - time * (POTOK_F[i][1]) / Volume) / rho3;
@@ -1247,9 +1233,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 						- time * (POTOK_F[i][4]) / Volume) -
 						0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
 
-					if (p3 < 0.0000000001)
+					if (p3 < 0.0000001)
 					{
-						p3 = 0.00001;
+						p3 = 0.0000001;
 					}
 
 					cell->parameters[now2]["rho" + nam] = rho3;
@@ -1423,7 +1409,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		qqq2[7] = 0.0;
 
 		// metod
-		this->phys_param->chlld(1, gr->normal[now][0], gr->normal[now][1],
+		this->phys_param->chlld(2, gr->normal[now][0], gr->normal[now][1],
 			gr->normal[now][2],
 			w, qqq1, qqq2, qqq, false, 3,
 			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
