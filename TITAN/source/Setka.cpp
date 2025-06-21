@@ -3899,7 +3899,14 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 			//cout << "A" << endl;
 			aa = findIntersection(P1, P2, a, b, c, d, outIntersection);
 			//cout << "B" << endl;
-			if (aa == true) all_point.push_back(outIntersection);
+			if (aa == true)
+			{
+				all_point.push_back(outIntersection);
+			}
+			else
+			{
+				continue;
+			}
 
 			if (fabs(a * outIntersection[0] + b * outIntersection[1] + c * outIntersection[2] + d) > 0.001)
 			{
@@ -3938,6 +3945,12 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 		centroid[1] /= all_point.size();
 		centroid[2] /= all_point.size();
 
+		/*for (const auto& i : all_point)
+		{
+			cout << i[0] << " " << i[1] << " " << i[2] << endl;
+		}
+		cout << "___" << endl;*/
+
 
 		// Сортируем точки по углу относительно tangent_dir
 		std::sort(all_point.begin(), all_point.end(), [centroid, &tangent_dir]
@@ -3967,6 +3980,14 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 				return angle_a < angle_b;
 			});
 
+		/*for (const auto& i : all_point)
+		{
+			cout << i[0] << " " << i[1] << " " << i[2] << endl;
+		}
+		cout << endl;
+
+		exit(-1);*/
+
 
 		all_setka.push_back(all_point);
 	}
@@ -3981,8 +4002,47 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 	}
 
 	cout << "Tecplot_print_2D: print" << endl;
+
+	// Рисуем саму сетку
 	ofstream fout;
-	string name_f = "Tecplot_Tecplot_print_2D_" + name + ".txt";
+	string name_f = "Tecplot_setka_srez_" + name + ".txt";
+
+	fout.open(name_f);
+	fout << "TITLE = HP" << endl;
+	fout << "VARIABLES = X, Y, Z" << endl;
+	fout << "ZONE T=HP, NODES = " << NN2 << ", ELEMENTS = " << NN2 << ", F = FEPOINT, ET = LINESEG" << endl;
+
+	Eigen::Vector3d C;
+	for (const auto& i : all_setka)
+	{
+		for (const auto& j : i)
+		{
+			C(0) = j[0];
+			C(1) = j[1];
+			C(2) = j[2];
+			fout << C(0) << " " << C(1) << " " << C(2) << endl;
+		}
+	}
+
+
+	size_t all_k1 = 1;
+	for (const auto& i : all_setka)
+	{
+		size_t k1 = i.size();
+		for (size_t ii = 0; ii < k1; ii++)
+		{
+			size_t k2 = ii + 1;
+			if (k2 >= k1) k2 = 0;
+			fout << all_k1 + ii << " " << all_k1 + k2 << endl;
+		}
+
+		all_k1 = all_k1 + k1;
+	}
+
+	fout.close();
+
+	// Рисуем поля параметров
+	name_f = "Tecplot_Tecplot_print_2D_" + name + ".txt";
 
 	fout.open(name_f);
 	fout << "TITLE = HP" << endl;
@@ -3998,7 +4058,6 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 
 	fout << "NODES = " << NN << ", ELEMENTS = " << NN2 << ", F = FEPOINT, ET = TRIANGLE" << endl;
 
-	Eigen::Vector3d C;
 	Eigen::Vector3d C2;
 	std::unordered_map<string, double> parameters;
 	Cell_handle next_cell;

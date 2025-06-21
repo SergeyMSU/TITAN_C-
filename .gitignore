@@ -74,3 +74,7 @@ TITAN/Surface_Print_TS
 *.nb
 
 *.lay
+
+TITAN/TITAN/x64/Debug/gmp-10.dll
+
+TITAN/TITAN/x64/Release/gmp-10.dll
