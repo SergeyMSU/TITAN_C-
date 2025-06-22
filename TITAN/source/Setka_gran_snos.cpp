@@ -84,25 +84,14 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				par_left["By"] = C->parameters[now]["By"];
 				par_left["Bz"] = C->parameters[now]["Bz"];
 
-				par_right["rho"] = par_left["rho"];
-				par_right["n_He"] = par_left["n_He"];
-				par_right["Q"] = par_left["Q"];
-				par_right["p"] = par_left["p"];
-				par_right["Vx"] = par_left["Vx"];
-				par_right["Vy"] = par_left["Vy"];
-				par_right["Vz"] = par_left["Vz"];
-				par_right["Bx"] = par_left["Bx"];
-				par_right["By"] = par_left["By"];
-				par_right["Bz"] = par_left["Bz"];
-
 				// Запрещаем затекание жидкости через мягкие граничные условия
 				if (par_left["Vx"] * gr->normal[now][0] + 
 					par_left["Vy"] * gr->normal[now][1] +
 					par_left["Vz"] * gr->normal[now][2] < 0.0)
 				{
-					par_left["Vx"] = 0.0;
-					par_left["Vy"] = 0.0;
-					par_left["Vz"] = 0.0;
+					par_left["Vx"] = 0.1 * gr->normal[now][0];
+					par_left["Vy"] = 0.1 * gr->normal[now][1];
+					par_left["Vz"] = 0.1 * gr->normal[now][2];
 				}
 
 				if (gr->normal[now][0] < -0.9) // Для задней границы
@@ -114,6 +103,17 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					}
 				}
 
+				par_right["rho"] = par_left["rho"];
+				par_right["n_He"] = par_left["n_He"];
+				par_right["Q"] = par_left["Q"];
+				par_right["p"] = par_left["p"];
+				par_right["Vx"] = par_left["Vx"];
+				par_right["Vy"] = par_left["Vy"];
+				par_right["Vz"] = par_left["Vz"];
+				par_right["Bx"] = par_left["Bx"];
+				par_right["By"] = par_left["By"];
+				par_right["Bz"] = par_left["Bz"];
+
 			}
 
 			for (auto& nam : this->phys_param->H_name)
@@ -123,6 +123,18 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				par_left["Vx" + nam] = C->parameters[now]["Vx" + nam];
 				par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
 				par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
+
+				// Запрещаем затекание жидкости через мягкие граничные условия
+				if (par_left["Vx" + nam] * gr->normal[now][0] +
+					par_left["Vy" + nam] * gr->normal[now][1] +
+					par_left["Vz" + nam] * gr->normal[now][2] < 0.0)
+				{
+					par_left["Vx" + nam] = 0.1 * gr->normal[now][0];
+					par_left["Vy" + nam] = 0.1 * gr->normal[now][1];
+					par_left["Vz" + nam] = 0.1 * gr->normal[now][2];
+				}
+
+
 
 				par_right["rho" + nam] = par_left["rho" + nam];
 				par_right["p" + nam] = par_left["p" + nam];

@@ -15,6 +15,7 @@ public:
 
 
 	Interpol(string name);
+	~Interpol();
 
 	bool Get_param(const double& x, const double& y, const double& z, 
 		std::unordered_map<string, double>& parameters, 

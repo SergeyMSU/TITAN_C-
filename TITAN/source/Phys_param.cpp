@@ -221,7 +221,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     std::vector<double>& konvect, // Дополнительные переменные конвективного переноса ПОТОКИ
     double& dsr, double& dsc, double& dsl,
     PrintOptions& opts)  // Дополнительные опциональные параметры
-    // n_state = 1 HLL, // 2 HLLC,  3 HLLD
+    // n_state = 0 Лакс, // 1 HLL, // 2 HLLC,  3 HLLD
     // Конвективные переменные добавил только для HLL
 {
 
@@ -290,7 +290,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     vL(0) = scalarProductFast(n(0), n(1), n(2), u1, v1, w1);
     vL(1) = scalarProductFast(t(0), t(1), t(2), u1, v1, w1);
     vL(2) = scalarProductFast(m(0), m(1), m(2), u1, v1, w1);
-    
+
     vR(0) = scalarProductFast(n(0), n(1), n(2), u2, v2, w2);
     vR(1) = scalarProductFast(t(0), t(1), t(2), u2, v2, w2);
     vR(2) = scalarProductFast(m(0), m(1), m(2), u2, v2, w2);
@@ -304,7 +304,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     bR(1) = scalarProductFast(t(0), t(1), t(2), bx2, by2, bz2);
     bR(2) = scalarProductFast(m(0), m(1), m(2), bx2, by2, bz2);
 
-    
+
     double aaL = bL(0) / sqrt(r1);
     double b2L = bL.dot(bL);
     double b21 = b2L / r1;
@@ -372,6 +372,15 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     double SM = (suR * r2 * vR(0) - ptR + ptL - suL * r1 * vL(0))
         / (suR * r2 - suL * r1);
     dsc = SM;
+
+    if (n_state == 0)
+    {
+        double TR0 = fabs(vL(0) + vR(0)) / 2.0 + cfC;
+        double TL0 = -TR0;
+        SR = TR0;
+        SL = TL0;
+    }
+
 
     double upt1 = (kv(u1) + kv(v1) + kv(w1)) / 2.0;
     double sbv1 = u1 * bx1 + v1 * by1 + w1 * bz1;
@@ -443,8 +452,8 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
     if (null_bn == true) UZ[5] = 0.0;
 
-    // HLL
-    if (n_state == 1)
+   
+    if (n_state <= 1)  // Лакс или HLL
     {
         double dq[8];
         double FW[8];

@@ -221,8 +221,8 @@ void Setka::Init_boundary_grans(void)
 			ih++;
 			this->All_boundary_Gran.push_back(i);
 		}
-		else if(i->center[0][0] > 0.0)
-		//else if(i->center[0][0] > this->geo->L7 + 0.00001)
+		//else if(i->center[0][0] > 0.0)
+		else if(i->center[0][0] > this->geo->L7 + 0.00001)
 		{
 			i->type = Type_Gran::Outer_Hard;
 			oh++;
@@ -251,25 +251,45 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// Редактирование каких-то переменных
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
 			if ( sqrt(kv(i->center[0][1]) + kv(i->center[0][2])) > 300)
 			{
 
-				i->parameters[0]["rho_H1"] = 0.000001;
+				i->parameters[0]["rho"] = 1.0 * (1.0 + this->phys_param->mn_He_inf);
+				i->parameters[0]["n_He"] = this->phys_param->mn_He_inf;
+				i->parameters[0]["p"] = 1 + (i->parameters[0]["n_He"]) /
+					(i->parameters[0]["rho"] - i->parameters[0]["n_He"]);
+				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
+				i->parameters[0]["Vy"] = 0.0;
+				i->parameters[0]["Vz"] = 0.0;
+				i->parameters[0]["Bx"] = -this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
+				i->parameters[0]["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
+				i->parameters[0]["Bz"] = 0.0;
+				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
+
+				i->parameters[0]["rho_H1"] = 0.00001;
 				i->parameters[0]["Vx_H1"] = 0.0;
 				i->parameters[0]["Vy_H1"] = 0.0;
 				i->parameters[0]["Vz_H1"] = 0.0;
-				i->parameters[0]["p_H1"] = 0.000001;
+				i->parameters[0]["p_H1"] = 0.00001;
 
-				i->parameters[0]["rho_H2"] = 0.000001;
+				i->parameters[0]["rho_H2"] = 0.00001;
 				i->parameters[0]["Vx_H2"] = 0.0;
 				i->parameters[0]["Vy_H2"] = 0.0;
 				i->parameters[0]["Vz_H2"] = 0.0;
-				i->parameters[0]["p_H2"] = 0.000001;
+				i->parameters[0]["p_H2"] = 0.00001;
 
+				i->parameters[1] = i->parameters[0];
+			}
+
+			if (i->type == Type_cell::Zone_1)
+			{
+				i->parameters[0]["Vx_H4"] = i->parameters[0]["Vx_H3"];
+				i->parameters[0]["Vy_H4"] = i->parameters[0]["Vy_H3"];
+				i->parameters[0]["Vz_H4"] = i->parameters[0]["Vz_H3"];
 				i->parameters[1] = i->parameters[0];
 			}
 
@@ -819,43 +839,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		//omp_set_num_threads(1); // 32
 
 
-		// Зададим условие для 4-го сорта водорода вблизи звезды
-		// И для остальных сортов мягкие на границе
+		// Здесь задаётся выходящее условие для водорода 1-3 на Type_Gran::Outer_Hard
 		
 		for (auto& gran : this->All_boundary_Gran)
 		{
-			// Пока заменил на фиктивную центральную ячейку, если она работает это можно убрать
-			if (false)//(gran->type == Type_Gran::Inner_Hard)
-			{
-				double u1, v1, w1;
-				u1 = gran->cells[0]->parameters[now1]["Vx_H4"];
-				v1 = gran->cells[0]->parameters[now1]["Vy_H4"];
-				w1 = gran->cells[0]->parameters[now1]["Vz_H4"];
-				if (u1 * gran->normal[now1][0] + u1 * gran->normal[now1][1] +
-					u1 * gran->normal[now1][2] > 0.0)
-				{
-					gran->parameters["rho_H4"] = gran->cells[0]->parameters[now1]["rho_H4"];
-					gran->parameters["p_H4"] = gran->cells[0]->parameters[now1]["p_H4"];
-					gran->parameters["Vx_H4"] = gran->cells[0]->parameters[now1]["Vx_H4"];
-					gran->parameters["Vy_H4"] = gran->cells[0]->parameters[now1]["Vy_H4"];
-					gran->parameters["Vz_H4"] = gran->cells[0]->parameters[now1]["Vz_H4"];
-				}
-				else
-				{
-					gran->parameters["rho_H4"] = 0.0001;
-					gran->parameters["p_H4"] = 0.0001;
-					gran->parameters["Vx_H4"] = gran->cells[0]->parameters[now1]["Vx"];
-					gran->parameters["Vy_H4"] = gran->cells[0]->parameters[now1]["Vy"];
-					gran->parameters["Vz_H4"] = gran->cells[0]->parameters[now1]["Vz"];
-				}
-
-				/*if (gran->parameters["rho_H4"] < 0.0001)
-				{
-					gran->parameters["rho_H4"] = 0.0001;
-					gran->parameters["p_H4"] = 0.00005;
-				}*/
-			}
-			else if (gran->type == Type_Gran::Outer_Hard)
+			if (gran->type == Type_Gran::Outer_Hard)
 			{
 				double u1, v1, w1;
 				for (auto& nam : this->phys_param->H_name)
@@ -865,8 +853,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					u1 = gran->cells[0]->parameters[now1]["Vx" + nam];
 					v1 = gran->cells[0]->parameters[now1]["Vy" + nam];
 					w1 = gran->cells[0]->parameters[now1]["Vz" + nam];
-					if (u1 * gran->normal[now1][0] + u1 * gran->normal[now1][1] +
-						u1 * gran->normal[now1][2] > 0.0)
+					if (u1 * gran->normal[now1][0] + v1 * gran->normal[now1][1] +
+						w1 * gran->normal[now1][2] > 0.0)
 					{
 						gran->parameters["rho" + nam] = gran->cells[0]->parameters[now1]["rho" + nam];
 						gran->parameters["p" + nam] = gran->cells[0]->parameters[now1]["p" + nam];
@@ -878,9 +866,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					{
 						gran->parameters["rho" + nam] = gran->cells[0]->parameters[now1]["rho" + nam];
 						gran->parameters["p" + nam] = gran->cells[0]->parameters[now1]["p" + nam];
-						gran->parameters["Vx" + nam] = 0.0001 * gran->normal[now1][0];
-						gran->parameters["Vy" + nam] = 0.0001 * gran->normal[now1][1];
-						gran->parameters["Vz" + nam] = 0.0001 * gran->normal[now1][2];
+						gran->parameters["Vx" + nam] = 0.1 * gran->normal[now1][0];
+						gran->parameters["Vy" + nam] = 0.1 * gran->normal[now1][1];
+						gran->parameters["Vz" + nam] = 0.1 * gran->normal[now1][2];
 					}
 				}
 			}
@@ -1346,6 +1334,20 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			qqq2[5] = qqq2[6] = qqq2[7] = 0.0;
 		}
 
+
+		// Делаем HLLC в зоне 3-4 (пока для гладкости полей)
+		if (gr->cells.size() == 2)
+		{
+			if (gr->cells[0]->type == Type_cell::Zone_3 || gr->cells[0]->type == Type_cell::Zone_4)
+			{
+				if (gr->cells[1]->type == Type_cell::Zone_3 || gr->cells[1]->type == Type_cell::Zone_4)
+				{
+					metod_ = 2;
+				}
+			}
+		}
+
+
 		this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
 			gr->normal[now][2],
 			w, qqq1, qqq2, qqq, false, 3,
@@ -1418,7 +1420,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		qqq2[7] = 0.0;
 
 		// metod
-		this->phys_param->chlld(2, gr->normal[now][0], gr->normal[now][1],
+		this->phys_param->chlld(0, gr->normal[now][0], gr->normal[now][1],
 			gr->normal[now][2],
 			w, qqq1, qqq2, qqq, false, 3,
 			konvect_left, konvect_right, konvect, dsr, dsc, dsl,

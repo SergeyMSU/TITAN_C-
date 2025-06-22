@@ -86,6 +86,19 @@ Interpol::Interpol(string name)
     cout << "END: Interpol" << endl;
 }
 
+Interpol::~Interpol()
+{
+    delete Delone;
+    for (auto& i : this->Cells)
+    {
+        delete i;
+    }
+
+    this->Cells.clear();
+    this->points.clear();
+    this->param_names.clear();
+}
+
 // Вычисление объёма тетраэдра
 double tetrahedron_volume(const Point& A, const Point& B, const Point& C, const Point& D) {
     Vector AB = B - A;

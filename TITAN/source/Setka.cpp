@@ -130,28 +130,35 @@ Setka::~Setka()
 		delete i;
 	}
 	this->All_Yzel.clear();
-
+	cout << "A1" << endl;
 	for (auto& i : this->All_Cell)
 	{
 		delete i;
 	}
 	this->All_Cell.clear();
 
+	cout << "A2" << endl;
 	for (auto& i : this->All_Gran)
 	{
 		delete i;
 	}
 	this->All_Gran.clear();
 
+	cout << "A3" << endl;
 	for (auto& i : this->All_Luch)
 	{
 		delete i;
 	}
 	this->All_Luch.clear();
 
+	cout << "A4" << endl;
 	delete this->Cell_Center;
+	cout << "A5" << endl;
 	delete this->geo;
-	delete this->phys_param;
+	cout << "A6" << endl;
+
+	//delete this->phys_param;
+	cout << "A7" << endl;
 
 }
 
@@ -4001,6 +4008,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 		NN2 += i.size();
 	}
 
+	
 	cout << "Tecplot_print_2D: print" << endl;
 
 	// Рисуем саму сетку
@@ -4054,7 +4062,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 	}
 	fout << endl;
 
-	fout << "ZONE T=\"Polygon Zone\", ";
+	fout << "ZONE T=HP, ";
 
 	fout << "NODES = " << NN << ", ELEMENTS = " << NN2 << ", F = FEPOINT, ET = TRIANGLE" << endl;
 
@@ -4066,7 +4074,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 
 	for (const auto& i : all_setka)
 	{
-		auto kj = i;
+		std::vector< std::array<double, 3> > kj(i);
 		C2 << 0.0, 0.0, 0.0;
 
 		for (const auto& j : i)
@@ -4076,9 +4084,11 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 			C(2) = j[2];
 			C2 += C;
 		}
-		C2 /= i.size();
+		C2 /= (1.0 * i.size());
 
 		kj.push_back({ C2[0], C2[1], C2[2] });
+
+		bool visible = true;
 
 		for (const auto& j : kj)
 		{
@@ -4086,7 +4096,42 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 			C(1) = j[1];
 			C(2) = j[2];
 			fine_int = Int1->Get_param(C(0), C(1), C(2), parameters, prev_cell, next_cell);
-			fout << C(0) << " " << C(1) << " " << C(2);
+			if (fine_int == false)
+			{
+				C = C * 0.999;
+				fine_int = Int1->Get_param(C(0), C(1), C(2), parameters, prev_cell, next_cell);
+			}
+
+			if (fine_int == true) next_cell = prev_cell;
+			if (fine_int == false)
+			{
+				visible = false;
+				break;
+			}
+		}
+
+		for (const auto& j : kj)
+		{
+			C(0) = j[0];
+			C(1) = j[1];
+			C(2) = j[2];
+			fine_int = Int1->Get_param(C(0), C(1), C(2), parameters, prev_cell, next_cell);
+			if (fine_int == false)
+			{
+				C = C * 0.999;
+				fine_int = Int1->Get_param(C(0), C(1), C(2), parameters, prev_cell, next_cell);
+			}
+
+			if (fine_int == true) next_cell = prev_cell;
+
+			if (visible == false)
+			{
+				fout << 0.0 << " " << 0.0 << " " << 0.0;
+			}
+			else
+			{
+				fout << C(0) << " " << C(1) << " " << C(2);
+			}
 
 			/*if (fabs(C(2)) > 0.001)
 			{
@@ -4100,7 +4145,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 
 			for (auto& nam : Int1->param_names)
 			{
-				if (fine_int == true)
+				if (fine_int == true && visible == true)
 				{
 					if (nam != "Q")
 					{
@@ -4118,6 +4163,8 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 			}
 			fout << endl;
 		}
+
+		kj.clear();
 	}
 
 	size_t all_k = 1;
@@ -4131,7 +4178,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 			fout << all_k + k1 << " " << all_k + ii << " " << all_k + k2 << endl;
 		}
 
-		all_k = all_k + k1;
+		all_k = all_k + k1 + 1;
 	}
 
 	fout.close();

@@ -47,9 +47,12 @@ public:
     bool move_BS = true;
 
     bool sglag_TS = true;              // Делаем ли сглаживание TS
-    double sglag_TS_k = 0.006;   
+    double sglag_TS_k = 0.005;   
+    double sglag_TS_k_sphere = 0.03;   // Сглаживание в головной и хвостовой части
+
 
     bool sglag_HP = true;
+    double sglag_HP_k_sphere = 0.001;      // Сферическое сглиживание в головной части
     double sglag_HP_k = 0.003;
     double sglag_HP_angle = 1.2;    // Можно немного усилить сглаживание по углу
     double sglag_HP_along = 1.0;    // Можно немного усилить сглаживание вдоль х
