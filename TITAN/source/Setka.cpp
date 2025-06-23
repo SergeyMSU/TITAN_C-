@@ -4121,6 +4121,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 	{
 		fout << ", " << nam;
 	}
+	fout << ", Mach";
 	fout << endl;
 
 	fout << "ZONE T=HP, ";
@@ -4194,15 +4195,6 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 				fout << C(0) << " " << C(1) << " " << C(2);
 			}
 
-			/*if (fabs(C(2)) > 0.001)
-			{
-				cout << "Error   5674567547546746765756" << endl;
-				cout << C(0) << endl;
-				cout << C(1) << endl;
-				cout << C(2) << endl;
-				exit(-1);
-			}*/
-
 
 			for (auto& nam : Int1->param_names)
 			{
@@ -4222,6 +4214,11 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 					fout << " " << 0.0;
 				}
 			}
+
+			fout << " " << sqrt(parameters["rho"]) * norm2(parameters["Vx"], parameters["Vy"], parameters["Vz"])/
+				sqrt(this->phys_param->gamma * parameters["p"]);
+
+
 			fout << endl;
 		}
 
