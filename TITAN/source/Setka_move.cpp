@@ -386,7 +386,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
 			if (phi < this->geo->tetta0 || phi > this->geo->tetta1)
 			{
-				pk *= this->phys_param->sglag_TS_k_sphere;
+				pk = this->phys_param->sglag_TS_k_sphere;
 			}
 
 			V = pk * (B - A) / time;

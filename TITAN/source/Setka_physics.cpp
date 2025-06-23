@@ -257,31 +257,11 @@ void Setka::Init_physics(void)
 		{
 			if ( sqrt(kv(i->center[0][1]) + kv(i->center[0][2])) > 300)
 			{
-
-				i->parameters[0]["rho"] = 1.0 * (1.0 + this->phys_param->mn_He_inf);
-				i->parameters[0]["n_He"] = this->phys_param->mn_He_inf;
-				i->parameters[0]["p"] = 1 + (i->parameters[0]["n_He"]) /
-					(i->parameters[0]["rho"] - i->parameters[0]["n_He"]);
-				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
-				i->parameters[0]["Vy"] = 0.0;
-				i->parameters[0]["Vz"] = 0.0;
-				i->parameters[0]["Bx"] = -this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
-				i->parameters[0]["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
-				i->parameters[0]["Bz"] = 0.0;
-				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
-
-				i->parameters[0]["rho_H1"] = 0.00001;
-				i->parameters[0]["Vx_H1"] = 0.0;
-				i->parameters[0]["Vy_H1"] = 0.0;
-				i->parameters[0]["Vz_H1"] = 0.0;
-				i->parameters[0]["p_H1"] = 0.00001;
-
-				i->parameters[0]["rho_H2"] = 0.00001;
-				i->parameters[0]["Vx_H2"] = 0.0;
-				i->parameters[0]["Vy_H2"] = 0.0;
-				i->parameters[0]["Vz_H2"] = 0.0;
-				i->parameters[0]["p_H2"] = 0.00001;
-
+				i->parameters[0]["rho_H4"] = 1.0;
+				i->parameters[0]["Vx_H4"] = this->phys_param->Velosity_inf;
+				i->parameters[0]["Vy_H4"] = 0.0;
+				i->parameters[0]["Vz_H4"] = 0.0;
+				i->parameters[0]["p_H4"] = 0.5;
 				i->parameters[1] = i->parameters[0];
 			}
 
@@ -1336,7 +1316,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 
 		// Делаем HLLC в зоне 3-4 (пока для гладкости полей)
-		if (gr->cells.size() == 2)
+		/*if (gr->cells.size() == 2)
 		{
 			if (gr->cells[0]->type == Type_cell::Zone_3 || gr->cells[0]->type == Type_cell::Zone_4)
 			{
@@ -1345,8 +1325,9 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 					metod_ = 2;
 				}
 			}
-		}
+		}*/
 
+		metod_ = 2;
 
 		this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
 			gr->normal[now][2],

@@ -24,6 +24,10 @@ void dekard_skorost(const double& z, const double& x, const double& y,
 	const double& Vr, const double& Vphi, const double& Vtheta,
 	double& Vz, double& Vx, double& Vy);
 
+void spherical_skorost(const double& z, const double& x, const double& y,
+	const double& Vz, const double& Vx, const double& Vy,
+	double& Vr, double& Vphi, double& Vtheta);
+
 double triangleArea3D(
 	const double& x1, const double& y1, const double& z1,
 	const double& x2, const double& y2, const double& z2,

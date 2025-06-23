@@ -15,6 +15,7 @@ class Int_point;
 
 
 #define kv(x) ((x) * (x))
+#define kvg(x) (pow(x, 2.0 * this->phys_param->gamma))
 #define kyb(x) ((x) * (x) * (x))
 #define kvv(x, y, z) ((x) * (x) + (y) * (y) + (z) * (z))
 #define norm2(x, y, z) (sqrt(kvv(x, y, z)))
