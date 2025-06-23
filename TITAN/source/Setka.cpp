@@ -888,6 +888,9 @@ void Setka::New_initial()
 	this->geo->dd6 = 14.0;
 
 
+	this->geo->dd7 = 0.7;
+
+
 	// —читываем узлы
 	int sdvig_yz = 0;
 	if (true)
@@ -2741,6 +2744,61 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 			}
 		}
 
+		// дл€ G лучей 
+		for (int ik = 0; ik < this->G_Luch.size(); ik++)
+		{
+				auto A = this->G_Luch[ik][0];
+				auto B = this->B_Luch[ik].back();
+
+				auto a1 = A->get_yzel_near_opor(2, -3);
+				auto a2 = A->Yzels_opor[2];
+
+				auto b1 = B->Yzels_opor[2];
+				auto b2 = B->get_yzel_near_opor(2, -3);
+
+				double d2 = Yzel_distance(a1, a2, 0);
+				double d1 = Yzel_distance(b1, b2, 0);
+
+				auto i = this->G_Luch[ik][0];
+
+				if (i->parameters.find("dd2") == i->parameters.end() || i->parameters["dd2"] > 0.01)
+				{
+					if ((100.0 - d2 * 100.0 / d1) > 0.5)
+					{
+						k++;
+						izmen = true;
+						for (auto& kk : this->G_Luch[ik])
+						{
+							if (kk->parameters.find("dd2") != kk->parameters.end())
+							{
+								kk->parameters["dd2"] *= (1.0 + procent / 100.0);
+							}
+							else
+							{
+								kk->parameters["dd2"] = this->geo->dd2 * (1.0 + procent / 100.0);
+							}
+						}
+					}
+					else if ((100.0 - d2 * 100.0 / d1) < -0.5)
+					{
+						k++;
+						izmen = true;
+						for (auto& kk : this->G_Luch[ik])
+						{
+							if (kk->parameters.find("dd2") != kk->parameters.end())
+							{
+								kk->parameters["dd2"] *= (1.0 - procent / 100.0);
+							}
+							else
+							{
+								kk->parameters["dd2"] = this->geo->dd2 * (1.0 - procent / 100.0);
+							}
+						}
+					}
+				}
+	
+
+		}
 
 		for (auto& i : this->All_Luch)
 		{

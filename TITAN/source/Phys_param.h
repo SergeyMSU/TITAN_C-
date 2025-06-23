@@ -48,7 +48,7 @@ public:
 
     bool sglag_TS = true;              // Делаем ли сглаживание TS
     double sglag_TS_k = 0.005;         // Сглаживание на высоких широтах
-    double sglag_TS_k_sphere = 1.0; // 0.3;   // Сглаживание в головной и хвостовой части
+    double sglag_TS_k_sphere = 0.001; // 0.3;   // Сглаживание в головной и хвостовой части
     // Не может быть больше 1
 
     bool sglag_HP = true;

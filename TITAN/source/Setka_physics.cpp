@@ -1331,7 +1331,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 		this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
 			gr->normal[now][2],
-			w, qqq1, qqq2, qqq, false, 3,
+			w, qqq1, qqq2, qqq, false, 1,
 			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
 			Option);
 
@@ -1403,7 +1403,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		// metod
 		this->phys_param->chlld(0, gr->normal[now][0], gr->normal[now][1],
 			gr->normal[now][2],
-			w, qqq1, qqq2, qqq, false, 3,
+			w, qqq1, qqq2, qqq, false, 1,
 			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
 			Option);
 

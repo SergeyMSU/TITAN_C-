@@ -665,8 +665,19 @@ void Luch::dvigenie(int i_time)
 		auto yz1 = this->Yzels_opor[1];
 		auto yz2 = this->Yzels_opor[2];
 		auto yz3 = this->Yzels_opor[0];
+
 		double dd1 = this->geo->dd1;
 		double dd2 = this->geo->dd2;
+
+		if (this->parameters.find("dd1") != this->parameters.end())
+		{
+			dd1 = this->parameters["dd1"];
+		}
+
+		if (this->parameters.find("dd2") != this->parameters.end())
+		{
+			dd2 = this->parameters["dd2"];
+		}
 
 		int M1 = this->geo->M1;
 		int M11 = this->geo->M11;
