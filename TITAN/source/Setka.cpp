@@ -3642,7 +3642,7 @@ void Setka::Tecplot_print_cell_plane_parameters()
 	{
 		fout << ", " << nn;
 	}
-	fout << ", my_zone";
+	fout << ", my_zone, Mach";
 	fout << endl;
 
 	int kkk = 1;
@@ -3690,6 +3690,9 @@ void Setka::Tecplot_print_cell_plane_parameters()
 		{
 			fout << " " << 0.0;
 		}
+
+		fout << " " << norm2(i->parameters[0]["Vx"], i->parameters[0]["Vy"], i->parameters[0]["Vz"])/
+			sqrt(this->phys_param->gamma * i->parameters[0]["p"] / i->parameters[0]["rho"]);
 
 		fout << endl;
 	}
