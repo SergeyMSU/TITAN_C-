@@ -251,7 +251,7 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// –едактирование каких-то переменных
-	if (true)
+	if (false)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -1472,8 +1472,18 @@ void Setka::Save_for_interpolate(string filename)
 		out.write(str.data(), str_size);
 	}
 
+	// —читаем сколько дополнительных €чеек будет на внешней границе
+	unsigned int gr_b = 0;
+	for (const auto& gr : this->All_boundary_Gran)
+	{
+		if (gr->type != Type_Gran::Inner_Hard)
+		{
+			gr_b++;
+		}
+	}
+
 	// «аписываем количество €чеек
-	size = this->All_Cell.size();
+	size = this->All_Cell.size() + gr_b;
 	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 	for (const auto& Cel : this->All_Cell)
@@ -1489,6 +1499,33 @@ void Setka::Save_for_interpolate(string filename)
 		{
 			aa = Cel->parameters[0][i];
 			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+		}
+	}
+
+	// «аписываем дополнительные точки (на небольшом удалении от внешней границы, чтоб 
+	// убрать артефакты в интерпол€ции
+	Eigen::Vector3d C1, C2, C3, C4;
+	for (const auto& gr : this->All_boundary_Gran)
+	{
+		if (gr->type != Type_Gran::Inner_Hard)
+		{
+			auto A = gr->cells[0];
+			C1 << A->center[0][0], A->center[0][1], A->center[0][2];
+			C2 << gr->center[0][0], gr->center[0][1], gr->center[0][2];
+			C3 = C2 - C1;
+			C4 = C2 + C3;
+			double aa = C4[0];
+			double bb = C4[1];
+			double cc = C4[2];
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = A->parameters[0][i];
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
 		}
 	}
 
