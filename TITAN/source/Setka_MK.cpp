@@ -281,4 +281,36 @@ void Setka::Set_MK_Zone(void)
 
 
 	}
+
+	for (size_t jj = 0; jj < 7; jj++)
+	{
+		cout << "MK_grans:  " << jj << "   size = " << this->MK_Grans[jj].size() << endl;
+	}
+
+	// ѕровер€ем, что в массивах нет повторов
+	if (false)
+	{
+		for (size_t jj = 0; jj < 7; jj++)
+		{
+			for (auto& i : this->All_Gran)
+			{
+				i->work1 = false;
+			}
+
+			for (auto& i : this->MK_Grans[jj])
+			{
+				if (i->work1 == false)
+				{
+					i->work1 = true;
+				}
+				else
+				{
+					cout << "ERROR 6435856408" << endl;
+					cout << jj << endl;
+				}
+			}
+		}
+			
+
+	}
 }
