@@ -70,11 +70,16 @@ public:
 	vector<Luch*> C2_Luch;
 
 
-	Surfaces* Surf1;
+	Surfaces* Surf1;  // Для считывания поверхностей разрыва и движения сетки к ним
 	
+
+	// Параметры для Монте-Карло
+	vector < vector<Gran*>> MK_Grans;
 
 	Setka();
 	~Setka();
+
+	void Algoritm(short int alg);
 
 	void Winslow_method(void);  // Реализован winslow метод для триангуляции круга (можно для любой фигуры адаптировать)
 
@@ -138,6 +143,8 @@ public:
 
 	int determ_zone(Cell* C, short int now); // Определить зону, в которой находится ячейка
 	// Зоны есть  1, 2, 3, 4
+
+	void Set_MK_Zone(void);
 
 	void Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		short int now, short int zone);
@@ -208,7 +215,7 @@ public:
 	void Tecplot_print_all_gran_in_surface(string name_surf);
 	// печатает грани на поверхности
 
-	void Tecplot_print_gran_with_condition();
+	void Tecplot_print_gran_with_condition(short int iii);
 
 	// *************************************************
 	// High_level_of_visualization

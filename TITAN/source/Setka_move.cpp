@@ -258,10 +258,10 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			{
 				if (metod_ == 3) metod_ = 2;
 
-				qqq1[4] += norm2(qqq1[5], qqq1[6], qqq1[7]) / (8.0 * const_pi);
+				qqq1[4] += kvv(qqq1[5], qqq1[6], qqq1[7]) / (8.0 * const_pi);
 				qqq1[5] = qqq1[6] = qqq1[7] = 0.0;
 
-				qqq2[4] += norm2(qqq2[5], qqq2[6], qqq2[7]) / (8.0 * const_pi);
+				qqq2[4] += kvv(qqq2[5], qqq2[6], qqq2[7]) / (8.0 * const_pi);
 				qqq2[5] = qqq2[6] = qqq2[7] = 0.0;
 			}
 

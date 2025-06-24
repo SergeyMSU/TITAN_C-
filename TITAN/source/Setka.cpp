@@ -162,6 +162,18 @@ Setka::~Setka()
 
 }
 
+void Setka::Algoritm(short int alg)
+{
+	// 2 - Монте-Карло
+
+	if (alg == 2)
+	{
+		// Определим зоны для МК
+		this->Set_MK_Zone();
+
+	}
+}
+
 Cell* Setka::Find_cell_point(const double& x, const double& y, const double& z, short int now, Cell*& previos)
 {
 	// now - какие координаты сейчас актуальны (0 по умолчанию)
@@ -2090,6 +2102,8 @@ void Setka::New_append_surfaces()
 				if(kl == 3) i->Yzels[j]->type = Type_yzel::Zone_4;
 			}
 
+			i->Yzels_opor[2]->type = Type_yzel::Us;
+
 			i->Yzels_opor[1]->type = Type_yzel::HP;
 		}
 		else if (i->type == "D_Luch")
@@ -2104,6 +2118,9 @@ void Setka::New_append_surfaces()
 				if (kl == 2) i->Yzels[j]->type = Type_yzel::Zone_3;
 				if (kl == 3) i->Yzels[j]->type = Type_yzel::Zone_4;
 			}
+
+			i->Yzels_opor[1]->type = Type_yzel::Us;
+			i->Yzels_opor[2]->type = Type_yzel::Us;
 
 			if (i->Yzels_opor[1]->coord[0][0] >= this->geo->L6 - 0.00001)
 			{
@@ -3779,11 +3796,11 @@ void Setka::Tecplot_print_all_gran_in_surface(string name_surf)
 }
 
 
-void Setka::Tecplot_print_gran_with_condition()
+void Setka::Tecplot_print_gran_with_condition(short int iii)
 {
 	// name - это имя лучей
 	ofstream fout;
-	string name_f = "Tecplot_print_gran_with_condition.txt";
+	string name_f = "Tecplot_print_gran_with_condition_" + to_string(iii) + "_.txt";
 
 
 	fout.open(name_f);
@@ -3792,29 +3809,16 @@ void Setka::Tecplot_print_gran_with_condition()
 	int k = 0; 
 	int kk = 0;
 
-	for (auto& i : this->All_Gran)
+	for (auto& i : this->MK_Grans[iii])
 	{
-		if(i->cells.size() == 1)
-		{ 
-			k++;
-			kk += i->yzels.size();
-		}
-
-		if (i->cells.size() <= 0 || i->cells.size() > 2)
-		{
-			cout << "Error 0909090016" << endl;
-		}
+		k++;
+		kk += i->yzels.size();
 	}
 
 	fout << "ZONE T=HP, N = " << kk << ", E = " << k << ", F=FEPOINT, ET=quadrilateral" << endl;
 
-	for (auto& C : this->All_Gran)
+	for (auto& C : this->MK_Grans[iii])
 	{
-		if (C->cells.size() != 1)
-		{
-			continue;
-		}
-
 		for (auto& j : C->yzels)
 		{
 			fout << j->coord[0][0] << " " << j->coord[0][1] << " " << j->coord[0][2] << endl;
@@ -3822,13 +3826,8 @@ void Setka::Tecplot_print_gran_with_condition()
 	}
 	
 	k = 1;
-	for (auto& C : this->All_Gran)
+	for (auto& C : this->MK_Grans[iii])
 	{
-		if (C->cells.size() != 1)
-		{
-			continue;
-		}
-
 		for (int i = k; i < k + C->yzels.size(); i++)
 		{
 			fout << i << " ";

@@ -1,5 +1,17 @@
 #include "Gran.h"
 
+short int Gran::Get_method()
+{
+	// 0 - Лакс
+	// 1 - HLL
+	// 2 - HLLC
+	// 3 - HLLD
+
+	if (this->type2 != Type_Gran_surf::Us) return 3;
+
+	return 0;
+}
+
 void Gran::Culc_measure(unsigned short int st_time)
 {
 	double xc, yc, zc;

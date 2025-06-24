@@ -1,6 +1,7 @@
 #pragma once
 #include"Header.h"
 
+// ячейкам задаютс€ зоны в функции New_append_surfaces
 enum class Type_cell {
 	none,   // 0
 	Zone_1,  // 1   
@@ -8,6 +9,7 @@ enum class Type_cell {
 	Zone_3,  // 3   
 	Zone_4  // 4   
 };
+
 
 class Cell
 {
@@ -18,6 +20,9 @@ public:
 	bool is_inner = false;         // явл€етс€ ли €чейка внутренней (которые считаютс€ отдельно)
 
 	Type_cell type = Type_cell::none;  // по умолчанию создаЄм обычный узел
+
+	short unsigned int MK_zone_r = 0;
+	short unsigned int MK_zone_phi = 0;
 
 	std::array < unordered_map<string, double>, 2> parameters;   // ѕараметры в €чейке (тут могут быть значени€
 	// плазменных полей, значени€ дивергенций и т.д.

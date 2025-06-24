@@ -1031,10 +1031,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					n_He3 = 0.0;
 				}
 
-				if (rho3 < 0.0000000001)
+				if (rho3 < 0.00000001)
 				{
-					rho3 = 0.001;
+					rho3 = 0.0001;
 					Q3 = Q / rho * rho3;
+					cout << "Plasma  rho < 0" << endl;
 				}
 
 				u3 = (rho * vx * Volume / Volume2 - time * (POTOK[1] + (bx / cpi4) * POTOK[8]) / Volume2
@@ -1072,10 +1073,15 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				}
 
 
-				if (p3 < 0.0000000001)
+				if (p3 < 0.00000001)
 				{
-					p3 = 0.0000001;
+					p3 = 0.000001;
+					/*cout << "Plasma  p < 0" << endl;
+					cout << cell->center[now2][0] << " " << 
+						cell->center[now2][1] << " " <<
+						cell->center[now2][2] << endl;*/
 				}
+				
 
 				cell->parameters[now2]["rho"] = rho3;
 				if (cell->parameters[now1].find("Q") != cell->parameters[now1].end())
@@ -1116,9 +1122,10 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				rho3 = rho * Volume / Volume2 - time * POTOK_F[i][0] / Volume2 + time * SOURSE[i + 1][0];
 
-				if (rho3 < 0.0000000001)
+				if (rho3 < 0.00000001)
 				{
-					rho3 = 0.01;
+					rho3 = 0.00000001;
+					//cout << "Hidrogen  rho < 0  " << nam << endl;
 				}
 
 				u3 = (rho * vx * Volume / Volume2 - time * (POTOK_F[i][1]) / Volume2
@@ -1133,9 +1140,13 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					- time * (POTOK_F[i][4]) / Volume2 + time * SOURSE[i + 1][4]) -
 					0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
 
-				if (p3 < 0.0000000001)
+				if (p3 < 0.00000001)
 				{
-					p3 = 0.005;
+					p3 = 0.00000001;
+					//cout << "Hidrogen  p < 0  " << nam << endl;
+					//cout << "Center = " << cell->center[now2][0] << " " <<
+					//	cell->center[now2][1] << " " <<
+					//	cell->center[now2][2] << endl;
 				}
 
 				cell->parameters[now2]["rho" + nam] = rho3;
@@ -1307,10 +1318,10 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		{
 			if (metod_ == 3) metod_ = 2;
 
-			qqq1[4] += norm2(qqq1[5], qqq1[6], qqq1[7]) / (8.0 * const_pi);
+			qqq1[4] += kvv(qqq1[5], qqq1[6], qqq1[7]) / (8.0 * const_pi);
 			qqq1[5] = qqq1[6] = qqq1[7] = 0.0;
 
-			qqq2[4] += norm2(qqq2[5], qqq2[6], qqq2[7]) / (8.0 * const_pi);
+			qqq2[4] += kvv(qqq2[5], qqq2[6], qqq2[7]) / (8.0 * const_pi);
 			qqq2[5] = qqq2[6] = qqq2[7] = 0.0;
 		}
 
@@ -1327,7 +1338,9 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			}
 		}*/
 
-		metod_ = 2;
+		metod_ = gr->Get_method();
+
+		//metod_ = 2;
 
 		this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
 			gr->normal[now][2],
