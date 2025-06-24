@@ -905,6 +905,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 #pragma omp barrier
 		//cout << "barrier" << endl;
 
+		bool print_p_less_0 = false;
+
 		// Расчитываем законы сохранения в ячейках
 #pragma omp parallel for
 		for (size_t i_step = 0; i_step < cell_list->size(); i_step++)
@@ -1076,10 +1078,14 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				if (p3 < 0.00000001)
 				{
 					p3 = 0.000001;
-					/*cout << "Plasma  p < 0" << endl;
-					cout << cell->center[now2][0] << " " << 
-						cell->center[now2][1] << " " <<
-						cell->center[now2][2] << endl;*/
+					if (step % 25 == 0 && print_p_less_0 == false)
+					{
+						cout << "Plasma  p < 0" << endl;
+						cout << cell->center[now2][0] << " " <<
+							cell->center[now2][1] << " " <<
+							cell->center[now2][2] << endl;
+					}
+					print_p_less_0 = true;
 				}
 				
 

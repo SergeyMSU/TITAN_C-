@@ -47,13 +47,14 @@ public:
     bool move_BS = true;
 
     bool sglag_TS = true;              // ƒелаем ли сглаживание TS
-    double sglag_TS_k = 0.001;         // —глаживание на высоких широтах
-    double sglag_TS_k_sphere = 0.001; // 0.3;   // —глаживание в головной и хвостовой части
+    double sglag_TS_k = 0.0005;         // —глаживание на высоких широтах
+    double sglag_TS_k_sphere = 0.0005; // 0.3;   // —глаживание в головной и хвостовой части
     // Ќе может быть больше 1
 
     bool sglag_HP = true;
-    double sglag_HP_k_sphere = 0.00005;      // —ферическое сглиживание в головной части
-    double sglag_HP_k = 0.0001;          // —глаживание не в головной области
+    double velocity_HP = 1.0;
+    double sglag_HP_k_sphere = 0.00001;      // —ферическое сглиживание в головной части
+    double sglag_HP_k = 0.0005;          // —глаживание не в головной области
     double sglag_HP_angle = 1.2;    // коэффициент усилине€ сглаживани€ по углу
     double sglag_HP_along = 1.0;    // коэффициент усилине€ сглаживани€ вдоль х
 

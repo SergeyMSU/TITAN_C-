@@ -52,7 +52,7 @@ B = A;\
 B[1] *= r1 / p[1];\
 B[2] *= r1 / p[1];\
 \
-V = this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / time;\
+V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / time;\
 \
 AA->velocity[0] += V[0];\
 AA->velocity[1] += V[1];\
@@ -63,7 +63,7 @@ B = A;\
 B[1] *= r2 / p[1];\
 B[2] *= r2 / p[1];\
 \
-V = this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / time;\
+V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / time;\
 \
 AA->velocity[0] += V[0];\
 AA->velocity[1] += V[1];\
@@ -74,7 +74,7 @@ B = A;\
 B[1] *= r3 / p[1];\
 B[2] *= r3 / p[1];\
 \
-V = this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / time;\
+V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / time;\
 \
 AA->velocity[0] += V[0];\
 AA->velocity[1] += V[1];\
@@ -85,7 +85,7 @@ B = A;\
 B[1] *= r4 / p[1];\
 B[2] *= r4 / p[1];\
 \
-V = this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / time;\
+V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / time;\
 \
 AA->velocity[0] += V[0];\
 AA->velocity[1] += V[1];\
@@ -135,6 +135,11 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		auto A = gr->cells[0];
 		auto B = gr->cells[1];
 
+		unordered_map<string, double> par_left;
+		unordered_map<string, double> par_right;
+
+		Snos_on_Gran(gr, par_left, par_right, now);
+
 		std::vector<double> qqq, qqq1, qqq2;
 		qqq.resize(8);
 		qqq1.resize(8);
@@ -142,24 +147,24 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		std::vector<double> konvect_left, konvect_right, konvect;
 		PrintOptions Option = PrintOptions{};
 
+		//A->parameters[now]
+		qqq1[0] = par_left["rho"];
+		qqq1[1] = par_left["Vx"];
+		qqq1[2] = par_left["Vy"];
+		qqq1[3] = par_left["Vz"];
+		qqq1[4] = par_left["p"];
+		qqq1[5] = par_left["Bx"];
+		qqq1[6] = par_left["By"];
+		qqq1[7] = par_left["Bz"];
 
-		qqq1[0] = A->parameters[now]["rho"];
-		qqq1[1] = A->parameters[now]["Vx"];
-		qqq1[2] = A->parameters[now]["Vy"];
-		qqq1[3] = A->parameters[now]["Vz"];
-		qqq1[4] = A->parameters[now]["p"];
-		qqq1[5] = A->parameters[now]["Bx"];
-		qqq1[6] = A->parameters[now]["By"];
-		qqq1[7] = A->parameters[now]["Bz"];
-
-		qqq2[0] = B->parameters[now]["rho"];
-		qqq2[1] = B->parameters[now]["Vx"];
-		qqq2[2] = B->parameters[now]["Vy"];
-		qqq2[3] = B->parameters[now]["Vz"];
-		qqq2[4] = B->parameters[now]["p"];
-		qqq2[5] = B->parameters[now]["Bx"];
-		qqq2[6] = B->parameters[now]["By"];
-		qqq2[7] = B->parameters[now]["Bz"];
+		qqq2[0] = par_right["rho"];
+		qqq2[1] = par_right["Vx"];
+		qqq2[2] = par_right["Vy"];
+		qqq2[3] = par_right["Vz"];
+		qqq2[4] = par_right["p"];
+		qqq2[5] = par_right["Bx"];
+		qqq2[6] = par_right["By"];
+		qqq2[7] = par_right["Bz"];
 
 		double w = 0.0;
 
@@ -256,7 +261,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			// И удаляем магнитные поля
 			if (this->phys_param->bn_in_p_on_HP == true)
 			{
-				if (metod_ == 3) metod_ = 2;
+				metod_ = 2;
 
 				qqq1[4] += kvv(qqq1[5], qqq1[6], qqq1[7]) / (8.0 * const_pi);
 				qqq1[5] = qqq1[6] = qqq1[7] = 0.0;
@@ -275,15 +280,15 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			{
 #pragma omp critical (s1) 
 				{
-					yz->velocity[0] += 0.1 * dsc * gr->normal[now][0];
+					yz->velocity[0] += this->phys_param->velocity_HP * dsc * gr->normal[now][0];
 				}
 #pragma omp critical (s2) 
 				{
-					yz->velocity[1] += 0.1 * dsc * gr->normal[now][1];
+					yz->velocity[1] += this->phys_param->velocity_HP * dsc * gr->normal[now][1];
 				}
 #pragma omp critical (s3) 
 				{
-					yz->velocity[2] += 0.1 * dsc * gr->normal[now][2];
+					yz->velocity[2] += this->phys_param->velocity_HP * dsc * gr->normal[now][2];
 				}
 #pragma omp critical (s4) 
 				{
@@ -428,7 +433,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			B = A * r / rr;
 
-			V = this->phys_param->sglag_HP_k_sphere * (B - A) / time;
+			V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_k_sphere * (B - A) / time;
 			
 			for (auto& yz : gr->yzels)
 			{
