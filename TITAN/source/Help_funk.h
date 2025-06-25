@@ -2,6 +2,8 @@
 #include <math.h>
 #include "Header.h"
 
+bool file_exists(const std::string& filename);
+
 void Sootnosheniya(const double& rho, const double& p, const double& rho_He,
 	const double& rho_Pui, const double& T_Pui,
 	const short int& zone,

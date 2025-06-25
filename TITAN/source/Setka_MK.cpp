@@ -3,6 +3,7 @@
 
 void Setka::Set_MK_Zone(void)
 {
+	cout << "Start Set_MK_Zone" << endl;
 	this->Renumerate();
 	Eigen::Vector3d Centr;
 
@@ -19,6 +20,7 @@ void Setka::Set_MK_Zone(void)
 		if (cell->type == Type_cell::Zone_1)
 		{
 			cell->MK_zone_r = 1;
+			cell->MK_zone = 1;
 			cell->MK_zone_phi = 0;
 		}
 		else if (cell->type == Type_cell::Zone_2)
@@ -27,10 +29,12 @@ void Setka::Set_MK_Zone(void)
 			if (Centr[0] > 0)
 			{
 				cell->MK_zone_phi = 1;
+				cell->MK_zone = 2;
 			}
 			else
 			{
 				cell->MK_zone_phi = 2;
+				cell->MK_zone = 3;
 			}
 		}
 		else if (cell->type == Type_cell::Zone_3)
@@ -39,10 +43,12 @@ void Setka::Set_MK_Zone(void)
 			if (Centr[0] > 0)
 			{
 				cell->MK_zone_phi = 1;
+				cell->MK_zone = 4;
 			}
 			else
 			{
 				cell->MK_zone_phi = 2;
+				cell->MK_zone = 5;
 			}
 		}
 		else if (cell->type == Type_cell::Zone_4)
@@ -51,10 +57,12 @@ void Setka::Set_MK_Zone(void)
 			if (Centr[0] > 0)
 			{
 				cell->MK_zone_phi = 1;
+				cell->MK_zone = 6;
 			}
 			else
 			{
 				cell->MK_zone_phi = 2;
+				cell->MK_zone = 7;
 			}
 		}
 		else
@@ -313,10 +321,22 @@ void Setka::Set_MK_Zone(void)
 			
 
 	}
+
+	cout << "END Set_MK_Zone" << endl;
 }
 
 void Setka::MK_prepare(short int zone_MK)
 {
+	cout << "Start MK_prepare   zone_MK = " << zone_MK << endl;
+	// zone_MK должно начинаться с единицы
+	if (zone_MK == 0)
+	{
+		cout << "Error 2341238507" << endl;
+		exit(-1);
+	}
+
+	this->Renumerate();
+
 	// Блок загрузки датчиков случайных чисел
 	if (true)
 	{
@@ -337,7 +357,7 @@ void Setka::MK_prepare(short int zone_MK)
 		fin2.close();
 	}
 
-	if (this->MK_Grans.size() < zone_MK || this->MK_Grans[zone_MK].size() == 0)
+	if (this->MK_Grans.size() < zone_MK || this->MK_Grans[zone_MK - 1].size() == 0)
 	{
 		cout << "Error 2341963846" << endl;
 		exit(-1);
@@ -346,6 +366,92 @@ void Setka::MK_prepare(short int zone_MK)
 	// Готовим/загружаем AMR сетку для граней
 	if (true)
 	{
+		for (auto& gr : this->MK_Grans[zone_MK - 1])
+		{
+			if (gr->AMR.size() < 4)
+			{
+				gr->AMR.resize(4);
+			}
 
+			for(short int ii = 0; ii <= 1; ii++)\
+			{
+				for (short int iH = 1; iH <= 4; iH++)
+				{
+					if (gr->AMR[iH - 1][ii] == nullptr)
+					{
+						string name_f = "func_grans_AMR_" + to_string(ii) + "_H" + 
+							to_string(iH) + "_" + to_string(gr->number) + ".bin";
+						if (file_exists("data_AMR/" + name_f))
+						{
+							gr->AMR[iH - 1][ii] = new AMR_f();
+							gr->AMR[iH - 1][ii]->Read("data_AMR/" + name_f);
+						}
+						else
+						{
+							gr->AMR[iH - 1][ii] = new AMR_f(0.0, 15.0, -15.0, 15.0,
+								-15.0, 15.0, 5, 10, 10);
+							if (ii == 0)
+							{
+								gr->AMR[iH - 1][ii]->Vn[0] = gr->normal[0][0];
+								gr->AMR[iH - 1][ii]->Vn[1] = gr->normal[0][1];
+								gr->AMR[iH - 1][ii]->Vn[2] = gr->normal[0][2];
+							}
+							else
+							{
+								gr->AMR[iH - 1][ii]->Vn[0] = -gr->normal[0][0];
+								gr->AMR[iH - 1][ii]->Vn[1] = -gr->normal[0][1];
+								gr->AMR[iH - 1][ii]->Vn[2] = -gr->normal[0][2];
+							}
+							gr->AMR[iH - 1][ii]->Set_bazis();
+						}
+
+					}
+				}
+			}
+		}
 	}
+
+	cout << "END MK_prepare   zone_MK = " << zone_MK << endl;
+}
+
+void Setka::MK_delete(short int zone_MK)
+{
+	cout << "Start MK_delete" << endl;
+	// Блок удаления датчиков случайных чисел
+	if (true)
+	{
+		for (auto& i : this->Sensors)
+		{
+			delete i;
+		}
+		this->Sensors.clear();
+	}
+
+	// Готовим/загружаем AMR сетку для граней
+	if (true)
+	{
+		for (auto& gr : this->MK_Grans[zone_MK - 1])
+		{
+			for (short int ii = 0; ii <= 1; ii++)\
+			{
+				for (short int iH = 1; iH <= gr->AMR.size(); iH++)
+				{
+					string name_f = "func_grans_AMR_" + to_string(ii) + "_H" +
+						to_string(iH) + "_" + to_string(gr->number) + ".bin";
+					gr->AMR[iH - 1][ii]->Save("data_AMR/" + name_f);
+					//cout << "Delete " << ii << " " << iH << " " << 
+					//	gr->number << endl;
+					gr->AMR[iH - 1][ii]->Delete();
+					//cout << "Delete2" << endl;
+					delete gr->AMR[iH - 1][ii];
+				}
+			}
+			gr->AMR.clear();
+			gr->AMR.resize(0);
+		}
+
+		this->MK_Grans.clear();
+	}
+
+	cout << "END MK_delete" << endl;
 }

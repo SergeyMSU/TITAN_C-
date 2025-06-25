@@ -23,6 +23,7 @@ public:
 
 	short unsigned int MK_zone_r = 0;
 	short unsigned int MK_zone_phi = 0;
+	short unsigned int MK_zone = 0;
 
 	std::array < unordered_map<string, double>, 2> parameters;   // ѕараметры в €чейке (тут могут быть значени€
 	// плазменных полей, значени€ дивергенций и т.д.

@@ -34,6 +34,7 @@ int main()
     // с 5 начались проблемы с давлением на контакте (становиться меньше 0)
     // с 6 добавил обнуление bn перед контактом
 
+    cout << "C2 " << endl;
 
     S1.auto_set_luch_geo_parameter(0);
 
@@ -49,16 +50,10 @@ int main()
     S1.Tecplot_print_all_lush_in_2D();
     S1.Tecplot_print_all_cell_in_3D();
 
-    /*S1.Algoritm(2);
-    S1.Tecplot_print_gran_with_condition(0);
-    S1.Tecplot_print_gran_with_condition(1);
-    S1.Tecplot_print_gran_with_condition(2);
-    S1.Tecplot_print_gran_with_condition(3);
-    S1.Tecplot_print_gran_with_condition(4);
-    S1.Tecplot_print_gran_with_condition(5);
-    S1.Tecplot_print_gran_with_condition(6);*/
+    S1.Algoritm(2);
+    
 
-    for (int i = 1; i <= 6 * 2; i++) // 6 * 2
+    for (int i = 1; i <= 0; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -86,7 +81,7 @@ int main()
         std::cout << "Execution time: " << duration.count()/1000.0/60.0 << " minutes" << std::endl;
     }
 
-    S1.Save_cell_parameters("parameters_0010.bin");
+    //S1.Save_cell_parameters("parameters_0011.bin");
 
     S1.Save_for_interpolate("For_intertpolate_1.bin");
     Interpol SS = Interpol("For_intertpolate_1.bin");

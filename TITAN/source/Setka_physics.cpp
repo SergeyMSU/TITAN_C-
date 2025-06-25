@@ -251,12 +251,18 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// Редактирование каких-то переменных
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			if ( sqrt(kv(i->center[0][1]) + kv(i->center[0][2])) > 300)
+			if ( sqrt(kv(i->center[0][1]) + kv(i->center[0][2])) > 380)
 			{
+				i->parameters[0]["rho"] = 1.0;
+				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
+				i->parameters[0]["Vy"] = 0.0;
+				i->parameters[0]["Vz"] = 0.0;
+				i->parameters[0]["p"] = 1.0;
+
 				i->parameters[0]["rho_H4"] = 1.0;
 				i->parameters[0]["Vx_H4"] = this->phys_param->Velosity_inf;
 				i->parameters[0]["Vy_H4"] = 0.0;

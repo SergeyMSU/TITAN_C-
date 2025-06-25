@@ -1,6 +1,11 @@
 ﻿#include "Help_funk.h"
 #include "Yzel.h"
 
+bool file_exists(const std::string& filename) {
+	std::ifstream file(filename);
+	return file.good();  // или просто return file.is_open();
+}
+
 short int signum(const double& x)
 {
 	if (x > 0.00000001)

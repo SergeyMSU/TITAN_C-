@@ -3,6 +3,8 @@
 
 // Описание всех классов
 class Geo_param; 
+class AMR_f;
+class AMR_cell;
 class Phys_param;
 class Setka;
 class Yzel;
@@ -21,7 +23,7 @@ class Int_point;
 #define norm2(x, y, z) (sqrt(kvv(x, y, z)))
 #define whach(x) cout << #x <<": " << (x) << endl
 
-
+#include <filesystem>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -71,6 +73,8 @@ const double MF_meDmp = (1.0 / 1836.15);  // Отношения массы электрона к массе п
 using namespace std;
 
 #include "sensor.h"
+#include "AMR_f.h"
+#include "AMR_cell.h"
 #include "Phys_param.h"
 #include "Geo_param.h"
 #include "Setka.h"
