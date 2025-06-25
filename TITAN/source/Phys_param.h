@@ -47,8 +47,11 @@ public:
     bool move_BS = true;
 
     bool sglag_TS = true;              // ƒелаем ли сглаживание TS
-    double sglag_TS_k = 0.0005;         // —глаживание на высоких широтах
-    double sglag_TS_k_sphere = 0.001; // 0.3;   // —глаживание в головной и хвостовой части
+    double velocity_TS = 1.0;
+    double sglag_TS_k = 0.005;         // —глаживание на высоких широтах
+    //double sglag_TS_k_sphere = 0.001; // 0.3;   // —глаживание в головной и хвостовой части
+    double sglag_TS_k_sphere_head = 0.03; // 0.3;   // —глаживание в головной и хвостовой части
+    double sglag_TS_k_sphere_tail = 0.01; // 0.3;   // —глаживание в головной и хвостовой части
     // Ќе может быть больше 1
 
     bool sglag_HP = true;

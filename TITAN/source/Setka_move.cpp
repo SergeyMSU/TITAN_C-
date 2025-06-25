@@ -178,15 +178,15 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		{
 #pragma omp critical (s1) 
 			{
-				yz->velocity[0] += 0.1 * dsl * gr->normal[now][0];
+				yz->velocity[0] += this->phys_param->velocity_TS * dsl * gr->normal[now][0];
 			}
 #pragma omp critical (s2) 
 			{
-				yz->velocity[1] += 0.1 * dsl * gr->normal[now][1];
+				yz->velocity[1] += this->phys_param->velocity_TS * dsl * gr->normal[now][1];
 			}
 #pragma omp critical (s3) 
 			{
-				yz->velocity[2] += 0.1 * dsl * gr->normal[now][2];
+				yz->velocity[2] += this->phys_param->velocity_TS * dsl * gr->normal[now][2];
 			}
 #pragma omp critical (s4) 
 			{
@@ -421,12 +421,16 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			
 			double pk = this->phys_param->sglag_TS_k;
 			double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
-			if (phi < this->geo->tetta0 || phi > this->geo->tetta1)
+			if (phi > this->geo->tetta1)
 			{
-				pk = this->phys_param->sglag_TS_k_sphere;
+				pk = this->phys_param->sglag_TS_k_sphere_tail;
+			}
+			else if (phi < this->geo->tetta0)
+			{
+				pk = this->phys_param->sglag_TS_k_sphere_head;
 			}
 
-			V = pk * (B - A) / time;
+			V = this->phys_param->velocity_TS * pk * (B - A) / time;
 
 			for (auto& yz : gr->yzels)
 			{
