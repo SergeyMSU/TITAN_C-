@@ -170,6 +170,8 @@ void Setka::Algoritm(short int alg)
 	{
 		// Определим зоны для МК
 		this->Set_MK_Zone();
+		// Загрузим датчики случайных чисел
+		
 
 	}
 }

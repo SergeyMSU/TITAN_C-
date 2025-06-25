@@ -104,7 +104,20 @@ public:
         const std::vector<double>& konvect_right, // Дополнительные переменные конвективного переноса справа
         std::vector<double>& konvect, // Дополнительные переменные конвективного переноса ПОТОКИ
         double& dsr, double& dsc, double& dsl,
-        PrintOptions& opts);
+        PrintOptions& opts, bool left_ydar = false);
+
+    // Блок Годунова ********
+    void lev(const double& enI, const double& pI, const double& rI, const double& enII,//
+        const double& pII, const double& rII, double& uuu, double& fee);
+    void devtwo(const double& enI, const double& pI, const double& rI, const double& enII, const double& pII, const double& rII, //
+        const double& w, double& p);
+    void newton(const double& enI, const double& pI, const double& rI, const double& enII, const double& pII, const double& rII, //
+        const double& w, double& p);
+    void Godunov_Solver_Alexashov(const std::vector<double>& qqq1, const std::vector<double>& qqq2,//
+        const std::vector<double>& n, std::vector<double>& qqq,//
+        double& dsl, double& dsp, double& dsc, double w, bool contact = false);
+
+    // ***********
 
     void raspad_testing(void);
 };

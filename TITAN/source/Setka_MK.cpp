@@ -314,3 +314,38 @@ void Setka::Set_MK_Zone(void)
 
 	}
 }
+
+void Setka::MK_prepare(short int zone_MK)
+{
+	// Блок загрузки датчиков случайных чисел
+	if (true)
+	{
+		ifstream fin2;
+		fin2.open("rnd_my.txt");
+		if (fin2.is_open() == false)
+		{
+			cout << "ERROR open  rnd_my.txt " << endl;
+			exit(-100);
+		}
+		double d, a1, b1, c;
+		for (int i = 0; i < 1021; i++)
+		{
+			fin2 >> a1 >> b1 >> c;
+			auto s = new Sensor(a1, b1, c);
+			this->Sensors.push_back(s);
+		}
+		fin2.close();
+	}
+
+	if (this->MK_Grans.size() < zone_MK || this->MK_Grans[zone_MK].size() == 0)
+	{
+		cout << "Error 2341963846" << endl;
+		exit(-1);
+	}
+
+	// Готовим/загружаем AMR сетку для граней
+	if (true)
+	{
+
+	}
+}

@@ -70,6 +70,7 @@ const double MF_meDmp = (1.0 / 1836.15);  // Отношения массы электрона к массе п
 
 using namespace std;
 
+#include "sensor.h"
 #include "Phys_param.h"
 #include "Geo_param.h"
 #include "Setka.h"

@@ -1331,28 +1331,36 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			qqq2[5] = qqq2[6] = qqq2[7] = 0.0;
 		}
 
-
-		// Делаем HLLC в зоне 3-4 (пока для гладкости полей)
-		/*if (gr->cells.size() == 2)
-		{
-			if (gr->cells[0]->type == Type_cell::Zone_3 || gr->cells[0]->type == Type_cell::Zone_4)
-			{
-				if (gr->cells[1]->type == Type_cell::Zone_3 || gr->cells[1]->type == Type_cell::Zone_4)
-				{
-					metod_ = 2;
-				}
-			}
-		}*/
-
 		metod_ = gr->Get_method();
 
 		//metod_ = 2;
+		
+		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
+		{
+			std::vector<double> n(3);
+			n[0] = gr->normal[now][0];
+			n[1] = gr->normal[now][1];
+			n[2] = gr->normal[now][2];
 
-		this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
-			gr->normal[now][2],
-			w, qqq1, qqq2, qqq, false, 1,
-			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-			Option);
+			this->phys_param->Godunov_Solver_Alexashov(qqq1, qqq2,//
+				n, qqq, dsl, dsr, dsc, w, true);
+
+			qqq[5] = qqq[6] = qqq[7] = 0.0;
+			konvect[0] = 0.0;
+			konvect[1] = 0.0;
+		}
+		else
+		{
+			bool left_ydar = false;
+			if (gr->type2 == Type_Gran_surf::TS) left_ydar = true;
+
+			this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
+				gr->normal[now][2],
+				w, qqq1, qqq2, qqq, false, 1,
+				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+				Option, left_ydar);
+		}
+
 
 		if (gr->type == Type_Gran::Us)
 		{

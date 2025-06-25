@@ -1,5 +1,18 @@
 ﻿#include "Phys_param.h"
 
+#define ga (this->gamma)
+#define ggg (ga)
+#define gg1 (ga - 1.0)
+#define g1 (ga - 1.0)
+#define g2 (ga + 1.0)
+#define gg2 (ga + 1.0)
+#define gp ((g2/ga)/2.0)
+#define gm ((g1/ga)/2.0)
+#define gga ga
+#define ER_S std::cout << "\n---------------------\nStandart error in file: Solvers.cpp\n" << endl
+#define watch(x) cout << (#x) << " is " << (x) << endl
+#define M(x) cout << (#x)  << endl
+
 #define zone_info false
 
 Phys_param::Phys_param()
@@ -220,7 +233,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     const std::vector<double>& konvect_right, // Дополнительные переменные конвективного переноса справа
     std::vector<double>& konvect, // Дополнительные переменные конвективного переноса ПОТОКИ
     double& dsr, double& dsc, double& dsl,
-    PrintOptions& opts)  // Дополнительные опциональные параметры
+    PrintOptions& opts, bool left_ydar)  // Дополнительные опциональные параметры
     // n_state = 0 Лакс, // 1 HLL, // 2 HLLC,  3 HLLD
     // Конвективные переменные добавил только для HLL
 {
@@ -332,6 +345,8 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     double vC1 = (vL(0) + vR(0)) / 2.0;
 
     double SL = 0.0, SR = 0.0;
+
+    if (left_ydar == true)  n_disc = 2;
 
     if (n_disc == 0)
     {
@@ -470,9 +485,14 @@ void Phys_param::chlld(unsigned short int n_state, // метод
             dqk[ik] = URk[ik] - ULk[ik];
         }
 
+        if (left_ydar == true)
+        {
+            wv = SL;
+        }
+
         double TL = SL;
         double TR = SR;
-        if (SL > wv)
+        if (SL > wv || left_ydar == true)
         {
             TL = 0.0;
             for (short unsigned int ik = 0; ik < 8; ik++)
@@ -660,7 +680,12 @@ void Phys_param::chlld(unsigned short int n_state, // метод
 
         vector<double> FWk(konvect_left.size());
 
-        if (SL >= wv)
+        if (left_ydar == true)
+        {
+            wv = SL;
+        }
+
+        if (SL >= wv || left_ydar == true)
         {
             qqq[0] = FL[0] - wv * UL[0];
             qqq[4] = FL[4] - wv * UL[4];
@@ -992,7 +1017,12 @@ void Phys_param::chlld(unsigned short int n_state, // метод
         Eigen::Vector3d qv;
         Eigen::Vector3d qb;
 
-        if (SL >= wv)
+        if (left_ydar == true)
+        {
+            wv = SL;
+        }
+
+        if (SL >= wv || left_ydar == true)
         {
             if(zone_info) cout << "Zone 1" << endl;
             qqq[0] = FL[0] - wv * UL[0];
@@ -1240,3 +1270,604 @@ void Phys_param::raspad_testing(void)
 
     whach(konvect[0]);
 }
+
+
+void Phys_param::Godunov_Solver_Alexashov(const std::vector<double>& qqq1, const std::vector<double>& qqq2,//
+    const std::vector<double>& n, std::vector<double>& qqq,//
+    double& dsl, double& dsp, double& dsc, double w, bool contact)
+{
+    double al = n[0];
+    double be = n[1];
+    double ge = n[2];
+    double time = 0.0;
+
+    Eigen::Vector3d nn;
+    Eigen::Vector3d t;
+    Eigen::Vector3d m;
+
+    nn << al, be, ge;
+
+    get_bazis(nn, t, m);
+
+    double al2 = t[0];
+    double be2 = t[1];
+    double ge2 = t[2];
+    double al3 = m[0];
+    double be3 = m[1];
+    double ge3 = m[2];
+
+    double enI = al * qqq1[1] + be * qqq1[2] + ge * qqq1[3];
+    double teI2 = al2 * qqq1[1] + be2 * qqq1[2] + ge2 * qqq1[3];
+    double teI3 = al3 * qqq1[1] + be3 * qqq1[2] + ge3 * qqq1[3];
+    double enII = al * qqq2[1] + be * qqq2[2] + ge * qqq2[3];
+    double teII2 = al2 * qqq2[1] + be2 * qqq2[2] + ge2 * qqq2[3];
+    double teII3 = al3 * qqq2[1] + be3 * qqq2[2] + ge3 * qqq2[3];
+
+    double pI = qqq1[4];
+    double pII = qqq2[4];
+    double rI = qqq1[0];
+    double rII = qqq2[0];
+
+    int ipiz = 0;
+    if (pI > pII)   // Смена местами величин
+    {
+        double eno2 = enII;;
+        double teo22 = teII2;
+        double teo23 = teII3;
+        double p2 = pII;
+        double r2 = rII;
+
+        double eno1 = enI;
+        double teo12 = teI2;
+        double teo13 = teI3;
+        double p1 = pI;
+        double r1 = rI;
+
+        enI = -eno2;
+        teI2 = teo22;
+        teI3 = teo23;
+        pI = p2;
+        rI = r2;
+
+        enII = -eno1;
+        teII2 = teo12;
+        teII3 = teo13;
+        pII = p1;
+        rII = r1;
+        w = -w;
+        ipiz = 1;                                                                // ???? Он точно здесь должен быть?
+    }
+
+    double cI = 0.0;
+    double cII = 0.0;
+    if (pI != 0.0)
+    {
+        cI = sqrt(this->gamma * pI / rI);
+    }
+    if (pII != 0.0)
+    {
+        cII = sqrt(this->gamma * pII / rII);
+    }
+
+    double a = sqrt(rI * (g2 * pII + g1 * pI) / 2.0);
+    double Uud = (pII - pI) / a;
+    double Urz = -2.0 * cII / g1 * (1.0 - pow((pI / pII), gm));
+    double Uvk = -2.0 * (cII + cI) / g1;
+    double Udf = enI - enII;
+
+
+    int il, ip;
+    double p, r, te2, te3, en;
+
+    if (Udf < Uvk)
+    {
+        il = -1;
+        ip = -1;
+    }
+    else if ((Udf >= Uvk) && (Udf <= Urz))
+    {
+        p = pI * pow(((Udf - Uvk) / (Urz - Uvk)), (1.0 / gm));
+        il = 0;
+        ip = 0;
+    }
+    else if ((Udf > Urz) && (Udf <= Uud))
+    {
+        devtwo(enI, pI, rI, enII, pII, rII, w, p);
+        il = 1;
+        ip = 0;
+    }
+    else if (Udf > Uud)
+    {
+        newton(enI, pI, rI, enII, pII, rII, w, p);
+        il = 1;
+        ip = 1;
+    }
+
+    //*********TWO SHOCKS**********************************************
+    if ((il == 1) && (ip == 1))
+    {
+        //cout << "TWO SHOCKS" << endl;
+        double aI = sqrt(rI * (g2 / 2.0 * p + g1 / 2.0 * pI));
+        double aII = sqrt(rII * (g2 / 2.0 * p + g1 / 2.0 * pII));
+
+        double u = (aI * enI + aII * enII + pI - pII) / (aI + aII);
+        double dI = enI - aI / rI;
+        double dII = enII + aII / rII;
+        dsl = dI;
+        dsp = dII;
+        dsc = u;
+
+        if (contact == true)
+        {
+            w = u;
+        }
+
+        double UU = max(fabs(dsl), fabs(dsp));
+
+
+        if (w <= dI)
+        {
+            en = enI;
+            p = pI;
+            r = rI;
+            te2 = teI2;
+            te3 = teI3;
+        }
+        else if ((w > dI) && (w <= u))
+        {
+            en = u;
+            p = p;
+            r = rI * aI / (aI - rI * (enI - u));
+            te2 = teI2;
+            te3 = teI3;
+        }
+        else if ((w > u) && (w < dII))
+        {
+            en = u;
+            p = p;
+            r = rII * aII / (aII + rII * (enII - u));
+            te2 = teII2;
+            te3 = teII3;
+        }
+        else if (w >= dII)
+        {
+            en = enII;
+            p = pII;
+            r = rII;
+            te2 = teII2;
+            te3 = teII3;
+        }
+    }
+
+
+    //*********LEFT - SHOCK, RIGHT - EXPANSION FAN*******************
+    if ((il == 1) && (ip == 0))
+    {
+        //cout << "LEFT - SHOCK, RIGHT - EXPANSION FAN" << endl;
+        double aI = sqrt(rI * (g2 / 2.0 * p + g1 / 2.0 * pI));
+        double aII;
+        if (fabs(p - pII) < eps)
+        {
+            aII = rII * cII;
+        }
+        else
+        {
+            aII = gm * rII * cII * (1.0 - p / pII) / (1.0 - pow((p / pII), gm));
+        }
+
+        double u = (aI * enI + aII * enII + pI - pII) / (aI + aII);
+        double dI = enI - aI / rI;
+        double dII = enII + cII;
+        double ddII = u + cII - g1 * (enII - u) / 2.0;
+        dsl = dI;
+        dsp = dII;
+        dsc = u;
+
+        if (contact == true)
+        {
+            w = u;
+        }
+
+        double UU = max(fabs(dsl), fabs(dsp));
+        UU = max(UU, fabs(ddII));
+
+        if (w <= dI)
+        {
+            en = enI;
+            p = pI;
+            r = rI;
+            te2 = teI2;
+            te3 = teI3;
+        }
+        if ((w > dI) && (w <= u))
+        {
+            en = u;
+            p = p;
+            r = rI * aI / (aI - rI * (enI - u));
+            te2 = teI2;
+            te3 = teI3;
+        }
+        if ((w > u) && (w <= ddII))
+        {
+            double ce = cII - g1 / 2.0 * (enII - u);
+            en = u;
+            p = p;
+            r = ga * p / ce / ce;
+            te2 = teII2;
+            te3 = teII3;
+        }
+        if ((w > ddII) && (w < dII))
+        {
+            double ce = -g1 / g2 * (enII - w) + 2.0 / g2 * cII;
+            en = w - ce;
+            p = pII * pow((ce / cII), (1.0 / gm));
+            r = ga * p / ce / ce;
+            te2 = teII2;
+            te3 = teII3;
+        }
+        if (w >= dII)
+        {
+            en = enII;
+            p = pII;
+            r = rII;
+            te2 = teII2;
+            te3 = teII3;
+        }
+    }
+    //*********TWO EXPANSION FANS**************************************
+    if ((il == 0) && (ip == 0))
+    {
+        //cout << "TWO EXPANSION FANS" << endl;
+        //printf("p = %lf\n", p);
+        double aI;
+        if (fabs(p - pI) < eps)
+        {
+            aI = rI * cI;
+        }
+        else
+        {
+            aI = gm * rI * cI * (1.0 - p / pI) / (1.0 - pow((p / pI), gm));
+        }
+
+        //printf("aI = %lf\n", aI);
+        double aII;
+        if (fabs(p - pII) < eps)
+        {
+            aII = rII * cII;
+        }
+        else
+        {
+            aII = gm * rII * cII * (1.0 - p / pII) / (1.0 - pow((p / pII), gm));
+        }
+
+        //printf("aII = %lf\n", aI);
+        double u = (aI * enI + aII * enII + pI - pII) / (aI + aII);
+        double dI = enI - cI;
+        double ddI = u - cI - g1 * (enI - u) / 2.0;
+        double dII = enII + cII;
+        double ddII = u + cII - g1 * (enII - u) / 2.0;
+        dsl = dI;
+        dsp = dII;
+        dsc = u;
+
+        //whach(dI);
+        //whach(dII);
+        //whach(u);
+
+        if (contact == true)
+        {
+            w = u;
+        }
+
+        double UU = max(fabs(dsl), fabs(dsp));
+        UU = max(UU, fabs(ddII));
+        UU = max(UU, fabs(ddI));
+
+
+        if (w <= dI)
+        {
+            en = enI;
+            p = pI;
+            r = rI;
+            te2 = teI2;
+            te3 = teI3;
+        }
+        if ((w > dI) && (w < ddI))
+        {
+            double ce = g1 / g2 * (enI - w) + 2.0 / g2 * cI;
+            en = w + ce;
+            p = pI * pow((ce / cI), (1.0 / gm));
+            r = ga * p / ce / ce;
+            te2 = teI2;
+            te3 = teI3;
+        }
+        if ((w >= ddI) && (w <= u))
+        {
+            double ce = cI + g1 / 2.0 * (enI - u);
+            en = u;
+            p = p;
+            r = ga * p / ce / ce;
+            te2 = teI2;
+            te3 = teI3;
+        }
+        if ((w > u) && (w <= ddII))
+        {
+            double ce = cII - g1 / 2.0 * (enII - u);
+            en = u;
+            p = p;
+            r = ga * p / ce / ce;
+            te2 = teII2;
+            te3 = teII3;
+        }
+        if ((w > ddII) && (w < dII))
+        {
+            double ce = -g1 / g2 * (enII - w) + 2.0 / g2 * cII;
+            en = w - ce;
+            p = pII * pow((ce / cII), (1.0 / gm));
+            r = ga * p / ce / ce;
+            te2 = teII2;
+            te3 = teII3;
+        }
+        if (w >= dII)
+        {
+            en = enII;
+            p = pII;
+            r = rII;
+            te2 = teII2;
+            te3 = teII3;
+        }
+    }
+
+    //*********VAKUUM ************************************************
+    if ((il == -1) && (ip == -1))
+    {
+        //cout << "VAKUUM" << endl;
+        double dI = enI - cI;
+        double ddI = enI + 2.0 / gg1 * cI;
+        double dII = enII + cII;
+        double ddII = enII - 2.0 / gg1 * cII;
+
+        dsl = dI;
+        dsp = dII;
+        dsc = (dI + dII) / 2.0;
+
+        if (contact == true)
+        {
+            w = dsc;
+        }
+
+        double UU = max(fabs(dsl), fabs(dsp));
+        UU = max(UU, fabs(ddII));
+        UU = max(UU, fabs(ddI));
+
+
+        if (w <= dI)
+        {
+            en = enI;
+            p = pI;
+            r = rI;
+            te2 = teI2;
+            te3 = teI3;
+        }
+        if ((w > dI) && (w < ddI))
+        {
+            double ce = gg1 / gg2 * (enI - w) + 2.0 / gg2 * cI;
+            en = w + ce;
+            p = pI * pow((ce / cI), (1.0 / gm));
+            r = gga * p / ce / ce;
+            te2 = teI2;
+            te3 = teI3;
+        }
+        if ((w >= ddI) && (w <= ddII))
+        {
+            en = w;
+            p = 0.0;
+            r = 0.0;
+            te2 = 0.0;
+            te3 = 0.0;
+        }
+        if ((w > ddII) && (w < dII))
+        {
+            double ce = -gg1 / gg2 * (enII - w) + 2.0 / gg2 * cII;
+            en = w - ce;
+            p = pII * pow((ce / cII), (1.0 / gm));
+            r = gga * p / ce / ce;
+            te2 = teII2;
+            te3 = teII3;
+        }
+        if (w >= dII)
+        {
+            en = enII;
+            p = pII;
+            r = rII;
+            te2 = teII2;
+            te3 = teII3;
+        }
+    }
+
+
+    if (ipiz == 1)
+    {
+        en = -en;
+        double dsl1 = dsl;
+        double dsp1 = dsp;
+        dsl = -dsp1;
+        dsp = -dsl1;
+        dsc = -dsc;
+        w = -w;
+    }
+
+    double uo = al * en + al2 * te2 + al3 * te3;
+    double vo = be * en + be2 * te2 + be3 * te3;
+    double wo = ge * en + ge2 * te2 + ge3 * te3;
+
+
+    double eo = p / g1 + 0.5 * r * (uo * uo + vo * vo + wo * wo);
+    en = al * uo + be * vo + ge * wo;
+
+    if (contact == true)
+    {
+        w = en;
+    }
+
+    qqq[0] = (r * (en - w));
+    qqq[1] = (r * (en - w) * uo + al * p);
+    qqq[2] = (r * (en - w) * vo + be * p);
+    qqq[3] = (r * (en - w) * wo + ge * p);
+    qqq[4] = ((en - w) * eo + en * p);
+
+
+    return;
+
+}
+
+void Phys_param::newton(const double& enI, const double& pI, const double& rI, const double& enII, const double& pII, const double& rII, //
+    const double& w, double& p)
+{
+    double fI, fIs, fII, fIIs;
+    double cI = sqrt(ga * pI / rI);
+    double cII = sqrt(ga * pII / rII);
+    double pn = pI * rII * cII + pII * rI * cI + (enI - enII) * rI * cI * rII * cII;
+    pn = pn / (rI * cI + rII * cII);
+
+    double pee = pn;
+
+    int kiter = 0;
+a1:
+    p = pn;
+    if (p <= 0.0)
+    {
+        ER_S;
+        cout << "negative pressure, newton" << endl;
+        exit(-1);
+    }
+
+    kiter = kiter + 1;
+
+    fI = (p - pI) / (rI * cI * sqrt(gp * p / pI + gm));
+    fIs = (ga + 1.0) * p / pI + (3.0 * ga - 1.0);
+    fIs = fIs / (4.0 * ga * rI * cI * pow((gp * p / pI + gm), (3.0 / 2.0)));
+
+    fII = (p - pII) / (rII * cII * sqrt(gp * p / pII + gm));
+    fIIs = (ga + 1.0) * p / pII + (3.0 * ga - 1.0);
+    fIIs = fIIs / (4.0 * ga * rII * cII * pow((gp * p / pII + gm), (3.0 / 2.0)));
+
+
+    if (kiter == 1100)
+    {
+        ER_S;
+        cout << "zaciklilsya v raspade,i,j,k,KOBL,kdir:" << endl;
+        watch(enI);
+        watch(pI);
+        watch(rI);
+        watch(enII);
+        watch(pII);
+        watch(rII);
+        exit(-1);
+    }
+
+    pn = p - (fI + fII - (enI - enII)) / (fIs + fIIs);
+
+    if (fabs(pn / pee - p / pee) >= eps)
+    {
+        goto a1;
+    }
+
+    p = pn;
+
+    return;
+}
+
+void Phys_param::devtwo(const double& enI, const double& pI, const double& rI, const double& enII, const double& pII, const double& rII, //
+    const double& w, double& p)
+{
+    const double epsil = 10e-10;
+    double kl, kp, kc, ksi, ksir, um, ksit;
+    int kpizd;
+
+    kl = pI;
+    kp = pII;
+
+
+    this->lev(enI, pI, rI, enII, pII, rII, kl, ksi);
+    this->lev(enI, pI, rI, enII, pII, rII, kp, ksir);
+
+    if (fabs(ksi) <= epsil)
+    {
+        um = kl;
+        goto a1;
+    }
+
+    if (fabs(ksir) <= epsil)
+    {
+        um = kp;
+        goto a1;
+    }
+
+    kpizd = 0;
+
+a2:
+    kpizd = kpizd + 1;
+
+    if (kpizd == 1100)
+    {
+        ER_S;
+        cout << "zaciklilsya, devtwo.f i,j,k,KOBL,kdir:" << endl;
+        cout << "Error 0978453645" << endl;
+        watch(enI);
+        watch(pI);
+        watch(rI);
+        watch(enII);
+        watch(pII);
+        watch(rII);
+        exit(-1);
+    }
+
+
+    kc = (kl + kp) / 2.0;
+
+    this->lev(enI, pI, rI, enII, pII, rII, kc, ksit);
+
+    if (fabs(ksit) <= epsil)
+    {
+        goto a3;
+    }
+
+    if ((ksi * ksit) <= 0.0)
+    {
+        kp = kc;
+        ksir = ksit;
+    }
+    else
+    {
+        kl = kc;
+        ksi = ksit;
+    }
+
+    goto a2;
+
+a3:
+    um = kc;
+a1:
+
+    p = um;
+
+    return;
+}
+
+void Phys_param::lev(const double& enI, const double& pI, const double& rI, const double& enII,//
+    const double& pII, const double& rII, double& uuu, double& fee)
+{
+    double cI = sqrt(ga * pI / rI);
+    double cII = sqrt(ga * pII / rII);
+
+    double fI = (uuu - pI) / (rI * cI * sqrt(gp * uuu / pI + gm));
+
+    double fII = 2.0 / g1 * cII * (pow((uuu / pII), gm) - 1.0);
+
+    double f1 = fI + fII;
+    double f2 = enI - enII;
+    fee = f1 - f2;
+    return;
+}
+

@@ -199,7 +199,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 	// —читаем движение HP
 	if (this->phys_param->move_HP == true)
 	{
-#pragma omp parallel for private(dsr, dsc, dsl)
+//#pragma omp parallel for private(dsr, dsc, dsl)
 		for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
 		{
 			auto gr = this->Gran_HP[i_step];
@@ -270,11 +270,43 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				qqq2[5] = qqq2[6] = qqq2[7] = 0.0;
 			}
 
-			this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
-				gr->normal[now][2],
-				w, qqq1, qqq2, qqq, false, 3,
-				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-				Option);
+			if (this->phys_param->bn_in_p_on_HP == true)
+			{
+				//cout << "A" << endl;
+				std::vector<double> n(3);
+				n[0] = gr->normal[now][0];
+				n[1] = gr->normal[now][1];
+				n[2] = gr->normal[now][2];
+
+				this->phys_param->Godunov_Solver_Alexashov(qqq1, qqq2,//
+					n, qqq, dsl, dsr, dsc, w);
+				qqq[5] = qqq[6] = qqq[7] = 0.0;
+			}
+			else
+			{
+				//cout << "B" << endl;
+				this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
+					gr->normal[now][2],
+					w, qqq1, qqq2, qqq, false, 3,
+					konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+					Option);
+			}
+
+			if (std::isnan(dsc) || std::fpclassify(dsc) == FP_SUBNORMAL)
+			{
+				cout << "Error  5436542867" << endl;
+				whach(dsc);
+				whach(dsl);
+				whach(dsr);
+				whach(qqq1[0]);
+				whach(qqq2[0]);
+				whach(qqq[0]);
+				whach(qqq[1]);
+				whach(qqq[2]);
+				whach(qqq[3]);
+				whach(qqq[4]);
+				exit(-1);
+			}
 
 			for (auto& yz : gr->yzels)
 			{
