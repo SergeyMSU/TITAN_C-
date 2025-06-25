@@ -412,6 +412,24 @@ void Setka::MK_prepare(short int zone_MK)
 	}
 
 	cout << "END MK_prepare   zone_MK = " << zone_MK << endl;
+
+	// Заполняем граничные условия для AMR сетки (на границе расчётной области)
+	if (true)
+	{
+		for (auto& gr : this->All_boundary_Gran)
+		{
+			if (gr->type == Type_Gran::Outer_Hard || gr->type == Type_Gran::Outer_Soft)
+			{
+				if (gr->AMR.size() != 0)
+				{
+					// Здесь надо задать граничные условия для четвёртого сорта 
+					// а также помельчить сетку, если необходимо
+					// Нужен gr->AMR[1][3]
+					// Также хорошо бы посмотреть, что получилось
+				}
+			}
+		}
+	}
 }
 
 void Setka::MK_delete(short int zone_MK)
