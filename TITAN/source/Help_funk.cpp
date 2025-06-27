@@ -6,6 +6,14 @@ bool file_exists(const std::string& filename) {
 	return file.good();  // или просто return file.is_open();
 }
 
+double maxwell(const double& n_H, const double& cp, const double& u1,
+	const double& u2, const double& u3,
+	const double& x, const double& y, const double& z)
+{
+	return n_H * pow((sqrt(const_pi) * cp), -3) * exp((-kv(x - u1)
+		- kv(y - u2) - kv(z - u3)) / kv(cp));
+}
+
 short int signum(const double& x)
 {
 	if (x > 0.00000001)

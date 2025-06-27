@@ -654,7 +654,7 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		i++;
 	}
 
-	double ddp = (this->phys_param->par_n_p_LISM / this->phys_param->par_Kn);
+	double ddp = (this->phys_param->par_n_H_LISM / this->phys_param->par_Kn);
 	SOURSE[0][1] *= ddp;
 	SOURSE[0][2] *= ddp;
 	SOURSE[0][3] *= ddp;

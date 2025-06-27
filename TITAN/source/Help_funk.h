@@ -4,6 +4,10 @@
 
 bool file_exists(const std::string& filename);
 
+double maxwell(const double& n_H, const double& cp, const double& u1,
+	const double& u2, const double& u3,
+	const double& x, const double& y, const double& z);
+
 void Sootnosheniya(const double& rho, const double& p, const double& rho_He,
 	const double& rho_Pui, const double& T_Pui,
 	const short int& zone,

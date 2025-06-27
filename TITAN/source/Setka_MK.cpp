@@ -384,12 +384,15 @@ void Setka::MK_prepare(short int zone_MK)
 						if (file_exists("data_AMR/" + name_f))
 						{
 							gr->AMR[iH - 1][ii] = new AMR_f();
+							gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
 							gr->AMR[iH - 1][ii]->Read("data_AMR/" + name_f);
 						}
 						else
 						{
-							gr->AMR[iH - 1][ii] = new AMR_f(0.0, 15.0, -15.0, 15.0,
-								-15.0, 15.0, 5, 10, 10);
+							gr->AMR[iH - 1][ii] = new AMR_f(0.0, 20.0, -20.0, 20.0,
+								-20.0, 20.0, 3, 6, 6);
+							gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
+
 							if (ii == 0)
 							{
 								gr->AMR[iH - 1][ii]->Vn[0] = gr->normal[0][0];
@@ -411,7 +414,6 @@ void Setka::MK_prepare(short int zone_MK)
 		}
 	}
 
-	cout << "END MK_prepare   zone_MK = " << zone_MK << endl;
 
 	// Заполняем граничные условия для AMR сетки (на границе расчётной области)
 	if (true)
@@ -424,12 +426,19 @@ void Setka::MK_prepare(short int zone_MK)
 				{
 					// Здесь надо задать граничные условия для четвёртого сорта 
 					// а также помельчить сетку, если необходимо
-					// Нужен gr->AMR[1][3]
+					// Нужен gr->AMR[3][1]
 					// Также хорошо бы посмотреть, что получилось
+					gr->AMR[3][1]->Fill_maxwel_inf(this->phys_param->Velosity_inf);    // <<1>> - внутрь, <<3>> - 4 сорт водорода
+					gr->AMR[3][1]->Print_all_center_Tecplot(gr->AMR[3][1]);
+					gr->AMR[3][1]->Print_1D_Tecplot(gr->AMR[3][1], this->phys_param->Velosity_inf);
+					cout << "DONE  " << endl;
+					exit(-1);
 				}
 			}
 		}
 	}
+
+	cout << "END MK_prepare   zone_MK = " << zone_MK << endl;
 }
 
 void Setka::MK_delete(short int zone_MK)

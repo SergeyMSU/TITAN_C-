@@ -12,6 +12,9 @@ public:
 	double zL;
 	double zR;
 
+	double procent_signif = 0.3;
+	double procent_devide = 1.0;
+
 	array<double, 3> Vn;
 	array<double, 3> Vt;
 	array<double, 3> Vm;
@@ -42,10 +45,14 @@ public:
 	// Получить список действительных ячеек (т.е. если ячейка разделена, она не
 	// включаются, а включаются её дети и т.д.).
 
+	void Fill_maxwel_inf(const double& Vinf); 
+	// Заполнить максевеллом на бесконечности
+	// И провести процедуру мельчения
+
 	void Fill_test(void);
 	// Заполнить ячейки максвеллом
 
-	void Refine(void);
+	unsigned int Refine(void);
 
 	void Save(string namef);
 	void Read(string namef);
@@ -59,7 +66,7 @@ public:
 
 	void Print_all_sosed_Tecplot(AMR_f* AMR);
 
-	void Print_1D_Tecplot(AMR_f* AMR);
+	void Print_1D_Tecplot(AMR_f* AMR, const double& VV);
 
 	void Delete(void);
 	// Удаляет сетку, очищает память и т.д.

@@ -136,12 +136,32 @@ void AMR_f::Get_all_cells(vector<AMR_cell*>& cells)
 	}
 }
 
-double maxwell(const double& cp, const double& u1,
-	const double& u2, const double& u3,
-	const double& x, const double& y, const double& z)
+
+void AMR_f::Fill_maxwel_inf(const double& Vinf)
 {
-	return pow((sqrt(const_pi) * cp), -3) * exp(-kv(x - u1) / kv(cp)
-		- kv(y - u2) / kv(cp) - kv(z - u3) / kv(cp));
+	Eigen::Vector3d ex, ey, ez, ee;
+	ex << this->Vn[0], this->Vn[1], this->Vn[2];
+	ey << this->Vt[0], this->Vt[1], this->Vt[2];
+	ez << this->Vm[0], this->Vm[1], this->Vm[2];
+
+	unsigned int NN = 1;
+
+	while(NN > 0)
+	{
+		NN = 0;
+		std::vector<AMR_cell*> cells;
+		std::array<double, 3> center;
+		this->Get_all_cells(cells);
+
+		for (auto& cel : cells)
+		{
+			cel->Get_Center(this->AMR_self, center);
+			ee = center[0] * ex + center[1] * ey + center[2] * ez;
+			cel->f = maxwell(1.0, 1.0, Vinf, 0.0, 0.0, ee[0], ee[1], ee[2]);
+		}
+
+		NN = this->Refine();
+	}
 }
 
 void AMR_f::Fill_test(void)
@@ -166,30 +186,30 @@ void AMR_f::Fill_test(void)
 		d = center[1] + razmer[1]/2;
 		e = center[2] - razmer[2] / 2;
 		f = center[2] + razmer[2] / 2;
-		double s1 = maxwell(cp1, u1, 0.0, 0.0, a, c, e) +
-			10 * maxwell(cp2, u2, 0.0, 0.0, a, c, e);
-		double s2 = maxwell(cp1, u1, 0.0, 0.0, a, c, f) +
-			10 * maxwell(cp2, u2, 0.0, 0.0, a, c, f);
-		double s3 = maxwell(cp1, u1, 0.0, 0.0, a, d, e) +
-			10 * maxwell(cp2, u2, 0.0, 0.0, a, d, e);
-		double s4 = maxwell(cp1, u1, 0.0, 0.0, a, d, f) +
-			10 * maxwell(cp2, u2, 0.0, 0.0, a, d, f);
-		double s5 = maxwell(cp1, u1, 0.0, 0.0, b, c, e) +
-			10 * maxwell(cp2, u2, 0.0, 0.0, b, c, e);
-		double s6 = maxwell(cp1, u1, 0.0, 0.0, b, c, f) +
-			10 * maxwell(cp2, u2, 0.0, 0.0, b, c, f);
-		double s7 = maxwell(cp1, u1, 0.0, 0.0, b, d, e) +
-			10 * maxwell(cp2, u2, 0.0, 0.0, b, d, e);
-		double s8 = maxwell(cp1, u1, 0.0, 0.0, b, d, f) +
-			10 * maxwell(cp2, u2, 0.0, 0.0, b, d, f);
-		double s9 = maxwell(cp1, u1, 0.0, 0.0, (a + b)/2, (c + d)/2, (e + f)/2) +
-			10 * maxwell(cp2, u2, 0.0, 0.0, (a + b) / 2, (c + d) / 2, (e + f) / 2);
+		double s1 = maxwell(1.0, cp1, u1, 0.0, 0.0, a, c, e) +
+			10 * maxwell(1.0, cp2, u2, 0.0, 0.0, a, c, e);
+		double s2 = maxwell(1.0, cp1, u1, 0.0, 0.0, a, c, f) +
+			10 * maxwell(1.0, cp2, u2, 0.0, 0.0, a, c, f);
+		double s3 = maxwell(1.0, cp1, u1, 0.0, 0.0, a, d, e) +
+			10 * maxwell(1.0, cp2, u2, 0.0, 0.0, a, d, e);
+		double s4 = maxwell(1.0, cp1, u1, 0.0, 0.0, a, d, f) +
+			10 * maxwell(1.0, cp2, u2, 0.0, 0.0, a, d, f);
+		double s5 = maxwell(1.0, cp1, u1, 0.0, 0.0, b, c, e) +
+			10 * maxwell(1.0, cp2, u2, 0.0, 0.0, b, c, e);
+		double s6 = maxwell(1.0, cp1, u1, 0.0, 0.0, b, c, f) +
+			10 * maxwell(1.0, cp2, u2, 0.0, 0.0, b, c, f);
+		double s7 = maxwell(1.0, cp1, u1, 0.0, 0.0, b, d, e) +
+			10 * maxwell(1.0, cp2, u2, 0.0, 0.0, b, d, e);
+		double s8 = maxwell(1.0, cp1, u1, 0.0, 0.0, b, d, f) +
+			10 * maxwell(1.0, cp2, u2, 0.0, 0.0, b, d, f);
+		double s9 = maxwell(1.0, cp1, u1, 0.0, 0.0, (a + b)/2, (c + d)/2, (e + f)/2) +
+			10 * maxwell(1.0, cp2, u2, 0.0, 0.0, (a + b) / 2, (c + d) / 2, (e + f) / 2);
 
 		i->f = s9;
 	}
 }
 
-void AMR_f::Refine(void)
+unsigned int AMR_f::Refine(void)
 {
 	this->Sf = 0.0;
 	this->Sfu = 0.0;
@@ -202,7 +222,7 @@ void AMR_f::Refine(void)
 	this->Get_all_cells(cells);
 	double V, u, m, mu, muu;
 
-	cout << "All_cells_do = " << cells.size() << endl;
+	//cout << "All_cells_do = " << cells.size() << endl;
 
 	for (const auto& i : cells)
 	{
@@ -214,7 +234,7 @@ void AMR_f::Refine(void)
 		this->Sfuu += V * i->f * kv(u);
 	}
 
-	double procent = 0.5;
+	double procent = this->procent_signif;
 	for (const auto& i : cells)
 	{
 		i->is_signif = false;
@@ -230,7 +250,7 @@ void AMR_f::Refine(void)
 		if (muu * 100.0 / this->Sfuu > procent) i->is_signif = true;
 	}
 
-	procent = 2.0;
+	procent = this->procent_devide;
 	for (const auto& i : cells)
 	{
 		i->need_devide_x = false;
@@ -295,7 +315,8 @@ void AMR_f::Refine(void)
 		NN++;
 	}
 
-	cout << "Devide " << NN << "  cells" << endl;
+	//cout << "Devide " << NN << "  cells" << endl;
+	return NN;
 }
 
 void AMR_f::Save(string namef)
@@ -413,7 +434,7 @@ void AMR_f::Print_info(void)
 void AMR_f::Print_all_center_Tecplot(AMR_f* AMR)
 {
 	ofstream fout;
-	string name_f = "Tecplot_print_cell_center_3D.txt";
+	string name_f = "Tecplot_AMR_f_print_cell_center_3D.txt";
 	//std::vector<std::array<double, 3>> centers;
 	std::array<double, 3> center;
 	std::vector< AMR_cell*> cells;
@@ -443,6 +464,7 @@ void AMR_f::Print_all_center_Tecplot(AMR_f* AMR)
 	}
 
 	fout.close();
+	cout << "Print " << cells.size() << " cells" << endl;
 }
 
 void AMR_f::Print_slice_Tecplot(AMR_f* AMR, const double& a, const double& b, const double& c, const double& d)
@@ -541,8 +563,13 @@ void AMR_f::Print_all_sosed_Tecplot(AMR_f* AMR)
 	fout.close();
 }
 
-void AMR_f::Print_1D_Tecplot(AMR_f* AMR)
+void AMR_f::Print_1D_Tecplot(AMR_f* AMR, const double& VV)
 {
+	Eigen::Vector3d ex, ey, ez, ee;
+	ex << this->Vn[0], this->Vn[1], this->Vn[2];
+	ey << this->Vt[0], this->Vt[1], this->Vt[2];
+	ez << this->Vm[0], this->Vm[1], this->Vm[2];
+	std::array<double, 3> center;
 	ofstream fout;
 	string name_f = "Tecplot_Print_1D_Tecplot.txt";
 
@@ -552,17 +579,16 @@ void AMR_f::Print_1D_Tecplot(AMR_f* AMR)
 	double x = -20;
 	double dx = 0.03;
 
-	double cp1 = 0.2;
-	double cp2 = 0.8;
-	double u1 = -0.3;
-	double u2 = +0.5;
+	double cp1 = 1.0;
+	double u1 = VV;
 
 	while (x < 20.0)
 	{
 		x = x + dx;
 		auto A = this->find_cell(x, 0.0, 0.0);
-		double ff = maxwell(cp1, u1, 0.0, 0.0, x, 0.0, 0.0) +
-			10 * maxwell(cp2, u2, 0.0, 0.0, x, 0.0, 0.0);
+		A->Get_Center(this->AMR_self, center);
+		ee = center[0] * ex + center[1] * ey + center[2] * ez;
+		double ff = maxwell(1.0, cp1, u1, 0.0, 0.0, ee[0], ee[1], ee[2]);
 		if (A == nullptr)
 		{
 			fout << x << " " << 0.0 << " " << ff << endl;

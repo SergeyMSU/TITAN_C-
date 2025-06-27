@@ -19,11 +19,11 @@ public:
 
     double Velosity_inf = -2.54327;   // Значение скорости смеси на бесконечности
     double B_inf = 8.91006;           // Значение МОДУЛЯ магнитного поля на бесконечности
-    double alphaB_inf = 0.698132;     // Направление магнитного поля на бесконечности
+    double alphaB_inf = 0.76604444;     // Направление магнитного поля на бесконечности
     double B_0 = 114.037;             // Магнитное поле на 1 а.е.
     double p_0 = 3118.94;             // давление на 1 а.е.
     double par_a_2 = 0.102046;         // Параметр в сечении перезарядки
-    double par_n_p_LISM = 3.0;
+    double par_n_H_LISM = 3.0;        // б/р Концентрация водорода на бесконечности 
     double par_Kn = 39.3412;
     double mn_He_0 = 0.035194;        // Множитель концентрации гелия на 1 АЕ
     double mn_He_inf = 0.15;        // Множитель концентрации гелия на inf
@@ -47,16 +47,16 @@ public:
     bool move_BS = true;
 
     bool sglag_TS = true;              // Делаем ли сглаживание TS
-    double velocity_TS = 1.0;
+    double velocity_TS = 0.5;
     double sglag_TS_k = 0.005;         // Сглаживание на высоких широтах
     //double sglag_TS_k_sphere = 0.001; // 0.3;   // Сглаживание в головной и хвостовой части
-    double sglag_TS_k_sphere_head = 0.03; // 0.3;   // Сглаживание в головной и хвостовой части
-    double sglag_TS_k_sphere_tail = 0.01; // 0.3;   // Сглаживание в головной и хвостовой части
+    double sglag_TS_k_sphere_head = 0.4; // 0.3;   // Сглаживание в головной части
+    double sglag_TS_k_sphere_tail = 0.01; // 0.3;   // Сглаживание в хвостовой части
     // Не может быть больше 1
 
     bool sglag_HP = true;
     double velocity_HP = 1.0;
-    double sglag_HP_k_sphere = 0.00001;      // Сферическое сглиживание в головной части
+    double sglag_HP_k_sphere = 0.01;      // Сферическое сглиживание в головной части * 100
     double sglag_HP_k = 0.0005;          // Сглаживание не в головной области
     double sglag_HP_angle = 1.2;    // коэффициент усилинея сглаживания по углу
     double sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х

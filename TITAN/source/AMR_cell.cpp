@@ -3,6 +3,7 @@
 AMR_cell::AMR_cell()
 {
 	this->f = 0.0;
+	this->level = 0;
 }
 
 void AMR_cell::divide(unsigned short int n1, unsigned short int n2, unsigned short int n3)
@@ -506,6 +507,9 @@ void AMR_cell::Save_cell(std::ofstream& out)
 	double h = this->f;
 	out.write(reinterpret_cast<const char*>(&h), sizeof(double));
 
+	unsigned short int l = this->level;
+	out.write(reinterpret_cast<const char*>(&l), sizeof(unsigned short int));
+
 	size_t dims[3] = { this->cells.shape()[0], this->cells.shape()[1], this->cells.shape()[2] };
 	size_t n;
 	n = dims[0];
@@ -532,6 +536,7 @@ void AMR_cell::Save_cell(std::ofstream& out)
 void AMR_cell::Read_cell(std::ifstream& in)
 {
 	in.read(reinterpret_cast<char*>(&this->f), sizeof(double));
+	in.read(reinterpret_cast<char*>(&this->level), sizeof(unsigned short int));
 
 	size_t dims[3];
 	in.read(reinterpret_cast<char*>(dims), 3 * sizeof(size_t));
