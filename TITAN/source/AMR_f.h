@@ -23,17 +23,31 @@ public:
 	unsigned int yn;
 	unsigned int zn;
 
+	// Параметры для определения надо ли сгущать функцию
+	// Интеграллы от функции распределения
 	double Sf;
 	double Sfu;
 	double Sfuu;
+
+	double SpotokV = 0.0;  // Поток через данную грань функции распределения
+	// этот поток уже умножен на площадь грани (чтоб удобно его сразу брать)
 
 	AMR_f* AMR_self;
 
 	boost::multi_array<AMR_cell*, 3> cells;
 
+	void Culk_SpotokV(const double& Squ);
+
 	AMR_f();
 	AMR_f(const double& xL, const double& xR, const double& yL, const double& yR, const double& zL,
 		const double& zR, unsigned int xn, unsigned int yn, unsigned int zn);
+
+	void Get_real_koordinate(const double& x, const double& y, 
+		const double& z, double& Vx, double& Vy, double& Vz);
+	// По локальным координатам получает реальные глобальные координаты
+
+	void Get_lokal_koordinate(const double& Vx, const double& Vy, 
+		const double& Vz, double& x, double& y, double& z);
 
 	void Set_bazis(void);
 	// По нормали определяет два других вектора

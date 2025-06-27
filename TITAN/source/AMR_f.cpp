@@ -1,6 +1,32 @@
 #include "AMR_f.h"
 using namespace std;
 
+void AMR_f::Culk_SpotokV(const double& Squ)
+{
+	std::vector<AMR_cell*> cells;
+	std::array<double, 3> center;
+	std::array<double, 3> razmer;
+
+	this->SpotokV = 0.0;
+
+	this->Get_all_cells(cells);
+	double V;
+	double Vx, Vy, Vz;
+
+	//cout << "All_cells_do = " << cells.size() << endl;
+
+	for (const auto& i : cells)
+	{
+		i->Get_Center(this->AMR_self, center, razmer);
+		V = razmer[0] * razmer[1] * razmer[2];
+		this->Get_real_koordinate(center[0], center[1], center[2],
+			Vx, Vy, Vz);
+		this->SpotokV += V * i->f * fabs(Vx);
+	}
+
+	this->SpotokV *= Squ;
+}
+
 AMR_f::AMR_f()
 {
 	this->xL = 0.0;
@@ -58,6 +84,35 @@ AMR_f::AMR_f(const double& xL, const double& xR, const double& yL, const double&
 			}
 		}
 	}
+}
+
+void AMR_f::Get_real_koordinate(const double& x, const double& y, const double& z, double& Vx, double& Vy, double& Vz)
+{
+	Eigen::Vector3d ex, ey, ez, ee;
+	ex << this->Vn[0], this->Vn[1], this->Vn[2];
+	ey << this->Vt[0], this->Vt[1], this->Vt[2];
+	ez << this->Vm[0], this->Vm[1], this->Vm[2];
+
+	ee = x * ex + y * ey + z * ez;
+	Vx = ee[0];
+	Vy = ee[1];
+	Vz = ee[2];
+	return;
+}
+
+void AMR_f::Get_lokal_koordinate(const double& Vx, const double& Vy, const double& Vz, double& x, double& y, double& z)
+{
+	Eigen::Vector3d ex, ey, ez, ee;
+	ex << this->Vn[0], this->Vn[1], this->Vn[2];
+	ey << this->Vt[0], this->Vt[1], this->Vt[2];
+	ez << this->Vm[0], this->Vm[1], this->Vm[2];
+	ee << Vx, Vy, Vz;
+
+	ee = x * ex + y * ey + z * ez;
+	x = ee.dot(ex);
+	y = ee.dot(ey);
+	z = ee.dot(ez);
+	return;
 }
 
 void AMR_f::Set_bazis(void)
@@ -135,7 +190,6 @@ void AMR_f::Get_all_cells(vector<AMR_cell*>& cells)
 		}
 	}
 }
-
 
 void AMR_f::Fill_maxwel_inf(const double& Vinf)
 {
@@ -260,20 +314,44 @@ unsigned int AMR_f::Refine(void)
 		if (i->is_signif == false) continue;
 
 		auto A = i->get_sosed(this->AMR_self, 0);
-		if(A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent) i->need_devide_x = true;
+		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+		{
+			i->need_devide_x = true;
+			A->need_devide_x = true;
+		}
 		A = i->get_sosed(this->AMR_self, 1);
-		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent) i->need_devide_x = true;
+		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+		{
+			i->need_devide_x = true;
+			A->need_devide_x = true;
+		}
 		
 
 		A = i->get_sosed(this->AMR_self, 2);
-		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent) i->need_devide_y = true;
+		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+		{
+			i->need_devide_y = true;
+			A->need_devide_y = true;
+		}
 		A = i->get_sosed(this->AMR_self, 3);
-		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent) i->need_devide_y = true;
+		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+		{
+			i->need_devide_y = true;
+			A->need_devide_y = true;
+		}
 
 		A = i->get_sosed(this->AMR_self, 4);
-		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent) i->need_devide_z = true;
+		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+		{
+			i->need_devide_z = true;
+			A->need_devide_z = true;
+		}
 		A = i->get_sosed(this->AMR_self, 5);
-		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent) i->need_devide_z = true;
+		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+		{
+			i->need_devide_z = true;
+			A->need_devide_z = true;
+		}
 	}
 
 	short int k1 = 1;
@@ -585,10 +663,10 @@ void AMR_f::Print_1D_Tecplot(AMR_f* AMR, const double& VV)
 	while (x < 20.0)
 	{
 		x = x + dx;
-		auto A = this->find_cell(x, 0.0, 0.0);
-		A->Get_Center(this->AMR_self, center);
-		ee = center[0] * ex + center[1] * ey + center[2] * ez;
-		double ff = maxwell(1.0, cp1, u1, 0.0, 0.0, ee[0], ee[1], ee[2]);
+		ee << x, 0.0, 0.0;
+
+		auto A = this->find_cell(ee.dot(ex), ee.dot(ey), ee.dot(ez));
+		double ff = maxwell(1.0, cp1, u1, 0.0, 0.0, x, 0.0, 0.0);
 		if (A == nullptr)
 		{
 			fout << x << " " << 0.0 << " " << ff << endl;

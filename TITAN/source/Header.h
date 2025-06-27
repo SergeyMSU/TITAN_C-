@@ -14,6 +14,7 @@ class Gran;
 class Surfaces;
 class Interpol;
 class Int_point;
+class MK_particle;
 
 
 #define kv(x) ((x) * (x))
@@ -86,6 +87,7 @@ using namespace std;
 #include "Surfaces.h"
 #include "Interpol.h"
 #include "Int_point.h"
+#include "MK_particle.h"
 
 
 

@@ -93,6 +93,82 @@ void Gran::Culc_measure(unsigned short int st_time)
 	this->normal[st_time][2] = n3;
 }
 
+void Gran::Get_Random_pozition(Eigen::Vector3d& poz, Sensor* Sens)
+{
+	double xc, yc, zc;
+	int Ny = this->yzels.size();
+	xc = 0.0;
+	yc = 0.0;
+	zc = 0.0;
+
+	// Вычисляем центр грани
+	for (auto& i : this->yzels)
+	{
+		xc += i->coord[0][0];
+		yc += i->coord[0][1];
+		zc += i->coord[0][2];
+	}
+	xc /= Ny;
+	yc /= Ny;
+	zc /= Ny;
+
+	vector <double> sqv(this->yzels.size());
+
+
+
+	// Вычисляем площадь грани
+	double S = 0.0;
+	int i2;
+	for (int i = 0; i < this->yzels.size(); i++)
+	{
+		i2 = i + 1;
+		if (i2 >= this->yzels.size()) i2 = 0;
+		sqv[i] = triangleArea3D(this->yzels[i]->coord[0][0], 
+			this->yzels[i]->coord[0][1],
+			this->yzels[i]->coord[0][2],
+			this->yzels[i2]->coord[0][0], 
+			this->yzels[i2]->coord[0][1],
+			this->yzels[i2]->coord[0][2],
+			xc, yc, zc);
+		S += sqv[i];
+	}
+
+
+	
+	double SS = 0.0;
+	double ksi = Sens->MakeRandom();
+	Eigen::Vector3d A, B, C;
+	A << xc, yc, zc;
+
+	for (int i = 0; i < this->yzels.size(); i++)
+	{
+		if (ksi <= SS + sqv[i] / S || i == this->yzels.size() - 1)
+		{
+			i2 = i + 1;
+			if (i2 >= this->yzels.size()) i2 = 0;
+			B << this->yzels[i]->coord[0][0],
+				this->yzels[i]->coord[0][1],
+				this->yzels[i]->coord[0][2];
+			C << this->yzels[i2]->coord[0][0],
+				this->yzels[i2]->coord[0][1],
+				this->yzels[i2]->coord[0][2];
+			double r1 = Sens->MakeRandom();
+			double r2 = Sens->MakeRandom();
+			poz = (1.0 - sqrt(r1)) * A + (sqrt(r1) * (1.0 - r2)) * B +
+				(r2 * sqrt(r1)) * C;
+			return;
+			break;
+		}
+		else
+		{
+			SS += sqv[i] / S;
+		}
+	}
+
+	
+
+}
+
 Gran::Gran()
 {
 	this->yzels.reserve(4);

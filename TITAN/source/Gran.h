@@ -45,6 +45,7 @@ public:
 	double area[2];           // Площадь грани (также в предыдущий и следуюoий момент времени)
 
 	vector<array<AMR_f*, 2>> AMR;
+	double MK_Potok;  // Суммарный поток по всем сортам у грани
 	
 	// Первая направлена по нормали грани, вторая против нормали
 
@@ -59,6 +60,10 @@ public:
 	friend bool areCellsEqual(const Gran& cell1, const Gran& cell2);
 	friend bool areCellsEqual(const Gran* cell1, const Gran* cell2);
 	friend bool areCellsEqual_my(const Gran* cell1, const Gran* cell2);
+
+	// Для Монте-Карло
+	void Get_Random_pozition(Eigen::Vector3d& poz, Sensor* Sens);
+	// Получить случайную позоцию на грани
 
 	Gran();
 };

@@ -73,6 +73,8 @@ void Setka::Set_MK_Zone(void)
 	}
 
 	this->MK_Grans.resize(7);
+	this->MK_Potoks.resize(7);
+	for (short int i = 0; i < 7; ++i) this->MK_Potoks[i] = 0.0;
 
 	// 1 зона
 	for (auto& gr : this->Gran_TS)
@@ -368,14 +370,14 @@ void Setka::MK_prepare(short int zone_MK)
 	{
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
 		{
-			if (gr->AMR.size() < 4)
+			if (gr->AMR.size() < this->phys_param->num_H)
 			{
-				gr->AMR.resize(4);
+				gr->AMR.resize(this->phys_param->num_H);
 			}
 
 			for(short int ii = 0; ii <= 1; ii++)\
 			{
-				for (short int iH = 1; iH <= 4; iH++)
+				for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
 				{
 					if (gr->AMR[iH - 1][ii] == nullptr)
 					{
@@ -389,6 +391,7 @@ void Setka::MK_prepare(short int zone_MK)
 						}
 						else
 						{
+							//cout << "ih = " << iH << " " << ii << endl;
 							gr->AMR[iH - 1][ii] = new AMR_f(0.0, 20.0, -20.0, 20.0,
 								-20.0, 20.0, 3, 6, 6);
 							gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
@@ -416,6 +419,7 @@ void Setka::MK_prepare(short int zone_MK)
 
 
 	// Заполняем граничные условия для AMR сетки (на границе расчётной области)
+
 	if (true)
 	{
 		for (auto& gr : this->All_boundary_Gran)
@@ -426,16 +430,40 @@ void Setka::MK_prepare(short int zone_MK)
 				{
 					// Здесь надо задать граничные условия для четвёртого сорта 
 					// а также помельчить сетку, если необходимо
-					// Нужен gr->AMR[3][1]
-					// Также хорошо бы посмотреть, что получилось
 					gr->AMR[3][1]->Fill_maxwel_inf(this->phys_param->Velosity_inf);    // <<1>> - внутрь, <<3>> - 4 сорт водорода
-					gr->AMR[3][1]->Print_all_center_Tecplot(gr->AMR[3][1]);
-					gr->AMR[3][1]->Print_1D_Tecplot(gr->AMR[3][1], this->phys_param->Velosity_inf);
-					cout << "DONE  " << endl;
-					exit(-1);
+					//gr->AMR[3][1]->Print_all_center_Tecplot(gr->AMR[3][1]);
+					//gr->AMR[3][1]->Print_1D_Tecplot(gr->AMR[3][1], this->phys_param->Velosity_inf);
+					//cout << "DONE  " << endl;
+					//exit(-1);
 				}
 			}
 		}
+	}
+
+	// Теперь для каждой функции распределения вычисляем поток через неё
+	if (true)
+	{
+		double S = 0.0;
+		for (auto& gr : this->MK_Grans[zone_MK - 1])
+		{
+			gr->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
+			// Нужно вычислять поток только у входящей части функции распределения
+			short int ni = 0;
+			if (gr->cells[0]->MK_zone == zone_MK)
+			{
+				ni = 1;
+			}
+			gr->MK_Potok = 0.0;
+
+			for (auto& ai : gr->AMR)
+			{
+					ai[ni]->Culk_SpotokV(gr->area[0]);
+					S += ai[ni]->SpotokV;
+					gr->MK_Potok += ai[ni]->SpotokV;
+			}
+
+		}
+		this->MK_Potoks[zone_MK - 1] = S; // Входящий поток через всю границу зоны
 	}
 
 	cout << "END MK_prepare   zone_MK = " << zone_MK << endl;
@@ -481,4 +509,56 @@ void Setka::MK_delete(short int zone_MK)
 	}
 
 	cout << "END MK_delete" << endl;
+}
+
+
+void Setka::MK_go(short int zone_MK)
+{
+	int N_on_gran = 1000;   // Сколько запускаем частиц на грань в среднем
+	double mu_expect = 0.0;
+	mu_expect = this->MK_Potoks[zone_MK - 1] / 
+		(1.0 * N_on_gran * this->MK_Grans[zone_MK - 1].size());
+
+	for (auto& gr : this->MK_Grans[zone_MK - 1])
+	{
+		// Выбираем конкретный номер датчика случайных чисел
+		unsigned int sens_num = 0;
+		short int ni = 0; // Номер "входящей" функции распределения
+		if (gr->cells[0]->MK_zone == zone_MK)
+		{
+			ni = 1;
+		}
+		double full_gran_potok = gr->MK_Potok;
+
+		// Разыгрываем каждый сорт отдельно
+		for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
+		{
+			auto& func = gr->AMR[nh_][ni];
+
+			if (func->SpotokV < 0.000001 * full_gran_potok)
+			{
+				// Функуция распределния нулевая, можно не разыгрывать
+				continue;
+			}
+
+			// Расчитываем число запускаемых частиц
+			unsigned int N_particle = max(static_cast<int>(func->SpotokV / mu_expect) + 1, 10);
+			double mu = func->SpotokV / N_particle; // Вес каждой частицы
+
+			// Запускаем каждую частицу
+			for (unsigned int num = 0; num < N_particle; ++num)
+			{
+				MK_particle P = MK_particle();
+				P.mu = mu;
+
+				Eigen::Vector3d poz;
+
+				// Находим положение точки на грани
+				gr->Get_Random_pozition(poz, this->Sensors[sens_num]);
+				P.coord = poz;
+
+				// Разыгрываем скорость точки
+			}
+		}
+	}
 }

@@ -814,3 +814,124 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 	}
 }
+
+void Setka::Smooth_head_TS(void)
+{
+	cout << "Start Smooth_head_TS" << endl;
+
+	std::vector<double> a; // коэффициенты a1, a2, a3
+	std::vector<double> b; // коэффициенты b1, b2, b3
+	std::vector<double> c; // коэффициенты b1, b2, b3
+	std::vector<double> d; // коэффициенты b1, b2, b3
+	std::vector<double> e; // коэффициенты b1, b2, b3
+	std::vector<double> f; // коэффициенты b1, b2, b3
+	std::vector<double> w; // веса
+	Eigen::Vector3d A, B, V;
+
+	for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
+	{
+		auto gr = this->Gran_TS[i_step];
+		A << gr->center[0][0], gr->center[0][1], gr->center[0][2];
+		double rr = A.norm();
+
+		double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+		if (phi < this->geo->tetta0 + 0.17)
+		{
+			a.push_back(kv(A[0]));
+			b.push_back(kv(A[1]));
+			c.push_back(kv(A[2]));
+			d.push_back(A[0] * A[1]);
+			e.push_back(A[0] * A[2]);
+			f.push_back(A[2] * A[1]);
+			w.push_back(0.05 + phi);
+		}
+	}
+
+	unsigned int n = a.size();
+	Eigen::MatrixXd AA(n, 6);
+	for (int i = 0; i < n; ++i) {
+		AA(i, 0) = a[i] * w[i];  // коэффициент при x
+		AA(i, 1) = b[i] * w[i];  // коэффициент при x
+		AA(i, 2) = c[i] * w[i];  // коэффициент при x
+		AA(i, 3) = d[i] * w[i];  // коэффициент при x
+		AA(i, 4) = e[i] * w[i];  // коэффициент при x
+		AA(i, 5) = f[i] * w[i];  // коэффициент при x
+	}
+
+	Eigen::VectorXd b_vec(n);
+	for (int i = 0; i < n; ++i) {
+		b_vec(i) = 1.0 * w[i];
+	}
+
+	// Решаем систему методом наименьших квадратов
+	Eigen::VectorXd solution = AA.colPivHouseholderQr().solve(b_vec);
+
+	// Извлекаем решение
+	double x = solution(0);
+	double y = solution(1);
+	double z = solution(2);
+	double zz = solution(3);
+	double zzz = solution(4);
+	double zzzz = solution(5);
+
+	double ak = sqrt(1.0 / x);
+	double bk = sqrt(1.0 / y);
+	double ck = sqrt(1.0 / z);
+	double dk = zz;
+	double ek = zzz;
+	double fk = zzzz;
+	
+	cout << "a = " << ak << endl;
+	cout << "b = " << bk << endl;
+	cout << "c = " << ck << endl;
+	cout << "d = " << dk << endl;
+	cout << "e = " << ek << endl;
+	cout << "f = " << fk << endl;
+
+	// Теперь сглаживаем поверхность
+
+	for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
+	{
+		auto gr = this->Gran_TS[i_step];
+		for (auto& yz : gr->yzels)
+		{
+			A << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
+			//double rr = A.norm();
+
+			double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+			if (phi < this->geo->tetta0 + 0.17)
+			{
+				double rr = sqrt(kv(A[0]) / kv(ak) + kv(A[1]) / kv(bk)
+					+ kv(A[2]) / kv(ck) + A[0] * A[1] * dk + 
+					A[0] * A[2] * ek + A[2] * A[1] * fk);
+				double aaa = 1.0/rr;
+				yz->coord[0][0] *= aaa;
+				yz->coord[0][1] *= aaa;
+				yz->coord[0][2] *= aaa;
+				yz->coord[1][0] = yz->coord[0][0];
+				yz->coord[1][1] = yz->coord[0][1];
+				yz->coord[1][2] = yz->coord[0][2];
+			}
+		}
+	}
+
+
+	for (int i_step = 0; i_step < this->All_Luch.size(); i_step++)
+	{
+		auto lu = this->All_Luch[i_step];
+		lu->dvigenie(0);
+	}
+	for (auto& i : this->All_Yzel)
+	{
+		for (unsigned short int j = 0; j < 3; j++)
+		{
+			i->coord[1][j] = i->coord[0][j];
+		}
+	}
+
+
+	this->Calculating_measure(0);
+	this->Calculating_measure(1);
+
+	cout << "End Smooth_head_TS" << endl;
+}

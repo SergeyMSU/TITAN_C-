@@ -27,6 +27,7 @@ public:
     double par_Kn = 39.3412;
     double mn_He_0 = 0.035194;        // Множитель концентрации гелия на 1 АЕ
     double mn_He_inf = 0.15;        // Множитель концентрации гелия на inf
+    short int num_H = 4;           // Сколько сортов водорода для МК
 
     // параметры
     double gamma = (5.0 / 3.0);       // показатель адиабаты
@@ -50,7 +51,7 @@ public:
     double velocity_TS = 0.5;
     double sglag_TS_k = 0.005;         // Сглаживание на высоких широтах
     //double sglag_TS_k_sphere = 0.001; // 0.3;   // Сглаживание в головной и хвостовой части
-    double sglag_TS_k_sphere_head = 0.4; // 0.3;   // Сглаживание в головной части
+    double sglag_TS_k_sphere_head = 0.01; // 0.3;   // Сглаживание в головной части
     double sglag_TS_k_sphere_tail = 0.01; // 0.3;   // Сглаживание в хвостовой части
     // Не может быть больше 1
 
