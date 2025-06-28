@@ -3866,6 +3866,7 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 	{
 		fout << ", " << nam;
 	}
+	fout << ", BB_8Pi";
 	fout << endl;
 
 	unsigned int N = 5000;
@@ -3894,6 +3895,7 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 				fout << " " << parameters["Q"]/ parameters["rho"];
 			}
 		}
+		fout << " " << kvv(parameters["Bx"], parameters["By"], parameters["Bz"]) / (8.0 * const_pi);
 		fout << endl;
 
 	}

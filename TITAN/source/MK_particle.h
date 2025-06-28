@@ -8,8 +8,6 @@ public:
 	Eigen::Vector3d coord;  // Положение частицы
 	short int sort;         // Сорт частицы
 	double mu;              // Вес частицы
-
-
 	Cell* cel;              // Ячейка, в которой находится частица
 
 };

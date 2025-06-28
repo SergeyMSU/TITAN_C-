@@ -549,7 +549,17 @@ void Setka::MK_go(short int zone_MK)
 			for (unsigned int num = 0; num < N_particle; ++num)
 			{
 				MK_particle P = MK_particle();
-				P.mu = mu;
+				if (ni == 0)
+				{
+					P.cel = gr->cells[1];               // Ячейка в которой находится частица
+				}
+				else
+				{
+					P.cel = gr->cells[0];
+				}
+				
+				P.mu = mu;                           // Вес частицы
+				P.sort = nh_ + 1;                    // Сорт частицы
 
 				Eigen::Vector3d poz;
 
@@ -557,8 +567,19 @@ void Setka::MK_go(short int zone_MK)
 				gr->Get_Random_pozition(poz, this->Sensors[sens_num]);
 				P.coord = poz;
 
-				// Разыгрываем скорость точки
+				// Находим скорость частицы
+				func->Get_random_velosity(gr->area[0], poz, this->Sensors[sens_num]);  // !! Не написана
+				P.Vel = poz;
+
+				this->MK_fly_immit(P); // Запускаем частицу в полёт   // !! Не написана
+
 			}
 		}
 	}
+}
+
+
+void Setka::MK_fly_immit(MK_particle& P)
+{
+
 }

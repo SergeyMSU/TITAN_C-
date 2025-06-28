@@ -27,6 +27,14 @@ void AMR_f::Culk_SpotokV(const double& Squ)
 	this->SpotokV *= Squ;
 }
 
+void AMR_f::Get_random_velosity(const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens)
+{
+	// Squ - площадь грани
+	// Vel - возвращаемая скорость частицы
+	// Sens - датчик случайных чисел
+
+}
+
 AMR_f::AMR_f()
 {
 	this->xL = 0.0;

@@ -37,6 +37,7 @@ public:
 	boost::multi_array<AMR_cell*, 3> cells;
 
 	void Culk_SpotokV(const double& Squ);
+	void Get_random_velosity(const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens);
 
 	AMR_f();
 	AMR_f(const double& xL, const double& xR, const double& yL, const double& yR, const double& zL,

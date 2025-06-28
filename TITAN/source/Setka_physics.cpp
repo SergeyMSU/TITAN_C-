@@ -251,7 +251,7 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// Редактирование каких-то переменных
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -268,14 +268,6 @@ void Setka::Init_physics(void)
 				i->parameters[0]["Vy_H4"] = 0.0;
 				i->parameters[0]["Vz_H4"] = 0.0;
 				i->parameters[0]["p_H4"] = 0.5;
-				i->parameters[1] = i->parameters[0];
-			}
-
-			if (i->type == Type_cell::Zone_1)
-			{
-				i->parameters[0]["Vx_H4"] = i->parameters[0]["Vx_H3"];
-				i->parameters[0]["Vy_H4"] = i->parameters[0]["Vy_H3"];
-				i->parameters[0]["Vz_H4"] = i->parameters[0]["Vz_H3"];
 				i->parameters[1] = i->parameters[0];
 			}
 
@@ -826,35 +818,37 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 
 		// Здесь задаётся выходящее условие для водорода 1-3 на Type_Gran::Outer_Hard
-		
-		for (auto& gran : this->All_boundary_Gran)
+		if (false)
 		{
-			if (gran->type == Type_Gran::Outer_Hard)
+			for (auto& gran : this->All_boundary_Gran)
 			{
-				double u1, v1, w1;
-				for (auto& nam : this->phys_param->H_name)
+				if (gran->type == Type_Gran::Outer_Hard)
 				{
-					if (nam == "_H4") continue;
+					double u1, v1, w1;
+					for (auto& nam : this->phys_param->H_name)
+					{
+						if (nam == "_H4") continue;
 
-					u1 = gran->cells[0]->parameters[now1]["Vx" + nam];
-					v1 = gran->cells[0]->parameters[now1]["Vy" + nam];
-					w1 = gran->cells[0]->parameters[now1]["Vz" + nam];
-					if (u1 * gran->normal[now1][0] + v1 * gran->normal[now1][1] +
-						w1 * gran->normal[now1][2] > 0.0)
-					{
-						gran->parameters["rho" + nam] = gran->cells[0]->parameters[now1]["rho" + nam];
-						gran->parameters["p" + nam] = gran->cells[0]->parameters[now1]["p" + nam];
-						gran->parameters["Vx" + nam] = u1;
-						gran->parameters["Vy" + nam] = v1;
-						gran->parameters["Vz" + nam] = w1;
-					}
-					else
-					{
-						gran->parameters["rho" + nam] = gran->cells[0]->parameters[now1]["rho" + nam];
-						gran->parameters["p" + nam] = gran->cells[0]->parameters[now1]["p" + nam];
-						gran->parameters["Vx" + nam] = 0.1 * gran->normal[now1][0];
-						gran->parameters["Vy" + nam] = 0.1 * gran->normal[now1][1];
-						gran->parameters["Vz" + nam] = 0.1 * gran->normal[now1][2];
+						u1 = gran->cells[0]->parameters[now1]["Vx" + nam];
+						v1 = gran->cells[0]->parameters[now1]["Vy" + nam];
+						w1 = gran->cells[0]->parameters[now1]["Vz" + nam];
+						if (u1 * gran->normal[now1][0] + v1 * gran->normal[now1][1] +
+							w1 * gran->normal[now1][2] > 0.0)
+						{
+							gran->parameters["rho" + nam] = gran->cells[0]->parameters[now1]["rho" + nam];
+							gran->parameters["p" + nam] = gran->cells[0]->parameters[now1]["p" + nam];
+							gran->parameters["Vx" + nam] = u1;
+							gran->parameters["Vy" + nam] = v1;
+							gran->parameters["Vz" + nam] = w1;
+						}
+						else
+						{
+							gran->parameters["rho" + nam] = gran->cells[0]->parameters[now1]["rho" + nam];
+							gran->parameters["p" + nam] = gran->cells[0]->parameters[now1]["p" + nam];
+							gran->parameters["Vx" + nam] = 0.1 * gran->normal[now1][0];
+							gran->parameters["Vy" + nam] = 0.1 * gran->normal[now1][1];
+							gran->parameters["Vz" + nam] = 0.1 * gran->normal[now1][2];
+						}
 					}
 				}
 			}
@@ -1290,6 +1284,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		Option.x = gr->center[now][0];
 		Option.y = gr->center[now][1];
 		Option.z = gr->center[now][2];
+		Option.fluid = "plasma";
 
 		qqq1[0] = par_left["rho"];
 		qqq1[1] = par_left["Vx"];
@@ -1338,6 +1333,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		}
 
 		metod_ = gr->Get_method();
+
 
 		//metod_ = 2;
 		
@@ -1415,6 +1411,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 	for (auto& nam : this->phys_param->H_name)
 	{
+		Option.fluid = nam;
 		qqq1[0] = par_left["rho" + nam];
 		qqq1[1] = par_left["Vx" + nam];
 		qqq1[2] = par_left["Vy" + nam];

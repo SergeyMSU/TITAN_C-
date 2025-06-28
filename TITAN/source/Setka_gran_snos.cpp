@@ -8,41 +8,58 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 	{
 		if (gr->type == Type_Gran::Inner_Hard || gr->type == Type_Gran::Outer_Hard)
 		{
+			auto C = gr->cells[0];
 			// Ќужно ли считать плазменные пол€
 			if (this->phys_param->culc_plasma == true)
 			{
-				par_left["rho"] = gr->parameters["rho"];
-				par_left["n_He"] = gr->parameters["n_He"];
-				par_left["Q"] = gr->parameters["Q"];
-				par_left["p"] = gr->parameters["p"];
-				par_left["Vx"] = gr->parameters["Vx"];
-				par_left["Vy"] = gr->parameters["Vy"];
-				par_left["Vz"] = gr->parameters["Vz"];
-				par_left["Bx"] = gr->parameters["Bx"];
-				par_left["By"] = gr->parameters["By"];
-				par_left["Bz"] = gr->parameters["Bz"];
+				par_left["rho"] = C->parameters[now]["rho"];
+				par_left["n_He"] = C->parameters[now]["n_He"];
+				par_left["Q"] = C->parameters[now]["Q"];
+				par_left["p"] = C->parameters[now]["p"];
+				par_left["Vx"] = C->parameters[now]["Vx"];
+				par_left["Vy"] = C->parameters[now]["Vy"];
+				par_left["Vz"] = C->parameters[now]["Vz"];
+				par_left["Bx"] = C->parameters[now]["Bx"];
+				par_left["By"] = C->parameters[now]["By"];
+				par_left["Bz"] = C->parameters[now]["Bz"];
 
-				par_right["rho"] = par_left["rho"];
-				par_right["n_He"] = par_left["n_He"];
-				par_right["Q"] = par_left["Q"];
-				par_right["p"] = par_left["p"];
-				par_right["Vx"] = par_left["Vx"];
-				par_right["Vy"] = par_left["Vy"];
-				par_right["Vz"] = par_left["Vz"];
-				par_right["Bx"] = par_left["Bx"];
-				par_right["By"] = par_left["By"];
-				par_right["Bz"] = par_left["Bz"];
+				par_right["rho"] = gr->parameters["rho"];
+				par_right["n_He"] = gr->parameters["n_He"];
+				par_right["Q"] = gr->parameters["Q"];
+				par_right["p"] = gr->parameters["p"];
+				par_right["Vx"] = gr->parameters["Vx"];
+				par_right["Vy"] = gr->parameters["Vy"];
+				par_right["Vz"] = gr->parameters["Vz"];
+				par_right["Bx"] = gr->parameters["Bx"];
+				par_right["By"] = gr->parameters["By"];
+				par_right["Bz"] = gr->parameters["Bz"];
+
 			}
 
 			for (auto& nam : this->phys_param->H_name)
 			{
-				if (gr->type == Type_Gran::Outer_Hard || (nam == "_H1"))
+				// ƒл€ четвЄртого сорта жЄсткие гран услови€
+				if (gr->type == Type_Gran::Outer_Hard && nam == "_H4")
 				{
-					par_left["rho" + nam] = gr->parameters["rho" + nam];
-					par_left["p" + nam] = gr->parameters["p" + nam];
-					par_left["Vx" + nam] = gr->parameters["Vx" + nam];
-					par_left["Vy" + nam] = gr->parameters["Vy" + nam];
-					par_left["Vz" + nam] = gr->parameters["Vz" + nam];
+					par_left["rho" + nam] = C->parameters[now]["rho" + nam];
+					par_left["p" + nam] = C->parameters[now]["p" + nam];
+					par_left["Vx" + nam] = C->parameters[now]["Vx" + nam];
+					par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
+					par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
+
+					par_right["rho" + nam] = gr->parameters["rho" + nam];
+					par_right["p" + nam] = gr->parameters["p" + nam];
+					par_right["Vx" + nam] = gr->parameters["Vx" + nam];
+					par_right["Vy" + nam] = gr->parameters["Vy" + nam];
+					par_right["Vz" + nam] = gr->parameters["Vz" + nam];
+				}
+				else if (gr->type == Type_Gran::Outer_Hard || nam == "_H1")
+				{
+					par_left["rho" + nam] = C->parameters[now]["rho" + nam];
+					par_left["p" + nam] = C->parameters[now]["p" + nam];
+					par_left["Vx" + nam] = C->parameters[now]["Vx" + nam];
+					par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
+					par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
 
 					par_right["rho" + nam] = par_left["rho" + nam];
 					par_right["p" + nam] = par_left["p" + nam];
@@ -50,7 +67,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					par_right["Vy" + nam] = par_left["Vy" + nam];
 					par_right["Vz" + nam] = par_left["Vz" + nam];
 				}
-				else // ƒл€  H2  H3  H4    и  Inner_Hard  -  делаем через центральную фиктивную €чейку
+				else if (gr->type == Type_Gran::Inner_Hard)// ƒл€  H2  H3  H4    и  Inner_Hard  -  делаем через центральную фиктивную €чейку
 				{
 					auto A = gr->cells[0];
 					auto B = this->Cell_Center;
@@ -65,6 +82,12 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					par_right["Vx" + nam] = B->parameters[now]["Vx" + nam];
 					par_right["Vy" + nam] = B->parameters[now]["Vy" + nam];
 					par_right["Vz" + nam] = B->parameters[now]["Vz" + nam];
+				}
+				else
+				{
+					cout << "Error 8653496143 " << endl;
+					cout << nam << endl;
+					exit(-1);
 				}
 			}
 		}

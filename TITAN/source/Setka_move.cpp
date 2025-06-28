@@ -146,6 +146,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		qqq2.resize(8);
 		std::vector<double> konvect_left, konvect_right, konvect;
 		PrintOptions Option = PrintOptions{};
+		Option.fluid = "plasma_TS";
 
 		//A->parameters[now]
 		qqq1[0] = par_left["rho"];
@@ -167,6 +168,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		qqq2[7] = par_right["Bz"];
 
 		double w = 0.0;
+
 
 		this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
 			gr->normal[now][2],
@@ -235,6 +237,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			qqq2.resize(8);
 			std::vector<double> konvect_left, konvect_right, konvect;
 			PrintOptions Option = PrintOptions{};
+			Option.fluid = "plasma_HP";
 
 
 			qqq1[0] = A->parameters[now]["rho"];
@@ -347,6 +350,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			qqq2.resize(8);
 			std::vector<double> konvect_left, konvect_right, konvect;
 			PrintOptions Option = PrintOptions{};
+			Option.fluid = "plasma_BS";
 
 
 			qqq1[0] = A->parameters[now]["rho"];

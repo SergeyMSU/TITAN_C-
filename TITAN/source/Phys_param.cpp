@@ -539,6 +539,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
             if (opts.x) whach(*opts.x);
             if (opts.y) whach(*opts.y);
             if (opts.z) whach(*opts.z);
+            if (opts.fluid) whach(*opts.fluid);
             exit(-1);
         }
 
