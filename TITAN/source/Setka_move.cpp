@@ -201,7 +201,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 	// —читаем движение HP
 	if (this->phys_param->move_HP == true)
 	{
-//#pragma omp parallel for private(dsr, dsc, dsl)
+#pragma omp parallel for private(dsr, dsc, dsl)
 		for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
 		{
 			auto gr = this->Gran_HP[i_step];
@@ -451,6 +451,10 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 	if (this->phys_param->sglag_HP == true)
 	{
+		double phi_a = polar_angle(this->A_Luch[0][1]->Yzels[0]->coord[0][0], 
+			norm2(0.0, this->A_Luch[0][1]->Yzels[0]->coord[0][1], 
+				this->A_Luch[0][1]->Yzels[0]->coord[0][2]));
+
 		Eigen::Vector3d A, B, V;
 
 		// —глаживание в головной области х > 0
@@ -461,7 +465,11 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			auto gr = this->Gran_HP[i_step];
 			A << gr->center[now][0], gr->center[now][1], gr->center[now][2];
 
-			if (A(0) < 0.0) continue;
+			double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+
+			// ¬ключаем радиально-сферическое сглаживание только в головной зоне
+			if (phi > phi_a + const_pi/180.0) continue;
+
 
 			double rr = A.norm();
 			double r = 0.0;
@@ -492,9 +500,63 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		double a, b, c;
 		double r1, r2, r3, r4;
 
+		// ѕараболическое сглаживание на A лучах
+		int nn = this->A_Luch.size();
+		int mm = this->A_Luch[0].size();
+
+		for (size_t i = 0; i < nn; i++)
+		{
+			short int ip = i + 1;
+			short int ipp = i + 2;
+			short int im = i - 1;
+			short int imm = i - 2;
+
+			if (ip == nn) ip = 0;
+			if (ipp == nn) ipp = 0;
+			if (ipp == nn + 1) ipp = 1;
+
+			if (im == -1) im = nn - 1;
+			if (imm == -1) imm = nn - 1;
+			if (imm == -2) imm = nn - 2;
+
+			for (size_t j = 2; j < mm; j++)
+			{
+				AA = this->A_Luch[i][j]->Yzels_opor[2];
+				AA2 = this->A_Luch[im][j]->Yzels_opor[2];
+				AA22 = this->A_Luch[imm][j]->Yzels_opor[2];
+				AA4 = this->A_Luch[ip][j]->Yzels_opor[2];
+				AA44 = this->A_Luch[ipp][j]->Yzels_opor[2];
+
+				if (j == mm - 1)
+				{
+					AA1 = this->A_Luch[i][j - 1]->Yzels_opor[2];
+					AA11 = this->A_Luch[i][j - 2]->Yzels_opor[2];
+					AA3 = this->B_Luch[i][0]->Yzels_opor[2];
+					AA33 = this->B_Luch[i][1]->Yzels_opor[2];
+				}
+				else if (j == mm - 2)
+				{
+					AA1 = this->A_Luch[i][j - 1]->Yzels_opor[2];
+					AA11 = this->A_Luch[i][j - 2]->Yzels_opor[2];
+					AA3 = this->A_Luch[i][j + 1]->Yzels_opor[2];
+					AA33 = this->B_Luch[i][0]->Yzels_opor[2];
+				}
+				else
+				{
+					AA1 = this->A_Luch[i][j - 1]->Yzels_opor[2];
+					AA11 = this->A_Luch[i][j - 2]->Yzels_opor[2];
+					AA3 = this->A_Luch[i][j + 1]->Yzels_opor[2];
+					AA33 = this->A_Luch[i][j + 2]->Yzels_opor[2];
+				}
+
+				macros1();
+			}
+		}
+
+
 		// ѕараболическое сглаживание на B лучах
-		int nn = this->B_Luch.size();
-		int mm = this->B_Luch[0].size();
+		nn = this->B_Luch.size();
+		mm = this->B_Luch[0].size();
 
 		for (size_t i = 0; i < nn; i++)
 		{
