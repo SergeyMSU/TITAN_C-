@@ -43,6 +43,13 @@ class MK_particle;
 #include <optional>
 #include <omp.h>
 #include <chrono>
+
+
+// Boost библиотека (надо подключать к компилятору отдельно)
+#include "boost/multi_array.hpp"
+#include <boost/parameter.hpp>
+
+
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Delaunay_triangulation_3.h>
 #include <CGAL/Triangulation_vertex_base_with_info_3.h>
@@ -67,9 +74,7 @@ const double eps_p = 1E-6;
 const double eps_d = 1E-3;
 const double MF_meDmp = (1.0 / 1836.15);  // Отношения массы электрона к массе протона
 
-// Boost библиотека (надо подключать к компилятору отдельно)
-#include "boost/multi_array.hpp"
-#include <boost/parameter.hpp>
+
 
 using namespace std;
 
