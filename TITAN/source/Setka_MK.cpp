@@ -466,6 +466,15 @@ void Setka::MK_prepare(short int zone_MK)
 		this->MK_Potoks[zone_MK - 1] = S; // Входящий поток через всю границу зоны
 	}
 
+	// Счмтаем необходимые геометрические параметры в ячейках для МК
+	if (true)
+	{
+		for (auto& i : this->All_Cell)
+		{
+			i->Set_Cell_Geo_for_MK();
+		}
+	}
+
 	cout << "END MK_prepare   zone_MK = " << zone_MK << endl;
 }
 
@@ -568,8 +577,56 @@ void Setka::MK_go(short int zone_MK)
 				P.coord = poz;
 
 				// Находим скорость частицы
-				func->Get_random_velosity(gr->area[0], poz, this->Sensors[sens_num]);  // !! Не написана
+				func->Get_random_velosity(func, gr->area[0], poz, this->Sensors[sens_num]);
 				P.Vel = poz;
+
+				if (this->regim_otladki)
+				{
+					if (ni == 0)
+					{
+						if (scalarProductFast(poz(0), poz(1), poz(2),
+							gr->normal[0][0], gr->normal[0][0], gr->normal[0][0]) < 0.0)
+						{
+							cout << "Error  8765656431" << endl;
+							exit(-1);
+						}
+					}
+					else
+					{
+						if (scalarProductFast(poz(0), poz(1), poz(2),
+							gr->normal[0][0], gr->normal[0][0], gr->normal[0][0]) > 0.0)
+						{
+							cout << "Error  7411100090" << endl;
+							exit(-1);
+						}
+					}
+				}
+
+
+				// Проверяем будет ли точка находиться в данной ячейке или нет
+				Cell* previos = P.cel;
+				double dt = previos->geo_parameters["l_size"] / P.Vel.norm() / 1000.0;
+				Cell* ppp = this->Find_cell_point(P.coord[0] + P.Vel[0] * dt,
+					P.coord[1] + P.Vel[1] * dt,
+					P.coord[2] + P.Vel[2] * dt,
+					0, previos);
+
+				if (ppp == nullptr)
+				{
+					cout << "Error 9756567412" << endl;
+					exit(-1);
+				}
+
+				if (ppp != P.cel)
+				{
+					P.cel = ppp;
+					P.coord[0] += P.Vel[0] * dt;
+					P.coord[1] += P.Vel[1] * dt;
+					P.coord[2] += P.Vel[2] * dt;
+				}
+
+
+
 
 				this->MK_fly_immit(P); // Запускаем частицу в полёт   // !! Не написана
 

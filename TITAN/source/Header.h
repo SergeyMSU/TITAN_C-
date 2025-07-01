@@ -31,6 +31,8 @@ class MK_particle;
 #include <vector>
 #include <list>
 #include <unordered_set>
+#include <unordered_map>
+#include <array>
 #include <algorithm>
 #include <fstream>
 #include <map>
@@ -46,8 +48,9 @@ class MK_particle;
 
 
 // Boost библиотека (надо подключать к компилятору отдельно)
-#include "boost/multi_array.hpp"
+
 #include <boost/parameter.hpp>
+#include "boost/multi_array.hpp"
 
 
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>

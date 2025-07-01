@@ -210,6 +210,46 @@ bool Cell::Belong_point(const double& x, const double& y, const double& z, short
 	return false;
 }
 
+void Cell::Set_Cell_Geo_for_MK(void)
+{
+	Eigen::Vector3d A;
+	Eigen::Vector3d B;
+	Eigen::Vector3d C;
+
+
+	// Считаем l_size   характерный размер ячейки
+	if (true)
+	{
+		double S = 0.0;
+
+		A[0] = this->yzels[0]->coord[0][0];
+		A[1] = this->yzels[0]->coord[0][1];
+		A[2] = this->yzels[0]->coord[0][2];
+
+		B[0] = this->yzels[0]->coord[1][0];
+		B[1] = this->yzels[0]->coord[1][1];
+		B[2] = this->yzels[0]->coord[1][2];
+		C = B - A;
+
+		S = C.norm();
+
+		B[0] = this->yzels[0]->coord[4][0];
+		B[1] = this->yzels[0]->coord[4][1];
+		B[2] = this->yzels[0]->coord[4][2];
+		C = B - A;
+		S = min(S, C.norm());
+
+
+		B[0] = this->yzels[0]->coord[2][0];
+		B[1] = this->yzels[0]->coord[2][1];
+		B[2] = this->yzels[0]->coord[2][2];
+		C = B - A;
+		S = min(S, C.norm());
+
+		this->geo_parameters["l_size"] = S;
+	}
+}
+
 
 void Cell::Culc_center(unsigned short int st_time)
 {

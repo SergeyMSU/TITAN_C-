@@ -4,7 +4,9 @@
 class AMR_cell
 {
 public:
-	double f;
+	double f = 0.0;
+	double Spotok = 0.0; // Ётот поток в €чейке не умноженный на грань!
+
 	AMR_cell* I_self;            // ”казатель на себ€
 
 
@@ -26,6 +28,8 @@ public:
 
 	AMR_cell();
 
+	double Get_SpotokV(void);
+
 	void divide(unsigned short int n1, unsigned short int n2, unsigned short int n3); // –азделить €чейку
 
 	AMR_cell* find_cell(const double& x, const double& y, const double& z, const double& xL, 
@@ -37,6 +41,8 @@ public:
 	//     по х вперЄд - назад, по y ...
 
 	void Print_info(void);
+
+	void Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi, const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens);
 
 	void Get_index(std::vector<std::array<unsigned int, 3>>& numbers);
 	// ѕолучить индекс €чейки

@@ -6,6 +6,37 @@ AMR_cell::AMR_cell()
 	this->level = 0;
 }
 
+double AMR_cell::Get_SpotokV(void)
+{
+	if (this->is_divided == false)
+	{
+		return this->Spotok;
+	}
+	else
+	{
+		double SS = 0.0;
+		const size_t dim1 = this->cells.shape()[0];
+		const size_t dim2 = this->cells.shape()[1];
+		const size_t dim3 = this->cells.shape()[2];
+
+		for (size_t i = 0; i < dim1; ++i) 
+		{
+			for (size_t j = 0; j < dim2; ++j) 
+			{
+				for (size_t k = 0; k < dim3; ++k) 
+				{
+					AMR_cell* cell = cells[i][j][k];
+					SS += cell->Get_SpotokV();
+				}
+			}
+		}
+		this->Spotok = SS;
+		return SS;
+	}
+
+	return 0.0;
+}
+
 void AMR_cell::divide(unsigned short int n1, unsigned short int n2, unsigned short int n3)
 {
 	this->is_divided = true;
@@ -145,6 +176,55 @@ void AMR_cell::Print_info(void)
 			}
 		}
 	}
+}
+
+void AMR_cell::Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi,
+	const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens)
+{
+	const size_t dim1 = this->cells.shape()[0];
+	const size_t dim2 = this->cells.shape()[1];
+	const size_t dim3 = this->cells.shape()[2];
+	double SS = 0.0;
+
+	for (size_t i = 0; i < dim1; ++i)
+	{
+		for (size_t j = 0; j < dim2; ++j)
+		{
+			for (size_t k = 0; k < dim3; ++k)
+			{
+				AMR_cell* cell = cells[i][j][k];
+				if (SS + cell->Spotok * Squ > ksi)
+				{
+					// Нам нужна эта ячейка
+					if (this->is_divided == false)
+					{
+						std::array<double, 3> center;
+						std::array<double, 3> razmer;
+						this->Get_Center(AMR, center, razmer);
+						Vel[0] = (center[0] - razmer[0] / 2.0) +
+							Sens->MakeRandom() * (razmer[0]);
+						Vel[1] = (center[1] - razmer[1] / 2.0) +
+							Sens->MakeRandom() * (razmer[1]);
+						Vel[2] = (center[2] - razmer[2] / 2.0) +
+							Sens->MakeRandom() * (razmer[2]);
+						return;
+					}
+					else
+					{
+						cell->Get_random_velosity_in_cell(AMR, ksi - SS, Squ, Vel, Sens);
+						return;
+					}
+				}
+				else
+				{
+					SS += cell->Spotok * Squ;
+				}
+			}
+		}
+	}
+
+	cout << "Error 0900061211" << endl;
+	exit(-1);
 }
 
 void AMR_cell::Get_index(std::vector<std::array<unsigned int, 3>>& numbers)

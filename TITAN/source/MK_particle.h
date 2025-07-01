@@ -10,5 +10,7 @@ public:
 	double mu;              // Вес частицы
 	Cell* cel;              // Ячейка, в которой находится частица
 
+	MK_particle();
+
 };
 

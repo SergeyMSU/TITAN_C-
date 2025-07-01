@@ -37,7 +37,10 @@ public:
 	boost::multi_array<AMR_cell*, 3> cells;
 
 	void Culk_SpotokV(const double& Squ);
-	void Get_random_velosity(const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens);
+	// Считает поток функции распределения через границу
+	// Также вычисляет поток в родительских (разделённых) ячейках
+
+	void Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens);
 
 	AMR_f();
 	AMR_f(const double& xL, const double& xR, const double& yL, const double& yR, const double& zL,

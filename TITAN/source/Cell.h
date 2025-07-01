@@ -30,6 +30,10 @@ public:
 	// "rho", 'p', 'Vx', 'Vy', 'Vz', 'Bx', 'By', 'Bz'
 	// 'Q' - маячок для переноса и определения HP
 
+	unordered_map<string, double> geo_parameters;  // Геометрические параметры для 
+	// Удобства и ускорения расчёта Монте-Карло
+	// l_size  характерный размер ячейки
+
 	unordered_map<string, Eigen::VectorXd> interpolate_alpha;
 
 
@@ -45,6 +49,9 @@ public:
 
 	bool Belong_point(const double& x, const double& y, const double& z, short int now, bool fast, Cell*& Next);
 	// Принадлежит ли точка ячейке
+
+	void Set_Cell_Geo_for_MK(void);
+
 
 	double center[2][3];           // Центр грани (также в предыдущий и следуюoий момент времени)
 	double volume[2];

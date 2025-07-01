@@ -21,17 +21,77 @@ void AMR_f::Culk_SpotokV(const double& Squ)
 		V = razmer[0] * razmer[1] * razmer[2];
 		this->Get_real_koordinate(center[0], center[1], center[2],
 			Vx, Vy, Vz);
-		this->SpotokV += V * i->f * fabs(Vx);
+		i->Spotok = V * i->f * fabs(Vx);
+		this->SpotokV += i->Spotok;
 	}
 
 	this->SpotokV *= Squ;
+
+	const auto& shape = this->cells.shape();
+	const size_t nx = shape[0];
+	const size_t ny = shape[1];
+	const size_t nz = shape[2];
+	for (size_t i = 0; i < nx; ++i)
+	{
+		for (size_t j = 0; j < ny; ++j)
+		{
+			for (size_t k = 0; k < nz; ++k)
+			{
+				AMR_cell* cell = this->cells[i][j][k];
+				cell->Spotok = cell->Get_SpotokV();
+			}
+		}
+	}
+
 }
 
-void AMR_f::Get_random_velosity(const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens)
+void AMR_f::Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens)
 {
 	// Squ - площадь грани
 	// Vel - возвращаемая скорость частицы
 	// Sens - датчик случайных чисел
+
+	double ksi = Sens->MakeRandom() * this->SpotokV;
+	double SS = 0.0;
+
+	const auto& shape = this->cells.shape();
+	const size_t nx = shape[0];
+	const size_t ny = shape[1];
+	const size_t nz = shape[2];
+	for (size_t i = 0; i < nx; ++i)
+	{
+		for (size_t j = 0; j < ny; ++j)
+		{
+			for (size_t k = 0; k < nz; ++k)
+			{
+				AMR_cell* cell = this->cells[i][j][k];
+				if (SS + cell->Spotok * Squ > ksi)
+				{
+					// Нам нужна эта ячейка
+					cell->Get_random_velosity_in_cell(AMR, ksi - SS, Squ, Vel, Sens);
+
+					double A0 = Vel[0] * this->Vn[0] + Vel[1] * this->Vt[0] +
+						Vel[2] * this->Vm[0];
+					double A1 = Vel[0] * this->Vn[1] + Vel[1] * this->Vt[1] +
+						Vel[2] * this->Vm[1];
+					double A2 = Vel[0] * this->Vn[2] + Vel[1] * this->Vt[2] +
+						Vel[2] * this->Vm[2];
+
+					Vel[0] = A0;
+					Vel[1] = A1;
+					Vel[2] = A2;
+					return;
+				}
+				else
+				{
+					SS += cell->Spotok * Squ;
+				}
+			}
+		}
+	}
+
+	cout << "Error 6453211877" << endl;
+	exit(-1);
 
 }
 
