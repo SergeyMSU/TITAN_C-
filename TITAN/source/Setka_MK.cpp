@@ -638,5 +638,5 @@ void Setka::MK_go(short int zone_MK)
 
 void Setka::MK_fly_immit(MK_particle& P)
 {
-
+	// Найдём оценочное время до выхода из текущей ячейки
 }
