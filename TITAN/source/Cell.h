@@ -62,5 +62,8 @@ public:
 
 	double func_R(unsigned short int i_time); // –ассто€ние от центра до начала координат
 
+
+	void Tecplot_print_cell(void);
+
 };
 

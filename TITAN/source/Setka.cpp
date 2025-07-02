@@ -174,19 +174,19 @@ void Setka::Algoritm(short int alg)
 		this->Set_MK_Zone();
 
 		//ѕроверим зоны
-		/*this->Tecplot_print_gran_with_condition(0);
+		this->Tecplot_print_gran_with_condition(0);
 		this->Tecplot_print_gran_with_condition(1);
 		this->Tecplot_print_gran_with_condition(2);
 		this->Tecplot_print_gran_with_condition(3);
 		this->Tecplot_print_gran_with_condition(4);
 		this->Tecplot_print_gran_with_condition(5);
-		this->Tecplot_print_gran_with_condition(6);*/
+		this->Tecplot_print_gran_with_condition(6);
 
 		// √отовим MK, датчики, функции распределени€
-		this->MK_prepare(7);
-		this->MK_go(7);
+		this->MK_prepare(6);
+		this->MK_go(6);
 
-		this->MK_delete(7);
+		this->MK_delete(6);
 	}
 }
 
@@ -282,7 +282,7 @@ bool Setka::Test_geometr(void)
 	this->Calculating_measure(1);
 
 	cout << "Test 1:" << endl; // √рань ссылаетс€ либо на 1, либо на 2 €чейки
-	// нормаль у грани от порвой €чейки ко второй
+	// нормаль у грани от первой €чейки ко второй
 	for (auto& i : this->All_Gran)
 	{
 		if (i->cells.size() != 1 && i->cells.size() != 2)

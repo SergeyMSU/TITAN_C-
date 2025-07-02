@@ -186,44 +186,47 @@ void AMR_cell::Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi,
 	const size_t dim3 = this->cells.shape()[2];
 	double SS = 0.0;
 
-	for (size_t i = 0; i < dim1; ++i)
+	if (this->is_divided == true)
 	{
-		for (size_t j = 0; j < dim2; ++j)
+		for (size_t i = 0; i < dim1; ++i)
 		{
-			for (size_t k = 0; k < dim3; ++k)
+			for (size_t j = 0; j < dim2; ++j)
 			{
-				AMR_cell* cell = cells[i][j][k];
-				if (SS + cell->Spotok * Squ > ksi)
+				for (size_t k = 0; k < dim3; ++k)
 				{
-					// Нам нужна эта ячейка
-					if (this->is_divided == false)
+					AMR_cell* cell = cells[i][j][k];
+					if (SS + cell->Spotok * Squ > ksi)
 					{
-						std::array<double, 3> center;
-						std::array<double, 3> razmer;
-						this->Get_Center(AMR, center, razmer);
-						Vel[0] = (center[0] - razmer[0] / 2.0) +
-							Sens->MakeRandom() * (razmer[0]);
-						Vel[1] = (center[1] - razmer[1] / 2.0) +
-							Sens->MakeRandom() * (razmer[1]);
-						Vel[2] = (center[2] - razmer[2] / 2.0) +
-							Sens->MakeRandom() * (razmer[2]);
-						return;
+						return cell->Get_random_velosity_in_cell(AMR, ksi - SS, Squ, Vel, Sens);
 					}
 					else
 					{
-						cell->Get_random_velosity_in_cell(AMR, ksi - SS, Squ, Vel, Sens);
-						return;
+						SS += cell->Spotok * Squ;
 					}
-				}
-				else
-				{
-					SS += cell->Spotok * Squ;
 				}
 			}
 		}
 	}
+	else
+	{
+		std::array<double, 3> center;
+		std::array<double, 3> razmer;
+		this->Get_Center(AMR, center, razmer);
+		Vel[0] = (center[0] - razmer[0] / 2.0) +
+			Sens->MakeRandom() * (razmer[0]);
+		Vel[1] = (center[1] - razmer[1] / 2.0) +
+			Sens->MakeRandom() * (razmer[1]);
+		Vel[2] = (center[2] - razmer[2] / 2.0) +
+			Sens->MakeRandom() * (razmer[2]);
+		return;
+	}
 
-	cout << "Error 0900061211" << endl;
+	cout << "Error 0900061211 " << endl;
+	whach(SS);
+	whach(ksi);
+	whach(this->Spotok * Squ);
+	whach(this->Spotok);
+	whach(Squ);
 	exit(-1);
 }
 

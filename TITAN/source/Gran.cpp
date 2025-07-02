@@ -20,23 +20,24 @@ void Gran::Culc_measure(unsigned short int st_time)
 	yc = 0.0;
 	zc = 0.0;
 
+	// Вычисляем центр грани
+	// он понадобиться для проверки нормали
+	for (auto& i : this->yzels)
+	{
+		xc += i->coord[st_time][0];
+		yc += i->coord[st_time][1];
+		zc += i->coord[st_time][2];
+	}
+	xc /= Ny;
+	yc /= Ny;
+	zc /= Ny;
+	this->center[st_time][0] = xc;
+	this->center[st_time][1] = yc;
+	this->center[st_time][2] = zc;
+
 	// Старый вариант, где грань = 4 треугольника
 	if (false)
 	{
-		// Вычисляем центр грани
-		for (auto& i : this->yzels)
-		{
-			xc += i->coord[st_time][0];
-			yc += i->coord[st_time][1];
-			zc += i->coord[st_time][2];
-		}
-		xc /= Ny;
-		yc /= Ny;
-		zc /= Ny;
-		this->center[st_time][0] = xc;
-		this->center[st_time][1] = yc;
-		this->center[st_time][2] = zc;
-
 		// Вычисляем площадь грани
 		double S = 0.0;
 		int i2;
@@ -167,9 +168,15 @@ void Gran::Get_Random_pozition(Eigen::Vector3d& poz, Sensor* Sens)
 			}
 			else
 			{
+				A << this->yzels[0]->coord[0][0],
+					this->yzels[0]->coord[0][1],
+					this->yzels[0]->coord[0][2];
 				B << this->yzels[3]->coord[0][0],
 					this->yzels[3]->coord[0][1],
 					this->yzels[3]->coord[0][2];
+				C << this->yzels[2]->coord[0][0],
+					this->yzels[2]->coord[0][1],
+					this->yzels[2]->coord[0][2];
 			}
 
 			double r1 = Sens->MakeRandom();

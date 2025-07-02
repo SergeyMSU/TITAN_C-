@@ -371,3 +371,31 @@ double Cell ::func_R(unsigned short int i_time)
 {
 	return norm2(this->center[i_time][0], this->center[i_time][1], this->center[i_time][2]);
 }
+
+void Cell::Tecplot_print_cell(void)
+{
+	// name - это имя лучей
+	ofstream fout;
+	string name_f = "Tecplot_cell_in_3D_.txt";
+
+
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = X, Y, Z" << endl;
+
+	fout << "ZONE T=HP, N = " << this->yzels.size() << ", E = " << this->yzels.size() - 1 << ", F=FEPOINT, ET=LINESEG" << endl;
+
+	for (auto& j : this->yzels)
+	{
+		fout << j->coord[0][0] << " " << j->coord[0][1] << " " << j->coord[0][2] << endl;
+	}
+
+	for (int m = 0; m < this->yzels.size() - 1; m++)
+	{
+		fout << m + 1 << " " << m + 2 << endl;
+	}
+
+	fout << endl;
+
+
+	fout.close();
+}

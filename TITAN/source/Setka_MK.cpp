@@ -623,6 +623,11 @@ void Setka::MK_go(short int zone_MK)
 		}
 		double full_gran_potok = gr->MK_Potok;
 
+		if (full_gran_potok < 0.000001 * MK_Potoks[zone_MK - 1]/ this->MK_Grans[zone_MK - 1].size())
+		{
+			continue;
+		}
+
 		// Разыгрываем каждый сорт отдельно
 		for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
 		{
@@ -635,7 +640,8 @@ void Setka::MK_go(short int zone_MK)
 			}
 
 			// Расчитываем число запускаемых частиц
-			unsigned int N_particle = max(static_cast<int>(func->SpotokV / mu_expect) + 1, 10);
+			unsigned int N_particle = max(static_cast<int>(func->SpotokV / mu_expect) + 1, 
+				min(N_on_gran, 10));
 			double mu = func->SpotokV / N_particle; // Вес каждой частицы
 
 			// Запускаем каждую частицу
@@ -664,12 +670,13 @@ void Setka::MK_go(short int zone_MK)
 				func->Get_random_velosity(func, gr->area[0], poz, this->Sensors[sens_num]);
 				P.Vel = poz;
 
+				// Некоторые проверки разыгрынной скорости частицы
 				if (this->regim_otladki)
 				{
 					if (ni == 0)
 					{
 						if (scalarProductFast(poz(0), poz(1), poz(2),
-							gr->normal[0][0], gr->normal[0][0], gr->normal[0][0]) < 0.0)
+							gr->normal[0][0], gr->normal[0][1], gr->normal[0][2]) < 0.0)
 						{
 							cout << "Error  8765656431" << endl;
 							exit(-1);
@@ -678,9 +685,12 @@ void Setka::MK_go(short int zone_MK)
 					else
 					{
 						if (scalarProductFast(poz(0), poz(1), poz(2),
-							gr->normal[0][0], gr->normal[0][0], gr->normal[0][0]) > 0.0)
+							gr->normal[0][0], gr->normal[0][1], gr->normal[0][2]) > 0.0)
 						{
 							cout << "Error  7411100090" << endl;
+							whach(poz(0));
+							whach(poz(1));
+							whach(poz(2));
 							exit(-1);
 						}
 					}
@@ -698,6 +708,13 @@ void Setka::MK_go(short int zone_MK)
 				if (ppp == nullptr)
 				{
 					cout << "Error 9756567412" << endl;
+					cout << P.coord[0] + P.Vel[0] * dt << " " <<
+						P.coord[1] + P.Vel[1] * dt << " " <<
+						P.coord[2] + P.Vel[2] * dt << endl;
+					cout << P.coord[0] << " " <<
+						P.coord[1] << " " <<
+						P.coord[2] << endl;
+					P.cel->Tecplot_print_cell();
 					exit(-1);
 				}
 
@@ -711,7 +728,8 @@ void Setka::MK_go(short int zone_MK)
 
 
 
-
+				cout << "Zapusk test  " << P.sort << "    " << gr->number << endl;
+				cout << "mu = " << P.mu << endl;
 				//this->MK_fly_immit(P, zone_MK); // Запускаем частицу в полёт   // !! Не написана
 
 			}

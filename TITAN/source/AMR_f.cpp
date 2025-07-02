@@ -90,7 +90,10 @@ void AMR_f::Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& 
 		}
 	}
 
-	cout << "Error 6453211877" << endl;
+	cout << "Error 6453211877  " << endl;
+	whach(SS);
+	whach(ksi);
+	whach(this->SpotokV);
 	exit(-1);
 
 }
