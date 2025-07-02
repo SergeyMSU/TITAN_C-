@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0005.bin");  // 4
+    S1.Download_cell_parameters("parameters_0006.bin");  // 4
     // c 4 включил bn = 0
     // с 5 начались проблемы с давлением на контакте (становиться меньше 0)
     // с 6 добавил обнуление bn перед контактом
@@ -58,7 +58,7 @@ int main()
     S1.Tecplot_print_all_gran_in_surface("BS");
     
 
-    for (int i = 1; i <= 6 * 5; i++) // 6 * 2
+    for (int i = 1; i <= 0; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -76,7 +76,7 @@ int main()
 
         if (i % 6 == 0)
         {
-            string namn = "parameters_11" + to_string(i) + ".bin";
+            string namn = "parameters_promeg_11" + to_string(i) + ".bin";
             S1.Save_cell_parameters(namn);
         }
 
@@ -87,7 +87,8 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0006.bin");
+
+    //S1.Save_cell_parameters("parameters_0007.bin");
 
     S1.Save_for_interpolate("For_intertpolate_1.bin");
     Interpol SS = Interpol("For_intertpolate_1.bin");

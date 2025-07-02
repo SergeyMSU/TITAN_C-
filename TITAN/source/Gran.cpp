@@ -1,8 +1,8 @@
-#include "Gran.h"
+﻿#include "Gran.h"
 
 short int Gran::Get_method()
 {
-	// 0 - ����
+	// 0 - Лакс
 	// 1 - HLL
 	// 2 - HLLC
 	// 3 - HLLD
@@ -20,7 +20,7 @@ void Gran::Culc_measure(unsigned short int st_time)
 	yc = 0.0;
 	zc = 0.0;
 
-	// ��������� ����� �����
+	// Вычисляем центр грани
 	for (auto& i : this->yzels)
 	{
 		xc += i->coord[st_time][0];
@@ -34,7 +34,7 @@ void Gran::Culc_measure(unsigned short int st_time)
 	this->center[st_time][1] = yc;
 	this->center[st_time][2] = zc;
 
-	// ��������� ������� �����
+	// Вычисляем площадь грани
 	double S = 0.0;
 	int i2;
 	for (int i = 0; i < this->yzels.size(); i++)
@@ -49,9 +49,9 @@ void Gran::Culc_measure(unsigned short int st_time)
 	}
 	this->area[st_time] = S;
 
-	// ��������� ������� �����
-	if (Ny != 4) // ��� ������ ������� ��������� ���� ����� �������� �� ���������, 
-		// ����� �������� �� �������������
+	// Вычисляем нормаль грани
+	if (Ny != 4) // для других случаем следующий блок может работать не правильно, 
+		// нужно отдельно их рассматривать
 	{
 		cout << "Error  0906764104" << endl;
 	}
@@ -79,7 +79,7 @@ void Gran::Culc_measure(unsigned short int st_time)
 	n2 /= nn;
 	n3 /= nn;
 
-	// ����� ����� ������� �������� �� ������ ������ �� ������
+	// Нужно чтобы нормаль смотрела от первой ячейки ко второй
 	if (scalarProductFast(n1, n2, n3, this->cells[0]->center[st_time][0] - xc,
 		this->cells[0]->center[st_time][1] - yc, this->cells[0]->center[st_time][2] - zc) > 0.0)
 	{
@@ -101,7 +101,7 @@ void Gran::Get_Random_pozition(Eigen::Vector3d& poz, Sensor* Sens)
 	yc = 0.0;
 	zc = 0.0;
 
-	// ��������� ����� �����
+	// Вычисляем центр грани
 	for (auto& i : this->yzels)
 	{
 		xc += i->coord[0][0];
@@ -116,7 +116,7 @@ void Gran::Get_Random_pozition(Eigen::Vector3d& poz, Sensor* Sens)
 
 
 
-	// ��������� ������� �����
+	// Вычисляем площадь грани
 	double S = 0.0;
 	int i2;
 	for (int i = 0; i < this->yzels.size(); i++)
@@ -167,6 +167,259 @@ void Gran::Get_Random_pozition(Eigen::Vector3d& poz, Sensor* Sens)
 
 	
 
+}
+
+void Gran::Set_Gran_Geo_for_MK(void)
+{
+	double x_min = this->yzels[0]->coord[0][0];
+	double x_max = this->yzels[0]->coord[0][0];
+	double y_min = this->yzels[0]->coord[0][1];
+	double y_max = this->yzels[0]->coord[0][1];
+	double z_min = this->yzels[0]->coord[0][2];
+	double z_max = this->yzels[0]->coord[0][2];
+
+	for (const auto& yz : this->yzels)
+	{
+		x_min = min(x_min, yz->coord[0][0]);
+		y_min = min(y_min, yz->coord[0][1]);
+		z_min = min(z_min, yz->coord[0][2]);
+
+		x_max = max(x_max, yz->coord[0][0]);
+		y_max = max(y_max, yz->coord[0][1]);
+		z_max = max(z_max, yz->coord[0][2]);
+	}
+
+	this->geo_parameters["x_min"] = x_min;
+	this->geo_parameters["y_min"] = y_min;
+	this->geo_parameters["z_min"] = z_min;
+
+	this->geo_parameters["x_max"] = x_max;
+	this->geo_parameters["y_max"] = y_max;
+	this->geo_parameters["z_max"] = z_max;
+}
+
+bool Gran::Luch_iz_cross_approx(Eigen::Vector3d& R, Eigen::Vector3d& V)
+{
+	double tx1, tx2, ty1, ty2, tz1, tz2;
+	bool px, py, pz;
+		
+	px = false;
+	if (R[0] > this->geo_parameters["x_min"] &&
+		R[0] < this->geo_parameters["x_max"])
+	{
+		px = true;
+	}
+
+	py = false;
+	if (R[1] > this->geo_parameters["y_min"] &&
+		R[1] < this->geo_parameters["y_max"])
+	{
+		py = true;
+	}
+
+	pz = false;
+	if (R[2] > this->geo_parameters["z_min"] &&
+		R[2] < this->geo_parameters["z_max"])
+	{
+		pz = true;
+	}
+
+	if (fabs(V[0]) > 1e-6)
+	{
+		tx1 = (this->geo_parameters["x_min"] - R[0]) / V[0];
+		tx2 = (this->geo_parameters["x_max"] - R[0]) / V[0];
+		if (tx1 < 0.0 && tx2 < 0.0)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if(px == false)
+		{
+			return false;
+		}
+		else
+		{
+			tx1 = -1e10;
+			tx2 = 1e10;
+		}
+	}
+
+	if (fabs(V[1]) > 1e-6)
+	{
+		ty1 = (this->geo_parameters["y_min"] - R[1]) / V[1];
+		ty2 = (this->geo_parameters["y_max"] - R[1]) / V[1];
+		if (ty1 < 0.0 && ty2 < 0.0)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if (py == false)
+		{
+			return false;
+		}
+		else
+		{
+			ty1 = -1e10;
+			ty2 = 1e10;
+		}
+	}
+
+	if (fabs(V[2]) > 1e-6)
+	{
+		tz1 = (this->geo_parameters["z_min"] - R[2]) / V[2];
+		tz2 = (this->geo_parameters["z_max"] - R[2]) / V[2];
+		if (tz1 < 0.0 && tz2 < 0.0)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if (pz == false)
+		{
+			return false;
+		}
+		else
+		{
+			tz1 = -1e10;
+			tz2 = 1e10;
+		}
+	}
+
+	double t_enter = max3(min(tx1, tx2), min(ty1, ty2), min(tz1, tz2));
+	double t_exit = min3(max(tx1, tx2), max(ty1, ty2), max(tz1, tz2));
+
+	if (t_enter <= t_exit && t_exit >= 0.0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+
+/**
+ * Проверяет пересечение луча с треугольником (алгоритм Мёллера — Трумбора).
+ *
+ * @param orig Начальная точка луча.
+ * @param Vel скорость
+ * @param t Возвращает время до пересечения.
+ * @return true, если луч пересекает треугольник, иначе false.
+ */
+bool Gran::Luch_crossing(Eigen::Vector3d& orig, Eigen::Vector3d& Vel, double& time)
+{
+	if (this->yzels.size() != 4)
+	{
+		cout << "Error 7543234305   " << this->yzels.size() << endl;
+		exit(-1);
+		// Этот алгоритм строго для четырёх-угольных граней, иначе нужен другой 
+	}
+
+	auto& yz1 = this->yzels[0];
+	auto& yz2 = this->yzels[1];
+	auto& yz3 = this->yzels[2];
+
+	Eigen::Vector3d v0, v1, v2;
+	v0 << yz1->coord[0][0], yz1->coord[0][1], yz1->coord[0][2];
+	v1 << yz2->coord[0][0], yz2->coord[0][1], yz2->coord[0][2];
+	v2 << yz3->coord[0][0], yz3->coord[0][1], yz3->coord[0][2];
+
+	Eigen::Vector3d dir;
+	dir = Vel;
+	double norm = Vel.norm();
+	dir /= norm;
+	double time1 = 0.0;
+
+	bool b1 = this->rayTriangleIntersect(orig, dir, v0, v1, v2, time1);
+	time1 /= norm;
+
+
+	yz1 = this->yzels[0];
+	yz2 = this->yzels[2];
+	yz3 = this->yzels[3];
+	v0 << yz1->coord[0][0], yz1->coord[0][1], yz1->coord[0][2];
+	v1 << yz2->coord[0][0], yz2->coord[0][1], yz2->coord[0][2];
+	v2 << yz3->coord[0][0], yz3->coord[0][1], yz3->coord[0][2];
+	double time2 = 0.0;
+
+	bool b2 = this->rayTriangleIntersect(orig, dir, v0, v1, v2, time2);
+	time2 /= norm;
+
+	if (b1 == false && b2 == false) return false;
+
+	if (b1 == true && b2 == true)
+	{
+		time = min(time1, time2);
+		return true;
+	}
+
+	if (b1 == true)
+	{
+		time = time1;
+		return true;
+	}
+
+	if (b2 == true)
+	{
+		time = time2;
+		return true;
+	}
+
+	return true;
+}
+
+/**
+ * Проверяет пересечение луча с треугольником (алгоритм Мёллера — Трумбора).
+ *
+ * @param orig Начальная точка луча (Vector3f).
+ * @param dir Направление луча (должно быть нормализовано, Vector3f).
+ * @param v0, v1, v2 Вершины треугольника (Vector3f).
+ * @param t Возвращает параметр пересечения (расстояние от orig до точки пересечения).
+ * @return true, если луч пересекает треугольник, иначе false.
+ */
+bool Gran::rayTriangleIntersect(
+	const Eigen::Vector3d& orig, const Eigen::Vector3d& dir,
+	const Eigen::Vector3d& v0, const Eigen::Vector3d& v1, const Eigen::Vector3d& v2,
+	double& t)
+{
+	const double EPSILON = 1e-6;
+
+	Eigen::Vector3d edge1 = v1 - v0;
+	Eigen::Vector3d edge2 = v2 - v0;
+	Eigen::Vector3d pvec = dir.cross(edge2);  // Векторное произведение D × E2
+
+	double det = edge1.dot(pvec);  // Определитель (для проверки параллельности)
+
+	// Если луч параллелен плоскости треугольника (или почти параллелен)
+	if (fabs(det) < EPSILON)
+		return false;
+
+	double inv_det = 1.0 / det;
+
+	// Вектор от вершины треугольника до начала луча
+	Eigen::Vector3d tvec = orig - v0;
+
+	// Вычисляем барицентрическую координату u
+	double u = tvec.dot(pvec) * inv_det;
+	if (u < 0.0 || u > 1.0)
+		return false;
+
+	// Вектор для вычисления v
+	Eigen::Vector3d qvec = tvec.cross(edge1);
+
+	// Вычисляем барицентрическую координату v
+	double v = dir.dot(qvec) * inv_det;
+	if (v < 0.0 || u + v > 1.0)
+		return false;
+
+	// Вычисляем параметр t (расстояние до пересечения)
+	t = edge2.dot(qvec) * inv_det;
+
+	return t > 0.0;
 }
 
 Gran::Gran()

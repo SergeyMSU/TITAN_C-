@@ -466,12 +466,17 @@ void Setka::MK_prepare(short int zone_MK)
 		this->MK_Potoks[zone_MK - 1] = S; // ¬ход€щий поток через всю границу зоны
 	}
 
-	// —чмтаем необходимые геометрические параметры в €чейках дл€ ћ 
+	// —чмтаем необходимые геометрические параметры дл€ ћ 
 	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
 			i->Set_Cell_Geo_for_MK();
+		}
+
+		for (auto& i : this->All_Gran)
+		{
+			i->Set_Gran_Geo_for_MK();
 		}
 	}
 
@@ -638,5 +643,79 @@ void Setka::MK_go(short int zone_MK)
 
 void Setka::MK_fly_immit(MK_particle& P)
 {
-	// ЌайдЄм оценочное врем€ до выхода из текущей €чейки
+
+	double time = 0.0;            // врем€ нахождени€ частицы в €чейке
+	Gran* gran = nullptr;         // „ерез какую грань €чейка выйдер из €чейки
+
+
+	// Ќаходим врем€ до выхода частицы из €чейки, а также через какую грань будет выход
+	bool b1 = false;
+	unsigned short int k1 = 0;
+	while (b1 == false)
+	{
+		k1++;
+		b1 = this->Time_to_vilet(P, time, gran);
+
+		if (b1 == false)
+		{
+			// Ќемного двигаем точку
+			P.coord += 0.000001 * P.Vel;
+
+			// «десь надо проверить, что во врем€ микро-движени€ точка не
+			// вышла в другую €чейку или за пределы расчЄтной области
+		}
+
+		if (k1 > 100)
+		{
+			cout << "Error 8614098634" << endl;
+			exit(-1);
+		}
+	}
+
+	// «десь врем€ до выхода из €чейки определено time
+	// “акже определено через какую грань это произойдЄт  gran
+}
+
+
+bool Setka::Time_to_vilet(MK_particle& P, double& time, Gran* gran)
+{
+	Cell* C = P.cel;
+	Eigen::Vector3d R, V;
+
+	R = P.coord;
+	V = P.Vel;
+
+	Gran* gran_min = nullptr;
+	double time_min = 1e10;
+	double time1;
+
+	bool b1 = false;
+
+	for (const auto& gr : C->grans)
+	{
+		if (gr->Luch_iz_cross_approx(R, V) == true)
+		{
+			if (gr->Luch_crossing(R, V, time1) == true)
+			{
+				if (time_min > time1)
+				{
+					time_min = time1;
+					gran_min = gr;
+					b1 = true;
+				}
+			}
+		}
+	}
+
+	if (b1 == false)
+	{
+		// ѕересечение ни с одной гранью не произошло!
+		return false;
+	}
+	else
+	{
+		gran = gran_min;
+		time = time_min;
+		return true;
+	}
 }

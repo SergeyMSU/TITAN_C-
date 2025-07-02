@@ -106,6 +106,8 @@ public:
 	Cell* Find_cell_point(const double& x, const double& y, const double& z, short int now, Cell*& previos);
 	// Если нет previos, то он должен быть = nullptr
 
+	bool Time_to_vilet(MK_particle& P, double& time, Gran* gran);
+
 	void Renumerate(void); // Перенумерует все элементы сетки (необходимо в случае добавления новых или удаления)
 	bool Test_geometr(void);  // Тестируем геометрию сетки (что всё связано и работает корректно)
 

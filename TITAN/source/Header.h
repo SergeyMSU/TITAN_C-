@@ -23,6 +23,8 @@ class MK_particle;
 #define kvv(x, y, z) ((x) * (x) + (y) * (y) + (z) * (z))
 #define norm2(x, y, z) (sqrt(kvv(x, y, z)))
 #define whach(x) cout << #x <<": " << (x) << endl
+#define max3(a, b, c) (max(max( (a) , (b) ), (c) ))
+#define min3(a, b, c) (min(min( (a) , (b) ), (c) ))
 
 #include <filesystem>
 #include <string>
