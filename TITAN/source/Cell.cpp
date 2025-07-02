@@ -167,17 +167,33 @@ bool Cell::Belong_point(const double& x, const double& y, const double& z, short
 			//double x1 = gr->center[now][0];
 			//double y1 = gr->center[now][1];
 			//double z1 = gr->center[now][2];
-			B << gr->center[now][0], gr->center[now][1], gr->center[now][2];
-
-			int n_yz = gr->yzels.size();
-			for (short int i = 0; i < n_yz; i++)
+			if (false) // старый вариант, где грань = 4 треугольника
 			{
-				int j = i + 1;
-				if (j >= n_yz) j = 0;
-				C << gr->yzels[i]->coord[now][0], gr->yzels[i]->coord[now][1], gr->yzels[i]->coord[now][2];
-				D << gr->yzels[j]->coord[now][0], gr->yzels[j]->coord[now][1], gr->yzels[j]->coord[now][2];
+				B << gr->center[now][0], gr->center[now][1], gr->center[now][2];
+				int n_yz = gr->yzels.size();
+				for (short int i = 0; i < n_yz; i++)
+				{
+					int j = i + 1;
+					if (j >= n_yz) j = 0;
+					C << gr->yzels[i]->coord[now][0], gr->yzels[i]->coord[now][1], gr->yzels[i]->coord[now][2];
+					D << gr->yzels[j]->coord[now][0], gr->yzels[j]->coord[now][1], gr->yzels[j]->coord[now][2];
+					is_in = isPointInsideTetrahedron(P, A, B, C, D);
+					if (is_in == true) return true;
+				}
+			}
+			else // грань = 2 треугольника
+			{
+				B << gr->yzels[0]->coord[now][0], gr->yzels[0]->coord[now][1], gr->yzels[0]->coord[now][2];
+				C << gr->yzels[1]->coord[now][0], gr->yzels[1]->coord[now][1], gr->yzels[1]->coord[now][2];
+				D << gr->yzels[2]->coord[now][0], gr->yzels[2]->coord[now][1], gr->yzels[2]->coord[now][2];
 				is_in = isPointInsideTetrahedron(P, A, B, C, D);
 				if (is_in == true) return true;
+
+
+				C << gr->yzels[3]->coord[now][0], gr->yzels[3]->coord[now][1], gr->yzels[3]->coord[now][2];
+				is_in = isPointInsideTetrahedron(P, A, B, C, D);
+				if (is_in == true) return true;
+
 			}
 		}
 
@@ -306,17 +322,39 @@ void Cell::Culc_volume(unsigned short int st_time, unsigned short int method)
 		double V = 0.0;
 		for (auto& i : this->grans)
 		{
-			for (int j = 0; j < i->yzels.size(); j++)
+			if (false) // старый вариант где грань = 4 треугольника
 			{
-				j1 = j + 1;
-				if (j1 >= i->yzels.size()) j1 = 0;
+				for (int j = 0; j < i->yzels.size(); j++)
+				{
+					j1 = j + 1;
+					if (j1 >= i->yzels.size()) j1 = 0;
+					V += tetrahedronVolume(this->center[st_time][0], this->center[st_time][1],
+						this->center[st_time][2],
+						i->center[st_time][0], i->center[st_time][1], i->center[st_time][2],
+						i->yzels[j]->coord[st_time][0], i->yzels[j]->coord[st_time][1],
+						i->yzels[j]->coord[st_time][2],
+						i->yzels[j1]->coord[st_time][0], i->yzels[j1]->coord[st_time][1],
+						i->yzels[j1]->coord[st_time][2]);
+				}
+			}
+			else
+			{
 				V += tetrahedronVolume(this->center[st_time][0], this->center[st_time][1],
 					this->center[st_time][2],
-					i->center[st_time][0], i->center[st_time][1], i->center[st_time][2],
-					i->yzels[j]->coord[st_time][0], i->yzels[j]->coord[st_time][1],
-					i->yzels[j]->coord[st_time][2],
-					i->yzels[j1]->coord[st_time][0], i->yzels[j1]->coord[st_time][1],
-					i->yzels[j1]->coord[st_time][2]);
+					i->yzels[0]->coord[st_time][0], i->yzels[0]->coord[st_time][1],
+					i->yzels[0]->coord[st_time][2],
+					i->yzels[1]->coord[st_time][0], i->yzels[1]->coord[st_time][1],
+					i->yzels[1]->coord[st_time][2],
+					i->yzels[2]->coord[st_time][0], i->yzels[2]->coord[st_time][1],
+					i->yzels[2]->coord[st_time][2]);
+				V += tetrahedronVolume(this->center[st_time][0], this->center[st_time][1],
+					this->center[st_time][2],
+					i->yzels[0]->coord[st_time][0], i->yzels[0]->coord[st_time][1],
+					i->yzels[0]->coord[st_time][2],
+					i->yzels[3]->coord[st_time][0], i->yzels[3]->coord[st_time][1],
+					i->yzels[3]->coord[st_time][2],
+					i->yzels[2]->coord[st_time][0], i->yzels[2]->coord[st_time][1],
+					i->yzels[2]->coord[st_time][2]);
 			}
 		}
 		this->volume[st_time] = V;

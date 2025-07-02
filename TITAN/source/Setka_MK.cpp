@@ -80,6 +80,7 @@ void Setka::Set_MK_Zone(void)
 	for (auto& gr : this->Gran_TS)
 	{
 		this->MK_Grans[0].push_back(gr);
+		gr->MK_type = 1;
 	}
 
 	// 2 зона
@@ -91,15 +92,27 @@ void Setka::Set_MK_Zone(void)
 
 		if (Centr[0] < -0.000001) continue;
 
-		if (gr->type2 == Type_Gran_surf::HP) this->MK_Grans[1].push_back(gr);
+		if (gr->type2 == Type_Gran_surf::HP)
+		{
+			this->MK_Grans[1].push_back(gr);
+			gr->MK_type = 2;
+		}
 
 
-		if (gr->type2 == Type_Gran_surf::TS) this->MK_Grans[1].push_back(gr);
+		if (gr->type2 == Type_Gran_surf::TS)
+		{
+			this->MK_Grans[1].push_back(gr);
+			gr->MK_type = 2;
+		}
 		
 
 		if (gr->type == Type_Gran::Outer_Soft)
 		{
-			if (gr->cells[0]->type == Type_cell::Zone_2) this->MK_Grans[1].push_back(gr);
+			if (gr->cells[0]->type == Type_cell::Zone_2)
+			{
+				this->MK_Grans[1].push_back(gr);
+				gr->MK_type = 2;
+			}
 		}
 
 		if (gr->cells.size() == 2)
@@ -110,6 +123,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
 				{
 					this->MK_Grans[1].push_back(gr);
+					gr->MK_type = 2;
 				}
 			}
 		}
@@ -124,13 +138,25 @@ void Setka::Set_MK_Zone(void)
 
 		if (Centr[0] > 0.000001) continue;
 
-		if (gr->type2 == Type_Gran_surf::HP) this->MK_Grans[2].push_back(gr);
+		if (gr->type2 == Type_Gran_surf::HP)
+		{
+			this->MK_Grans[2].push_back(gr);
+			gr->MK_type = 3;
+		}
 
-		if (gr->type2 == Type_Gran_surf::TS) this->MK_Grans[2].push_back(gr);
+		if (gr->type2 == Type_Gran_surf::TS)
+		{
+			this->MK_Grans[2].push_back(gr);
+			gr->MK_type = 3;
+		}
 
 		if (gr->type == Type_Gran::Outer_Soft)
 		{
-			if (gr->cells[0]->type == Type_cell::Zone_2) this->MK_Grans[2].push_back(gr);
+			if (gr->cells[0]->type == Type_cell::Zone_2)
+			{
+				this->MK_Grans[2].push_back(gr);
+				gr->MK_type = 3;
+			}
 		}
 
 		if (gr->cells.size() == 2 && gr->type2 == Type_Gran_surf::Us)
@@ -139,6 +165,7 @@ void Setka::Set_MK_Zone(void)
 				gr->cells[1]->type == Type_cell::Zone_3) 
 			{
 				this->MK_Grans[2].push_back(gr);
+				gr->MK_type = 3;
 			}
 
 			
@@ -148,6 +175,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
 				{
 					this->MK_Grans[2].push_back(gr);
+					gr->MK_type = 3;
 				}
 			}
 		}
@@ -162,10 +190,18 @@ void Setka::Set_MK_Zone(void)
 
 		if (gr->type2 == Type_Gran_surf::HP)
 		{
-			if(Centr[0] > 0) this->MK_Grans[3].push_back(gr);
+			if (Centr[0] > 0)
+			{
+				this->MK_Grans[3].push_back(gr);
+				gr->MK_type = 4;
+			}
 		}
 
-		if (gr->type2 == Type_Gran_surf::BS) this->MK_Grans[3].push_back(gr);
+		if (gr->type2 == Type_Gran_surf::BS)
+		{
+			this->MK_Grans[3].push_back(gr);
+			gr->MK_type = 4;
+		}
 
 		if (gr->cells.size() == 2)
 		{
@@ -175,6 +211,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
 				{
 					this->MK_Grans[3].push_back(gr);
+					gr->MK_type = 4;
 				}
 			}
 
@@ -190,18 +227,30 @@ void Setka::Set_MK_Zone(void)
 
 		if (gr->type2 == Type_Gran_surf::HP)
 		{
-			if (Centr[0] < 0.0) this->MK_Grans[4].push_back(gr);
+			if (Centr[0] < 0.0)
+			{
+				this->MK_Grans[4].push_back(gr);
+				gr->MK_type = 5;
+			}
 		}
 
 		if (gr->type == Type_Gran::Outer_Soft)
 		{
-			if (gr->cells[0]->type == Type_cell::Zone_3) this->MK_Grans[4].push_back(gr);
+			if (gr->cells[0]->type == Type_cell::Zone_3)
+			{
+				this->MK_Grans[4].push_back(gr);
+				gr->MK_type = 5;
+			}
 		}
 
 		if (gr->cells.size() == 2 && gr->type2 == Type_Gran_surf::Us)
 		{
 			if (gr->cells[0]->type == Type_cell::Zone_2 &&
-				gr->cells[1]->type == Type_cell::Zone_3) this->MK_Grans[4].push_back(gr);
+				gr->cells[1]->type == Type_cell::Zone_3)
+			{
+				this->MK_Grans[4].push_back(gr);
+				gr->MK_type = 5;
+			}
 
 
 			if (gr->cells[0]->type == Type_cell::Zone_3 &&
@@ -210,13 +259,18 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
 				{
 					this->MK_Grans[4].push_back(gr);
+					gr->MK_type = 5;
 				}
 			}
 
 			if (gr->cells[0]->type == Type_cell::Zone_3 &&
 				gr->cells[1]->type == Type_cell::Zone_4)
 			{
-				if(gr->cells[0]->center[0][0] < 0) this->MK_Grans[4].push_back(gr);
+				if (gr->cells[0]->center[0][0] < 0)
+				{
+					this->MK_Grans[4].push_back(gr);
+					gr->MK_type = 5;
+				}
 			}
 
 		}
@@ -232,11 +286,16 @@ void Setka::Set_MK_Zone(void)
 		if (gr->type2 == Type_Gran_surf::BS)
 		{
 			this->MK_Grans[5].push_back(gr);
+			gr->MK_type = 6;
 		}
 
 		if (gr->type == Type_Gran::Outer_Hard)
 		{
-			if(Centr[0] > 0) this->MK_Grans[5].push_back(gr);
+			if (Centr[0] > 0)
+			{
+				this->MK_Grans[5].push_back(gr);
+				gr->MK_type = 6;
+			}
 		}
 
 		if (gr->cells.size() == 2)
@@ -247,6 +306,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
 				{
 					this->MK_Grans[5].push_back(gr);
+					gr->MK_type = 6;
 				}
 			}
 
@@ -262,12 +322,20 @@ void Setka::Set_MK_Zone(void)
 
 		if (gr->type == Type_Gran::Outer_Hard )
 		{
-			if (Centr[0] < 0) this->MK_Grans[6].push_back(gr);
+			if (Centr[0] < 0)
+			{
+				this->MK_Grans[6].push_back(gr);
+				gr->MK_type = 7;
+			}
 		}
 
 		if (gr->type != Type_Gran::Us && Centr[0] < 0)
 		{
-			if(gr->cells[0]->type == Type_cell::Zone_4) this->MK_Grans[6].push_back(gr);
+			if (gr->cells[0]->type == Type_cell::Zone_4)
+			{
+				this->MK_Grans[6].push_back(gr);
+				gr->MK_type = 7;
+			}
 		}
 
 		if (gr->cells.size() == 2 && gr->type2 == Type_Gran_surf::Us)
@@ -275,7 +343,11 @@ void Setka::Set_MK_Zone(void)
 			if (gr->cells[0]->type == Type_cell::Zone_3 &&
 				gr->cells[1]->type == Type_cell::Zone_4)
 			{
-				if (gr->cells[0]->center[0][0] < 0) this->MK_Grans[6].push_back(gr);
+				if (gr->cells[0]->center[0][0] < 0)
+				{
+					this->MK_Grans[6].push_back(gr);
+					gr->MK_type = 7;
+				}
 			}
 
 			if (gr->cells[0]->type == Type_cell::Zone_4 &&
@@ -284,6 +356,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
 				{
 					this->MK_Grans[6].push_back(gr);
+					gr->MK_type = 7;
 				}
 			}
 
@@ -528,13 +601,19 @@ void Setka::MK_delete(short int zone_MK)
 
 void Setka::MK_go(short int zone_MK)
 {
-	int N_on_gran = 1000;   // Сколько запускаем частиц на грань в среднем
+	int N_on_gran = 10;   // Сколько запускаем частиц на грань в среднем
 	double mu_expect = 0.0;
 	mu_expect = this->MK_Potoks[zone_MK - 1] / 
 		(1.0 * N_on_gran * this->MK_Grans[zone_MK - 1].size());
 
+	unsigned int k1 = 0;
 	for (auto& gr : this->MK_Grans[zone_MK - 1])
 	{
+		k1++;
+		if (k1 % 100 == 0)
+		{
+			cout << "Gran = " << k1 << "    Iz: " << this->MK_Grans[zone_MK - 1].size() << endl;
+		}
 		// Выбираем конкретный номер датчика случайных чисел
 		unsigned int sens_num = 0;
 		short int ni = 0; // Номер "входящей" функции распределения
@@ -633,15 +712,17 @@ void Setka::MK_go(short int zone_MK)
 
 
 
-				this->MK_fly_immit(P); // Запускаем частицу в полёт   // !! Не написана
+				//this->MK_fly_immit(P, zone_MK); // Запускаем частицу в полёт   // !! Не написана
 
 			}
 		}
 	}
+
+	exit(-1);
 }
 
 
-void Setka::MK_fly_immit(MK_particle& P)
+void Setka::MK_fly_immit(MK_particle& P, short int zone_MK)
 {
 
 	double time = 0.0;            // время нахождения частицы в ячейке
@@ -659,8 +740,9 @@ void Setka::MK_fly_immit(MK_particle& P)
 		if (b1 == false)
 		{
 			// Немного двигаем точку
-			P.coord += 0.000001 * P.Vel;
+			P.coord += 1e-7 * P.Vel;
 
+			P.cel =  Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, P.cel);
 			// Здесь надо проверить, что во время микро-движения точка не
 			// вышла в другую ячейку или за пределы расчётной области
 		}
@@ -674,6 +756,27 @@ void Setka::MK_fly_immit(MK_particle& P)
 
 	// Здесь время до выхода из ячейки определено time
 	// Также определено через какую грань это произойдёт  gran
+	
+	// далее блок основной программы в ячейке
+
+
+
+
+
+	// Находим следующую ячейку
+
+	P.coord = 1.000001 * time * P.Vel;
+
+	if (gran->MK_type == zone_MK)
+	{
+		// В этом случае долетели до границы, записываем что надо и выключаем частицу
+
+		return;
+	}
+
+	Cell* Cell_next = P.cel->Get_Sosed(gran);
+	// точно находим следующую ячейку
+	P.cel = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cell_next);
 }
 
 

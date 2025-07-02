@@ -20,40 +20,66 @@ void Gran::Culc_measure(unsigned short int st_time)
 	yc = 0.0;
 	zc = 0.0;
 
-	// Вычисляем центр грани
-	for (auto& i : this->yzels)
+	// Старый вариант, где грань = 4 треугольника
+	if (false)
 	{
-		xc += i->coord[st_time][0];
-		yc += i->coord[st_time][1];
-		zc += i->coord[st_time][2];
-	}
-	xc /= Ny;
-	yc /= Ny;
-	zc /= Ny;
-	this->center[st_time][0] = xc;
-	this->center[st_time][1] = yc;
-	this->center[st_time][2] = zc;
+		// Вычисляем центр грани
+		for (auto& i : this->yzels)
+		{
+			xc += i->coord[st_time][0];
+			yc += i->coord[st_time][1];
+			zc += i->coord[st_time][2];
+		}
+		xc /= Ny;
+		yc /= Ny;
+		zc /= Ny;
+		this->center[st_time][0] = xc;
+		this->center[st_time][1] = yc;
+		this->center[st_time][2] = zc;
 
-	// Вычисляем площадь грани
-	double S = 0.0;
-	int i2;
-	for (int i = 0; i < this->yzels.size(); i++)
-	{
-		i2 = i + 1;
-		if (i2 >= this->yzels.size()) i2 = 0;
-		S += triangleArea3D(this->yzels[i]->coord[st_time][0], this->yzels[i]->coord[st_time][1],
-			this->yzels[i]->coord[st_time][2],
-			this->yzels[i2]->coord[st_time][0], this->yzels[i2]->coord[st_time][1],
-			this->yzels[i2]->coord[st_time][2],
-			xc, yc, zc);
+		// Вычисляем площадь грани
+		double S = 0.0;
+		int i2;
+		for (int i = 0; i < this->yzels.size(); i++)
+		{
+			i2 = i + 1;
+			if (i2 >= this->yzels.size()) i2 = 0;
+			S += triangleArea3D(this->yzels[i]->coord[st_time][0], this->yzels[i]->coord[st_time][1],
+				this->yzels[i]->coord[st_time][2],
+				this->yzels[i2]->coord[st_time][0], this->yzels[i2]->coord[st_time][1],
+				this->yzels[i2]->coord[st_time][2],
+				xc, yc, zc);
+		}
+		this->area[st_time] = S;
 	}
-	this->area[st_time] = S;
+	else  // Грань = 2 треугольника
+	{
+		// Вычисляем площадь грани
+		double S = 0.0;
+		S += triangleArea3D(this->yzels[0]->coord[st_time][0], this->yzels[0]->coord[st_time][1],
+			this->yzels[0]->coord[st_time][2],
+			this->yzels[1]->coord[st_time][0], this->yzels[1]->coord[st_time][1],
+			this->yzels[1]->coord[st_time][2],
+			this->yzels[2]->coord[st_time][0], this->yzels[2]->coord[st_time][1],
+			this->yzels[2]->coord[st_time][2]);
+
+		S += triangleArea3D(this->yzels[0]->coord[st_time][0], this->yzels[0]->coord[st_time][1],
+			this->yzels[0]->coord[st_time][2],
+			this->yzels[3]->coord[st_time][0], this->yzels[3]->coord[st_time][1],
+			this->yzels[3]->coord[st_time][2],
+			this->yzels[2]->coord[st_time][0], this->yzels[2]->coord[st_time][1],
+			this->yzels[2]->coord[st_time][2]);
+
+		this->area[st_time] = S;
+	}
+
 
 	// Вычисляем нормаль грани
-	if (Ny != 4) // для других случаем следующий блок может работать не правильно, 
+	if (Ny != 4) // для других случаев следующий блок может работать не правильно, 
 		// нужно отдельно их рассматривать
 	{
 		cout << "Error  0906764104" << endl;
+		exit(-1);
 	}
 
 	double x1, y1, z1;
@@ -95,63 +121,57 @@ void Gran::Culc_measure(unsigned short int st_time)
 
 void Gran::Get_Random_pozition(Eigen::Vector3d& poz, Sensor* Sens)
 {
-	double xc, yc, zc;
-	int Ny = this->yzels.size();
-	xc = 0.0;
-	yc = 0.0;
-	zc = 0.0;
-
-	// Вычисляем центр грани
-	for (auto& i : this->yzels)
-	{
-		xc += i->coord[0][0];
-		yc += i->coord[0][1];
-		zc += i->coord[0][2];
-	}
-	xc /= Ny;
-	yc /= Ny;
-	zc /= Ny;
-
-	vector <double> sqv(this->yzels.size());
-
-
+	vector <double> sqv(2);
 
 	// Вычисляем площадь грани
 	double S = 0.0;
-	int i2;
-	for (int i = 0; i < this->yzels.size(); i++)
-	{
-		i2 = i + 1;
-		if (i2 >= this->yzels.size()) i2 = 0;
-		sqv[i] = triangleArea3D(this->yzels[i]->coord[0][0], 
-			this->yzels[i]->coord[0][1],
-			this->yzels[i]->coord[0][2],
-			this->yzels[i2]->coord[0][0], 
-			this->yzels[i2]->coord[0][1],
-			this->yzels[i2]->coord[0][2],
-			xc, yc, zc);
-		S += sqv[i];
-	}
+	sqv[0] = triangleArea3D(this->yzels[0]->coord[0][0],
+		this->yzels[0]->coord[0][1], this->yzels[0]->coord[0][2],
+		this->yzels[1]->coord[0][0],
+		this->yzels[1]->coord[0][1], this->yzels[1]->coord[0][2],
+		this->yzels[2]->coord[0][0],
+		this->yzels[2]->coord[0][1], this->yzels[2]->coord[0][2]);
+
+	sqv[1] = triangleArea3D(this->yzels[0]->coord[0][0],
+		this->yzels[0]->coord[0][1], this->yzels[0]->coord[0][2],
+		this->yzels[3]->coord[0][0],
+		this->yzels[3]->coord[0][1], this->yzels[3]->coord[0][2],
+		this->yzels[2]->coord[0][0],
+		this->yzels[2]->coord[0][1], this->yzels[2]->coord[0][2]);
+
+
+	S = sqv[0] + sqv[1];
+
 
 
 	
 	double SS = 0.0;
 	double ksi = Sens->MakeRandom();
 	Eigen::Vector3d A, B, C;
-	A << xc, yc, zc;
 
-	for (int i = 0; i < this->yzels.size(); i++)
+	for (int i = 0; i < 2; i++)
 	{
-		if (ksi <= SS + sqv[i] / S || i == this->yzels.size() - 1)
+		if (ksi <= SS + sqv[i] / S || i == 1)
 		{
-			i2 = i + 1;
-			if (i2 >= this->yzels.size()) i2 = 0;
-			B << this->yzels[i]->coord[0][0],
-				this->yzels[i]->coord[0][1],
-				this->yzels[i]->coord[0][2];
-			C << this->yzels[i2]->coord[0][0],
-				this->yzels[i2]->coord[0][1],
-				this->yzels[i2]->coord[0][2];
+			if (i == 0)
+			{
+				A << this->yzels[0]->coord[0][0],
+					this->yzels[0]->coord[0][1],
+					this->yzels[0]->coord[0][2];
+				B << this->yzels[1]->coord[0][0],
+					this->yzels[1]->coord[0][1],
+					this->yzels[1]->coord[0][2];
+				C << this->yzels[2]->coord[0][0],
+					this->yzels[2]->coord[0][1],
+					this->yzels[2]->coord[0][2];
+			}
+			else
+			{
+				B << this->yzels[3]->coord[0][0],
+					this->yzels[3]->coord[0][1],
+					this->yzels[3]->coord[0][2];
+			}
+
 			double r1 = Sens->MakeRandom();
 			double r2 = Sens->MakeRandom();
 			poz = (1.0 - sqrt(r1)) * A + (sqrt(r1) * (1.0 - r2)) * B +

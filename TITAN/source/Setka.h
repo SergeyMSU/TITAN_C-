@@ -191,7 +191,7 @@ public:
 	void MK_prepare(short int zone_MK); // Настройка всего для Монте-Карло
 	void MK_delete(short int zone_MK); 
 	void MK_go(short int zone_MK);      // Запуск всех частиц
-	void MK_fly_immit(MK_particle& P);  // Запуск частицы, имитационный метод
+	void MK_fly_immit(MK_particle& P, short int zone_MK);  // Запуск частицы, имитационный метод
 
 	// Сохраняет функции распределения в файлы и освобождает память
 

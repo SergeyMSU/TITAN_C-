@@ -35,6 +35,8 @@ public:
 	Type_Gran type = Type_Gran::Us;  // по умолчанию создаём обычный
 	Type_Gran_surf type2 = Type_Gran_surf::Us;  // по умолчанию создаём обычный
 
+	short int MK_type = 0;
+
 	unordered_map<string, double> parameters;   // Параметры на грани (тут могут быть значения
 	// плазменных полей (большие величины и т.д.), могут быть значения потоков
 
