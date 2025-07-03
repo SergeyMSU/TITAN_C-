@@ -93,6 +93,12 @@ void Cell::Get_IDW_interpolation(const double& x, const double& y, const double&
 
 Cell* Cell::Get_Sosed(Gran* gr)
 {
+	if (gr == nullptr)
+	{
+		cout << "Error 5434323121" << endl;
+		exit(-1);
+	}
+
 	if(gr->cells.size() == 1) return nullptr;
 
 	if (gr->cells[0]->number == this->number)
@@ -127,6 +133,11 @@ bool isPointInsideTetrahedron(const Eigen::Vector3d& P, const Eigen::Vector3d& A
 	double detABCD = determinant4x4(A4, B4, C4, D4);
 	if (std::abs(detABCD) < 1e-10) {
 		std::cerr << "Degenerate tetrahedron (zero volume)!" << std::endl;
+		cout << A4(0) << " " << A4(1) << " " << A4(2) << endl;
+		cout << B4(0) << " " << B4(1) << " " << B4(2) << endl;
+		cout << C4(0) << " " << C4(1) << " " << C4(2) << endl;
+		cout << D4(0) << " " << D4(1) << " " << D4(2) << endl;
+		cout << "__________________________________________" << endl;
 		return false;
 	}
 
@@ -183,13 +194,43 @@ bool Cell::Belong_point(const double& x, const double& y, const double& z, short
 			}
 			else // грань = 2 треугольника
 			{
+				if (gr->yzels.size() != 4)
+				{
+					cout << "Error 9765486573" << endl;
+					exit(-1);
+				}
+
+				if (fabs(gr->yzels[1]->coord[now][0] - gr->yzels[3]->coord[now][0]) < 1e-6 &&
+					fabs(gr->yzels[1]->coord[now][1] - gr->yzels[3]->coord[now][1]) < 1e-6 &&
+					fabs(gr->yzels[1]->coord[now][2] - gr->yzels[3]->coord[now][2]) < 1e-6)
+				{
+					cout << "Error 1423990055" << endl;
+					exit(-1);
+				}
+
+				if (fabs(gr->yzels[1]->coord[now][0] - gr->yzels[2]->coord[now][0]) < 1e-6 &&
+					fabs(gr->yzels[1]->coord[now][1] - gr->yzels[2]->coord[now][1]) < 1e-6 &&
+					fabs(gr->yzels[1]->coord[now][2] - gr->yzels[2]->coord[now][2]) < 1e-6)
+				{
+					cout << "Error 9665443281" << endl;
+					exit(-1);
+				}
+
+				if (fabs(gr->yzels[3]->coord[now][0] - gr->yzels[2]->coord[now][0]) < 1e-6 &&
+					fabs(gr->yzels[3]->coord[now][1] - gr->yzels[2]->coord[now][1]) < 1e-6 &&
+					fabs(gr->yzels[3]->coord[now][2] - gr->yzels[2]->coord[now][2]) < 1e-6)
+				{
+					cout << "Error 1423453421" << endl;
+					exit(-1);
+				}
+
 				B << gr->yzels[0]->coord[now][0], gr->yzels[0]->coord[now][1], gr->yzels[0]->coord[now][2];
 				C << gr->yzels[1]->coord[now][0], gr->yzels[1]->coord[now][1], gr->yzels[1]->coord[now][2];
 				D << gr->yzels[2]->coord[now][0], gr->yzels[2]->coord[now][1], gr->yzels[2]->coord[now][2];
 				is_in = isPointInsideTetrahedron(P, A, B, C, D);
 				if (is_in == true) return true;
 
-
+				
 				C << gr->yzels[3]->coord[now][0], gr->yzels[3]->coord[now][1], gr->yzels[3]->coord[now][2];
 				is_in = isPointInsideTetrahedron(P, A, B, C, D);
 				if (is_in == true) return true;

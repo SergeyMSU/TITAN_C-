@@ -601,6 +601,7 @@ void Setka::MK_delete(short int zone_MK)
 
 void Setka::MK_go(short int zone_MK)
 {
+	cout << "Start MK_go " << zone_MK << endl;
 	int N_on_gran = 10;   // Сколько запускаем частиц на грань в среднем
 	double mu_expect = 0.0;
 	mu_expect = this->MK_Potoks[zone_MK - 1] / 
@@ -727,11 +728,19 @@ void Setka::MK_go(short int zone_MK)
 				}
 
 
-
+				cout << "_______________________________" << endl;
 				cout << "Zapusk test  " << P.sort << "    " << gr->number << endl;
+				whach(P.coord[0]);
+				whach(P.coord[1]);
+				whach(P.coord[2]);
+				whach(P.Vel[0]);
+				whach(P.Vel[1]);
+				whach(P.Vel[2]);
 				cout << "mu = " << P.mu << endl;
-				//this->MK_fly_immit(P, zone_MK); // Запускаем частицу в полёт   // !! Не написана
-
+				cout << "_______________________________" << endl;
+				this->MK_fly_immit(P, zone_MK); // Запускаем частицу в полёт   // !! Не написана
+				cout << "END" << endl;
+				exit(-1);
 			}
 		}
 	}
@@ -742,6 +751,12 @@ void Setka::MK_go(short int zone_MK)
 
 void Setka::MK_fly_immit(MK_particle& P, short int zone_MK)
 {
+	cout << "______Start_MK_fly_immit___________" << endl;
+	whach(P.coord[0]);
+	whach(P.coord[1]);
+	whach(P.coord[2]);
+	cout << "_______________________________" << endl;
+
 
 	double time = 0.0;            // время нахождения частицы в ячейке
 	Gran* gran = nullptr;         // Через какую грань ячейка выйдер из ячейки
@@ -753,13 +768,20 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK)
 	while (b1 == false)
 	{
 		k1++;
+		cout << "A " << endl;
 		b1 = this->Time_to_vilet(P, time, gran);
-
+		if (b1 == true && gran == nullptr)
+		{
+			cout << "Error 7786341271" << endl;
+			exit(-1);
+		}
+		cout << "B " << b1 << endl;
 		if (b1 == false)
 		{
 			// Немного двигаем точку
 			P.coord += 1e-7 * P.Vel;
 
+			cout << "C " << endl;
 			P.cel =  Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, P.cel);
 			// Здесь надо проверить, что во время микро-движения точка не
 			// вышла в другую ячейку или за пределы расчётной области
@@ -770,6 +792,19 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK)
 			cout << "Error 8614098634" << endl;
 			exit(-1);
 		}
+	}
+
+
+	cout << "D " << time << endl;
+	whach(P.coord[0]);
+	whach(P.coord[1]);
+	whach(P.coord[2]);
+	cout << "_______________________________" << endl;
+
+	if (gran == nullptr)
+	{
+		cout << "Error 6438609412" << endl;
+		exit(-1);
 	}
 
 	// Здесь время до выхода из ячейки определено time
@@ -783,7 +818,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK)
 
 	// Находим следующую ячейку
 
-	P.coord = 1.000001 * time * P.Vel;
+	P.coord += 1.000001 * time * P.Vel;
 
 	if (gran->MK_type == zone_MK)
 	{
@@ -795,10 +830,22 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK)
 	Cell* Cell_next = P.cel->Get_Sosed(gran);
 	// точно находим следующую ячейку
 	P.cel = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cell_next);
+	if (P.cel == nullptr)
+	{
+		cout << "Error  8545342078" << endl;
+		whach(P.coord[0]);
+		whach(P.coord[1]);
+		whach(P.coord[2]);
+		whach(P.Vel[0]);
+		whach(P.Vel[1]);
+		whach(P.Vel[2]);
+		exit(-1);
+	}
+	return this->MK_fly_immit(P, zone_MK);
 }
 
 
-bool Setka::Time_to_vilet(MK_particle& P, double& time, Gran* gran)
+bool Setka::Time_to_vilet(const MK_particle& P, double& time, Gran*& gran)
 {
 	Cell* C = P.cel;
 	Eigen::Vector3d R, V;
@@ -814,10 +861,18 @@ bool Setka::Time_to_vilet(MK_particle& P, double& time, Gran* gran)
 
 	for (const auto& gr : C->grans)
 	{
+		if (gr == nullptr)
+		{
+			cout << "Error 9453286475" << endl;
+			exit(-1);
+		}
+
 		if (gr->Luch_iz_cross_approx(R, V) == true)
 		{
 			if (gr->Luch_crossing(R, V, time1) == true)
 			{
+				//if (time1 > 1e-06) continue;
+
 				if (time_min > time1)
 				{
 					time_min = time1;
@@ -837,6 +892,13 @@ bool Setka::Time_to_vilet(MK_particle& P, double& time, Gran* gran)
 	{
 		gran = gran_min;
 		time = time_min;
+
+		if (gran == nullptr)
+		{
+			cout << "Error 1112389046" << endl;
+			exit(-1);
+		}
+
 		return true;
 	}
 }

@@ -225,7 +225,7 @@ void Gran::Set_Gran_Geo_for_MK(void)
 	this->geo_parameters["z_max"] = z_max;
 }
 
-bool Gran::Luch_iz_cross_approx(Eigen::Vector3d& R, Eigen::Vector3d& V)
+bool Gran::Luch_iz_cross_approx(const Eigen::Vector3d& R, const Eigen::Vector3d& V)
 {
 	double tx1, tx2, ty1, ty2, tz1, tz2;
 	bool px, py, pz;
@@ -337,7 +337,7 @@ bool Gran::Luch_iz_cross_approx(Eigen::Vector3d& R, Eigen::Vector3d& V)
  * @param t Возвращает время до пересечения.
  * @return true, если луч пересекает треугольник, иначе false.
  */
-bool Gran::Luch_crossing(Eigen::Vector3d& orig, Eigen::Vector3d& Vel, double& time)
+bool Gran::Luch_crossing(const Eigen::Vector3d& orig, const Eigen::Vector3d& Vel, double& time)
 {
 	if (this->yzels.size() != 4)
 	{
@@ -446,7 +446,7 @@ bool Gran::rayTriangleIntersect(
 	// Вычисляем параметр t (расстояние до пересечения)
 	t = edge2.dot(qvec) * inv_det;
 
-	return t > 0.0;
+	return t > 1e-6;
 }
 
 Gran::Gran()

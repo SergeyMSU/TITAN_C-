@@ -74,10 +74,10 @@ public:
 	// x_min, x_max, y_min, y_max, z_min, z_max - для быстрого пересечения траекторий с гранью
 	//
 
-	bool Luch_iz_cross_approx(Eigen::Vector3d& R, Eigen::Vector3d& V);
+	bool Luch_iz_cross_approx(const Eigen::Vector3d& R, const Eigen::Vector3d& V);
 	// Пересекает ли луч данную грань (приблизительно, по параллелепипеду вокруг грани).
 
-	bool Luch_crossing(Eigen::Vector3d& R, Eigen::Vector3d& V, double& time);
+	bool Luch_crossing(const Eigen::Vector3d& R, const Eigen::Vector3d& V, double& time);
 
 	bool rayTriangleIntersect(
 		const Eigen::Vector3d& orig, const Eigen::Vector3d& dir,
