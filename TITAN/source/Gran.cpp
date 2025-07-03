@@ -12,6 +12,17 @@ short int Gran::Get_method()
 	return 0;
 }
 
+bool Gran::Have_zone_number(short int z)
+{
+	for (const auto& i : this->MK_type)
+	{
+		if (i == z) return true;
+	}
+
+
+	return false;
+}
+
 void Gran::Culc_measure(unsigned short int st_time)
 {
 	double xc, yc, zc;
@@ -346,9 +357,9 @@ bool Gran::Luch_crossing(const Eigen::Vector3d& orig, const Eigen::Vector3d& Vel
 		// Этот алгоритм строго для четырёх-угольных граней, иначе нужен другой 
 	}
 
-	auto& yz1 = this->yzels[0];
-	auto& yz2 = this->yzels[1];
-	auto& yz3 = this->yzels[2];
+	auto yz1 = this->yzels[0];
+	auto yz2 = this->yzels[1];
+	auto yz3 = this->yzels[2];
 
 	Eigen::Vector3d v0, v1, v2;
 	v0 << yz1->coord[0][0], yz1->coord[0][1], yz1->coord[0][2];

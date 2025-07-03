@@ -80,7 +80,7 @@ void Setka::Set_MK_Zone(void)
 	for (auto& gr : this->Gran_TS)
 	{
 		this->MK_Grans[0].push_back(gr);
-		gr->MK_type = 1;
+		gr->MK_type.push_back(1);
 	}
 
 	// 2 зона
@@ -95,14 +95,14 @@ void Setka::Set_MK_Zone(void)
 		if (gr->type2 == Type_Gran_surf::HP)
 		{
 			this->MK_Grans[1].push_back(gr);
-			gr->MK_type = 2;
+			gr->MK_type.push_back(2);
 		}
 
 
 		if (gr->type2 == Type_Gran_surf::TS)
 		{
 			this->MK_Grans[1].push_back(gr);
-			gr->MK_type = 2;
+			gr->MK_type.push_back(2);
 		}
 		
 
@@ -111,7 +111,7 @@ void Setka::Set_MK_Zone(void)
 			if (gr->cells[0]->type == Type_cell::Zone_2)
 			{
 				this->MK_Grans[1].push_back(gr);
-				gr->MK_type = 2;
+				gr->MK_type.push_back(2);
 			}
 		}
 
@@ -123,7 +123,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
 				{
 					this->MK_Grans[1].push_back(gr);
-					gr->MK_type = 2;
+					gr->MK_type.push_back(2);
 				}
 			}
 		}
@@ -141,13 +141,13 @@ void Setka::Set_MK_Zone(void)
 		if (gr->type2 == Type_Gran_surf::HP)
 		{
 			this->MK_Grans[2].push_back(gr);
-			gr->MK_type = 3;
+			gr->MK_type.push_back(3);
 		}
 
 		if (gr->type2 == Type_Gran_surf::TS)
 		{
 			this->MK_Grans[2].push_back(gr);
-			gr->MK_type = 3;
+			gr->MK_type.push_back(3);
 		}
 
 		if (gr->type == Type_Gran::Outer_Soft)
@@ -155,7 +155,7 @@ void Setka::Set_MK_Zone(void)
 			if (gr->cells[0]->type == Type_cell::Zone_2)
 			{
 				this->MK_Grans[2].push_back(gr);
-				gr->MK_type = 3;
+				gr->MK_type.push_back(3);
 			}
 		}
 
@@ -165,7 +165,7 @@ void Setka::Set_MK_Zone(void)
 				gr->cells[1]->type == Type_cell::Zone_3) 
 			{
 				this->MK_Grans[2].push_back(gr);
-				gr->MK_type = 3;
+				gr->MK_type.push_back(3);
 			}
 
 			
@@ -175,7 +175,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
 				{
 					this->MK_Grans[2].push_back(gr);
-					gr->MK_type = 3;
+					gr->MK_type.push_back(3);
 				}
 			}
 		}
@@ -193,14 +193,14 @@ void Setka::Set_MK_Zone(void)
 			if (Centr[0] > 0)
 			{
 				this->MK_Grans[3].push_back(gr);
-				gr->MK_type = 4;
+				gr->MK_type.push_back(4);
 			}
 		}
 
 		if (gr->type2 == Type_Gran_surf::BS)
 		{
 			this->MK_Grans[3].push_back(gr);
-			gr->MK_type = 4;
+			gr->MK_type.push_back(4);
 		}
 
 		if (gr->cells.size() == 2)
@@ -211,7 +211,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
 				{
 					this->MK_Grans[3].push_back(gr);
-					gr->MK_type = 4;
+					gr->MK_type.push_back(4);
 				}
 			}
 
@@ -230,7 +230,7 @@ void Setka::Set_MK_Zone(void)
 			if (Centr[0] < 0.0)
 			{
 				this->MK_Grans[4].push_back(gr);
-				gr->MK_type = 5;
+				gr->MK_type.push_back(5);
 			}
 		}
 
@@ -239,7 +239,7 @@ void Setka::Set_MK_Zone(void)
 			if (gr->cells[0]->type == Type_cell::Zone_3)
 			{
 				this->MK_Grans[4].push_back(gr);
-				gr->MK_type = 5;
+				gr->MK_type.push_back(5);
 			}
 		}
 
@@ -249,7 +249,7 @@ void Setka::Set_MK_Zone(void)
 				gr->cells[1]->type == Type_cell::Zone_3)
 			{
 				this->MK_Grans[4].push_back(gr);
-				gr->MK_type = 5;
+				gr->MK_type.push_back(5);
 			}
 
 
@@ -259,7 +259,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
 				{
 					this->MK_Grans[4].push_back(gr);
-					gr->MK_type = 5;
+					gr->MK_type.push_back(5);
 				}
 			}
 
@@ -269,7 +269,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] < 0)
 				{
 					this->MK_Grans[4].push_back(gr);
-					gr->MK_type = 5;
+					gr->MK_type.push_back(5);
 				}
 			}
 
@@ -286,7 +286,7 @@ void Setka::Set_MK_Zone(void)
 		if (gr->type2 == Type_Gran_surf::BS)
 		{
 			this->MK_Grans[5].push_back(gr);
-			gr->MK_type = 6;
+			gr->MK_type.push_back(6);
 		}
 
 		if (gr->type == Type_Gran::Outer_Hard)
@@ -294,7 +294,7 @@ void Setka::Set_MK_Zone(void)
 			if (Centr[0] > 0)
 			{
 				this->MK_Grans[5].push_back(gr);
-				gr->MK_type = 6;
+				gr->MK_type.push_back(6);
 			}
 		}
 
@@ -306,7 +306,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
 				{
 					this->MK_Grans[5].push_back(gr);
-					gr->MK_type = 6;
+					gr->MK_type.push_back(6);
 				}
 			}
 
@@ -325,7 +325,7 @@ void Setka::Set_MK_Zone(void)
 			if (Centr[0] < 0)
 			{
 				this->MK_Grans[6].push_back(gr);
-				gr->MK_type = 7;
+				gr->MK_type.push_back(7);
 			}
 		}
 
@@ -334,7 +334,7 @@ void Setka::Set_MK_Zone(void)
 			if (gr->cells[0]->type == Type_cell::Zone_4)
 			{
 				this->MK_Grans[6].push_back(gr);
-				gr->MK_type = 7;
+				gr->MK_type.push_back(7);
 			}
 		}
 
@@ -346,7 +346,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] < 0)
 				{
 					this->MK_Grans[6].push_back(gr);
-					gr->MK_type = 7;
+					gr->MK_type.push_back(7);
 				}
 			}
 
@@ -356,7 +356,7 @@ void Setka::Set_MK_Zone(void)
 				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
 				{
 					this->MK_Grans[6].push_back(gr);
-					gr->MK_type = 7;
+					gr->MK_type.push_back(7);
 				}
 			}
 
@@ -663,6 +663,10 @@ void Setka::MK_go(short int zone_MK)
 
 				Eigen::Vector3d poz;
 
+				this->Sensors[sens_num]->MakeRandom();
+				this->Sensors[sens_num]->MakeRandom();
+				this->Sensors[sens_num]->MakeRandom();
+
 				// Находим положение точки на грани
 				gr->Get_Random_pozition(poz, this->Sensors[sens_num]);
 				P.coord = poz;
@@ -751,11 +755,13 @@ void Setka::MK_go(short int zone_MK)
 
 void Setka::MK_fly_immit(MK_particle& P, short int zone_MK)
 {
-	cout << "______Start_MK_fly_immit___________" << endl;
+	/*cout << "______Start_MK_fly_immit___________" << endl;
 	whach(P.coord[0]);
 	whach(P.coord[1]);
 	whach(P.coord[2]);
-	cout << "_______________________________" << endl;
+	cout << "_______________________________" << endl;*/
+
+	cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 
 
 	double time = 0.0;            // время нахождения частицы в ячейке
@@ -768,20 +774,20 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK)
 	while (b1 == false)
 	{
 		k1++;
-		cout << "A " << endl;
+		//cout << "A " << endl;
 		b1 = this->Time_to_vilet(P, time, gran);
 		if (b1 == true && gran == nullptr)
 		{
 			cout << "Error 7786341271" << endl;
 			exit(-1);
 		}
-		cout << "B " << b1 << endl;
+		//cout << "B " << b1 << endl;
 		if (b1 == false)
 		{
 			// Немного двигаем точку
 			P.coord += 1e-7 * P.Vel;
 
-			cout << "C " << endl;
+			//cout << "C " << endl;
 			P.cel =  Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, P.cel);
 			// Здесь надо проверить, что во время микро-движения точка не
 			// вышла в другую ячейку или за пределы расчётной области
@@ -795,11 +801,11 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK)
 	}
 
 
-	cout << "D " << time << endl;
+	/*cout << "D " << time << endl;
 	whach(P.coord[0]);
 	whach(P.coord[1]);
 	whach(P.coord[2]);
-	cout << "_______________________________" << endl;
+	cout << "_______________________________" << endl;*/
 
 	if (gran == nullptr)
 	{
@@ -820,7 +826,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK)
 
 	P.coord += 1.000001 * time * P.Vel;
 
-	if (gran->MK_type == zone_MK)
+	if (gran->Have_zone_number(zone_MK))
 	{
 		// В этом случае долетели до границы, записываем что надо и выключаем частицу
 
@@ -841,6 +847,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK)
 		whach(P.Vel[2]);
 		exit(-1);
 	}
+
 	return this->MK_fly_immit(P, zone_MK);
 }
 

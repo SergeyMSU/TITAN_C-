@@ -35,7 +35,7 @@ public:
 	Type_Gran type = Type_Gran::Us;  // по умолчанию создаЄм обычный
 	Type_Gran_surf type2 = Type_Gran_surf::Us;  // по умолчанию создаЄм обычный
 
-	short int MK_type = 0;
+	vector<short int> MK_type;
 
 	unordered_map<string, double> parameters;   // ѕараметры на грани (тут могут быть значени€
 	// плазменных полей (большие величины и т.д.), могут быть значени€ потоков
@@ -52,6 +52,9 @@ public:
 	double MK_Potok;  // —уммарный поток по всем сортам у грани
 	
 	// ѕерва€ направлена по нормали грани, втора€ против нормали
+
+	bool Have_zone_number(short int z);
+	// ѕровер€ет есть ли в векторе MK_type зона с номером z?
 
 	void Culc_measure(unsigned short int st_time);
 	// вычисл€ет normal, center, area

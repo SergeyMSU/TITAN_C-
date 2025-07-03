@@ -168,6 +168,8 @@ void Setka::Algoritm(short int alg)
 
 	cout << "Start Algoritm " << alg << endl;
 
+	this->Test_geometr();
+
 	if (alg == 2)
 	{
 		// Определим зоны для МК
@@ -184,6 +186,7 @@ void Setka::Algoritm(short int alg)
 
 		// Готовим MK, датчики, функции распределения
 		this->MK_prepare(6);
+
 		this->MK_go(6);
 
 		this->MK_delete(6);
@@ -388,7 +391,7 @@ bool Setka::Test_geometr(void)
 			V3 += n3 * j->area[0];
 		}
 
-		/*if (norm2(V1, V2, V3)/i->volume[0] > 0.1)
+		if (norm2(V1, V2, V3)/i->volume[0] > 0.1)
 		{
 			cout << "Error 8768978654" << endl;
 			whach(V1);
@@ -397,7 +400,28 @@ bool Setka::Test_geometr(void)
 			whach(i->volume[0]);
 			whach(norm2(V1, V2, V3) / i->volume[0]);
 			exit(-1);
-		}*/
+		}
+	}
+	cout << "Success" << endl;
+
+
+	cout << "Test 6:" << endl; // У граней все узлы разные и их 4 штуки!
+	for (auto& i : this->All_Gran)
+	{
+		if (i->yzels[0]->number == i->yzels[1]->number ||
+			i->yzels[0]->number == i->yzels[2]->number ||
+			i->yzels[0]->number == i->yzels[3]->number ||
+			i->yzels[1]->number == i->yzels[2]->number ||
+			i->yzels[1]->number == i->yzels[3]->number ||
+			i->yzels[2]->number == i->yzels[3]->number)
+		{
+			cout << "Error 9865134089" << endl;
+			whach(i->yzels[0]->number);
+			whach(i->yzels[1]->number);
+			whach(i->yzels[2]->number);
+			whach(i->yzels[3]->number);
+			exit(-1);
+		}
 	}
 	cout << "Success" << endl << endl;
 
@@ -1863,54 +1887,59 @@ void Setka::New_connect()
 	// Создаём все грани
 	for (auto& i : this->All_Cell)
 	{
+		/*if (i->number == 118)
+		{
+			cout << "Find" << endl;
+		}*/
 		auto G = new Gran();
-		G->yzels.push_back(i->yzels[0]);
-		G->yzels.push_back(i->yzels[3]);
-		G->yzels.push_back(i->yzels[2]);
-		G->yzels.push_back(i->yzels[1]);
+		G->yzels.push_back(i->yzels[0]); // 1
+		G->yzels.push_back(i->yzels[3]); // 4
+		G->yzels.push_back(i->yzels[2]); // 3
+		G->yzels.push_back(i->yzels[1]); // 2
 		All_gran_.push_back(G);
 		G->cells.push_back(i);
 
 		G = new Gran();
-		G->yzels.push_back(i->yzels[4]);
-		G->yzels.push_back(i->yzels[5]);
-		G->yzels.push_back(i->yzels[6]);
-		G->yzels.push_back(i->yzels[7]);
+		G->yzels.push_back(i->yzels[4]); // 5
+		G->yzels.push_back(i->yzels[5]); // 6
+		G->yzels.push_back(i->yzels[6]); // 7
+		G->yzels.push_back(i->yzels[7]); // 8
 		All_gran_.push_back(G);
 		G->cells.push_back(i);
 
 		G = new Gran();
-		G->yzels.push_back(i->yzels[0]);
-		G->yzels.push_back(i->yzels[1]);
-		G->yzels.push_back(i->yzels[5]);
-		G->yzels.push_back(i->yzels[4]);
+		G->yzels.push_back(i->yzels[0]); // 1
+		G->yzels.push_back(i->yzels[1]); // 2
+		G->yzels.push_back(i->yzels[5]); // 6
+		G->yzels.push_back(i->yzels[4]); // 5
 		All_gran_.push_back(G);
 		G->cells.push_back(i);
 
 		G = new Gran();
-		G->yzels.push_back(i->yzels[2]);
-		G->yzels.push_back(i->yzels[3]);
-		G->yzels.push_back(i->yzels[7]);
-		G->yzels.push_back(i->yzels[6]);
+		G->yzels.push_back(i->yzels[2]); // 3
+		G->yzels.push_back(i->yzels[3]); // 4
+		G->yzels.push_back(i->yzels[7]); // 8
+		G->yzels.push_back(i->yzels[6]); // 7
 		All_gran_.push_back(G);
 		G->cells.push_back(i);
 
 		G = new Gran();
-		G->yzels.push_back(i->yzels[1]);
-		G->yzels.push_back(i->yzels[2]);
-		G->yzels.push_back(i->yzels[6]);
-		G->yzels.push_back(i->yzels[5]);
+		G->yzels.push_back(i->yzels[1]); // 2
+		G->yzels.push_back(i->yzels[2]); // 3
+		G->yzels.push_back(i->yzels[6]); // 7
+		G->yzels.push_back(i->yzels[5]); // 6
 		All_gran_.push_back(G);
 		G->cells.push_back(i);
 
 		G = new Gran();
-		G->yzels.push_back(i->yzels[0]);
-		G->yzels.push_back(i->yzels[4]);
-		G->yzels.push_back(i->yzels[7]);
-		G->yzels.push_back(i->yzels[3]);
+		G->yzels.push_back(i->yzels[0]); // 1
+		G->yzels.push_back(i->yzels[4]); // 5
+		G->yzels.push_back(i->yzels[7]); // 8
+		G->yzels.push_back(i->yzels[3]); // 4
 		All_gran_.push_back(G);
 		G->cells.push_back(i);
 	}
+	// Сдесь было наделано много лишних граней
 
 	// Удаляем дубликаты граней
 
@@ -1975,9 +2004,13 @@ void Setka::New_connect()
 				G->cells.push_back(j);
 			}
 			this->All_Gran.push_back(G);
+
 		}
 		delete i;
 	}
+
+
+
 	number_gran_for_delete.clear();
 	All_gran_.clear();
 	All_gran_.resize(0);

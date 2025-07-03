@@ -221,6 +221,7 @@ bool Cell::Belong_point(const double& x, const double& y, const double& z, short
 					fabs(gr->yzels[3]->coord[now][2] - gr->yzels[2]->coord[now][2]) < 1e-6)
 				{
 					cout << "Error 1423453421" << endl;
+					this->Tecplot_print_cell();
 					exit(-1);
 				}
 
