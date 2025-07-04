@@ -615,6 +615,10 @@ void AMR_f::Read(string namef)
 	// Выделяем память под корневую сетку
 	this->cells.resize(boost::extents[dims[0]][dims[1]][dims[2]]);
 
+	this->xn = dims[0];
+	this->yn = dims[1];
+	this->zn = dims[2];
+
 	for (size_t i = 0; i < dims[0]; ++i) 
 	{
 		for (size_t j = 0; j < dims[1]; ++j) 
@@ -622,6 +626,11 @@ void AMR_f::Read(string namef)
 			for (size_t k = 0; k < dims[2]; ++k) 
 			{
 				this->cells[i][j][k] = new AMR_cell();
+				this->cells[i][j][k]->nx = i;
+				this->cells[i][j][k]->ny = j;
+				this->cells[i][j][k]->nz = k;
+				this->cells[i][j][k]->parent = nullptr;
+				this->cells[i][j][k]->I_self = this->cells[i][j][k];
 				this->cells[i][j][k]->Read_cell(in);
 			}
 		}

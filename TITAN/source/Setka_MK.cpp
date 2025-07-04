@@ -518,15 +518,15 @@ void Setka::MK_prepare(short int zone_MK)
 								ni = 0;  
 							}
 
-							/*if (ni == ii)
+							if (ni == ii)
 							{
 								unsigned NN = 1;
 								while (NN > 0)
 								{
-									cout << "Rifine" << endl;
+									//cout << "Rifine" << endl;
 									NN = gr->AMR[iH - 1][ii]->Refine();
 								}
-							}*/
+							}
 						}
 						else
 						{
@@ -703,7 +703,7 @@ void Setka::MK_delete(short int zone_MK)
 void Setka::MK_go(short int zone_MK)
 {
 	cout << "Start MK_go " << zone_MK << endl;
-	int N_on_gran = 30;   // —колько запускаем частиц на грань в среднем
+	int N_on_gran = 100;   // —колько запускаем частиц на грань в среднем
 	double mu_expect = 0.0;
 	mu_expect = this->MK_Potoks[zone_MK - 1] / 
 		(1.0 * N_on_gran * this->MK_Grans[zone_MK - 1].size());
@@ -880,6 +880,9 @@ void Setka::MK_go(short int zone_MK)
 			ni = 0;
 		}
 
+		cout << gr->center[0][0] << " " << gr->center[0][1] << " " <<
+			gr->center[0][2] << endl;
+		cout << "N_particle = " << gr->N_particle << endl;
 		auto& func = gr->AMR[3][ni];
 		func->Print_all_center_Tecplot(func);
 		func->Print_1D_Tecplot(func, 1.0);
@@ -928,7 +931,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 			// вышла в другую €чейку или за пределы расчЄтной области
 		}
 
-		if (k1 > 100)
+		if (k1 > 1000)
 		{
 			cout << "Error 8614098634" << endl;
 			cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
@@ -1002,8 +1005,29 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 			CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
 			if (P.cel != CC)
 			{
-				cout << "Error 8674539765" << endl;
-				exit(-1);
+				Eigen::Vector3d Cell_center;
+				Cell_center << P.cel->center[0][0], P.cel->center[0][1],
+					P.cel->center[0][2];
+
+				// ѕодвинем немного точку к центру €чейки
+				P.coord += (Cell_center - P.coord)/100.0 ;
+				CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
+
+				if (P.cel != CC)
+				{
+					cout << "Error 8674539765" << endl;
+					whach(CC->number);
+					whach(P.cel->number);
+					whach(P.coord[0]);
+					whach(P.coord[1]);
+					whach(P.coord[2]);
+					whach(P.Vel[0]);
+					whach(P.Vel[1]);
+					whach(P.Vel[2]);
+					whach(t_ex);
+					whach(time);
+					exit(-1);
+				}
 			}
 		}
 
@@ -1051,6 +1075,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		if (gran->cells[0]->MK_zone == zone_MK) nn = 0;
 		auto AMR = gran->AMR[P.sort - 1][nn];
 		AMR->Add_particle(P.Vel[0], P.Vel[1], P.Vel[2], P.mu);
+		gran->N_particle++;
 		return;
 	}
 
