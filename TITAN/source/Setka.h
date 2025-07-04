@@ -134,6 +134,11 @@ public:
 	// что поверхностное натяжение уже не спасает
 	void Smooth_head_HP(void);  // То же самое, но для контакта
 
+	void Smooth_head_TS2(void); // Попытка сгладить выпирающие и вдавленные узлы
+	void Smooth_head_HP2(void);
+	// Не получилось, так как если поверхность не радиальная, то и сглаживание почти не работает
+	// Возможно будет работать в случае сильного разваливания 
+
 
 	// ****************************************************************************
 	// Интерполяция ****************************************************************************
@@ -191,8 +196,10 @@ public:
 	void MK_prepare(short int zone_MK); // Настройка всего для Монте-Карло
 	void MK_delete(short int zone_MK); 
 	void MK_go(short int zone_MK);      // Запуск всех частиц
-	void MK_fly_immit(MK_particle& P, short int zone_MK);  // Запуск частицы, имитационный метод
-
+	void MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens);  // Запуск частицы, имитационный метод
+	void M_K_Change_Velosity(Sensor* sens, const double& Ur, const double& Uthe,
+		const double& Uphi, const double& Vr, const double& Vthe,
+		const double& Vphi, double& Wr, double& Wthe, double& Wphi, const double& cp);
 	// Сохраняет функции распределения в файлы и освобождает память
 
 	//  ****************************************************************************

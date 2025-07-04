@@ -179,11 +179,67 @@ void AMR_f::Get_lokal_koordinate(const double& Vx, const double& Vy, const doubl
 	ez << this->Vm[0], this->Vm[1], this->Vm[2];
 	ee << Vx, Vy, Vz;
 
-	ee = x * ex + y * ey + z * ez;
 	x = ee.dot(ex);
 	y = ee.dot(ey);
 	z = ee.dot(ez);
 	return;
+}
+
+void AMR_f::Add_particle(const double& Vx, const double& Vy, const double& Vz, const double& mu)
+{
+	double x, y, z;
+	double Vnn;
+	Vnn = fabs(scalarProductFast(Vx, Vy, Vz, this->Vn[0], this->Vn[1], this->Vn[2]));
+	if (Vnn < 1e-6) Vnn = 1e-6;
+	this->Get_lokal_koordinate(Vx, Vy, Vz, x, y, z);
+	unsigned short int kkk = 0;
+	a2:
+	kkk++;
+	AMR_cell* cell = find_cell(x, y, z);
+
+	if (kkk > 100)
+	{
+		cout << "Error 75463208674" << endl;
+		whach(this->Vn[0]);
+		whach(this->Vn[1]);
+		whach(this->Vn[2]);
+		whach(this->Vt[0]);
+		whach(this->Vt[1]);
+		whach(this->Vt[2]);
+		whach(this->Vm[0]);
+		whach(this->Vm[1]);
+		whach(this->Vm[2]);
+		whach(Vx);
+		whach(Vy);
+		whach(Vz);
+		whach(x);
+		whach(y);
+		whach(z);
+		exit(-1);
+	}
+
+	if (cell == nullptr)
+	{
+		x *= 0.995;
+		y *= 0.995;
+		z *= 0.995;
+		goto a2;
+	}
+	cell->f += mu/Vnn;
+}
+
+void AMR_f::Normir_velocity_volume(void)
+{
+	std::vector<AMR_cell*> cells;
+	std::array<double, 3> center;
+	std::array<double, 3> razmer;
+	this->Get_all_cells(cells);
+
+	for (auto& cel : cells)
+	{
+		cel->Get_Center(this->AMR_self, center, razmer);
+		cel->f /= razmer[0] * razmer[1] * razmer[2];
+	}
 }
 
 void AMR_f::Set_bazis(void)
@@ -289,6 +345,17 @@ void AMR_f::Fill_maxwel_inf(const double& Vinf)
 	}
 }
 
+void AMR_f::Fill_null(void)
+{
+	std::vector<AMR_cell*> cells;
+	this->Get_all_cells(cells);
+
+	for (auto& i : cells)
+	{
+		i->f = 0.0;
+	}
+}
+
 void AMR_f::Fill_test(void)
 {
 	std::vector<AMR_cell*> cells;
@@ -358,6 +425,8 @@ unsigned int AMR_f::Refine(void)
 		this->Sfu += V * i->f * u;
 		this->Sfuu += V * i->f * kv(u);
 	}
+
+	if (this->Sf < 1e-8 || this->Sfu < 1e-8 || this->Sfuu < 1e-8) return 0;
 
 	double procent = this->procent_signif;
 	for (const auto& i : cells)

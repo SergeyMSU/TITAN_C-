@@ -1002,6 +1002,290 @@ void Setka::Smooth_head_TS(void)
 	cout << "End Smooth_head_TS" << endl;
 }
 
+void Setka::Smooth_head_TS2(void)
+{
+	cout << "Start Smooth_head_TS2" << endl;
+	
+	vector<unsigned int> nomera;
+	vector<double> RRR;
+
+	this->Renumerate();
+
+	Eigen::Vector3d A, B, V;
+
+	// ƒл€ больших r
+	for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
+	{
+		auto gr = this->Gran_TS[i_step];
+		A << gr->center[0][0], gr->center[0][1], gr->center[0][2];
+		double rr = A.norm();
+
+		double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+		if (phi < this->geo->tetta0 + 0.17)
+		{
+			for (auto& yz : gr->yzels)
+			{
+				B << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
+				double r_yz = B.norm();
+				double r_yz_new = 0.0;
+				unsigned short int i_yz_new = 0;
+				for (auto& ggr : yz->grans)
+				{
+					for (auto& yyz : ggr->yzels)
+					{
+						if (yyz->number == yz->number) continue;
+						V << yyz->coord[0][0], yyz->coord[0][1], yyz->coord[0][2];
+						double r_yyz = V.norm();
+						r_yz_new += r_yyz;
+						i_yz_new++;
+						if (r_yz < r_yyz) goto b1;
+					}
+				}
+				// ≈сли дошли до сюда, значит этот узел действительно максимальный
+				nomera.push_back(yz->number);
+				RRR.push_back(r_yz_new/ i_yz_new);
+			b1:
+				r_yz_new = 0.0;
+			}
+		}
+	}
+
+	for (unsigned int j = 0; j < nomera.size(); j++)
+	{
+		unsigned int i = nomera[j];
+		auto& yz = this->All_Yzel[i - 1];
+		double rr = RRR[j];
+		A << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
+		double r = A.norm();
+
+		yz->coord[0][0] *= (rr/r);
+		yz->coord[0][1] *= (rr / r);
+		yz->coord[0][2] *= (rr / r);
+		yz->coord[1][0] = yz->coord[0][0];
+		yz->coord[1][1] = yz->coord[0][1];
+		yz->coord[1][2] = yz->coord[0][2];
+	}
+
+	nomera.clear();
+	RRR.clear();
+
+	// ƒл€ малых R
+	for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
+	{
+		auto gr = this->Gran_TS[i_step];
+		A << gr->center[0][0], gr->center[0][1], gr->center[0][2];
+		double rr = A.norm();
+
+		double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+		if (phi < this->geo->tetta0 + 0.17)
+		{
+			for (auto& yz : gr->yzels)
+			{
+				B << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
+				double r_yz = B.norm();
+				double r_yz_new = 0.0;
+				unsigned short int i_yz_new = 0;
+				for (auto& ggr : yz->grans)
+				{
+					for (auto& yyz : ggr->yzels)
+					{
+						if (yyz->number == yz->number) continue;
+						V << yyz->coord[0][0], yyz->coord[0][1], yyz->coord[0][2];
+						double r_yyz = V.norm();
+						r_yz_new += r_yyz;
+						i_yz_new++;
+						if (r_yz > r_yyz) goto bb1;
+					}
+				}
+				// ≈сли дошли до сюда, значит этот узел действительно максимальный
+				nomera.push_back(yz->number);
+				RRR.push_back(r_yz_new / i_yz_new);
+			bb1:
+				r_yz_new = 0.0;
+			}
+		}
+	}
+
+	for (unsigned int j = 0; j < nomera.size(); j++)
+	{
+		unsigned int i = nomera[j];
+		auto& yz = this->All_Yzel[i - 1];
+		double rr = RRR[j];
+		A << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
+		double r = A.norm();
+
+		yz->coord[0][0] *= (rr / r);
+		yz->coord[0][1] *= (rr / r);
+		yz->coord[0][2] *= (rr / r);
+		yz->coord[1][0] = yz->coord[0][0];
+		yz->coord[1][1] = yz->coord[0][1];
+		yz->coord[1][2] = yz->coord[0][2];
+	}
+
+
+
+	// ---------------
+
+	for (int i_step = 0; i_step < this->All_Luch.size(); i_step++)
+	{
+		auto lu = this->All_Luch[i_step];
+		lu->dvigenie(0);
+	}
+	for (auto& i : this->All_Yzel)
+	{
+		for (unsigned short int j = 0; j < 3; j++)
+		{
+			i->coord[1][j] = i->coord[0][j];
+		}
+	}
+
+
+	this->Calculating_measure(0);
+	this->Calculating_measure(1);
+
+	cout << "End Smooth_head_TS2" << endl;
+}
+
+void Setka::Smooth_head_HP2(void)
+{
+	cout << "Start Smooth_head_HP2" << endl;
+
+	vector<unsigned int> nomera;
+	vector<double> RRR;
+
+	this->Renumerate();
+
+	Eigen::Vector3d A, B, V;
+
+	for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
+	{
+		auto gr = this->Gran_HP[i_step];
+		A << gr->center[0][0], gr->center[0][1], gr->center[0][2];
+		double rr = A.norm();
+
+		double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+		if (phi < this->geo->tetta0 + 0.17)
+		{
+			for (auto& yz : gr->yzels)
+			{
+				B << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
+				double r_yz = B.norm();
+				double r_yz_new = 0.0;
+				unsigned short int i_yz_new = 0;
+				for (auto& ggr : yz->grans)
+				{
+					for (auto& yyz : ggr->yzels)
+					{
+						if (yyz->number == yz->number) continue;
+						V << yyz->coord[0][0], yyz->coord[0][1], yyz->coord[0][2];
+						double r_yyz = V.norm();
+						r_yz_new += r_yyz;
+						i_yz_new++;
+						if (r_yz < r_yyz) goto b1;
+					}
+				}
+				// ≈сли дошли до сюда, значит этот узел действительно максимальный
+				nomera.push_back(yz->number);
+				RRR.push_back(r_yz_new / i_yz_new);
+			b1:
+				r_yz_new = 0.0;
+			}
+		}
+	}
+
+	for (unsigned int j = 0; j < nomera.size(); j++)
+	{
+		unsigned int i = nomera[j];
+		auto& yz = this->All_Yzel[i - 1];
+		double rr = RRR[j];
+		A << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
+		double r = A.norm();
+
+		yz->coord[0][0] *= (rr / r);
+		yz->coord[0][1] *= (rr / r);
+		yz->coord[0][2] *= (rr / r);
+		yz->coord[1][0] = yz->coord[0][0];
+		yz->coord[1][1] = yz->coord[0][1];
+		yz->coord[1][2] = yz->coord[0][2];
+	}
+
+	// -----------------------------------
+	nomera.clear();
+	RRR.clear();
+
+	// ƒл€ малых R
+	for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
+	{
+		auto gr = this->Gran_HP[i_step];
+		A << gr->center[0][0], gr->center[0][1], gr->center[0][2];
+		double rr = A.norm();
+
+		double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+		if (phi < this->geo->tetta0 + 0.17)
+		{
+			for (auto& yz : gr->yzels)
+			{
+				B << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
+				double r_yz = B.norm();
+				double r_yz_new = 0.0;
+				unsigned short int i_yz_new = 0;
+				for (auto& ggr : yz->grans)
+				{
+					for (auto& yyz : ggr->yzels)
+					{
+						if (yyz->number == yz->number) continue;
+						V << yyz->coord[0][0], yyz->coord[0][1], yyz->coord[0][2];
+						double r_yyz = V.norm();
+						r_yz_new += r_yyz;
+						i_yz_new++;
+						if (r_yz > r_yyz) goto bb1;
+					}
+				}
+				// ≈сли дошли до сюда, значит этот узел действительно максимальный
+				nomera.push_back(yz->number);
+				RRR.push_back(r_yz_new / i_yz_new);
+			bb1:
+				r_yz_new = 0.0;
+			}
+		}
+	}
+
+	for (unsigned int j = 0; j < nomera.size(); j++)
+	{
+		unsigned int i = nomera[j];
+		auto& yz = this->All_Yzel[i - 1];
+		double rr = RRR[j];
+		A << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
+		double r = A.norm();
+
+		yz->coord[0][0] *= (rr / r);
+		yz->coord[0][1] *= (rr / r);
+		yz->coord[0][2] *= (rr / r);
+		yz->coord[1][0] = yz->coord[0][0];
+		yz->coord[1][1] = yz->coord[0][1];
+		yz->coord[1][2] = yz->coord[0][2];
+	}
+	// ------------------------------------
+	for (int i_step = 0; i_step < this->All_Luch.size(); i_step++)
+	{
+		auto lu = this->All_Luch[i_step];
+		lu->dvigenie(0);
+	}
+	for (auto& i : this->All_Yzel)
+	{
+		for (unsigned short int j = 0; j < 3; j++)
+		{
+			i->coord[1][j] = i->coord[0][j];
+		}
+	}
+
+
+	this->Calculating_measure(0);
+	this->Calculating_measure(1);
+
+	cout << "End Smooth_head_HP2" << endl;
+}
+
 void Setka::Smooth_head_HP(void)
 {
 	cout << "Start Smooth_head_HP" << endl;

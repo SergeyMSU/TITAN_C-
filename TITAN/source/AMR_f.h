@@ -53,6 +53,12 @@ public:
 	void Get_lokal_koordinate(const double& Vx, const double& Vy, 
 		const double& Vz, double& x, double& y, double& z);
 
+	void Add_particle(const double& Vx, const double& Vy,
+		const double& Vz, const double& mu);
+
+	void Normir_velocity_volume(void);
+	// Нормировка в конце расчёта монте-карло
+
 	void Set_bazis(void);
 	// По нормали определяет два других вектора
 
@@ -69,6 +75,9 @@ public:
 
 	void Fill_test(void);
 	// Заполнить ячейки максвеллом
+
+	void Fill_null(void);
+	// Заполняем значищие ячейки нулём
 
 	unsigned int Refine(void);
 
