@@ -240,6 +240,18 @@ bool Gran::Luch_iz_cross_approx(const Eigen::Vector3d& R, const Eigen::Vector3d&
 {
 	double tx1, tx2, ty1, ty2, tz1, tz2;
 	bool px, py, pz;
+
+	if (this->geo_parameters.find("x_min") == this->geo_parameters.end())
+	{
+		cout << "Error 9768547854" << endl;
+		exit(-1);
+	}
+
+	if (this->geo_parameters.find("x_max") == this->geo_parameters.end())
+	{
+		cout << "Error 9768547852" << endl;
+		exit(-1);
+	}
 		
 	px = false;
 	if (R[0] > this->geo_parameters["x_min"] &&
@@ -261,6 +273,8 @@ bool Gran::Luch_iz_cross_approx(const Eigen::Vector3d& R, const Eigen::Vector3d&
 	{
 		pz = true;
 	}
+
+
 
 	if (fabs(V[0]) > 1e-6)
 	{

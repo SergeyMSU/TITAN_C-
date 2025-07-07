@@ -29,6 +29,8 @@ public:
 	double Sfu;
 	double Sfuu;
 
+	unordered_map<string, double> parameters;  // дополнительные МК-параметры
+
 	double SpotokV = 0.0;  // Поток через данную грань функции распределения
 	// этот поток уже умножен на площадь грани (чтоб удобно его сразу брать)
 
@@ -56,7 +58,7 @@ public:
 	void Add_particle(const double& Vx, const double& Vy,
 		const double& Vz, const double& mu);
 
-	void Normir_velocity_volume(void);
+	void Normir_velocity_volume(const double& squ);
 	// Нормировка в конце расчёта монте-карло
 
 	void Set_bazis(void);

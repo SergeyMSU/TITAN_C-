@@ -169,6 +169,8 @@ void Setka::Algoritm(short int alg)
 	cout << "Start Algoritm " << alg << endl;
 
 	this->Test_geometr();
+	this->Calculating_measure(0);
+	this->Calculating_measure(1);
 
 	if (alg == 2)
 	{

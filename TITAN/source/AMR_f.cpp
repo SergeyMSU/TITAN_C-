@@ -190,6 +190,9 @@ void AMR_f::Add_particle(const double& Vx, const double& Vy, const double& Vz, c
 	double x, y, z;
 	double Vnn;
 	Vnn = fabs(scalarProductFast(Vx, Vy, Vz, this->Vn[0], this->Vn[1], this->Vn[2]));
+
+	this->parameters["n"] += mu / Vnn;
+
 	if (Vnn < 1e-6) Vnn = 1e-6;
 	this->Get_lokal_koordinate(Vx, Vy, Vz, x, y, z);
 	unsigned short int kkk = 0;
@@ -228,17 +231,19 @@ void AMR_f::Add_particle(const double& Vx, const double& Vy, const double& Vz, c
 	cell->f += mu/Vnn;
 }
 
-void AMR_f::Normir_velocity_volume(void)
+void AMR_f::Normir_velocity_volume(const double& squ)
 {
 	std::vector<AMR_cell*> cells;
 	std::array<double, 3> center;
 	std::array<double, 3> razmer;
 	this->Get_all_cells(cells);
 
+	this->parameters["n"] /= squ;
+
 	for (auto& cel : cells)
 	{
 		cel->Get_Center(this->AMR_self, center, razmer);
-		cel->f /= razmer[0] * razmer[1] * razmer[2];
+		cel->f /= razmer[0] * razmer[1] * razmer[2] * squ;
 	}
 }
 

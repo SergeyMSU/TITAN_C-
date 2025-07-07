@@ -4,8 +4,8 @@
 class MK_particle
 {
 public:
-	Eigen::Vector3d Vel;    // Скорость частицы
-	Eigen::Vector3d coord;  // Положение частицы
+	double Vel[3];    // Скорость частицы
+	double coord[3];  // Положение частицы
 	short int sort;         // Сорт частицы  1, 2, 3, 4
 	double mu;              // Вес частицы
 	double KSI;              // Для вычисления длины свободного провбега
@@ -13,6 +13,14 @@ public:
 	Cell* cel;              // Ячейка, в которой находится частица
 
 	MK_particle();
+
+	void AddVel(const double& a, const double& b, const double& c);
+	void AddVel(const Eigen::Vector3d& a);
+	void Addcoord(const double& a, const double& b, const double& c);
+
+	void Addcoord(const Eigen::Vector3d& a);
+
+	double Vel_norm(void);
 
 };
 

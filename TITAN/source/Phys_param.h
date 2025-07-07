@@ -52,13 +52,13 @@ public:
     double velocity_TS = 0.1;
     double sglag_TS_k = 0.005;         // —глаживание на высоких широтах
     //double sglag_TS_k_sphere = 0.001; // 0.3;   // —глаживание в головной и хвостовой части
-    double sglag_TS_k_sphere_head = 0.05; // 0.3;   // —глаживание в головной части
+    double sglag_TS_k_sphere_head = 0.08; // 0.3;   // —глаживание в головной части
     double sglag_TS_k_sphere_tail = 0.03; // 0.3;   // —глаживание в хвостовой части
     // Ќе может быть больше 1
 
     bool sglag_HP = true;
     double velocity_HP = 0.1;
-    double sglag_HP_k_sphere = 0.06;      // —ферическое сглиживание в головной части * 100
+    double sglag_HP_k_sphere = 0.07;      // —ферическое сглиживание в головной части * 100
     double sglag_HP_k = 0.001;          // —глаживание не в головной области
     double sglag_HP_angle = 1.2;    // коэффициент усилине€ сглаживани€ по углу
     double sglag_HP_along = 1.0;    // коэффициент усилине€ сглаживани€ вдоль х

@@ -551,6 +551,7 @@ void Setka::MK_prepare(short int zone_MK)
 							gr->AMR[iH - 1][ii]->Set_bazis();
 						}
 
+						gr->AMR[iH - 1][ii]->parameters["n"] = 0.0;
 					}
 				}
 			}
@@ -606,7 +607,7 @@ void Setka::MK_prepare(short int zone_MK)
 		this->MK_Potoks[zone_MK - 1] = S; // Входящий поток через всю границу зоны
 	}
 
-	// Счмтаем необходимые геометрические параметры для МК
+	// Считаем необходимые геометрические параметры для МК
 	if (true)
 	{
 		for (auto& i : this->All_Cell)
@@ -620,7 +621,7 @@ void Setka::MK_prepare(short int zone_MK)
 		}
 	}
 
-	// Обнулим функции распреджедения, в которые будем накапливать информацию
+	// Обнулим функции распределения, в которые будем накапливать информацию
 	if (true)
 	{
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
@@ -703,7 +704,7 @@ void Setka::MK_delete(short int zone_MK)
 void Setka::MK_go(short int zone_MK)
 {
 	cout << "Start MK_go " << zone_MK << endl;
-	int N_on_gran = 100;   // Сколько запускаем частиц на грань в среднем
+	int N_on_gran = 1000;   // Сколько запускаем частиц на грань в среднем
 	double mu_expect = 0.0;
 	mu_expect = this->MK_Potoks[zone_MK - 1] / 
 		(1.0 * N_on_gran * this->MK_Grans[zone_MK - 1].size());
@@ -766,11 +767,11 @@ void Setka::MK_go(short int zone_MK)
 
 				// Находим положение точки на грани
 				gr->Get_Random_pozition(poz, this->Sensors[sens_num]);
-				P.coord = poz;
+				P.Addcoord(poz);
 
 				// Находим скорость частицы
 				func->Get_random_velosity(func, gr->area[0], poz, this->Sensors[sens_num]);
-				P.Vel = poz;
+				P.AddVel(poz);
 
 				// Некоторые проверки разыгрынной скорости частицы
 				if (this->regim_otladki)
@@ -801,7 +802,7 @@ void Setka::MK_go(short int zone_MK)
 
 				// Проверяем будет ли точка находиться в данной ячейке или нет
 				Cell* previos = P.cel;
-				double dt = previos->geo_parameters["l_size"] / P.Vel.norm() / 1000.0;
+				double dt = previos->geo_parameters["l_size"] / P.Vel_norm() / 1000.0;
 				Cell* ppp = this->Find_cell_point(P.coord[0] + P.Vel[0] * dt,
 					P.coord[1] + P.Vel[1] * dt,
 					P.coord[2] + P.Vel[2] * dt,
@@ -846,6 +847,7 @@ void Setka::MK_go(short int zone_MK)
 				P.KSI = -log(1.0 - this->Sensors[sens_num]->MakeRandom());
 				P.I_do = 0.0;
 
+				//cout << "FLY" << endl;
 				this->MK_fly_immit(P, zone_MK, this->Sensors[sens_num]); // Запускаем частицу в полёт   // !! Не написана
 				
 				//cout << "END" << endl;
@@ -866,7 +868,7 @@ void Setka::MK_go(short int zone_MK)
 		for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
 		{
 			auto& func = gr->AMR[nh_][ni];
-			func->Normir_velocity_volume();
+			func->Normir_velocity_volume(gr->area[0]);
 		}
 	}
 
@@ -884,10 +886,13 @@ void Setka::MK_go(short int zone_MK)
 			gr->center[0][2] << endl;
 		cout << "N_particle = " << gr->N_particle << endl;
 		auto& func = gr->AMR[3][ni];
+		cout << "n_func = " << func->parameters["n"] << endl;
 		func->Print_all_center_Tecplot(func);
 		func->Print_1D_Tecplot(func, 1.0);
 		break;
 	}
+
+	exit(-1);
 }
 
 
@@ -898,220 +903,298 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 	whach(P.coord[1]);
 	whach(P.coord[2]);
 	cout << "_______________________________" << endl;*/
-
+	//cout << "Start " << endl;
 	//cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 
-
-	double time = 0.0;            // время нахождения частицы в ячейке
-	Gran* gran = nullptr;         // Через какую грань ячейка выйдер из ячейки
-
-
-	// Находим время до выхода частицы из ячейки, а также через какую грань будет выход
-	bool b1 = false;
-	unsigned short int k1 = 0;
-	while (b1 == false)
+	// Главный цикл по ячейкам
+	// Выйти из него можно только если частица достигнет конца области
+	unsigned int k_cikl = 0;
+	while (true)
 	{
-		k1++;
-		//cout << "A " << endl;
-		b1 = this->Time_to_vilet(P, time, gran);
-		if (b1 == true && gran == nullptr)
+		k_cikl++;
+		if (k_cikl > 10000)
 		{
-			cout << "Error 7786341271" << endl;
-			exit(-1);
-		}
-		//cout << "B " << b1 << endl;
-		if (b1 == false)
-		{
-			// Немного двигаем точку
-			P.coord += 1e-6 * P.Vel;
-
-			//cout << "C " << endl;
-			P.cel =  Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, P.cel);
-			// Здесь надо проверить, что во время микро-движения точка не
-			// вышла в другую ячейку или за пределы расчётной области
-		}
-
-		if (k1 > 1000)
-		{
-			cout << "Error 8614098634" << endl;
+			cout << "Error 8675498765" << endl;
 			cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
-			whach(P.cel->number);
+			cout << P.Vel[0] << " " << P.Vel[1] << " " << P.Vel[2] << endl;
+			cout << P.sort << " " << P.KSI << " " << P.I_do << endl;
+			//exit(-1);
+		}
+
+		Cell* Cell_do = P.cel;  // На всякий случай сохраним стартовую ячейку, вдруг надо будет вернуться
+		if (Cell_do == nullptr)
+		{
+			cout << "Error 9865749586" << endl;
 			exit(-1);
 		}
-	}
 
+		double time = 0.0;            // время нахождения частицы в ячейке
+		Gran* gran = nullptr;         // Через какую грань ячейка выйдет из ячейки
 
-	/*cout << "D " << time << endl;
-	whach(P.coord[0]);
-	whach(P.coord[1]);
-	whach(P.coord[2]);
-	cout << "_______________________________" << endl;*/
-
-	if (gran == nullptr)
-	{
-		cout << "Error 6438609412" << endl;
-		exit(-1);
-	}
-
-	// Здесь время до выхода из ячейки определено time
-	// Также определено через какую грань это произойдёт  gran
-	
-	// далее блок основной программы в ячейке
-	// ****************************************************************************
-
-	// Получаем параметры плазмы в ячейке ----------------------------
-	double ro = P.cel->parameters[0]["rho"];
-	double cp = sqrt(P.cel->parameters[0]["p"] / ro);
-	double vx = P.cel->parameters[0]["Vx"];			// Скорости плазмы в ячейке
-	double vy = P.cel->parameters[0]["Vy"];
-	double vz = P.cel->parameters[0]["Vz"];
-	// ---------------------------------------------------------------
-
-	// Найдём время до перезарядки
-
-	double l = sqrt(kvv(time * P.Vel[0], time * P.Vel[1], time * P.Vel[2]));
-	double I = P.I_do;
-	double u = sqrt(kvv(P.Vel[0] - vx, P.Vel[1] - vy, P.Vel[2] - vz));
-	double u1 = vx - P.Vel[0];
-	double u2 = vy - P.Vel[1];
-	double u3 = vz - P.Vel[2];
-	double skalar = u1 * P.Vel[0] + u2 * P.Vel[1] + u3 * P.Vel[2];
-	double Vel_norm = sqrt(kvv(P.Vel[0], P.Vel[1], P.Vel[2]));
-
-	double uz = Velosity_1(u, cp);
-	double sig = Vel_norm /
-		((1.0 / this->phys_param->par_Kn) *
-			ro * uz * sigma(uz));
-	I += l / sig;
-
-	if (I < P.KSI)
-	{
-		P.I_do = I;  // В этом случае перезарядки в ячейке не произошло
-	}
-	else
-	{
-		double ksi = (P.KSI - P.I_do) * sig;
-		double t_ex = ksi / Vel_norm;
-		P.I_do = 0.0;
-		P.coord += t_ex * P.Vel;
-		auto Cnow = P.cel;
-		auto CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
-
-		if (P.cel != CC) 
+		//cout << "A1 " << endl;
+		//cout << "P.coord = " << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
+		// Находим время до выхода частицы из ячейки, а также через какую грань будет выход
+		bool b1 = false;
+		unsigned short int k1 = 0;
+		while (b1 == false)
 		{
-			// Если перезарядка произошла за пределами текущей ячейки
-			P.coord -= t_ex/1000.0 * P.Vel;
-			Cnow = P.cel;
-			CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
-			if (P.cel != CC)
+			k1++;
+			if (P.cel == nullptr)
 			{
-				Eigen::Vector3d Cell_center;
-				Cell_center << P.cel->center[0][0], P.cel->center[0][1],
+				cout << "Error 12569834678" << endl;
+				exit(-1);
+			}
+			b1 = this->Time_to_vilet(P, time, gran);
+
+			if (b1 == true && gran == nullptr)
+			{
+				cout << "Error 7786341271" << endl;
+				exit(-1);
+			}
+
+			if (b1 == false)
+			{
+				if (P.cel == nullptr)
+				{
+					cout << "Error 8675463895" << endl;
+					exit(-1);
+				}
+				Eigen::Vector3d Cell_centerr;
+				Cell_centerr << P.cel->center[0][0], P.cel->center[0][1],
 					P.cel->center[0][2];
 
 				// Подвинем немного точку к центру ячейки
-				P.coord += (Cell_center - P.coord)/100.0 ;
-				CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
-
-				if (P.cel != CC)
+				
+				for (short int i = 0; i < 3; i++)
 				{
-					cout << "Error 8674539765" << endl;
-					whach(CC->number);
-					whach(P.cel->number);
-					whach(P.coord[0]);
-					whach(P.coord[1]);
-					whach(P.coord[2]);
-					whach(P.Vel[0]);
-					whach(P.Vel[1]);
-					whach(P.Vel[2]);
-					whach(t_ex);
-					whach(time);
-					exit(-1);
+					if (k1 < 10)
+					{
+						P.coord[i] += 1e-6 * P.Vel[i];
+					}
+					else if (k1 < 20)
+					{
+						P.coord[i] += 1e-5 * P.Vel[i];
+					}
+					else
+					{
+						P.coord[i] = P.coord[i] + (Cell_centerr[i] - P.coord[i]) / 1000.0;
+					}
 				}
+				// Немного двигаем точку
+				//P.coord += 1e-6 * P.Vel;
+
+				auto cepp_prev = P.cel;
+				P.cel = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, cepp_prev);
+				// Здесь надо проверить, что во время микро-движения точка не
+				// вышла в другую ячейку или за пределы расчётной области
+				if (P.cel == nullptr)
+				{
+					cout << "TUT  1875408695" << endl;
+					P.cel = Cell_do;
+				}
+			}
+
+			if (k1 > 100)
+			{
+				cout << "Error 8614098634" << endl;
+				cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
+				whach(P.cel->number);
+				exit(-1);
 			}
 		}
 
-		double uz_M = Velosity_2(u, cp) / (uz * kv(cp) * cp * const_pi * sqrtpi_);
-		double uz_E = Velosity_3(u, cp);
-
-		// Здесь записываем необходимые моменты в ячейку ---------------------
-
-
-		// -------------------------------------------------------------------
-
-		// Разыгрываем новую скорость
-		double Ur, Uphi, Uthe;
-		double Vr, Vphi, Vthe;
-		double Wr, Wthe, Wphi;
-		spherical_skorost(P.coord[0], P.coord[1], P.coord[2], 
-			vx, vy, vz, Ur, Uphi, Uthe);
-		spherical_skorost(P.coord[0], P.coord[1], P.coord[2], 
-			P.Vel[0], P.Vel[1], P.Vel[2], Vr, Vphi, Vthe);
-		this->M_K_Change_Velosity(Sens, Ur / cp, Uthe / cp, Uphi / cp,
-			Vr / cp, Vthe / cp, Vphi / cp, Wr, Wthe, Wphi, cp);
-		Wr *= cp;
-		Wthe *= cp;
-		Wphi *= cp;
-
-		dekard_skorost(P.coord[0], P.coord[1], P.coord[2], 
-			Wr, Wphi, Wthe, P.Vel[0], P.Vel[1], P.Vel[2]);
-
-		P.sort = (short int)(P.cel->type);
-		P.KSI = -log(1.0 - Sens->MakeRandom());
-		return this->MK_fly_immit(P, zone_MK, Sens);
-	}
-
-
-	// ****************************************************************************
-	// Находим следующую ячейку
-
-	P.coord += 1.000001 * time * P.Vel;
-
-	if (gran->Have_zone_number(zone_MK))
-	{
-		a1:
-		// В этом случае долетели до границы, записываем что надо и выключаем частицу
-		short int nn = 1;
-		if (gran->cells[0]->MK_zone == zone_MK) nn = 0;
-		auto AMR = gran->AMR[P.sort - 1][nn];
-		AMR->Add_particle(P.Vel[0], P.Vel[1], P.Vel[2], P.mu);
-		gran->N_particle++;
-		return;
-	}
-
-	Cell* Cell_next = P.cel->Get_Sosed(gran);
-	// точно находим следующую ячейку
-	P.cel = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cell_next);
-	if (P.cel == nullptr)
-	{
-		cout << "Error  8545342078" << endl;
+		//cout << "B " << endl;
+		/*cout << "D " << time << endl;
 		whach(P.coord[0]);
 		whach(P.coord[1]);
 		whach(P.coord[2]);
-		whach(P.Vel[0]);
-		whach(P.Vel[1]);
-		whach(P.Vel[2]);
-		exit(-1);
-	}
+		cout << "_______________________________" << endl;*/
 
-	// В этом случае попали в следующую зону, пропустив граничную грань
-	if (P.cel->MK_zone != zone_MK) 
-	{
-		for (auto& gr : P.cel->grans)
+		if (gran == nullptr)
 		{
-			if (gr->Have_zone_number(zone_MK))
-			{
-				gran = gr;
-				goto a1;
-			}
+			cout << "Error 6438609412" << endl;
+			exit(-1);
 		}
 
-		// Если мы тут, то я не знаю как это произошло
-		cout << "Error 8543296743" << endl;
-		exit(-1);
-	}
+		// Здесь время до выхода из ячейки определено time
+		// Также определено через какую грань это произойдёт  gran
 
-	return this->MK_fly_immit(P, zone_MK, Sens);
+		// далее блок основной программы в ячейке
+		// ****************************************************************************
+
+		// Получаем параметры плазмы в ячейке ----------------------------
+		double ro = P.cel->parameters[0]["rho"];
+		double cp = sqrt(P.cel->parameters[0]["p"] / ro);
+		double vx = P.cel->parameters[0]["Vx"];			// Скорости плазмы в ячейке
+		double vy = P.cel->parameters[0]["Vy"];
+		double vz = P.cel->parameters[0]["Vz"];
+		// ---------------------------------------------------------------
+
+		// Найдём время до перезарядки
+
+		double l = sqrt(kvv(time * P.Vel[0], time * P.Vel[1], time * P.Vel[2]));
+		double I = P.I_do;
+		double u = sqrt(kvv(P.Vel[0] - vx, P.Vel[1] - vy, P.Vel[2] - vz));
+		double u1 = vx - P.Vel[0];
+		double u2 = vy - P.Vel[1];
+		double u3 = vz - P.Vel[2];
+		double skalar = u1 * P.Vel[0] + u2 * P.Vel[1] + u3 * P.Vel[2];
+		double Vel_norm = sqrt(kvv(P.Vel[0], P.Vel[1], P.Vel[2]));
+
+		double uz = Velosity_1(u, cp);
+		double sig = Vel_norm /
+			((1.0 / this->phys_param->par_Kn) *
+				ro * uz * sigma(uz));
+		I += l / sig;
+		//cout << "C " << endl;
+		if (I < P.KSI)
+		{
+			P.I_do = I;  // В этом случае перезарядки в ячейке не произошло
+		}
+		else
+		{
+			double ksi = (P.KSI - P.I_do) * sig;
+			double t_ex = ksi / Vel_norm;
+			P.I_do = 0.0;
+			for (short int i = 0; i < 3; i++) P.coord[i] += t_ex * P.Vel[i];
+			auto Cnow = P.cel;
+			auto CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
+
+			if (P.cel != CC)
+			{
+				// Если перезарядка произошла за пределами текущей ячейки
+				for (short int i = 0; i < 3; i++)
+				{
+					P.coord[i] -= t_ex / 1000.0 * P.Vel[i];
+				}
+				Cnow = P.cel;
+				CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
+				if (P.cel != CC)
+				{
+					Eigen::Vector3d Cell_center;
+					Cell_center << P.cel->center[0][0], P.cel->center[0][1],
+						P.cel->center[0][2];
+
+					// Подвинем немного точку к центру ячейки
+					for (short int i = 0; i < 3; i++)
+					{
+						P.coord[i] += (Cell_center[i] - P.coord[i]) / 100.0;
+					}
+					CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
+
+					if (P.cel != CC)
+					{
+						cout << "Error 8674539765" << endl;
+						whach(CC->number);
+						whach(P.cel->number);
+						whach(P.coord[0]);
+						whach(P.coord[1]);
+						whach(P.coord[2]);
+						whach(P.Vel[0]);
+						whach(P.Vel[1]);
+						whach(P.Vel[2]);
+						whach(t_ex);
+						whach(time);
+						exit(-1);
+					}
+				}
+			}
+
+			double uz_M = Velosity_2(u, cp) / (uz * kv(cp) * cp * const_pi * sqrtpi_);
+			double uz_E = Velosity_3(u, cp);
+
+			// Здесь записываем необходимые моменты в ячейку ---------------------
+
+
+			// -------------------------------------------------------------------
+
+			// Разыгрываем новую скорость
+			double Ur, Uphi, Uthe;
+			double Vr, Vphi, Vthe;
+			double Wr, Wthe, Wphi;
+			spherical_skorost(P.coord[0], P.coord[1], P.coord[2],
+				vx, vy, vz, Ur, Uphi, Uthe);
+			spherical_skorost(P.coord[0], P.coord[1], P.coord[2],
+				P.Vel[0], P.Vel[1], P.Vel[2], Vr, Vphi, Vthe);
+			this->M_K_Change_Velosity(Sens, Ur / cp, Uthe / cp, Uphi / cp,
+				Vr / cp, Vthe / cp, Vphi / cp, Wr, Wthe, Wphi, cp);
+			Wr *= cp;
+			Wthe *= cp;
+			Wphi *= cp;
+
+			dekard_skorost(P.coord[0], P.coord[1], P.coord[2],
+				Wr, Wphi, Wthe, P.Vel[0], P.Vel[1], P.Vel[2]);
+
+			P.sort = (short int)(P.cel->type);
+			P.KSI = -log(1.0 - Sens->MakeRandom());
+			continue;
+			//return this->MK_fly_immit(P, zone_MK, Sens);
+		}
+
+
+		// ****************************************************************************
+		// Находим следующую ячейку
+		for (short int i = 0; i < 3; i++)
+		{
+			P.coord[i] += 1.000001 * time * P.Vel[i];
+		}
+
+		if (gran->Have_zone_number(zone_MK))
+		{
+		a1:
+			// В этом случае долетели до границы, записываем что надо и выключаем частицу
+			short int nn = 1;
+			if (gran->cells[0]->MK_zone == zone_MK) nn = 0;
+			auto AMR = gran->AMR[P.sort - 1][nn];
+			AMR->Add_particle(P.Vel[0], P.Vel[1], P.Vel[2], P.mu);
+			gran->N_particle++;
+			return;
+		}
+
+		Cell* Cell_next = P.cel->Get_Sosed(gran);
+		//short unsigned int kkk2 = 0;
+	//vv1:
+		//kkk2++;
+		// точно находим следующую ячейку
+		P.cel = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cell_next);
+		if (P.cel == nullptr)
+		{
+			cout << "Error  8545342078" << endl; // ТУТ надо фиксить  22.0351 15.9061 -398.559
+			whach(P.coord[0]);
+			whach(P.coord[1]);
+			whach(P.coord[2]);
+			whach(P.Vel[0]);
+			whach(P.Vel[1]);
+			whach(P.Vel[2]);
+			exit(-1);
+		}
+		//cout << "F " << endl;
+		// В этом случае попали в следующую зону, пропустив граничную грань
+		if (P.cel->MK_zone != zone_MK)
+		{
+			for (auto& gr : P.cel->grans)
+			{
+				if (gr->Have_zone_number(zone_MK))
+				{
+					gran = gr;
+					goto a1;
+				}
+			}
+
+			// В этом случае надо либо отключать ячейку (но мы потеряем часть массы)
+			// либо запускать ей заново в этой ячейке (тогда наоборот получим лишнюю массу, так
+			// как она уже записалась в данную ячейку
+
+			cout << "Poteryal" << endl;
+			return;
+		}
+
+		//cout << "G " << endl;
+		//cout << "2 Soburausi otpravit " << endl;
+		//cout << "P.coord = " << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
+		continue;
+		//return this->MK_fly_immit(P, zone_MK, Sens);
+	}
 }
 
 
@@ -1120,8 +1203,12 @@ bool Setka::Time_to_vilet(const MK_particle& P, double& time, Gran*& gran)
 	Cell* C = P.cel;
 	Eigen::Vector3d R, V;
 
-	R = P.coord;
-	V = P.Vel;
+	R[0] = P.coord[0];
+	R[1] = P.coord[1];
+	R[2] = P.coord[2];
+	V[0] = P.Vel[0];
+	V[1] = P.Vel[1];
+	V[2] = P.Vel[2];
 
 	Gran* gran_min = nullptr;
 	double time_min = 1e10;
