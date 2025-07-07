@@ -19,9 +19,10 @@ void AMR_f::Culk_SpotokV(const double& Squ)
 	{
 		i->Get_Center(this->AMR_self, center, razmer);
 		V = razmer[0] * razmer[1] * razmer[2];
-		this->Get_real_koordinate(center[0], center[1], center[2],
-			Vx, Vy, Vz);
-		i->Spotok = V * i->f * fabs(Vx);
+		//this->Get_real_koordinate(center[0], center[1], center[2],
+		//	Vx, Vy, Vz);
+		//i->Spotok = V * i->f * fabs(Vx);
+		i->Spotok = V * i->f * fabs(center[0]);
 		this->SpotokV += i->Spotok;
 	}
 
@@ -58,6 +59,22 @@ void AMR_f::Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& 
 	const size_t nx = shape[0];
 	const size_t ny = shape[1];
 	const size_t nz = shape[2];
+	
+	for (size_t i = 0; i < nx; ++i)
+	{
+		for (size_t j = 0; j < ny; ++j)
+		{
+			for (size_t k = 0; k < nz; ++k)
+			{
+				AMR_cell* cell = this->cells[i][j][k];
+				SS += cell->Spotok * Squ;
+			}
+		}
+	}
+
+	cout << SS << "  " << this->SpotokV <<  endl;
+	
+	
 	for (size_t i = 0; i < nx; ++i)
 	{
 		for (size_t j = 0; j < ny; ++j)

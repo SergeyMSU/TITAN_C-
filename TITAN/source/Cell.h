@@ -18,6 +18,7 @@ public:
 	vector<Gran*> grans;
 	int number = 0;                // номера начинаютс€ с единицы
 	bool is_inner = false;         // явл€етс€ ли €чейка внутренней (которые считаютс€ отдельно)
+	mutex mut;
 
 	Type_cell type = Type_cell::none;  // по умолчанию создаЄм обычный узел
 
@@ -64,6 +65,9 @@ public:
 
 
 	void Tecplot_print_cell(void);
+
+	void MK_Add_particle(MK_particle& P, const double& time);
+	void MK_normir_Moments();
 
 };
 

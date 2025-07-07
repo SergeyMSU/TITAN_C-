@@ -441,3 +441,22 @@ void Cell::Tecplot_print_cell(void)
 
 	fout.close();
 }
+
+void Cell::MK_Add_particle(MK_particle& P, const double& time)
+{
+	if (this->parameters[0].find("MK_n_H") != this->parameters[0].end())
+	{
+		this->mut.lock();
+		this->parameters[0]["MK_n_H"] += time * P.mu;
+		this->mut.unlock();
+	}
+
+}
+
+void Cell::MK_normir_Moments()
+{
+	if (this->parameters[0].find("MK_n_H") != this->parameters[0].end())
+	{
+		this->parameters[0]["MK_n_H"] /= this->volume[0];
+	}
+}

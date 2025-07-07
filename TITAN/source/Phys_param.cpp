@@ -58,6 +58,9 @@ Phys_param::Phys_param()
     this->H_name.push_back("_H3");
     this->H_name.push_back("_H4");
 
+    // Параметры для Монте-Карло
+    this->MK_param.push_back("MK_n_H"); this->param_names.push_back("MK_n_H");
+
 
 
 	this->Matr << -0.9958639688067077,  0.01776569097515556,  0.08910295088675518,

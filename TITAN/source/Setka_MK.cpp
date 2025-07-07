@@ -518,9 +518,9 @@ void Setka::MK_prepare(short int zone_MK)
 								ni = 0;  
 							}
 
-							if (ni == ii)
+							if (ni == ii && this->phys_param->refine_AMR == true)
 							{
-								unsigned NN = 1;
+								unsigned short int NN = 1;
 								while (NN > 0)
 								{
 									//cout << "Rifine" << endl;
@@ -562,10 +562,10 @@ void Setka::MK_prepare(short int zone_MK)
 	}
 
 	// Заполняем граничные условия для AMR сетки (на границе расчётной области)
-
 	if (true)
 	{
-		for (auto& gr : this->All_boundary_Gran)
+		//for (auto& gr : this->All_boundary_Gran)
+		for (auto& gr : this->MK_Grans[zone_MK - 1])
 		{
 			if (gr->type == Type_Gran::Outer_Hard || gr->type == Type_Gran::Outer_Soft)
 			{
@@ -573,7 +573,9 @@ void Setka::MK_prepare(short int zone_MK)
 				{
 					// Здесь надо задать граничные условия для четвёртого сорта 
 					// а также помельчить сетку, если необходимо
-					gr->AMR[3][1]->Fill_maxwel_inf(this->phys_param->Velosity_inf);    // <<1>> - внутрь, <<3>> - 4 сорт водорода
+					gr->AMR[3][1]->Fill_maxwel_inf(this->phys_param->Velosity_inf);
+					// <<1>> - внутрь, <<3>> - 4 сорт водорода
+
 					//gr->AMR[3][1]->Print_all_center_Tecplot(gr->AMR[3][1]);
 					//gr->AMR[3][1]->Print_1D_Tecplot(gr->AMR[3][1], this->phys_param->Velosity_inf);
 					//cout << "DONE  " << endl;
@@ -610,11 +612,19 @@ void Setka::MK_prepare(short int zone_MK)
 	}
 
 	// Считаем необходимые геометрические параметры для МК
+	// И добавляем переменные в ячейки
 	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
 			i->Set_Cell_Geo_for_MK();
+			if (i->MK_zone == zone_MK && this->phys_param->culc_cell_moments == true)
+			{
+				for (const auto& nam : this->phys_param->MK_param)
+				{
+					i->parameters[0][nam] = 0.0;
+				}
+			}
 		}
 
 		for (auto& i : this->All_Gran)
@@ -684,7 +694,11 @@ void Setka::MK_delete(short int zone_MK)
 				{
 					string name_f = "func_grans_AMR_" + to_string(ii) + "_H" +
 						to_string(iH) + "_" + to_string(gr->number) + ".bin";
-					gr->AMR[iH - 1][ii]->Save("data_AMR/" + name_f);
+
+					if (this->phys_param->save_AMR == true)
+					{
+						gr->AMR[iH - 1][ii]->Save("data_AMR/" + name_f);
+					}
 					//cout << "Delete " << ii << " " << iH << " " << 
 					//	gr->number << endl;
 					gr->AMR[iH - 1][ii]->Delete();
@@ -707,7 +721,7 @@ void Setka::MK_go(short int zone_MK)
 {
 	auto start = std::chrono::high_resolution_clock::now();
 	cout << "Start MK_go " << zone_MK << endl;
-	int N_on_gran = 40000;   // Сколько запускаем частиц на грань в среднем
+	int N_on_gran = this->phys_param->N_per_gran;   // Сколько запускаем частиц на грань в среднем
 	double mu_expect = 0.0;
 	mu_expect = this->MK_Potoks[zone_MK - 1] / 
 		(1.0 * N_on_gran * this->MK_Grans[zone_MK - 1].size());
@@ -737,7 +751,7 @@ void Setka::MK_go(short int zone_MK)
 		}
 		double full_gran_potok = gr->MK_Potok;
 
-		if (full_gran_potok < 0.000001 * MK_Potoks[zone_MK - 1]/ this->MK_Grans[zone_MK - 1].size())
+		if (full_gran_potok < 0.0000001 * MK_Potoks[zone_MK - 1]/ this->MK_Grans[zone_MK - 1].size())
 		{
 			continue;
 		}
@@ -747,9 +761,10 @@ void Setka::MK_go(short int zone_MK)
 		{
 			auto& func = gr->AMR[nh_][ni];
 
-			if (func->SpotokV < 0.000001 * full_gran_potok)
+			if (func->SpotokV < 0.0000001 * full_gran_potok)
 			{
 				// Функуция распределния нулевая, можно не разыгрывать
+				if (nh_ == 3) cout << "RRRR" << endl;
 				continue;
 			}
 
@@ -889,6 +904,14 @@ void Setka::MK_go(short int zone_MK)
 			auto& func = gr->AMR[nh_][ni];
 			func->Normir_velocity_volume(gr->area[0]);
 		}
+	}
+
+	// Нормировка Моментов в ячейках
+	for (auto& cell : this->All_Cell)
+	{
+		if (cell->MK_zone != zone_MK) continue;
+
+		cell->MK_normir_Moments();
 	}
 
 	// Выведем одну функцию посмотреть что получилось)
@@ -1081,9 +1104,15 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				ro * uz * sigma(uz));
 		I += l / sig;
 		//cout << "C " << endl;
-		if (I < P.KSI)
+		if (true)//(I < P.KSI)
 		{
 			P.I_do = I;  // В этом случае перезарядки в ячейке не произошло
+			// Здесь записываем необходимые моменты в ячейку ---------------------
+			if (this->phys_param->culc_cell_moments == true)
+			{
+				P.cel->MK_Add_particle(P, time);
+			}
+			// -------------------------------------------------------------------
 		}
 		else
 		{
@@ -1146,8 +1175,10 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 			double uz_E = Velosity_3(u, cp);
 
 			// Здесь записываем необходимые моменты в ячейку ---------------------
-
-
+			if (this->phys_param->culc_cell_moments == true)
+			{
+				P.cel->MK_Add_particle(P, t_ex);
+			}
 			// -------------------------------------------------------------------
 
 			// Разыгрываем новую скорость
@@ -1189,7 +1220,10 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 			if (gran->cells[0]->MK_zone == zone_MK) nn = 0;
 			auto AMR = gran->AMR[P.sort - 1][nn];
 
-			AMR->Add_particle(P.Vel[0], P.Vel[1], P.Vel[2], P.mu); // мьютексы внутри
+			if (this->phys_param->save_AMR == true)
+			{
+				AMR->Add_particle(P.Vel[0], P.Vel[1], P.Vel[2], P.mu); // мьютексы внутри
+			}
 
 			gran->mut.lock(); // Мбютекс для записи в гранб
 			gran->N_particle++;

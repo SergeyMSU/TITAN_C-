@@ -297,14 +297,14 @@ void Setka::Init_physics(void)
 		{
 			if (i->parameters[0].find(num) == i->parameters[0].end())
 			{
-				cout << "Parameters: " << num << "    ne opredelen v cells" << endl;
+				//cout << "Parameters: " << num << "    ne opredelen v cells" << endl;
 				tt1 = true;
 			}
 		}
 		if (tt1 == true)
 		{
-			cout << "Error 4532896514" << endl;
-			exit(-1);
+			//cout << "Error 4532896514" << endl;
+			//exit(-1);
 		}
 	}
 
@@ -1508,7 +1508,13 @@ void Setka::Save_for_interpolate(string filename)
 
 		for (const auto& i : this->phys_param->param_names)
 		{
-			aa = Cel->parameters[0][i];
+			aa = 0.0;
+
+			if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+			{
+				aa = Cel->parameters[0][i];
+			}
+			
 			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
 		}
 	}
@@ -1534,7 +1540,12 @@ void Setka::Save_for_interpolate(string filename)
 
 			for (const auto& i : this->phys_param->param_names)
 			{
-				aa = A->parameters[0][i];
+				aa = 0.0;
+				if (A->parameters[0].find(i) != A->parameters[0].end())
+				{
+					aa = A->parameters[0][i];
+				}
+
 				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
 			}
 		}
@@ -1552,7 +1563,11 @@ void Setka::Save_for_interpolate(string filename)
 
 		for (const auto& i : this->phys_param->param_names)
 		{
-			aa = this->Cell_Center->parameters[0][i];
+			aa = 0.0;
+			if (this->Cell_Center->parameters[0].find(i) != this->Cell_Center->parameters[0].end())
+			{
+				aa = this->Cell_Center->parameters[0][i];
+			}
 			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
 		}
 	}

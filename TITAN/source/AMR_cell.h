@@ -5,7 +5,7 @@ class AMR_cell
 {
 public:
 	double f = 0.0;
-	double Spotok = 0.0; // Ётот поток в €чейке не умноженный на грань!
+	double Spotok = 0.0; // Ёто поток в €чейке не умноженный на грань!
 
 	AMR_cell* I_self;            // ”казатель на себ€
 
