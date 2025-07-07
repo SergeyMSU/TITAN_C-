@@ -600,12 +600,26 @@ void Setka::MK_prepare(short int zone_MK)
 			}
 			gr->MK_Potok = 0.0;
 
+			short int tt = 0;
 			for (auto& ai : gr->AMR)
 			{
-					ai[ni]->Culk_SpotokV(gr->area[0]);
-					S += ai[ni]->SpotokV;
-					gr->MK_Potok += ai[ni]->SpotokV;
+				tt++;
+				ai[ni]->Culk_SpotokV(gr->area[0]);
+
+				if (tt == 4 && ai[ni]->SpotokV / gr->area[0] > 0.0001)
+				{
+					cout << "Normal = " << gr->normal[0][0] << " " <<
+						gr->normal[0][1] << " " << gr->normal[0][2] << endl;
+					cout << "phi = " << polar_angle(gr->center[0][0],
+						norm2(0.0, gr->center[0][1], gr->center[0][2])) << endl;
+					cout << "Fu = " << ai[ni]->SpotokV / gr->area[0] << endl;
+					cout << "_________________" << endl;
+				}
+
+				S += ai[ni]->SpotokV;
+				gr->MK_Potok += ai[ni]->SpotokV;
 			}
+
 
 		}
 		this->MK_Potoks[zone_MK - 1] = S; // ¬ход€щий поток через всю границу зоны
@@ -725,6 +739,9 @@ void Setka::MK_go(short int zone_MK)
 	double mu_expect = 0.0;
 	mu_expect = this->MK_Potoks[zone_MK - 1] / 
 		(1.0 * N_on_gran * this->MK_Grans[zone_MK - 1].size());
+
+	cout << "All potok = " << this->MK_Potoks[zone_MK - 1] << endl;
+	exit(-1);
 
 	unsigned int ALL_N = 0;  // ќбщее число запущенных в итоге частиц
 	unsigned int k1 = 0;

@@ -44,6 +44,8 @@ void AMR_f::Culk_SpotokV(const double& Squ)
 		}
 	}
 
+
+
 }
 
 void AMR_f::Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens)
@@ -359,6 +361,7 @@ void AMR_f::Fill_maxwel_inf(const double& Vinf)
 	ez << this->Vm[0], this->Vm[1], this->Vm[2];
 
 	unsigned int NN = 1;
+	unsigned int Nall = 0;
 
 	while(NN > 0)
 	{
@@ -375,7 +378,10 @@ void AMR_f::Fill_maxwel_inf(const double& Vinf)
 		}
 
 		NN = this->Refine();
+		Nall = cells.size();
 	}
+
+	cout << "Nall = " << Nall << endl;
 }
 
 void AMR_f::Fill_null(void)
@@ -438,6 +444,7 @@ unsigned int AMR_f::Refine(void)
 {
 	this->Sf = 0.0;
 	this->Sfu = 0.0;
+	this->Sfux = 0.0;
 	this->Sfuu = 0.0;
 
 	std::vector<AMR_cell*> cells;
@@ -456,10 +463,11 @@ unsigned int AMR_f::Refine(void)
 		u = norm2(center[0], center[1], center[2]);
 		this->Sf += V * i->f;
 		this->Sfu += V * i->f * u;
+		this->Sfux += V * i->f * center[0];
 		this->Sfuu += V * i->f * kv(u);
 	}
 
-	if (this->Sf < 1e-8 || this->Sfu < 1e-8 || this->Sfuu < 1e-8) return 0;
+	if (this->Sf < 1e-8 || this->Sfu < 1e-8 || this->Sfuu < 1e-8 || this->Sfux < 1e-8) return 0;
 
 	double procent = this->procent_signif;
 	for (const auto& i : cells)
@@ -474,6 +482,7 @@ unsigned int AMR_f::Refine(void)
 
 		if (m * 100.0 / this->Sf > procent) i->is_signif = true;
 		if (mu * 100.0 / this->Sfu > procent) i->is_signif = true;
+		if (mu * 100.0 / this->Sfux > procent) i->is_signif = true;
 		if (muu * 100.0 / this->Sfuu > procent) i->is_signif = true;
 	}
 

@@ -12,8 +12,8 @@ public:
 	double zL;
 	double zR;
 
-	double procent_signif = 0.3;
-	double procent_devide = 1.0;
+	double procent_signif = 0.01;  // 0.3;
+	double procent_devide = 0.01;  // 1.0;
 
 	array<double, 3> Vn;
 	array<double, 3> Vt;
@@ -27,6 +27,7 @@ public:
 	// Интеграллы от функции распределения
 	double Sf;
 	double Sfu;
+	double Sfux;
 	double Sfuu;
 
 	unordered_map<string, double> parameters;  // дополнительные МК-параметры
