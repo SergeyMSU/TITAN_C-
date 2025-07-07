@@ -191,16 +191,24 @@ void AMR_f::Add_particle(const double& Vx, const double& Vy, const double& Vz, c
 	double Vnn;
 	Vnn = fabs(scalarProductFast(Vx, Vy, Vz, this->Vn[0], this->Vn[1], this->Vn[2]));
 
-	this->parameters["n"] += mu / Vnn;
+
+	this->mut.lock();
+	this->parameters["n"] += (mu / Vnn);
+	this->parameters["Smu"] += mu;
+	this->parameters["nn"] += mu * kv(1.0 / Vnn);
+	this->mut.unlock();
 
 	if (Vnn < 1e-6) Vnn = 1e-6;
 	this->Get_lokal_koordinate(Vx, Vy, Vz, x, y, z);
+
+	if (x < this->xL) x = this->xL + 1e-7;
+
 	unsigned short int kkk = 0;
 	a2:
 	kkk++;
 	AMR_cell* cell = find_cell(x, y, z);
 
-	if (kkk > 100)
+	if (kkk > 30)
 	{
 		cout << "Error 75463208674" << endl;
 		whach(this->Vn[0]);
@@ -218,17 +226,33 @@ void AMR_f::Add_particle(const double& Vx, const double& Vy, const double& Vz, c
 		whach(x);
 		whach(y);
 		whach(z);
+		whach(this->xL);
+		whach(this->xR);
+		whach(this->yL);
+		whach(this->yR);
+		whach(this->zL);
+		whach(this->zR);
 		exit(-1);
 	}
 
 	if (cell == nullptr)
 	{
-		x *= 0.995;
-		y *= 0.995;
-		z *= 0.995;
+		if (kkk < 20)
+		{
+			x *= 0.995;
+			y *= 0.995;
+			z *= 0.995;
+		}
+		else
+		{
+			x *= 0.995;
+		}
 		goto a2;
 	}
+
+	this->mut.lock();
 	cell->f += mu/Vnn;
+	this->mut.unlock();
 }
 
 void AMR_f::Normir_velocity_volume(const double& squ)
@@ -238,12 +262,13 @@ void AMR_f::Normir_velocity_volume(const double& squ)
 	std::array<double, 3> razmer;
 	this->Get_all_cells(cells);
 
-	this->parameters["n"] /= squ;
+	if (this->parameters.find("n") != this->parameters.end()) this->parameters["n"] /= squ;
+	if (this->parameters.find("nn") != this->parameters.end()) this->parameters["nn"] /= squ;
 
 	for (auto& cel : cells)
 	{
 		cel->Get_Center(this->AMR_self, center, razmer);
-		cel->f /= razmer[0] * razmer[1] * razmer[2] * squ;
+		cel->f /= (razmer[0] * razmer[1] * razmer[2] * squ);
 	}
 }
 

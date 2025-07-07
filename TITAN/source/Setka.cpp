@@ -239,8 +239,8 @@ Cell* Setka::Find_cell_point(const double& x, const double& y, const double& z, 
 					if(b2 == true) return C;
 				}
 
-				if(next2 == nullptr) cout << "Ne naydeno! B1    " << x << " " << y << " " << z << endl;
-				if(next2 != nullptr) cout << "Ne naydeno! B2    " << endl;
+				//if(next2 == nullptr) cout << "Ne naydeno! B1    " << x << " " << y << " " << z << endl;
+				//if(next2 != nullptr) cout << "Ne naydeno! B2    " << endl;
 
 				return nullptr;
 			}

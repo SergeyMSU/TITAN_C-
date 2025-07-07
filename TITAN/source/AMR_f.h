@@ -35,6 +35,7 @@ public:
 	// этот поток уже умножен на площадь грани (чтоб удобно его сразу брать)
 
 	AMR_f* AMR_self;
+	mutex mut;
 
 	boost::multi_array<AMR_cell*, 3> cells;
 

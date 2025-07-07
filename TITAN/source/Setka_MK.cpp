@@ -551,13 +551,15 @@ void Setka::MK_prepare(short int zone_MK)
 							gr->AMR[iH - 1][ii]->Set_bazis();
 						}
 
+						// Заполняем параметры на AMR
 						gr->AMR[iH - 1][ii]->parameters["n"] = 0.0;
+						gr->AMR[iH - 1][ii]->parameters["nn"] = 0.0;
+						gr->AMR[iH - 1][ii]->parameters["Smu"] = 0.0;
 					}
 				}
 			}
 		}
 	}
-
 
 	// Заполняем граничные условия для AMR сетки (на границе расчётной области)
 
@@ -703,22 +705,31 @@ void Setka::MK_delete(short int zone_MK)
 
 void Setka::MK_go(short int zone_MK)
 {
+	auto start = std::chrono::high_resolution_clock::now();
 	cout << "Start MK_go " << zone_MK << endl;
-	int N_on_gran = 1000;   // Сколько запускаем частиц на грань в среднем
+	int N_on_gran = 40000;   // Сколько запускаем частиц на грань в среднем
 	double mu_expect = 0.0;
 	mu_expect = this->MK_Potoks[zone_MK - 1] / 
 		(1.0 * N_on_gran * this->MK_Grans[zone_MK - 1].size());
 
+	unsigned int ALL_N = 0;  // Общее число запущенных в итоге частиц
 	unsigned int k1 = 0;
+#pragma omp parallel for schedule(dynamic)
 	for (auto& gr : this->MK_Grans[zone_MK - 1])
 	{
-		k1++;
-		if (k1 % 100 == 0)
+
+		#pragma omp critical (first) 
 		{
-			cout << "Gran = " << k1 << "    Iz: " << this->MK_Grans[zone_MK - 1].size() << endl;
+			k1++;
+			if (k1 % 100 == 0)
+			{
+				cout << "Gran = " << k1 << "    Iz: " << this->MK_Grans[zone_MK - 1].size() << endl;
+			}
 		}
 		// Выбираем конкретный номер датчика случайных чисел
-		unsigned int sens_num = 0;
+		unsigned int sens_num1 = 2 * omp_get_thread_num();
+		unsigned int sens_num2 = 2 * omp_get_thread_num() + 1;
+
 		short int ni = 0; // Номер "входящей" функции распределения
 		if (gr->cells[0]->MK_zone == zone_MK)
 		{
@@ -747,6 +758,11 @@ void Setka::MK_go(short int zone_MK)
 				min(N_on_gran, 10));
 			double mu = func->SpotokV / N_particle; // Вес каждой частицы
 
+			#pragma omp critical (second) 
+			{
+				ALL_N += N_particle;
+			}
+
 			// Запускаем каждую частицу
 			for (unsigned int num = 0; num < N_particle; ++num)
 			{
@@ -766,11 +782,11 @@ void Setka::MK_go(short int zone_MK)
 				Eigen::Vector3d poz;
 
 				// Находим положение точки на грани
-				gr->Get_Random_pozition(poz, this->Sensors[sens_num]);
+				gr->Get_Random_pozition(poz, this->Sensors[sens_num1]);
 				P.Addcoord(poz);
 
 				// Находим скорость частицы
-				func->Get_random_velosity(func, gr->area[0], poz, this->Sensors[sens_num]);
+				func->Get_random_velosity(func, gr->area[0], poz, this->Sensors[sens_num1]);
 				P.AddVel(poz);
 
 				// Некоторые проверки разыгрынной скорости частицы
@@ -844,11 +860,11 @@ void Setka::MK_go(short int zone_MK)
 					cout << "_______________________________" << endl;
 				}
 
-				P.KSI = -log(1.0 - this->Sensors[sens_num]->MakeRandom());
+				P.KSI = -log(1.0 - this->Sensors[sens_num1]->MakeRandom());
 				P.I_do = 0.0;
 
 				//cout << "FLY" << endl;
-				this->MK_fly_immit(P, zone_MK, this->Sensors[sens_num]); // Запускаем частицу в полёт   // !! Не написана
+				this->MK_fly_immit(P, zone_MK, this->Sensors[sens_num2]); // Запускаем частицу в полёт   // !! Не написана
 				
 				//cout << "END" << endl;
 				//exit(-1);
@@ -856,7 +872,10 @@ void Setka::MK_go(short int zone_MK)
 		}
 	}
 
+	cout << "**********************************" << endl;
+	cout << "Obshee chislo chastic = " << ALL_N << endl;
 
+	// Нормировка функции распределения
 	for (auto& gr : this->MK_Grans[zone_MK - 1])
 	{
 		short int ni = 1; // Номер "выходящей" функции распределения
@@ -887,12 +906,22 @@ void Setka::MK_go(short int zone_MK)
 		cout << "N_particle = " << gr->N_particle << endl;
 		auto& func = gr->AMR[3][ni];
 		cout << "n_func = " << func->parameters["n"] << endl;
+		cout << "nn_func = " << func->parameters["nn"] << endl;
+		cout << "Mu = " << func->parameters["Smu"] << endl;
+		double dF = func->parameters["nn"] / func->parameters["Smu"] * gr->area[0]
+			- kv(func->parameters["n"] * gr->area[0] / func->parameters["Smu"]);
+		cout << "dF = " << dF << endl;
+		cout << "delta = " << sqrt(dF / func->parameters["Smu"]) / func->parameters["n"] << endl;
 		func->Print_all_center_Tecplot(func);
 		func->Print_1D_Tecplot(func, 1.0);
 		break;
 	}
 
-	exit(-1);
+
+	auto end = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+	std::cout << "MK all time: " << duration.count() / 1000.0 / 60.0 << " minutes" << std::endl;
 }
 
 
@@ -964,7 +993,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 					P.cel->center[0][2];
 
 				// Подвинем немного точку к центру ячейки
-				
+
 				for (short int i = 0; i < 3; i++)
 				{
 					if (k1 < 10)
@@ -975,9 +1004,13 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 					{
 						P.coord[i] += 1e-5 * P.Vel[i];
 					}
+					else if(k1 < 98)
+					{
+						P.coord[i] = P.coord[i] + (Cell_centerr[i] - P.coord[i]) / 800.0;
+					}
 					else
 					{
-						P.coord[i] = P.coord[i] + (Cell_centerr[i] - P.coord[i]) / 1000.0;
+						P.coord[i] = Cell_centerr[i];
 					}
 				}
 				// Немного двигаем точку
@@ -989,17 +1022,18 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				// вышла в другую ячейку или за пределы расчётной области
 				if (P.cel == nullptr)
 				{
-					cout << "TUT  1875408695" << endl;
+					//cout << "TUT  1875408695" << endl;
 					P.cel = Cell_do;
 				}
 			}
 
 			if (k1 > 100)
 			{
-				cout << "Error 8614098634" << endl;
-				cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
-				whach(P.cel->number);
-				exit(-1);
+				cout << "Poteryal D" << endl;
+				return;
+				//cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
+				//whach(P.cel->number);
+				//exit(-1);
 			}
 		}
 
@@ -1074,7 +1108,14 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 					Eigen::Vector3d Cell_center;
 					Cell_center << P.cel->center[0][0], P.cel->center[0][1],
 						P.cel->center[0][2];
-
+					unsigned short int kklk = 0;
+				dchj12:
+					kklk++;
+					if (kklk > 20)
+					{
+						cout << "Poteryal C" << endl;
+						return;
+					}
 					// Подвинем немного точку к центру ячейки
 					for (short int i = 0; i < 3; i++)
 					{
@@ -1084,6 +1125,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 					if (P.cel != CC)
 					{
+						goto dchj12;
 						cout << "Error 8674539765" << endl;
 						whach(CC->number);
 						whach(P.cel->number);
@@ -1146,8 +1188,13 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 			short int nn = 1;
 			if (gran->cells[0]->MK_zone == zone_MK) nn = 0;
 			auto AMR = gran->AMR[P.sort - 1][nn];
-			AMR->Add_particle(P.Vel[0], P.Vel[1], P.Vel[2], P.mu);
+
+			AMR->Add_particle(P.Vel[0], P.Vel[1], P.Vel[2], P.mu); // мьютексы внутри
+
+			gran->mut.lock(); // Мбютекс для записи в гранб
 			gran->N_particle++;
+			gran->mut.unlock();
+
 			return;
 		}
 
@@ -1159,18 +1206,27 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		P.cel = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cell_next);
 		if (P.cel == nullptr)
 		{
-			cout << "Error  8545342078" << endl; // ТУТ надо фиксить  22.0351 15.9061 -398.559
-			whach(P.coord[0]);
-			whach(P.coord[1]);
-			whach(P.coord[2]);
-			whach(P.Vel[0]);
-			whach(P.Vel[1]);
-			whach(P.Vel[2]);
-			exit(-1);
+			//cout << "Error  8545342078" << endl; // ТУТ надо фиксить  22.0351 15.9061 -398.559
+			//whach(P.coord[0]);
+			//whach(P.coord[1]);
+			//whach(P.coord[2]);
+			//whach(P.Vel[0]);
+			//whach(P.Vel[1]);
+			//whach(P.Vel[2]);
+			//exit(-1);
+			for (auto& gr : Cell_do->grans)
+			{
+				if (gr->Have_zone_number(zone_MK))
+				{
+					gran = gr;
+					goto a1;
+				}
+			}
 		}
+
 		//cout << "F " << endl;
 		// В этом случае попали в следующую зону, пропустив граничную грань
-		if (P.cel->MK_zone != zone_MK)
+		if (P.cel != nullptr && P.cel->MK_zone != zone_MK)
 		{
 			for (auto& gr : P.cel->grans)
 			{
@@ -1185,7 +1241,13 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 			// либо запускать ей заново в этой ячейке (тогда наоборот получим лишнюю массу, так
 			// как она уже записалась в данную ячейку
 
-			cout << "Poteryal" << endl;
+			cout << "Poteryal A" << endl;
+			return;
+		}
+
+		if (P.cel == nullptr)
+		{
+			cout << "Poteryal B" << endl;
 			return;
 		}
 
