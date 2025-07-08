@@ -53,7 +53,7 @@ public:
     double velocity_TS = 0.01;
     double sglag_TS_k = 0.005;         // —глаживание на высоких широтах
     //double sglag_TS_k_sphere = 0.001; // 0.3;   // —глаживание в головной и хвостовой части
-    double sglag_TS_k_sphere_head = 0.01; // 0.08;   // —глаживание в головной части
+    double sglag_TS_k_sphere_head = 0.02; // 0.08;   // —глаживание в головной части
     double sglag_TS_k_sphere_tail = 0.01; // 0.03;   // —глаживание в хвостовой части
     // Ќе может быть больше 1
 
