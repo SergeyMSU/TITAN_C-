@@ -12,8 +12,8 @@ public:
 	double zL;
 	double zR;
 
-	double procent_signif = 0.01;  // 0.3;
-	double procent_devide = 0.01;  // 1.0;
+	double procent_signif = 0.3;  // 0.3;
+	double procent_devide = 1.0;  // 1.0;
 
 	array<double, 3> Vn;
 	array<double, 3> Vt;
@@ -77,6 +77,10 @@ public:
 	// Заполнить максевеллом на бесконечности
 	// И провести процедуру мельчения
 
+	double Integrate_Maxwell_V(const double& xL, const double& xR,
+		const double& yL, const double& yR,
+		const double& zL, const double& zR, const double& Vinf);
+
 	void Fill_test(void);
 	// Заполнить ячейки максвеллом
 
@@ -84,6 +88,7 @@ public:
 	// Заполняем значищие ячейки нулём
 
 	unsigned int Refine(void);
+	void de_Refine(void);
 
 	void Save(string namef);
 	void Read(string namef);

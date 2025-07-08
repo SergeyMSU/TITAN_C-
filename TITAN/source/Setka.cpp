@@ -178,20 +178,19 @@ void Setka::Algoritm(short int alg)
 		this->Set_MK_Zone();
 
 		//Проверим зоны
-		/*this->Tecplot_print_gran_with_condition(0);
+		this->Tecplot_print_gran_with_condition(0);
 		this->Tecplot_print_gran_with_condition(1);
 		this->Tecplot_print_gran_with_condition(2);
 		this->Tecplot_print_gran_with_condition(3);
 		this->Tecplot_print_gran_with_condition(4);
 		this->Tecplot_print_gran_with_condition(5);
-		this->Tecplot_print_gran_with_condition(6);*/
+		this->Tecplot_print_gran_with_condition(6);
 
 		// Готовим MK, датчики, функции распределения
-		this->MK_prepare(6);
-
-		this->MK_go(6);
-
-		this->MK_delete(6);
+		short int zone_play = 4;   // 6   4  
+		this->MK_prepare(zone_play);
+		this->MK_go(zone_play);
+		this->MK_delete(zone_play);
 	}
 }
 

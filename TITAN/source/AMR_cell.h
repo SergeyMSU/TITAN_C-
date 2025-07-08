@@ -29,6 +29,7 @@ public:
 	AMR_cell();
 
 	double Get_SpotokV(void);
+	void Get_Moment(AMR_f* AMR, double & m, double& mu, double& mux, double& muu);
 
 	void divide(unsigned short int n1, unsigned short int n2, unsigned short int n3); // Разделить ячейку
 

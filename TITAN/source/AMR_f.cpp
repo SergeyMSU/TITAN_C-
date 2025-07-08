@@ -256,7 +256,8 @@ void AMR_f::Add_particle(const double& Vx, const double& Vy, const double& Vz, c
 	}
 
 	this->mut.lock();
-	cell->f += mu/Vnn;
+	//cell->f += mu/Vnn;
+	cell->f += mu;    // Умножил предыдущюю на Vnn, потом отнормирую обратно на среднее
 	this->mut.unlock();
 }
 
@@ -273,7 +274,9 @@ void AMR_f::Normir_velocity_volume(const double& squ)
 	for (auto& cel : cells)
 	{
 		cel->Get_Center(this->AMR_self, center, razmer);
-		cel->f /= (razmer[0] * razmer[1] * razmer[2] * squ);
+		//cel->f /= (razmer[0] * razmer[1] * razmer[2] * squ);
+		cel->f /= (razmer[0] * razmer[1] * razmer[2] * squ * center[0]); 
+		// Отнормировал ещё на скорость Vx (пытаюсь увеличить порядок точности)
 	}
 }
 
@@ -353,6 +356,46 @@ void AMR_f::Get_all_cells(vector<AMR_cell*>& cells)
 	}
 }
 
+double AMR_f::Integrate_Maxwell_V(const double& xL, const double& xR,
+	const double& yL, const double& yR,
+	const double& zL, const double& zR, const double& Vinf)
+{
+	Eigen::Vector3d ex, ey, ez, ee;
+	ex << this->Vn[0], this->Vn[1], this->Vn[2];
+	ey << this->Vt[0], this->Vt[1], this->Vt[2];
+	ez << this->Vm[0], this->Vm[1], this->Vm[2];
+
+	const short unsigned int Nx = 10;
+	const short unsigned int Ny = 10;
+	const short unsigned int Nz = 10;
+
+	double dx = (xR - xL) / (Nx);
+	double dy = (yR - yL) / (Ny);
+	double dz = (zR - zL) / (Nz);
+
+	double x, y, z, f;
+	double S = 0.0;
+
+	for (short unsigned int i = 0; i < Nx; ++i)
+	{
+		for (short unsigned int j = 0; j < Ny; ++j)
+		{
+			for (short unsigned int k = 0; k < Nz; ++k)
+			{
+				x = xL + i * dx + dx / 2.0;
+				y = yL + j * dy + dy / 2.0;
+				z = zL + k * dz + dz / 2.0;
+				ee = x * ex + y * ey + z * ez;
+				f = maxwell(1.0, 1.0, Vinf, 0.0, 0.0, ee[0], ee[1], ee[2]);
+				S += f * x;
+			}
+		}
+	}
+
+	S *= (dx * dy * dz);
+	return S;
+}
+
 void AMR_f::Fill_maxwel_inf(const double& Vinf)
 {
 	Eigen::Vector3d ex, ey, ez, ee;
@@ -368,20 +411,26 @@ void AMR_f::Fill_maxwel_inf(const double& Vinf)
 		NN = 0;
 		std::vector<AMR_cell*> cells;
 		std::array<double, 3> center;
+		std::array<double, 3> razmer;
 		this->Get_all_cells(cells);
 
 		for (auto& cel : cells)
 		{
-			cel->Get_Center(this->AMR_self, center);
+			cel->Get_Center(this->AMR_self, center, razmer);
 			ee = center[0] * ex + center[1] * ey + center[2] * ez;
-			cel->f = maxwell(1.0, 1.0, Vinf, 0.0, 0.0, ee[0], ee[1], ee[2]);
+			double S = Integrate_Maxwell_V(center[0] - razmer[0] / 2.0,
+				center[0] + razmer[0] / 2.0, center[1] - razmer[1] / 2.0,
+				center[1] + razmer[1] / 2.0, center[2] - razmer[2] / 2.0,
+				center[2] + razmer[2] / 2.0, Vinf);
+			cel->f = S / center[0] / (razmer[0] * razmer[1] * razmer[2]);
+			//cel->f = maxwell(1.0, 1.0, Vinf, 0.0, 0.0, ee[0], ee[1], ee[2]);
 		}
 
 		NN = this->Refine();
 		Nall = cells.size();
 	}
 
-	cout << "Nall = " << Nall << endl;
+	//cout << "Nall = " << Nall << endl;
 }
 
 void AMR_f::Fill_null(void)
@@ -440,6 +489,126 @@ void AMR_f::Fill_test(void)
 	}
 }
 
+void AMR_f::de_Refine(void)
+{
+	this->Sf = 0.0;
+	this->Sfu = 0.0;
+	this->Sfux = 0.0;
+	this->Sfuu = 0.0;
+
+	std::vector<AMR_cell*> cells;
+	std::array<double, 3> center;
+	std::array<double, 3> razmer;
+
+	this->Get_all_cells(cells);
+	double V, u, m = 0.0, mu = 0.0, muu = 0.0, mux = 0.0;
+
+	for (const auto& i : cells)
+	{
+		i->Get_Center(this->AMR_self, center, razmer);
+		V = razmer[0] * razmer[1] * razmer[2];
+		u = norm2(center[0], center[1], center[2]);
+		this->Sf += V * i->f;
+		this->Sfu += V * i->f * u;
+		this->Sfux += V * i->f * center[0];
+		this->Sfuu += V * i->f * kv(u);
+	}
+
+	if (this->Sf < 1e-8 || this->Sfu < 1e-8 ||
+		this->Sfuu < 1e-8 || this->Sfux < 1e-8) return;
+
+	AMR_cell* parent;
+	double procent = this->procent_signif;
+	unsigned int N_delete = 0;
+
+	st1:
+	cells.clear();
+	this->Get_all_cells(cells);
+
+	for (const auto& i : cells)
+	{
+		parent = i->parent;
+		if (parent == nullptr) continue;
+		parent->is_signif = false;
+		parent->Get_Moment(this->AMR_self, m, mu, mux, muu);
+		if (m * 100.0 / this->Sf > procent) parent->is_signif = true;
+		if (mu * 100.0 / this->Sfu > procent) parent->is_signif = true;
+		if (mux * 100.0 / this->Sfux > procent) parent->is_signif = true;
+		if (muu * 100.0 / this->Sfuu > procent) parent->is_signif = true;
+
+		if (parent->is_signif == false)
+		{
+		st2:
+			N_delete++;
+			// В этом случае можно удалять дочерние ячейки
+			parent->is_divided = false;
+			parent->Get_Center(this->AMR_self, center, razmer);
+			parent->f = mux / (razmer[0] * razmer[1] * razmer[2] * center[0]);
+			const size_t dim1 = parent->cells.shape()[0];
+			const size_t dim2 = parent->cells.shape()[1];
+			const size_t dim3 = parent->cells.shape()[2];
+
+			for (size_t i = 0; i < dim1; ++i)
+			{
+				for (size_t j = 0; j < dim2; ++j)
+				{
+					for (size_t k = 0; k < dim3; ++k)
+					{
+						AMR_cell* cell = parent->cells[i][j][k];
+						cell->Delete();
+						delete cell;
+					}
+				}
+			}
+			parent->cells.resize(boost::extents[0][0][0]);
+			goto st1;
+		}
+
+		// Проверяем если она существенная, но дальше делится не будет
+		procent = this->procent_devide;
+
+		auto A = parent->get_sosed(this->AMR_self, 0);
+		if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
+		{
+			continue;
+		}
+		A = parent->get_sosed(this->AMR_self, 1);
+		if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
+		{
+			continue;
+		}
+
+
+		A = parent->get_sosed(this->AMR_self, 2);
+		if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
+		{
+			continue;
+		}
+		A = parent->get_sosed(this->AMR_self, 3);
+		if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
+		{
+			continue;
+		}
+
+		A = parent->get_sosed(this->AMR_self, 4);
+		if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
+		{
+			continue;
+		}
+		A = parent->get_sosed(this->AMR_self, 5);
+		if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
+		{
+			continue;
+		}
+
+		// Если дошли до сюда, то можно удалять ячейки
+		goto st2;
+
+	}
+	
+	//if(N_delete > 0) cout << "Ydaleno yacheek  = " << N_delete << endl;
+}
+
 unsigned int AMR_f::Refine(void)
 {
 	this->Sf = 0.0;
@@ -452,7 +621,7 @@ unsigned int AMR_f::Refine(void)
 	std::array<double, 3> razmer;
 
 	this->Get_all_cells(cells);
-	double V, u, m, mu, muu;
+	double V, u, m = 0.0, mu = 0.0, muu = 0.0, mux = 0.0;
 
 	//cout << "All_cells_do = " << cells.size() << endl;
 
@@ -478,11 +647,12 @@ unsigned int AMR_f::Refine(void)
 		u = norm2(center[0], center[1], center[2]);
 		m = V * i->f;
 		mu = V * i->f * u;
+		mux = V * i->f * center[0];
 		muu = V * i->f * kv(u);
 
 		if (m * 100.0 / this->Sf > procent) i->is_signif = true;
 		if (mu * 100.0 / this->Sfu > procent) i->is_signif = true;
-		if (mu * 100.0 / this->Sfux > procent) i->is_signif = true;
+		if (mux * 100.0 / this->Sfux > procent) i->is_signif = true;
 		if (muu * 100.0 / this->Sfuu > procent) i->is_signif = true;
 	}
 

@@ -50,16 +50,16 @@ public:
     bool move_BS = true;
 
     bool sglag_TS = true;              // Делаем ли сглаживание TS
-    double velocity_TS = 0.1;
+    double velocity_TS = 0.01;
     double sglag_TS_k = 0.005;         // Сглаживание на высоких широтах
     //double sglag_TS_k_sphere = 0.001; // 0.3;   // Сглаживание в головной и хвостовой части
-    double sglag_TS_k_sphere_head = 0.08; // 0.3;   // Сглаживание в головной части
-    double sglag_TS_k_sphere_tail = 0.03; // 0.3;   // Сглаживание в хвостовой части
+    double sglag_TS_k_sphere_head = 0.01; // 0.08;   // Сглаживание в головной части
+    double sglag_TS_k_sphere_tail = 0.01; // 0.03;   // Сглаживание в хвостовой части
     // Не может быть больше 1
 
     bool sglag_HP = true;
-    double velocity_HP = 0.1;
-    double sglag_HP_k_sphere = 0.07;      // Сферическое сглиживание в головной части * 100
+    double velocity_HP = 0.01;
+    double sglag_HP_k_sphere = 0.001;  //0.07    // Сферическое сглиживание в головной части * 100
     double sglag_HP_k = 0.001;          // Сглаживание не в головной области
     double sglag_HP_angle = 1.2;    // коэффициент усилинея сглаживания по углу
     double sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
@@ -75,9 +75,9 @@ public:
      // Настройки расчёта МК  ********************************************************
     bool save_AMR = false;        // Нужно ли сохранять посчитанные функции распределения?
     bool refine_AMR = false;      // Нужно ли мельчить считанные функции распределения?
-    unsigned int N_per_gran = 10000;  // Сколько в среднем частиц вылетает с каждой грани
+    unsigned int N_per_gran = 40000;  // Сколько в среднем частиц вылетает с каждой грани
     bool culc_cell_moments = true;    // Нужно ли считать моменты в ячейках?
-    bool de_refine_AMR = true;        // Нужно ли огрублять AMR сетку, если требуется?
+    bool de_refine_AMR = false;        // Нужно ли огрублять AMR сетку, если требуется?
      
 
     Eigen::Matrix3d Matr;              // Матрица перехода 1

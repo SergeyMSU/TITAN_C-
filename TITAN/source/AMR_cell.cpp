@@ -6,6 +6,44 @@ AMR_cell::AMR_cell()
 	this->level = 0;
 }
 
+void AMR_cell::Get_Moment(AMR_f* AMR, double& m, double& mu, double& mux, double& muu)
+{
+	if (this->is_divided == false)
+	{
+		std::array<double, 3> center;
+		std::array<double, 3> razmer;
+		this->Get_Center(AMR, center, razmer);
+		double V = razmer[0] * razmer[1] * razmer[2];
+		double u = norm2(center[0], center[1], center[2]);
+		m += V * this->f;
+		mu += V * this->f * u;
+		mux += V * this->f * center[0];
+		muu += V * this->f * kv(u);
+		return;
+	}
+	else
+	{
+		double SS = 0.0;
+		const size_t dim1 = this->cells.shape()[0];
+		const size_t dim2 = this->cells.shape()[1];
+		const size_t dim3 = this->cells.shape()[2];
+
+		for (size_t i = 0; i < dim1; ++i)
+		{
+			for (size_t j = 0; j < dim2; ++j)
+			{
+				for (size_t k = 0; k < dim3; ++k)
+				{
+					AMR_cell* cell = cells[i][j][k];
+					cell->Get_Moment(AMR, m, mu, mux, muu);
+				}
+			}
+		}
+	}
+
+	return;
+}
+
 double AMR_cell::Get_SpotokV(void)
 {
 	if (this->is_divided == false)
@@ -212,8 +250,12 @@ void AMR_cell::Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi,
 		std::array<double, 3> center;
 		std::array<double, 3> razmer;
 		this->Get_Center(AMR, center, razmer);
-		Vel[0] = (center[0] - razmer[0] / 2.0) +
-			Sens->MakeRandom() * (razmer[0]);
+		//Vel[0] = (center[0] - razmer[0] / 2.0) +
+		//	Sens->MakeRandom() * (razmer[0]);
+		double L = center[0] - razmer[0] / 2.0;
+		double R = center[0] + razmer[0] / 2.0;
+		Vel[0] = sqrt(kv(L) + Sens->MakeRandom() * (kv(R) - kv(L)));
+
 		Vel[1] = (center[1] - razmer[1] / 2.0) +
 			Sens->MakeRandom() * (razmer[1]);
 		Vel[2] = (center[2] - razmer[2] / 2.0) +
