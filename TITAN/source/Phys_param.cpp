@@ -58,8 +58,12 @@ Phys_param::Phys_param()
     this->H_name.push_back("_H3");
     this->H_name.push_back("_H4");
 
-    // Параметры для Монте-Карло
+    // Параметры в ячейках для Монте-Карло
     this->MK_param.push_back("MK_n_H"); this->param_names.push_back("MK_n_H");
+    this->MK_param.push_back("MK_n_H1"); this->param_names.push_back("MK_n_H1");
+    this->MK_param.push_back("MK_n_H2"); this->param_names.push_back("MK_n_H2");
+    this->MK_param.push_back("MK_n_H3"); this->param_names.push_back("MK_n_H3");
+    this->MK_param.push_back("MK_n_H4"); this->param_names.push_back("MK_n_H4");
 
 
 

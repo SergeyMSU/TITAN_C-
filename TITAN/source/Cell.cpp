@@ -444,13 +444,25 @@ void Cell::Tecplot_print_cell(void)
 
 void Cell::MK_Add_particle(MK_particle& P, const double& time)
 {
-	if (this->parameters[0].find("MK_n_H") != this->parameters[0].end())
-	{
 		this->mut.lock();
-		this->parameters[0]["MK_n_H"] += time * P.mu;
-		this->mut.unlock();
-	}
 
+		this->parameters[0]["MK_n_H"] += time * P.mu;
+
+		switch (P.sort)
+		{
+		case 1:
+			this->parameters[0]["MK_n_H1"] += time * P.mu;
+		case 2:
+			this->parameters[0]["MK_n_H2"] += time * P.mu;
+		case 3:
+			this->parameters[0]["MK_n_H3"] += time * P.mu;
+		case 4:
+			this->parameters[0]["MK_n_H4"] += time * P.mu;
+		default:
+			break;
+		}
+
+		this->mut.unlock();
 }
 
 void Cell::MK_normir_Moments()
@@ -458,5 +470,25 @@ void Cell::MK_normir_Moments()
 	if (this->parameters[0].find("MK_n_H") != this->parameters[0].end())
 	{
 		this->parameters[0]["MK_n_H"] /= this->volume[0];
+	}
+
+	if (this->parameters[0].find("MK_n_H1") != this->parameters[0].end())
+	{
+		this->parameters[0]["MK_n_H1"] /= this->volume[0];
+	}
+
+	if (this->parameters[0].find("MK_n_H2") != this->parameters[0].end())
+	{
+		this->parameters[0]["MK_n_H2"] /= this->volume[0];
+	}
+
+	if (this->parameters[0].find("MK_n_H3") != this->parameters[0].end())
+	{
+		this->parameters[0]["MK_n_H3"] /= this->volume[0];
+	}
+
+	if (this->parameters[0].find("MK_n_H4") != this->parameters[0].end())
+	{
+		this->parameters[0]["MK_n_H4"] /= this->volume[0];
 	}
 }

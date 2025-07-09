@@ -46,6 +46,13 @@ void MK_particle::Addcoord(const Eigen::Vector3d& a)
 	this->coord[2] = a[2];
 }
 
+void MK_particle::Move(const Eigen::Vector3d& a)
+{
+	this->coord[0] += a[0];
+	this->coord[1] += a[1];
+	this->coord[2] += a[2];
+}
+
 double MK_particle::Vel_norm(void)
 {
 	return norm2(this->Vel[0], this->Vel[1], this->Vel[2]);

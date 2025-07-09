@@ -207,6 +207,13 @@ void AMR_f::Add_particle(const double& Vx, const double& Vy, const double& Vz, c
 	this->Get_lokal_koordinate(Vx, Vy, Vz, x, y, z);
 
 	if (x < this->xL) x = this->xL + 1e-7;
+	if (x > this->xR) x = this->xR - 1e-7;
+
+	if (y < this->yL) y = this->yL + 1e-7;
+	if (y > this->yR) y = this->yR - 1e-7;
+
+	if (z < this->zL) z = this->zL + 1e-7;
+	if (z > this->zR) z = this->zR - 1e-7;
 
 	unsigned short int kkk = 0;
 	a2:
@@ -269,6 +276,7 @@ void AMR_f::Normir_velocity_volume(const double& squ)
 	this->Get_all_cells(cells);
 
 	if (this->parameters.find("n") != this->parameters.end()) this->parameters["n"] /= squ;
+	if (this->parameters.find("Smu") != this->parameters.end()) this->parameters["Smu"] /= squ;
 	if (this->parameters.find("nn") != this->parameters.end()) this->parameters["nn"] /= squ;
 
 	for (auto& cel : cells)
@@ -489,16 +497,39 @@ void AMR_f::Fill_test(void)
 	}
 }
 
-void AMR_f::de_Refine(void)
+unsigned int AMR_f::de_Refine(void)
 {
+	// Сначала нужно для всех ячеек (даже разделённых) посчитать значения переменных
+	size_t dim1 = this->cells.shape()[0];
+	size_t dim2 = this->cells.shape()[1];
+	size_t dim3 = this->cells.shape()[2];
+
+	std::array<double, 3> center;
+	std::array<double, 3> razmer;
+
+	for (size_t i = 0; i < dim1; ++i)
+	{
+		for (size_t j = 0; j < dim2; ++j)
+		{
+			for (size_t k = 0; k < dim3; ++k)
+			{
+				AMR_cell* cell = this->cells[i][j][k];
+				cell->Get_Center(this->AMR_self, center, razmer);
+				double SS = 0.0;
+				cell->Get_f(this->AMR_self, SS);
+				cell->f = SS / (razmer[0] * razmer[1] * razmer[2] * center[0]);
+			}
+		}
+	}
+
+	// -------------------
+
 	this->Sf = 0.0;
 	this->Sfu = 0.0;
 	this->Sfux = 0.0;
 	this->Sfuu = 0.0;
 
 	std::vector<AMR_cell*> cells;
-	std::array<double, 3> center;
-	std::array<double, 3> razmer;
 
 	this->Get_all_cells(cells);
 	double V, u, m = 0.0, mu = 0.0, muu = 0.0, mux = 0.0;
@@ -515,18 +546,23 @@ void AMR_f::de_Refine(void)
 	}
 
 	if (this->Sf < 1e-8 || this->Sfu < 1e-8 ||
-		this->Sfuu < 1e-8 || this->Sfux < 1e-8) return;
+		this->Sfuu < 1e-8 || this->Sfux < 1e-8) return 0;
 
 	AMR_cell* parent;
-	double procent = this->procent_signif;
 	unsigned int N_delete = 0;
+	double procent;
 
-	st1:
+st1:
 	cells.clear();
 	this->Get_all_cells(cells);
 
 	for (const auto& i : cells)
 	{
+		procent = this->procent_signif;
+		m = 0.0; 
+		mu = 0.0;
+		muu = 0.0;
+		mux = 0.0;
 		parent = i->parent;
 		if (parent == nullptr) continue;
 		parent->is_signif = false;
@@ -543,10 +579,9 @@ void AMR_f::de_Refine(void)
 			// В этом случае можно удалять дочерние ячейки
 			parent->is_divided = false;
 			parent->Get_Center(this->AMR_self, center, razmer);
-			parent->f = mux / (razmer[0] * razmer[1] * razmer[2] * center[0]);
-			const size_t dim1 = parent->cells.shape()[0];
-			const size_t dim2 = parent->cells.shape()[1];
-			const size_t dim3 = parent->cells.shape()[2];
+			dim1 = parent->cells.shape()[0];
+			dim2 = parent->cells.shape()[1];
+			dim3 = parent->cells.shape()[2];
 
 			for (size_t i = 0; i < dim1; ++i)
 			{
@@ -567,39 +602,18 @@ void AMR_f::de_Refine(void)
 		// Проверяем если она существенная, но дальше делится не будет
 		procent = this->procent_devide;
 
-		auto A = parent->get_sosed(this->AMR_self, 0);
-		if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
+		bool bkl = false;
+		for (short int il = 0; il < 6; il++)
 		{
-			continue;
-		}
-		A = parent->get_sosed(this->AMR_self, 1);
-		if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
-		{
-			continue;
-		}
-
-
-		A = parent->get_sosed(this->AMR_self, 2);
-		if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
-		{
-			continue;
-		}
-		A = parent->get_sosed(this->AMR_self, 3);
-		if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
-		{
-			continue;
+			auto A = parent->get_sosed(this->AMR_self, il);
+			if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
+			{
+				bkl = true;
+				break;
+			}
 		}
 
-		A = parent->get_sosed(this->AMR_self, 4);
-		if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
-		{
-			continue;
-		}
-		A = parent->get_sosed(this->AMR_self, 5);
-		if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
-		{
-			continue;
-		}
+		if (bkl == true) continue;
 
 		// Если дошли до сюда, то можно удалять ячейки
 		goto st2;
@@ -607,6 +621,7 @@ void AMR_f::de_Refine(void)
 	}
 	
 	//if(N_delete > 0) cout << "Ydaleno yacheek  = " << N_delete << endl;
+	return N_delete;
 }
 
 unsigned int AMR_f::Refine(void)
@@ -741,7 +756,7 @@ unsigned int AMR_f::Refine(void)
 
 		if (k1 == 1 && k2 == 1 && k3 == 1) continue;
 
-		i->divide(k1, k2, k3);
+		i->divide(this->AMR_self, k1, k2, k3);
 		NN++;
 	}
 
@@ -849,6 +864,13 @@ void AMR_f::Read(string namef)
 	}
 }
 
+unsigned int AMR_f::Size(void)
+{
+	std::vector<AMR_cell*> cells;
+	this->Get_all_cells(cells);
+	return cells.size();
+}
+
 void AMR_f::Print_info(void)
 {
 	const auto& shape = this->cells.shape();
@@ -870,10 +892,10 @@ void AMR_f::Print_info(void)
 	}
 }
 
-void AMR_f::Print_all_center_Tecplot(AMR_f* AMR)
+void AMR_f::Print_all_center_Tecplot(AMR_f* AMR, const string& name)
 {
 	ofstream fout;
-	string name_f = "Tecplot_AMR_f_print_cell_center_3D.txt";
+	string name_f = name + "_Tecplot_AMR_f_print_cell_center_3D.txt";
 	//std::vector<std::array<double, 3>> centers;
 	std::array<double, 3> center;
 	std::vector< AMR_cell*> cells;

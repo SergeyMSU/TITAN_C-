@@ -44,6 +44,46 @@ void AMR_cell::Get_Moment(AMR_f* AMR, double& m, double& mu, double& mux, double
 	return;
 }
 
+void AMR_cell::Get_f(AMR_f* AMR, double& S)
+{
+	std::array<double, 3> center;
+	std::array<double, 3> razmer;
+	this->Get_Center(AMR, center, razmer);
+	double V = razmer[0] * razmer[1] * razmer[2];
+
+	if (this->is_divided == false)
+	{
+		S += V * this->f * center[0];
+		return;
+	}
+	else
+	{
+		this->f = 0.0;
+		double SS = 0.0;
+		const size_t dim1 = this->cells.shape()[0];
+		const size_t dim2 = this->cells.shape()[1];
+		const size_t dim3 = this->cells.shape()[2];
+
+		for (size_t i = 0; i < dim1; ++i)
+		{
+			for (size_t j = 0; j < dim2; ++j)
+			{
+				for (size_t k = 0; k < dim3; ++k)
+				{
+					AMR_cell* cell = cells[i][j][k];
+					double SS = 0.0;
+					cell->Get_f(AMR, SS);
+					this->f += SS;
+				}
+			}
+		}
+		S += this->f;
+		this->f /= (V * center[0]);
+	}
+
+	return;
+}
+
 double AMR_cell::Get_SpotokV(void)
 {
 	if (this->is_divided == false)
@@ -75,15 +115,21 @@ double AMR_cell::Get_SpotokV(void)
 	return 0.0;
 }
 
-void AMR_cell::divide(unsigned short int n1, unsigned short int n2, unsigned short int n3)
+void AMR_cell::divide(AMR_f* AMR, unsigned short int n1, unsigned short int n2, unsigned short int n3)
 {
 	this->is_divided = true;
+
+	std::array<double, 3> center;
+	std::array<double, 3> razmer;
+	this->Get_Center(AMR, center, razmer);
+	double x;
 
 	this->cells.resize(boost::extents[n1][n2][n3]);
 	for (int i = 0; i < n1; ++i) {
 		for (int j = 0; j < n2; ++j) {
 			for (int k = 0; k < n3; ++k)
 			{
+				x = (center[0] - razmer[0] / 2.0) + razmer[0] / n1 * i + razmer[0] / n1 / 2.0;
 				auto A = new AMR_cell();
 				A->nx = i;
 				A->ny = j;
@@ -93,7 +139,7 @@ void AMR_cell::divide(unsigned short int n1, unsigned short int n2, unsigned sho
 				this->cells[i][j][k] = A;
 				A->I_self = A;
 
-				A->f = this->f;                        //  Просто сносим значение
+				A->f = this->f * center[0] / x;                        //  Просто сносим значение
 			}
 		}
 	}
@@ -630,6 +676,7 @@ void AMR_cell::Slice_plane(AMR_f* AMR, const double& a, const double& b, const d
 void AMR_cell::Save_cell(std::ofstream& out)
 {
 	double h = this->f;
+	if (this->is_divided == true) h = 0.0;
 	out.write(reinterpret_cast<const char*>(&h), sizeof(double));
 
 	unsigned short int l = this->level;

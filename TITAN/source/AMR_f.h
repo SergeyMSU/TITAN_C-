@@ -88,15 +88,17 @@ public:
 	// Заполняем значищие ячейки нулём
 
 	unsigned int Refine(void);
-	void de_Refine(void);
+	unsigned int de_Refine(void);
 
 	void Save(string namef);
 	void Read(string namef);
 
+	unsigned int Size(void);
+
 
 	void Print_info(void);
 
-	void Print_all_center_Tecplot(AMR_f* AMR);
+	void Print_all_center_Tecplot(AMR_f* AMR, const string& name = "_");
 	void Print_slice_Tecplot(AMR_f* AMR, const double& a, const double& b, const double& c, const double& d);
 	// плоскость  a x + b y + c z + d = 0
 

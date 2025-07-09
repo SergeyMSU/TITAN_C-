@@ -17,8 +17,9 @@ public:
 	void AddVel(const double& a, const double& b, const double& c);
 	void AddVel(const Eigen::Vector3d& a);
 	void Addcoord(const double& a, const double& b, const double& c);
-
 	void Addcoord(const Eigen::Vector3d& a);
+
+	void Move(const Eigen::Vector3d& a); // Передвигает центр на вектор a
 
 	double Vel_norm(void);
 

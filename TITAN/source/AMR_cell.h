@@ -30,8 +30,9 @@ public:
 
 	double Get_SpotokV(void);
 	void Get_Moment(AMR_f* AMR, double & m, double& mu, double& mux, double& muu);
+	void Get_f(AMR_f* AMR, double& S);
 
-	void divide(unsigned short int n1, unsigned short int n2, unsigned short int n3); // Разделить ячейку
+	void divide(AMR_f* AMR, unsigned short int n1, unsigned short int n2, unsigned short int n3); // Разделить ячейку
 
 	AMR_cell* find_cell(const double& x, const double& y, const double& z, const double& xL, 
 		const double& xR, const double& yL, const double& yR, const double& zL, const double& zR);
