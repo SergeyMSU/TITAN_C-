@@ -58,7 +58,7 @@ public:
     // Не может быть больше 1
 
     bool sglag_HP = true;
-    double velocity_HP = 0.01;
+    double velocity_HP = 0.1;
     double sglag_HP_k_sphere = 0.0001;  //0.001    // Сферическое сглиживание в головной части * 100
     double sglag_HP_k = 0.001;          // Сглаживание не в головной области
     double sglag_HP_angle = 1.2;    // коэффициент усилинея сглаживания по углу
@@ -77,7 +77,7 @@ public:
     bool save_AMR = false;        // Нужно ли сохранять посчитанные функции распределения?
     bool culc_AMR = true;        // Нужно ли считать функции распределения?
     bool refine_AMR = false;      // Нужно ли мельчить посчитанные функции распределения?
-    unsigned int N_per_gran = 200000;  // Сколько в среднем частиц вылетает с каждой грани
+    unsigned int N_per_gran = 150000;  // Сколько в среднем частиц вылетает с каждой грани
     bool culc_cell_moments = true;    // Нужно ли считать моменты в ячейках?
     bool de_refine_AMR = false;        // Нужно ли огрублять AMR сетку, если требуется?
      

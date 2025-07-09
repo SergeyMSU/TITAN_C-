@@ -530,6 +530,7 @@ unsigned int AMR_f::de_Refine(void)
 	this->Sfuu = 0.0;
 
 	std::vector<AMR_cell*> cells;
+	std::vector<AMR_cell*> parents;
 
 	this->Get_all_cells(cells);
 	double V, u, m = 0.0, mu = 0.0, muu = 0.0, mux = 0.0;
@@ -552,9 +553,12 @@ unsigned int AMR_f::de_Refine(void)
 	unsigned int N_delete = 0;
 	double procent;
 
-st1:
-	cells.clear();
-	this->Get_all_cells(cells);
+	for (const auto& i : cells)
+	{
+		parent = i->parent;
+		if (parent == nullptr) continue;
+		parent->need_devide_x = false;
+	}
 
 	for (const auto& i : cells)
 	{
@@ -565,6 +569,7 @@ st1:
 		mux = 0.0;
 		parent = i->parent;
 		if (parent == nullptr) continue;
+		if (parent->need_devide_x == true) continue;
 		parent->is_signif = false;
 		parent->Get_Moment(this->AMR_self, m, mu, mux, muu);
 		if (m * 100.0 / this->Sf > procent) parent->is_signif = true;
@@ -574,29 +579,9 @@ st1:
 
 		if (parent->is_signif == false)
 		{
-		st2:
-			N_delete++;
-			// В этом случае можно удалять дочерние ячейки
-			parent->is_divided = false;
-			parent->Get_Center(this->AMR_self, center, razmer);
-			dim1 = parent->cells.shape()[0];
-			dim2 = parent->cells.shape()[1];
-			dim3 = parent->cells.shape()[2];
-
-			for (size_t i = 0; i < dim1; ++i)
-			{
-				for (size_t j = 0; j < dim2; ++j)
-				{
-					for (size_t k = 0; k < dim3; ++k)
-					{
-						AMR_cell* cell = parent->cells[i][j][k];
-						cell->Delete();
-						delete cell;
-					}
-				}
-			}
-			parent->cells.resize(boost::extents[0][0][0]);
-			goto st1;
+			parent->need_devide_x = true;
+			parents.push_back(parent);
+			continue;
 		}
 
 		// Проверяем если она существенная, но дальше делится не будет
@@ -615,9 +600,48 @@ st1:
 
 		if (bkl == true) continue;
 
-		// Если дошли до сюда, то можно удалять ячейки
-		goto st2;
 
+		// Если дошли до сюда, то можно удалять ячейки
+		parent->need_devide_x = true;
+		parents.push_back(parent);
+		continue;
+	}
+
+	std::sort(parents.begin(), parents.end(), [](AMR_cell* a, AMR_cell* b) {
+		return a->level > b->level;  // ">" для сортировки по убыванию
+		});
+
+
+	N_delete += parents.size();
+
+	for (const auto& i : parents)
+	{
+		if(i == nullptr) continue;
+		if(i->is_divided == false) continue;
+		if (i->need_devide_x == false) continue;
+
+		i->need_devide_x = false;
+		// В этом случае можно удалять дочерние ячейки
+		i->is_divided = false;
+		//i->Get_Center(this->AMR_self, center, razmer);
+		//cout << center[0] << " " << center[1] << " " << center[2] << endl;
+		dim1 = i->cells.shape()[0];
+		dim2 = i->cells.shape()[1];
+		dim3 = i->cells.shape()[2];
+		for (size_t ii = 0; ii < dim1; ++ii)
+		{
+			for (size_t j = 0; j < dim2; ++j)
+			{
+				for (size_t k = 0; k < dim3; ++k)
+				{
+					AMR_cell* cell = i->cells[ii][j][k];
+					cell->Delete();
+					delete cell;
+					i->cells[ii][j][k] = nullptr;
+				}
+			}
+		}
+		i->cells.resize(boost::extents[0][0][0]);
 	}
 	
 	//if(N_delete > 0) cout << "Ydaleno yacheek  = " << N_delete << endl;

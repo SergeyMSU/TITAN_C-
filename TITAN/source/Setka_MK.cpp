@@ -50,6 +50,49 @@ double Velosity_3(const double& u, const double& cp)
 	}
 }
 
+// Генерация случайного числа в диапазоне [-scale, +scale]
+double randomNoise(double scale) {
+	static std::random_device rd;
+	static std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dist(-scale, scale);
+	return dist(gen);
+}
+
+// Функция, которая отклоняет вектор, сохраняя его длину
+void perturbVectorKeepingMagnitude(double& Vx, double& Vy, double& Vz, double noiseScale = 0.01) {
+	// 1. Вычисляем исходную длину
+	const double magnitude = std::sqrt(Vx * Vx + Vy * Vy + Vz * Vz);
+	if (magnitude == 0.0) return;  // нулевой вектор нельзя отклонить
+
+	// 2. Нормализуем вектор (делаем единичным)
+	const double invMag = 1.0 / magnitude;
+	Vx *= invMag;
+	Vy *= invMag;
+	Vz *= invMag;
+
+	// 3. Генерируем случайный перпендикулярный вектор (шум)
+	double noiseX = randomNoise(noiseScale);
+	double noiseY = randomNoise(noiseScale);
+	double noiseZ = randomNoise(noiseScale);
+
+	// 4. Делаем шум строго перпендикулярным исходному вектору (чтобы не менять длину)
+	const double dot = Vx * noiseX + Vy * noiseY + Vz * noiseZ;
+	noiseX -= dot * Vx;
+	noiseY -= dot * Vy;
+	noiseZ -= dot * Vz;
+
+	// 5. Добавляем шум и нормализуем
+	Vx += noiseX;
+	Vy += noiseY;
+	Vz += noiseZ;
+
+	const double newMag = std::sqrt(Vx * Vx + Vy * Vy + Vz * Vz);
+	const double correction = magnitude / newMag;
+	Vx *= correction;
+	Vy *= correction;
+	Vz *= correction;
+}
+
 void Setka::Set_MK_Zone(void)
 {
 	cout << "Start Set_MK_Zone" << endl;
@@ -700,6 +743,13 @@ void Setka::MK_prepare(short int zone_MK)
 			for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
 			{
 				auto funk = gr->AMR[iH - 1][ni];
+
+				// Это для того, чтобы помельчить функцию как надо
+				/*if (iH == 4)
+				{
+					funk->Fill_maxwel_inf(this->phys_param->Velosity_inf);
+				}*/
+
 				funk->Fill_null();
 			}
 			
@@ -1018,6 +1068,17 @@ void Setka::MK_go(short int zone_MK)
 					cout << "_______________________________" << endl;
 				}
 
+				Cell* previos = P.cel;
+				Cell* ppp = this->Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, previos);
+				if (ppp != P.cel)
+				{
+					cout << "Error  8756121199" << endl;
+					P.coord[0] = P.cel->center[0][0];
+					P.coord[1] = P.cel->center[0][1];
+					P.coord[2] = P.cel->center[0][2];
+				}
+
+
 				P.KSI = -log(1.0 - this->Sensors[sens_num1]->MakeRandom());
 				P.I_do = 0.0;
 
@@ -1117,12 +1178,21 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 	// Главный цикл по ячейкам
 	// Выйти из него можно только если частица достигнет конца области
 	unsigned int k_cikl = 0;
+	bool vtoroy_shans = false;
+	bool vtoroy_shans2 = false;
+
 	while (true)
 	{
+		Eigen::Vector3d coord_do;
+		coord_do[0] = P.coord[0];
+		coord_do[1] = P.coord[1];
+		coord_do[2] = P.coord[2];
+
 		//cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 		if (P.cel->MK_zone != zone_MK)
 		{
 			cout << "Error 8767567487" << endl;
+			return;
 			cout << P.cel->MK_zone << "   " << zone_MK  << endl;
 			cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 			exit(-1);
@@ -1217,6 +1287,17 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 			if (k1 > 100)
 			{
+				if (vtoroy_shans2 == false)
+				{
+					vtoroy_shans2 = true;
+					P.cel = Cell_do;
+					P.coord[0] = coord_do[0];
+					P.coord[1] = coord_do[1];
+					P.coord[2] = coord_do[2];
+					perturbVectorKeepingMagnitude(P.Vel[0], P.Vel[1], P.Vel[2], 0.001);
+					continue;
+				}
+
 				cout << "Poteryal D" << endl;
 				return;
 				//cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
@@ -1238,6 +1319,8 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 			exit(-1);
 		}
 
+		vtoroy_shans2 = false;
+
 		// Здесь время до выхода из ячейки определено time
 		// Также определено через какую грань это произойдёт  gran
 
@@ -1245,11 +1328,17 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		// ****************************************************************************
 
 		// Получаем параметры плазмы в ячейке ----------------------------
-		double ro = P.cel->parameters[0]["rho"];
-		double cp = sqrt(P.cel->parameters[0]["p"] / ro);
-		double vx = P.cel->parameters[0]["Vx"];			// Скорости плазмы в ячейке
-		double vy = P.cel->parameters[0]["Vy"];
-		double vz = P.cel->parameters[0]["Vz"];
+		//double ro = P.cel->parameters[0]["rho"];
+		//double cp = sqrt(P.cel->parameters[0]["p"] / ro);
+		//double vx = P.cel->parameters[0]["Vx"];			// Скорости плазмы в ячейке
+		//double vy = P.cel->parameters[0]["Vy"];
+		//double vz = P.cel->parameters[0]["Vz"];
+
+		double ro = 1.0;
+		double cp = 1.0;
+		double vx = this->phys_param->Velosity_inf;
+		double vy = 0.0;
+		double vz = 0.0;
 		// ---------------------------------------------------------------
 
 		// Найдём время до перезарядки
@@ -1269,107 +1358,121 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				ro * uz * sigma(uz));
 		I += l / sig;
 		//cout << "C " << endl;
-		if (true)
-		//if(I < P.KSI)
-		{
-			P.I_do = I;  // В этом случае перезарядки в ячейке не произошло
-			// Здесь записываем необходимые моменты в ячейку ---------------------
-			if (this->phys_param->culc_cell_moments == true)
-			{
-				P.cel->MK_Add_particle(P, time);
-			}
-			// -------------------------------------------------------------------
-		}
-		else
-		{
-			double ksi = (P.KSI - P.I_do) * sig;
-			double t_ex = ksi / Vel_norm;
-			P.I_do = 0.0;
-			for (short int i = 0; i < 3; i++) P.coord[i] += t_ex * P.Vel[i];
-			auto Cnow = P.cel;
-			auto CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
+		//if (true)
 
-			if (P.cel != CC)
+		if (vtoroy_shans == false)
+		{
+			if (I < P.KSI)
 			{
-				// Если перезарядка произошла за пределами текущей ячейки
-				for (short int i = 0; i < 3; i++)
+				P.I_do = I;  // В этом случае перезарядки в ячейке не произошло
+				// Здесь записываем необходимые моменты в ячейку ---------------------
+				if (this->phys_param->culc_cell_moments == true)
 				{
-					P.coord[i] -= t_ex / 1000.0 * P.Vel[i];
+					P.cel->MK_Add_particle(P, time);
 				}
-				Cnow = P.cel;
-				CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
+				// -------------------------------------------------------------------
+			}
+			else
+			{
+				double ksi = (P.KSI - P.I_do) * sig;
+				double t_ex = ksi / Vel_norm;
+				P.I_do = 0.0;
+				for (short int i = 0; i < 3; i++) P.coord[i] += t_ex * P.Vel[i];
+				auto Cnow = P.cel;
+				auto CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
+
 				if (P.cel != CC)
 				{
-					Eigen::Vector3d Cell_center;
-					Cell_center << P.cel->center[0][0], P.cel->center[0][1],
-						P.cel->center[0][2];
-					unsigned short int kklk = 0;
-				dchj12:
-					kklk++;
-					if (kklk > 20)
-					{
-						cout << "Poteryal C" << endl;
-						return;
-					}
-					// Подвинем немного точку к центру ячейки
+					// Если перезарядка произошла за пределами текущей ячейки
 					for (short int i = 0; i < 3; i++)
 					{
-						P.coord[i] += (Cell_center[i] - P.coord[i]) / 100.0;
+						P.coord[i] -= t_ex / 1000.0 * P.Vel[i];
 					}
+					Cnow = P.cel;
 					CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
-
 					if (P.cel != CC)
 					{
-						goto dchj12;
-						cout << "Error 8674539765" << endl;
-						whach(CC->number);
-						whach(P.cel->number);
-						whach(P.coord[0]);
-						whach(P.coord[1]);
-						whach(P.coord[2]);
-						whach(P.Vel[0]);
-						whach(P.Vel[1]);
-						whach(P.Vel[2]);
-						whach(t_ex);
-						whach(time);
-						exit(-1);
+						Eigen::Vector3d Cell_center;
+						Cell_center << P.cel->center[0][0], P.cel->center[0][1],
+							P.cel->center[0][2];
+						unsigned short int kklk = 0;
+					dchj12:
+						kklk++;
+						if (kklk > 20)
+						{
+							cout << "Poteryal C" << endl;
+							return;
+						}
+
+						// Подвинем немного точку к центру ячейки
+						for (short int i = 0; i < 3; i++)
+						{
+							if (kklk < 18)
+							{
+								P.coord[i] += (Cell_center[i] - P.coord[i]) / 100.0;
+							}
+							else
+							{
+								P.coord[i] = Cell_center[i];
+							}
+						}
+
+
+						CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
+
+						if (P.cel != CC)
+						{
+							goto dchj12;
+							cout << "Error 8674539765" << endl;
+							whach(CC->number);
+							whach(P.cel->number);
+							whach(P.coord[0]);
+							whach(P.coord[1]);
+							whach(P.coord[2]);
+							whach(P.Vel[0]);
+							whach(P.Vel[1]);
+							whach(P.Vel[2]);
+							whach(t_ex);
+							whach(time);
+							exit(-1);
+						}
 					}
 				}
+
+				double uz_M = Velosity_2(u, cp) / (uz * kv(cp) * cp * const_pi * sqrtpi_);
+				double uz_E = Velosity_3(u, cp);
+
+				// Здесь записываем необходимые моменты в ячейку ---------------------
+				if (this->phys_param->culc_cell_moments == true)
+				{
+					P.cel->MK_Add_particle(P, t_ex);
+				}
+				// -------------------------------------------------------------------
+
+				// Разыгрываем новую скорость
+				double Ur, Uphi, Uthe;
+				double Vr, Vphi, Vthe;
+				double Wr, Wthe, Wphi;
+				spherical_skorost(P.coord[0], P.coord[1], P.coord[2],
+					vx, vy, vz, Ur, Uphi, Uthe);
+				spherical_skorost(P.coord[0], P.coord[1], P.coord[2],
+					P.Vel[0], P.Vel[1], P.Vel[2], Vr, Vphi, Vthe);
+				this->M_K_Change_Velosity(Sens, Ur / cp, Uthe / cp, Uphi / cp,
+					Vr / cp, Vthe / cp, Vphi / cp, Wr, Wthe, Wphi, cp);
+				Wr *= cp;
+				Wthe *= cp;
+				Wphi *= cp;
+
+				dekard_skorost(P.coord[0], P.coord[1], P.coord[2],
+					Wr, Wphi, Wthe, P.Vel[0], P.Vel[1], P.Vel[2]);
+
+				P.sort = (short int)(P.cel->type);
+				P.KSI = -log(1.0 - Sens->MakeRandom());
+				vtoroy_shans = false;
+				continue;
+				//return this->MK_fly_immit(P, zone_MK, Sens);
 			}
-
-			double uz_M = Velosity_2(u, cp) / (uz * kv(cp) * cp * const_pi * sqrtpi_);
-			double uz_E = Velosity_3(u, cp);
-
-			// Здесь записываем необходимые моменты в ячейку ---------------------
-			if (this->phys_param->culc_cell_moments == true)
-			{
-				P.cel->MK_Add_particle(P, t_ex);
-			}
-			// -------------------------------------------------------------------
-
-			// Разыгрываем новую скорость
-			double Ur, Uphi, Uthe;
-			double Vr, Vphi, Vthe;
-			double Wr, Wthe, Wphi;
-			spherical_skorost(P.coord[0], P.coord[1], P.coord[2],
-				vx, vy, vz, Ur, Uphi, Uthe);
-			spherical_skorost(P.coord[0], P.coord[1], P.coord[2],
-				P.Vel[0], P.Vel[1], P.Vel[2], Vr, Vphi, Vthe);
-			this->M_K_Change_Velosity(Sens, Ur / cp, Uthe / cp, Uphi / cp,
-				Vr / cp, Vthe / cp, Vphi / cp, Wr, Wthe, Wphi, cp);
-			Wr *= cp;
-			Wthe *= cp;
-			Wphi *= cp;
-
-			dekard_skorost(P.coord[0], P.coord[1], P.coord[2],
-				Wr, Wphi, Wthe, P.Vel[0], P.Vel[1], P.Vel[2]);
-
-			P.sort = (short int)(P.cel->type);
-			P.KSI = -log(1.0 - Sens->MakeRandom());
-			continue;
-			//return this->MK_fly_immit(P, zone_MK, Sens);
 		}
-
 
 		// ****************************************************************************
 		// Находим следующую ячейку
@@ -1380,7 +1483,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 		if (gran->Have_zone_number(zone_MK))
 		{
-		a1:
+			a1:
 			// В этом случае долетели до границы, записываем что надо и выключаем частицу
 			short int nn = 1;
 			if (gran->cells[0]->MK_zone == zone_MK) nn = 0;
@@ -1441,6 +1544,17 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 			// либо запускать ей заново в этой ячейке (тогда наоборот получим лишнюю массу, так
 			// как она уже записалась в данную ячейку
 
+			if (vtoroy_shans == false)
+			{
+				P.coord[0] = coord_do[0] + (Cell_do->center[0][0] - coord_do[0]) / 300.0;
+				P.coord[1] = coord_do[1] + (Cell_do->center[0][1] - coord_do[1]) / 300.0;
+				P.coord[2] = coord_do[2] + (Cell_do->center[0][2] - coord_do[2]) / 300.0;
+				P.cel = Cell_do;
+				perturbVectorKeepingMagnitude(P.Vel[0], P.Vel[1], P.Vel[2], 0.01);
+				vtoroy_shans = true;
+				continue;
+			}
+
 			cout << "Poteryal A" << endl;
 			return;
 		}
@@ -1454,6 +1568,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		//cout << "G " << endl;
 		//cout << "2 Soburausi otpravit " << endl;
 		//cout << "P.coord = " << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
+		vtoroy_shans = false;
 		continue;
 		//return this->MK_fly_immit(P, zone_MK, Sens);
 	}

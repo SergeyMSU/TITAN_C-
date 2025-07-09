@@ -47,6 +47,7 @@ class MK_particle;
 #include <optional>
 #include <omp.h>
 #include <chrono>
+#include <random>
 
 
 // Boost библиотека (надо подключать к компилятору отдельно)
