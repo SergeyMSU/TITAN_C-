@@ -22,6 +22,9 @@ double linear(const double& x1, const double& t1, const double& x2,
 	const double& t2, const double& x3, const double& t3,
 	const double& y);
 
+double linear2(const double& x1, const double& t1, const double& x2,
+	const double& t2, const double& y);
+
 double rbfKernel(double r, double epsilon = 1.0);
 
 double polar_angle(const double& x, const double& y);

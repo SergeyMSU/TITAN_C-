@@ -235,9 +235,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 					for (short int ik = 0; ik < 3; ik++)
 					{
-						/*cout << AA->parameters[now][V1[ik]] << " " <<
-							AA->parameters[now][V2[ik]] << " " <<
-							AA->parameters[now][V3[ik]] << endl;*/
 
 						// Переводим скорости в сферическую с.к.
 						spherical_skorost(AAc[2], AAc[0], AAc[1],
@@ -270,10 +267,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						dekard_skorost(G[2], G[0], G[1],
 							Vright[0], Vright[1], Vright[2],
 							par_right[V3[ik]], par_right[V1[ik]], par_right[V2[ik]]);
-
-						/*cout << " = " << par_left[V1[ik]] << " " <<
-							par_left[V2[ik]] << " " <<
-							par_left[V3[ik]] << endl;*/
 					}
 				}
 
@@ -331,6 +324,245 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					}
 				}
 
+			}
+			else if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
+			B->type == Type_cell::Zone_1 && BB->type == Type_cell::Zone_2)
+			{
+				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
+				r3 = AAc.norm();
+				r1 = Ac.norm();
+				rr = G.norm();
+				r2 = Bc.norm();
+				r4 = BBc.norm();
+
+				// Преобразуем нужные векторные величины
+				if (true)
+				{
+					std::array<string, 3> V1;
+					std::array<string, 3> V2;
+					std::array<string, 3> V3;
+
+					V1[0] = "Vx";
+					V2[0] = "Vy";
+					V3[0] = "Vz";
+
+					V1[1] = "Bx";
+					V2[1] = "By";
+					V3[1] = "Bz";
+
+					V1[2] = "Vx_H1";
+					V2[2] = "Vy_H1";
+					V3[2] = "Vz_H1";
+
+					for (short int ik = 0; ik < 3; ik++)
+					{
+
+						// Переводим скорости в сферическую с.к.
+						spherical_skorost(AAc[2], AAc[0], AAc[1],
+							AA->parameters[now][V3[ik]], AA->parameters[now][V1[ik]],
+							AA->parameters[now][V2[ik]], VAA[0], VAA[1], VAA[2]);
+
+						spherical_skorost(Ac[2], Ac[0], Ac[1],
+							A->parameters[now][V3[ik]], A->parameters[now][V1[ik]],
+							A->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
+
+						spherical_skorost(Bc[2], Bc[0], Bc[1],
+							B->parameters[now][V3[ik]], B->parameters[now][V1[ik]],
+							B->parameters[now][V2[ik]], VB[0], VB[1], VB[2]);
+
+
+						// Интерполируем скорости (в сферической с.к.)
+						for (short int i = 0; i < 3; i++)
+						{
+							Vleft[i] = linear(-dd1 - d1, VAA[i], -d1, VA[i], d2, VB[i], 0.0);
+							Vright[i] = linear2(-d1, VA[i], d2, VB[i], 0.0);
+						}
+
+						dekard_skorost(G[2], G[0], G[1],
+							Vleft[0], Vleft[1], Vleft[2],
+							par_left[V3[ik]], par_left[V1[ik]], par_left[V2[ik]]);
+
+						dekard_skorost(G[2], G[0], G[1],
+							Vright[0], Vright[1], Vright[2],
+							par_right[V3[ik]], par_right[V1[ik]], par_right[V2[ik]]);
+					}
+				}
+
+
+
+				for (auto& nam : this->phys_param->param_names)
+				{
+					if (nam == "rho" || nam == "n_He" || nam == "Q")
+					{
+						par_left[nam] = linear(-dd1 - d1, AA->parameters[now][nam] * kv(r3),
+							-d1, A->parameters[now][nam] * kv(r1),
+							d2, B->parameters[now][nam] * kv(r2), 0.0) / kv(rr);
+						par_right[nam] = linear2(-d1, A->parameters[now][nam] * kv(r1),
+							d2, B->parameters[now][nam] * kv(r2), 0.0) / kv(rr);
+					}
+					else if (nam == "p")
+					{
+						par_left[nam] = linear(-dd1 - d1, AA->parameters[now][nam] * kvg(r3),
+							-d1, A->parameters[now][nam] * kvg(r1),
+							d2, B->parameters[now][nam] * kvg(r2), 0.0) / kvg(rr);
+						par_right[nam] = linear2(-d1, A->parameters[now][nam] * kvg(r1),
+							d2, B->parameters[now][nam] * kvg(r2), 0.0) / kvg(rr);
+					}
+					else if (nam == "Vx" || nam == "Vy" || nam == "Vz"
+						|| nam == "Bx" || nam == "By" || nam == "Bz")
+					{
+						// PASS
+						;
+					}
+					else
+					{
+						par_left[nam] = linear(-dd1 - d1, AA->parameters[now][nam],
+							-d1, A->parameters[now][nam],
+							d2, B->parameters[now][nam], 0.0);
+						par_right[nam] = linear2(-d1, A->parameters[now][nam],
+							d2, B->parameters[now][nam], 0.0);
+					}
+
+					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
+						|| nam == "Vz")
+					{
+						for (auto& nam2 : this->phys_param->H_name)
+						{
+							if (nam2 == "_H1" && (nam == "Vx" || nam == "Vy" || nam == "Vz")) continue;
+							par_left[nam + nam2] = linear(-dd1 - d1, AA->parameters[now][nam + nam2],
+								-d1, A->parameters[now][nam + nam2],
+								d2, B->parameters[now][nam + nam2], 0.0);
+							par_right[nam + nam2] = linear2(-d1, A->parameters[now][nam + nam2],
+								d2, B->parameters[now][nam + nam2], 0.0);
+						}
+					}
+				}
+
+			}
+			else if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
+			B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_2)
+			{
+				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
+				r3 = AAc.norm();
+				r1 = Ac.norm();
+				rr = G.norm();
+				r2 = Bc.norm();
+				r4 = BBc.norm();
+
+				// Преобразуем нужные векторные величины
+				if (true)
+				{
+					std::array<string, 3> V1;
+					std::array<string, 3> V2;
+					std::array<string, 3> V3;
+
+					V1[0] = "Vx";
+					V2[0] = "Vy";
+					V3[0] = "Vz";
+
+					V1[1] = "Bx";
+					V2[1] = "By";
+					V3[1] = "Bz";
+
+					V1[2] = "Vx_H1";
+					V2[2] = "Vy_H1";
+					V3[2] = "Vz_H1";
+
+					for (short int ik = 0; ik < 3; ik++)
+					{
+
+						// Переводим скорости в сферическую с.к.
+						spherical_skorost(AAc[2], AAc[0], AAc[1],
+							AA->parameters[now][V3[ik]], AA->parameters[now][V1[ik]],
+							AA->parameters[now][V2[ik]], VAA[0], VAA[1], VAA[2]);
+
+						spherical_skorost(Ac[2], Ac[0], Ac[1],
+							A->parameters[now][V3[ik]], A->parameters[now][V1[ik]],
+							A->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
+
+						// Интерполируем скорости (в сферической с.к.)
+						for (short int i = 0; i < 3; i++)
+						{
+							Vleft[i] = linear2(-dd1 - d1, VAA[i], -d1, VA[i], 0.0);
+						}
+
+						dekard_skorost(G[2], G[0], G[1],
+							Vleft[0], Vleft[1], Vleft[2],
+							par_left[V3[ik]], par_left[V1[ik]], par_left[V2[ik]]);
+					}
+				}
+
+
+
+				for (auto& nam : this->phys_param->param_names)
+				{
+					if (nam == "rho" || nam == "n_He" || nam == "Q")
+					{
+						par_left[nam] = linear2(-dd1 - d1, AA->parameters[now][nam] * kv(r3),
+							-d1, A->parameters[now][nam] * kv(r1), 0.0) / kv(rr);
+						par_right[nam] = linear2(d2, B->parameters[now][nam],
+							d2 + dd2, BB->parameters[now][nam], 0.0);
+					}
+					else if (nam == "p")
+					{
+						par_left[nam] = linear2(-dd1 - d1, AA->parameters[now][nam] * kvg(r3),
+							-d1, A->parameters[now][nam] * kvg(r1), 0.0) / kvg(rr);
+						par_right[nam] = linear2(d2, B->parameters[now][nam],
+							d2 + dd2, BB->parameters[now][nam], 0.0);
+					}
+					else if (nam == "Vx" || nam == "Vy" || nam == "Vz"
+						|| nam == "Bx" || nam == "By" || nam == "Bz")
+					{
+						par_right[nam] = linear2(d2, B->parameters[now][nam],
+							d2 + dd2, BB->parameters[now][nam], 0.0);
+					}
+					else
+					{
+						par_left[nam] = linear2(-dd1 - d1, AA->parameters[now][nam],
+							-d1, A->parameters[now][nam], 0.0);
+						par_right[nam] = linear2(d2, B->parameters[now][nam],
+							d2 + dd2, BB->parameters[now][nam], 0.0);
+					}
+
+					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
+						|| nam == "Vz")
+					{
+						for (auto& nam2 : this->phys_param->H_name)
+						{
+							par_right[nam + nam2] = linear2(d2, B->parameters[now][nam + nam2],
+								d2 + dd2, BB->parameters[now][nam + nam2], 0.0);
+
+							if (nam2 == "_H1" && (nam == "Vx" || nam == "Vy" || nam == "Vz")) continue;
+							par_left[nam + nam2] = linear2(-dd1 - d1, AA->parameters[now][nam + nam2],
+								-d1, A->parameters[now][nam + nam2], 0.0);
+						}
+					}
+				}
+			}
+			else if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_2 &&
+				B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_2)
+			{
+				for (auto& nam : this->phys_param->param_names)
+				{
+					par_left[nam] = linear2(-d1, A->parameters[now][nam],
+						d2, B->parameters[now][nam], 0.0);
+					par_right[nam] = linear(-d1, A->parameters[now][nam],
+						d2, B->parameters[now][nam],
+						d2 + dd2, BB->parameters[now][nam], 0.0);
+
+					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
+						|| nam == "Vz")
+					{
+						for (auto& nam2 : this->phys_param->H_name)
+						{
+							par_left[nam + nam2] = linear2(-d1, A->parameters[now][nam + nam2],
+								d2, B->parameters[now][nam + nam2], 0.0);
+							par_right[nam + nam2] = linear(-d1, A->parameters[now][nam + nam2],
+								d2, B->parameters[now][nam + nam2],
+								d2 + dd2, BB->parameters[now][nam + nam2], 0.0);
+						}
+					}
+				}
 			}
 			else
 			{

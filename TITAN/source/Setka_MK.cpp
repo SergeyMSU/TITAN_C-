@@ -1328,17 +1328,17 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		// ****************************************************************************
 
 		// ѕолучаем параметры плазмы в €чейке ----------------------------
-		//double ro = P.cel->parameters[0]["rho"];
-		//double cp = sqrt(P.cel->parameters[0]["p"] / ro);
-		//double vx = P.cel->parameters[0]["Vx"];			// —корости плазмы в €чейке
-		//double vy = P.cel->parameters[0]["Vy"];
-		//double vz = P.cel->parameters[0]["Vz"];
+		double ro = P.cel->parameters[0]["rho"];
+		double cp = sqrt(P.cel->parameters[0]["p"] / ro);
+		double vx = P.cel->parameters[0]["Vx"];			// —корости плазмы в €чейке
+		double vy = P.cel->parameters[0]["Vy"];
+		double vz = P.cel->parameters[0]["Vz"];
 
-		double ro = 1.0;
+		/*double ro = 1.0;
 		double cp = 1.0;
 		double vx = this->phys_param->Velosity_inf;
 		double vy = 0.0;
-		double vz = 0.0;
+		double vz = 0.0;*/
 		// ---------------------------------------------------------------
 
 		// ЌайдЄм врем€ до перезар€дки

@@ -53,6 +53,14 @@ double linear(const double& x1, const double& t1, const double& x2,
 		return (d * (y - x2) + t2);
 }
 
+double linear2(const double& x1, const double& t1, const double& x2,
+	const double& t2, const double& y)
+{
+	double d = (t1 - t2) / (x1 - x2);
+	return (d * (y - x2) + t2);
+}
+
+
 double rbfKernel(double r, double epsilon) 
 {
 	return std::sqrt(1 + (epsilon * r) * (epsilon * r));

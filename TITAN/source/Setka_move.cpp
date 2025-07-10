@@ -566,7 +566,9 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			B[1] *= r1 / p[1]; 
 			B[2] *= r1 / p[1]; 
 				
-			V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / time; 
+			V = this->phys_param->velocity_HP * 
+				this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_sphere *
+				this->phys_param->sglag_HP_k * (B - A) / time; 
 				
 			AA->velocity[0] += V[0]; 
 			AA->velocity[1] += V[1]; 
@@ -578,7 +580,9 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			B[1] *= r2 / p[1]; 
 			B[2] *= r2 / p[1]; 
 				
-			V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / time; \
+			V = this->phys_param->velocity_HP * 
+				this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_sphere *
+				this->phys_param->sglag_HP_k * (B - A) / time; \
 				
 			AA->velocity[0] += V[0]; 
 			AA->velocity[1] += V[1]; 
@@ -590,7 +594,9 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			B[1] *= r3 / p[1]; 
 			B[2] *= r3 / p[1]; 
 				
-			V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / time; \
+			V = this->phys_param->velocity_HP * 
+				this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_sphere *
+				this->phys_param->sglag_HP_k * (B - A) / time; \
 				
 			AA->velocity[0] += V[0]; 
 			AA->velocity[1] += V[1]; 
@@ -602,7 +608,9 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			B[1] *= r4 / p[1]; 
 			B[2] *= r4 / p[1]; 
 				
-			V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / time; \
+			V = this->phys_param->velocity_HP * 
+				this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_sphere *
+				this->phys_param->sglag_HP_k * (B - A) / time; \
 				
 			AA->velocity[0] += V[0]; 
 			AA->velocity[1] += V[1]; 
