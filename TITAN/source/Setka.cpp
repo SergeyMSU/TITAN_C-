@@ -187,7 +187,7 @@ void Setka::Algoritm(short int alg)
 		this->Tecplot_print_gran_with_condition(6);
 
 		// Готовим MK, датчики, функции распределения
-		short int zone_play = 6;   // 6   4  
+		short int zone_play = 4;   // 6   4  
 		this->MK_prepare(zone_play);
 		this->MK_go(zone_play);
 		this->MK_delete(zone_play);
