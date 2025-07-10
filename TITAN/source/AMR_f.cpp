@@ -562,7 +562,7 @@ unsigned int AMR_f::de_Refine(void)
 
 	for (const auto& i : cells)
 	{
-		procent = this->procent_signif;
+		procent = this->procent_signif / 1.3;
 		m = 0.0; 
 		mu = 0.0;
 		muu = 0.0;
@@ -585,7 +585,7 @@ unsigned int AMR_f::de_Refine(void)
 		}
 
 		// Проверяем если она существенная, но дальше делится не будет
-		procent = this->procent_devide;
+		procent = this->procent_devide/1.3;
 
 		bool bkl = false;
 		for (short int il = 0; il < 6; il++)

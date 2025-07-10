@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0007.bin");  // 6
+    S1.Download_cell_parameters("parameters_0008.bin");  // 6
     // c 4 включил bn = 0
     // с 5 начались проблемы с давлением на контакте (становиться меньше 0)
     // с 6 добавил обнуление bn перед контактом
@@ -56,9 +56,34 @@ int main()
     S1.Tecplot_print_all_gran_in_surface("TS");
     S1.Tecplot_print_all_gran_in_surface("HP");
     S1.Tecplot_print_all_gran_in_surface("BS");
+
+    S1.Find_Yzel_Sosed_for_sglag();
+
+    if (false)
+    {
+        auto yz = S1.Yzels_HP_sglag[7];  // 0   80
+        auto yz1 = yz->Yzel_sosed_sglag["AA1"];
+        auto yz11 = yz->Yzel_sosed_sglag["AA11"];
+        auto yz2 = yz->Yzel_sosed_sglag["AA2"];
+        auto yz22 = yz->Yzel_sosed_sglag["AA22"];
+        auto yz3 = yz->Yzel_sosed_sglag["AA3"];
+        auto yz33 = yz->Yzel_sosed_sglag["AA33"];
+        auto yz4 = yz->Yzel_sosed_sglag["AA4"];
+        auto yz44 = yz->Yzel_sosed_sglag["AA44"];
+
+        cout << yz->coord[0][0] << " " << yz->coord[0][1] << " " << yz->coord[0][2] << endl;
+        cout << yz1->coord[0][0] << " " << yz1->coord[0][1] << " " << yz1->coord[0][2] << endl;
+        cout << yz11->coord[0][0] << " " << yz11->coord[0][1] << " " << yz11->coord[0][2] << endl;
+        cout << yz2->coord[0][0] << " " << yz2->coord[0][1] << " " << yz2->coord[0][2] << endl;
+        cout << yz22->coord[0][0] << " " << yz22->coord[0][1] << " " << yz22->coord[0][2] << endl;
+        cout << yz3->coord[0][0] << " " << yz3->coord[0][1] << " " << yz3->coord[0][2] << endl;
+        cout << yz33->coord[0][0] << " " << yz33->coord[0][1] << " " << yz33->coord[0][2] << endl;
+        cout << yz4->coord[0][0] << " " << yz4->coord[0][1] << " " << yz4->coord[0][2] << endl;
+        cout << yz44->coord[0][0] << " " << yz44->coord[0][1] << " " << yz44->coord[0][2] << endl;
+    }
     
 
-    for (int i = 1; i <= 6 * 9; i++) // 6 * 2
+    for (int i = 1; i <= 6; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -94,7 +119,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0008.bin");
+    S1.Save_cell_parameters("parameters_0009.bin");
 
     S1.Save_for_interpolate("For_intertpolate_1.bin");
     Interpol SS = Interpol("For_intertpolate_1.bin");

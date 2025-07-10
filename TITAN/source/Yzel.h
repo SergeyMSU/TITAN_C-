@@ -30,6 +30,11 @@ public:
 	double velocity[3];
 	int num_velocity = 0;
 
+	unordered_map<string, Yzel*> Yzel_sosed_sglag;
+	// ”злы - соседи дл€ сглаживани€ поверхности
+	// AA33  AA3  (AA)  AA1  AA11 - вдоль HP  направление в апвинд
+	// A22  AA2  (AA)  AA4  AA44  - вращение HP
+
 	unordered_map<string, double> parameters;   // ѕараметры в узле (дл€ интерпол€ции надо)
 
 	Yzel();
