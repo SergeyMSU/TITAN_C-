@@ -4,6 +4,41 @@
 #define sigma(x) (kv(1.0 - a_2 * log(x)))               // Дифференциальное сечение перезарядки
 #define sigma2(x, y) (kv(1.0 - a_2 * log((x) * (y))))  // Для другого обезразмеривания скорости на cp
 
+bool findSphereIntersectionTime(
+	const Eigen::Vector3d& X,  // Положение частицы
+	const Eigen::Vector3d& V,  // Скорость частицы
+	const double& R,        // Радиус сферы
+	double& time) 
+{
+	const double a = V[0] * V[0] + V[1] * V[1] + V[2] * V[2];
+	const double b = 2.0 * (X[0] * V[0] + X[1] * V[1] + X[2] * V[2]);
+	const double c = (X[0] * X[0] + X[1] * X[1] + X[2] * X[2]) - R * R;
+
+	const double D = b * b - 4 * a * c;
+
+	if (D < 0) 
+	{
+		return false;  // Нет пересечений
+	}
+
+	const double sqrtD = std::sqrt(D);
+	const double t1 = (-b - sqrtD) / (2 * a);
+	const double t2 = (-b + sqrtD) / (2 * a);
+
+	// Находим минимальное положительное время
+	if (t1 >= 0)
+	{
+		time = t1;
+		return true;
+	}
+	if (t2 >= 0)
+	{
+		time = t2;
+		return true;
+	}
+
+	return false;  // Оба времени отрицательные (пересечение было в прошлом)
+}
 
 double Velosity_1(const double& u, const double& cp)
 {
@@ -915,7 +950,7 @@ void Setka::MK_go(short int zone_MK)
 
 			// Расчитываем число запускаемых частиц
 			unsigned int N_particle = max(static_cast<int>(func->SpotokV / mu_expect) + 1, 
-				min(N_on_gran, 10));
+				min(N_on_gran, 100));
 			double mu = func->SpotokV / N_particle; // Вес каждой частицы
 
 			#pragma omp critical (second) 
@@ -1481,6 +1516,30 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 			P.coord[i] += 1.000001 * time * P.Vel[i];
 		}
 
+		if (norm2(P.coord[0], P.coord[1], P.coord[2]) < 1.01 * this->geo->R0)
+		{
+			// Частица попала во внутреннюю сферу, надо, чтобы они пролетели мимо неё
+			Eigen::Vector3d X(P.coord[0], P.coord[1], P.coord[2]);
+			Eigen::Vector3d V(P.Vel[0], P.Vel[1], P.Vel[2]);
+			double time_;
+			if (findSphereIntersectionTime(X, V, 1.01 * this->geo->R0,
+				time_) == true)
+			{
+				for (short int i = 0; i < 3; i++)
+				{
+					P.coord[i] += time_ * P.Vel[i];
+				}
+			}
+			else
+			{
+				double norm_ = norm2(P.Vel[0], P.Vel[1], P.Vel[2]);
+				for (short int i = 0; i < 3; i++)
+				{
+					P.coord[i] += (2.02 * this->geo->R0) * P.Vel[i] / norm_;
+				}
+			}
+		}
+
 		if (gran->Have_zone_number(zone_MK))
 		{
 			a1:
@@ -1502,9 +1561,9 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		}
 
 		Cell* Cell_next = P.cel->Get_Sosed(gran);
-		//short unsigned int kkk2 = 0;
-	//vv1:
-		//kkk2++;
+		short unsigned int kkk2 = 0;
+	vv1:
+		kkk2++;
 		// точно находим следующую ячейку
 		P.cel = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cell_next);
 		if (P.cel == nullptr)
@@ -1561,6 +1620,15 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 		if (P.cel == nullptr)
 		{
+			if (kkk2 < 20)
+			{
+				for (short int i = 0; i < 3; i++)
+				{
+					P.coord[i] += 0.001 * time * P.Vel[i];
+				}
+				goto vv1;
+			}
+			cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 			cout << "Poteryal B" << endl;
 			return;
 		}
