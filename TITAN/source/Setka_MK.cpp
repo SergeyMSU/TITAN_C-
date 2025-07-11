@@ -561,7 +561,7 @@ void Setka::MK_prepare(short int zone_MK)
 
 	if (this->MK_Grans.size() < zone_MK || this->MK_Grans[zone_MK - 1].size() == 0)
 	{
-		cout << "Error 2341963846" << endl;
+		cout << "Error 2341963846 " << this->MK_Grans.size() << endl;
 		exit(-1);
 	}
 
@@ -748,8 +748,8 @@ void Setka::MK_prepare(short int zone_MK)
 		for (auto& i : this->All_Cell)
 		{
 			i->Set_Cell_Geo_for_MK();
-			//if (i->MK_zone == zone_MK && this->phys_param->culc_cell_moments == true)
-			if(true)
+			if (i->MK_zone == zone_MK && this->phys_param->culc_cell_moments == true)
+			//if(true)
 			{
 				for (const auto& nam : this->phys_param->MK_param)
 				{
@@ -812,6 +812,8 @@ void Setka::MK_delete(short int zone_MK)
 	{
 		cout << "start de_refine_AMR" << endl;
 		unsigned int nmnm = 0;
+		unsigned int num_ = 0;
+		unsigned int sr_num = 0;
 #pragma omp parallel for schedule(dynamic)
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
 		{
@@ -821,27 +823,21 @@ void Setka::MK_delete(short int zone_MK)
 				ni = 0;
 			}
 
-			for (short int ii = ni; ii <= ni; ii++) // это не цикл, а один шаг
+			for (short int iH = 1; iH <= gr->AMR.size(); iH++)
 			{
-				short int ni = 1;
-				if (gr->cells[0]->MK_zone == zone_MK)
+				int iki = gr->AMR[iH - 1][ni]->de_Refine();
+
+				#pragma omp critical (third) 
 				{
-					ni = 0;
+					nmnm += iki;
+					num_++;
+					sr_num += gr->AMR[iH - 1][ni]->Size();
 				}
-
-				for (short int iH = 1; iH <= gr->AMR.size(); iH++)
-				{
-					int iki = gr->AMR[iH - 1][ii]->de_Refine();
-
-					#pragma omp critical (third) 
-					{
-						nmnm += iki;
-					}
 					
-				}
 			}
 		}
 		cout << "Ydaleno  " << nmnm << "  yacheek" << endl;
+		cout << "Srednee chislo yacheek =  " << (1.0 * sr_num) / num_ << endl;
 	}
 
 	// Записываем AMR сетку для граней
@@ -884,7 +880,18 @@ void Setka::MK_delete(short int zone_MK)
 			gr->AMR.resize(0);
 		}
 
-		this->MK_Grans.clear();
+		//this->MK_Grans.clear();  // Не надо удалять, чтобы сразу считать следующую зону
+	}
+
+	// Записываем моменты
+	if (true)
+	{
+		if (file_exists(this->phys_param->MK_file))
+		{
+			this->Download_cell_MK_parameters(this->phys_param->MK_file, zone_MK);
+		}
+		this->Save_cell_MK_parameters(this->phys_param->MK_file);
+
 	}
 
 	cout << "END MK_delete" << endl;

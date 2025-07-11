@@ -1636,6 +1636,52 @@ void Setka::Save_cell_parameters(string filename)
 	}
 }
 
+void Setka::Save_cell_MK_parameters(string filename)
+{
+	std::ofstream out(filename, std::ios::binary);
+	if (!out) {
+		cout << "Error 097564537  Can not open file to writing: " + filename << endl;
+		exit(-1);
+	}
+
+	size_t size = this->phys_param->MK_param.size();
+	out.write(reinterpret_cast<const char*>(&size), sizeof(size_t));
+
+	for (const auto& pair : this->phys_param->MK_param)
+	{
+		size_t key_size = pair.size();
+		out.write(reinterpret_cast<const char*>(&key_size), sizeof(size_t));
+		out.write(pair.c_str(), key_size);
+	}
+
+	for (auto& i : this->All_Cell)
+	{
+		// Записываем каждую пару ключ-значение
+		for (const auto& pair : this->phys_param->MK_param)
+		{
+			if (i->parameters[0].find(pair) == i->parameters[0].end())
+			{
+				cout << "Error 8765509090" << endl;
+				cout << pair << endl;
+				cout << "-------------------" << endl;
+				i->parameters[0][pair] = 0.0;
+			}
+
+			// записываем значение
+			out.write(reinterpret_cast<const char*>(&i->parameters[0][pair]), sizeof(double));
+		}
+	}
+
+	bool bb;
+
+	// Записываем для будующих считываний
+	bb = false;
+	for (int i = 0; i < 1000; i++)
+	{
+		out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+	}
+}
+
 void Setka::Download_cell_parameters(string filename)
 {
 	std::ifstream in(filename, std::ios::binary);
@@ -1698,6 +1744,57 @@ void Setka::Download_cell_parameters(string filename)
 			yz->coord[1][2] = z;
 		}
 	}
+
+
+	in.close();
+}
+
+void Setka::Download_cell_MK_parameters(string filename, short int zone_except)
+{
+	std::ifstream in(filename, std::ios::binary);
+	if (!in) {
+		cout << "Error 6545478564  Can not open file to reading: " + filename << endl;
+		exit(-1);
+	}
+
+	vector<string> param_file;
+	cout << "MK_parameters: ";
+	size_t size;
+	in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
+	for (size_t i = 0; i < size; ++i)
+	{
+		// Читаем ключ
+		size_t key_size;
+		in.read(reinterpret_cast<char*>(&key_size), sizeof(size_t));
+
+		std::vector<char> key_buffer(key_size);
+		in.read(key_buffer.data(), key_size);
+		std::string key(key_buffer.begin(), key_buffer.end());
+
+		cout << key << " ";
+		param_file.push_back(key);
+	}
+	cout << endl;
+
+
+	for (auto& ii : this->All_Cell)
+	{
+
+		for (const auto& pair : param_file)
+		{
+			// Читаем значение
+			double value;
+			in.read(reinterpret_cast<char*>(&value), sizeof(double));
+
+			if (ii->MK_zone != zone_except)
+			{
+				ii->parameters[0][pair] = value;
+			}
+		}
+	}
+
+
+	bool bb;
 
 
 	in.close();

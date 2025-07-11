@@ -194,7 +194,10 @@ public:
 	// возвращает шаг по времени
 
 	void Save_cell_parameters(string filename);
+	void Save_cell_MK_parameters(string filename);
 	void Download_cell_parameters(string filename);
+	void Download_cell_MK_parameters(string filename, short int zone_except);
+	// zone_except - какую зону исключить из считывания (чтобы не испортить новые посчитанные в ней значения)
 
 	void Save_for_interpolate(string filename);
 

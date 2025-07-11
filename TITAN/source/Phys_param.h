@@ -82,6 +82,7 @@ public:
     unsigned int N_per_gran;  // Сколько в среднем частиц вылетает с каждой грани
     bool culc_cell_moments;    // Нужно ли считать моменты в ячейках?
     bool de_refine_AMR;        // Нужно ли огрублять AMR сетку, если требуется?
+    string MK_file;            // Фаил для сохранения моментов в ячейках
      
 
     Eigen::Matrix3d Matr;              // Матрица перехода 1
