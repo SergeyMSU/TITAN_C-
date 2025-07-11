@@ -21,7 +21,7 @@ Phys_param::Phys_param()
     this->culc_AMR = true;        // Нужно ли считать функции распределения?
     this->refine_AMR = true;      // Нужно ли мельчить посчитанные функции распределения?
     this->N_per_gran = 100000;  // Сколько в среднем частиц вылетает с каждой грани
-    this->culc_cell_moments = true;    // Нужно ли считать моменты в ячейках?
+    this->culc_cell_moments = false;    // Нужно ли считать моменты в ячейках?
     this->de_refine_AMR = true;        // Нужно ли огрублять AMR сетку, если требуется?
     this->MK_file = "parameters_MK_0001.bin";
 

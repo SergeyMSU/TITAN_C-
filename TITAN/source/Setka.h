@@ -209,6 +209,18 @@ public:
 	void M_K_Change_Velosity(Sensor* sens, const double& Ur, const double& Uthe,
 		const double& Uphi, const double& Vr, const double& Vthe,
 		const double& Vphi, double& Wr, double& Wthe, double& Wphi, const double& cp);
+
+	void Velosity_initial(Sensor* s, Eigen::Vector3d& V,
+		const Eigen::Vector3d& n, const Eigen::Vector3d& t,
+		const Eigen::Vector3d& m);
+	// –азыгрывает скорость максвел * Vx на границе, со средней скоростью (-Vinf, 0, 0)
+	// но всЄ это дл€ грани с нормалью n, и двум€ другими базисами t, m
+	// нормаль должна быть внешн€€
+	// т.к. там ро
+	double Get_Spotok_inf(const Eigen::Vector3d& n);
+	// —читает поток
+	// нормаль должна быть внешн€€
+
 	// —охран€ет функции распределени€ в файлы и освобождает пам€ть
 
 	//  ****************************************************************************

@@ -1710,8 +1710,17 @@ void Setka::Download_cell_parameters(string filename)
 			double value;
 			in.read(reinterpret_cast<char*>(&value), sizeof(double));
 
-			ii->parameters[0][key] = value;
-			ii->parameters[1][key] = value;
+			if (std::find(this->phys_param->MK_param.begin(),
+				this->phys_param->MK_param.end(), key) !=
+				this->phys_param->MK_param.end())
+			{
+				ii->parameters[0][key] = 0.0;
+			}
+			else
+			{
+				ii->parameters[0][key] = value;
+				ii->parameters[1][key] = value;
+			}
 		}
 	}
 

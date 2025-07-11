@@ -142,15 +142,15 @@ bool isPointInsideTetrahedron(const Eigen::Vector3d& P, const Eigen::Vector3d& A
 	}
 
 	double u = determinant4x4(P4, B4, C4, D4) / detABCD;
-	if (u < -0.0000001) return false;
+	if (u < -1e-10) return false;
 	double v = determinant4x4(A4, P4, C4, D4) / detABCD;
-	if (v < -0.0000001) return false;
+	if (v < -1e-10) return false;
 	double w = determinant4x4(A4, B4, P4, D4) / detABCD;
-	if (w < -0.0000001) return false;
+	if (w < -1e-10) return false;
 	double t = determinant4x4(A4, B4, C4, P4) / detABCD;
-	if (t < -0.0000001) return false;
+	if (t < -1e-10) return false;
 
-	return (std::fabs(u + v + w + t - 1.0) < 1e-5);
+	return (std::fabs(u + v + w + t - 1.0) < 1e-6);
 }
 
 
@@ -200,31 +200,6 @@ bool Cell::Belong_point(const double& x, const double& y, const double& z, short
 					exit(-1);
 				}
 
-				if (fabs(gr->yzels[1]->coord[now][0] - gr->yzels[3]->coord[now][0]) < 1e-6 &&
-					fabs(gr->yzels[1]->coord[now][1] - gr->yzels[3]->coord[now][1]) < 1e-6 &&
-					fabs(gr->yzels[1]->coord[now][2] - gr->yzels[3]->coord[now][2]) < 1e-6)
-				{
-					cout << "Error 1423990055" << endl;
-					exit(-1);
-				}
-
-				if (fabs(gr->yzels[1]->coord[now][0] - gr->yzels[2]->coord[now][0]) < 1e-6 &&
-					fabs(gr->yzels[1]->coord[now][1] - gr->yzels[2]->coord[now][1]) < 1e-6 &&
-					fabs(gr->yzels[1]->coord[now][2] - gr->yzels[2]->coord[now][2]) < 1e-6)
-				{
-					cout << "Error 9665443281" << endl;
-					exit(-1);
-				}
-
-				if (fabs(gr->yzels[3]->coord[now][0] - gr->yzels[2]->coord[now][0]) < 1e-6 &&
-					fabs(gr->yzels[3]->coord[now][1] - gr->yzels[2]->coord[now][1]) < 1e-6 &&
-					fabs(gr->yzels[3]->coord[now][2] - gr->yzels[2]->coord[now][2]) < 1e-6)
-				{
-					cout << "Error 1423453421" << endl;
-					this->Tecplot_print_cell();
-					exit(-1);
-				}
-
 				B << gr->yzels[0]->coord[now][0], gr->yzels[0]->coord[now][1], gr->yzels[0]->coord[now][2];
 				C << gr->yzels[1]->coord[now][0], gr->yzels[1]->coord[now][1], gr->yzels[1]->coord[now][2];
 				D << gr->yzels[2]->coord[now][0], gr->yzels[2]->coord[now][1], gr->yzels[2]->coord[now][2];
@@ -256,7 +231,7 @@ bool Cell::Belong_point(const double& x, const double& y, const double& z, short
 
 			D = P - B;
 
-			if (C.dot(D) < -0.0000001) 
+			if (C.dot(D) < -1e-10) 
 			{
 				Next = this->Get_Sosed(gr);
 				return false;

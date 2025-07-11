@@ -128,6 +128,20 @@ void perturbVectorKeepingMagnitude(double& Vx, double& Vy, double& Vz, double no
 	Vz *= correction;
 }
 
+// Функция, которая отклоняет вектор
+void perturbVector(double& Vx, double& Vy, double& Vz, double noiseScale = 0.01) {
+
+	// 3. Генерируем случайный перпендикулярный вектор (шум)
+	double noiseX = randomNoise(noiseScale);
+	double noiseY = randomNoise(noiseScale);
+	double noiseZ = randomNoise(noiseScale);
+
+	// 5. Добавляем шум и нормализуем
+	Vx += noiseX;
+	Vy += noiseY;
+	Vz += noiseZ;
+}
+
 void Setka::Set_MK_Zone(void)
 {
 	cout << "Start Set_MK_Zone" << endl;
@@ -584,7 +598,7 @@ void Setka::MK_prepare(short int zone_MK)
 					{
 						string name_f = "func_grans_AMR_" + to_string(ii) + "_H" + 
 							to_string(iH) + "_" + to_string(gr->number) + ".bin";
-						if (file_exists("data_AMR/" + name_f))
+						if (file_exists("data_AMR/" + name_f) && gr->type == Type_Gran::Us)
 						{
 							//cout << "Exist  " << iH << " " << ii << endl;
 							// В этом случае просто считываем AMR - сетку
@@ -598,7 +612,8 @@ void Setka::MK_prepare(short int zone_MK)
 								ni = 0;  
 							}
 
-							if (ni == ii && this->phys_param->refine_AMR == true)
+							if (ni == ii && this->phys_param->refine_AMR == true && gr->type == Type_Gran::Us &&
+								gr->AMR[iH - 1][ii]->Size() < 5000)
 							{
 								unsigned short int NN = 1;
 								while (NN > 0)
@@ -608,14 +623,33 @@ void Setka::MK_prepare(short int zone_MK)
 									NNall += NN;
 								}
 							}
+
+							if (gr->AMR[iH - 1][ii]->Size() > 5000)
+							{
+								cout << "_____________________________" << endl;
+								cout << "Anomalious function  H = " << iH << "  ii = " << ii << endl;
+								cout << gr->center[0][0] << " " << gr->center[0][1] << " " <<
+									gr->center[0][2] << " " << endl;
+								cout << gr->AMR[iH - 1][ii]->Size() << endl;
+								cout << "_____________________________" << endl;
+							}
 						}
 						else
 						{
 							// В этом случае создаём новую AMR - сетку
 							//cout << "ih = " << iH << " " << ii << endl;
-							gr->AMR[iH - 1][ii] = new AMR_f(0.0, 20.0, -20.0, 20.0,
-								-20.0, 20.0, 3, 6, 6);
-							gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
+							if (gr->type == Type_Gran::Us)
+							{
+								gr->AMR[iH - 1][ii] = new AMR_f(0.0, 20.0, -20.0, 20.0,
+									-20.0, 20.0, 3, 6, 6);
+								gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
+							}
+							else
+							{
+								gr->AMR[iH - 1][ii] = new AMR_f(0.0, 20.0, -20.0, 20.0,
+									-20.0, 20.0, 1, 1, 1);
+								gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
+							}
 						}
 
 						// На всякий случай задаём нормаль
@@ -641,12 +675,41 @@ void Setka::MK_prepare(short int zone_MK)
 				}
 			}
 		}
-		cout << "Izmelchino  " << NNall << "  yachhek" << endl;
+		cout << "Izmelcheno  " << NNall << "  yacheek" << endl;
+	}
+
+	// Можно удалить файлы граничных граней, так как они только место занимают
+	if (true)
+	{
+		cout << "Start: Ydalenie lishnix failov" << endl;
+		for (auto& gr : this->MK_Grans[zone_MK - 1])
+		{
+			if (gr->type != Type_Gran::Us)
+			{
+				for (short int ii = 0; ii <= 1; ii++)
+				{
+					for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
+					{
+						if (gr->AMR[iH - 1][ii] == nullptr)
+						{
+							string name_f = "func_grans_AMR_" + to_string(ii) + "_H" +
+								to_string(iH) + "_" + to_string(gr->number) + ".bin";
+							if (file_exists("data_AMR/" + name_f))
+							{
+								std::filesystem::remove(name_f);
+							}
+						}
+					}
+				}
+			}
+		}
+		cout << "END: Ydalenie lishnix failov" << endl;
 	}
 
 	// Заполняем граничные условия для AMR сетки (на границе расчётной области)
 	// В том случае, если среди граней зоны есть граничные грани, на которых надо задавать максвелл
-	if (true)
+	// можно не задавать, так как я сделал аналитическое разыгрывание скорости
+	if (false)
 	{
 		//for (auto& gr : this->All_boundary_Gran)
 #pragma omp parallel for schedule(dynamic)
@@ -709,31 +772,35 @@ void Setka::MK_prepare(short int zone_MK)
 		{
 			gr->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
 			// Нужно вычислять поток только у входящей части функции распределения
-			short int ni = 0;
+			short int ni = 0; // Определяем входящую функцию
 			if (gr->cells[0]->MK_zone == zone_MK)
 			{
 				ni = 1;
 			}
 			gr->MK_Potok = 0.0;
 
-			short int tt = 0;
-			for (auto& ai : gr->AMR)
+			if (gr->type == Type_Gran::Us)
 			{
-				tt++;
-				ai[ni]->Culk_SpotokV(gr->area[0]);
-
-				/*if (tt == 4 && ai[ni]->SpotokV / gr->area[0] > 0.0001)
+				for (auto& ai : gr->AMR)
 				{
-					cout << "Normal = " << gr->normal[0][0] << " " <<
-						gr->normal[0][1] << " " << gr->normal[0][2] << endl;
-					cout << "phi = " << polar_angle(gr->center[0][0],
-						norm2(0.0, gr->center[0][1], gr->center[0][2])) << endl;
-					cout << "Fu = " << ai[ni]->SpotokV / gr->area[0] << endl;
-					cout << "_________________" << endl;
-				}*/
+					ai[ni]->Culk_SpotokV(gr->area[0]);
 
-				S += ai[ni]->SpotokV;
-				gr->MK_Potok += ai[ni]->SpotokV;
+					S += ai[ni]->SpotokV;
+					gr->MK_Potok += ai[ni]->SpotokV;
+				}
+			}
+			else // Вручную посчитаем поток с границы расчётной области
+			{
+				gr->AMR[0][ni]->SpotokV = 0.0;
+				gr->AMR[1][ni]->SpotokV = 0.0;
+				gr->AMR[2][ni]->SpotokV = 0.0;
+				Eigen::Vector3d n;
+				n << -gr->AMR[3][ni]->Vn[0], -gr->AMR[3][ni]->Vn[1], -gr->AMR[3][ni]->Vn[2];
+				// Так как нормаль должна быть внешняя к грани
+				double sjv = Get_Spotok_inf(n);
+				gr->AMR[3][ni]->SpotokV = sjv * gr->area[0];
+				S += gr->AMR[3][ni]->SpotokV;
+				gr->MK_Potok += gr->AMR[3][ni]->SpotokV;
 			}
 
 
@@ -852,28 +919,30 @@ void Setka::MK_delete(short int zone_MK)
 				ni = 0;
 			}
 
-			for (short int ii = ni; ii <= ni; ii++) // это не цикл, а один шаг
+			for (short int ii = 0; ii <= 1; ii++) 
 			{
-				short int ni = 1;
-				if (gr->cells[0]->MK_zone == zone_MK)
-				{
-					ni = 0;
-				}
-
 				for (short int iH = 1; iH <= gr->AMR.size(); iH++)
 				{
-					string name_f = "func_grans_AMR_" + to_string(ii) + "_H" +
-						to_string(iH) + "_" + to_string(gr->number) + ".bin";
-
-					if (this->phys_param->save_AMR == true)
+					if (ii == ni)
 					{
-						gr->AMR[iH - 1][ii]->Save("data_AMR/" + name_f);
+						string name_f = "func_grans_AMR_" + to_string(ii) + "_H" +
+							to_string(iH) + "_" + to_string(gr->number) + ".bin";
+
+						if (this->phys_param->save_AMR == true)
+						{
+							gr->AMR[iH - 1][ii]->Save("data_AMR/" + name_f);
+						}
+						//cout << "Delete " << ii << " " << iH << " " << 
+						//	gr->number << endl;
+						gr->AMR[iH - 1][ii]->Delete();
+						//cout << "Delete2" << endl;
+						delete gr->AMR[iH - 1][ii];
 					}
-					//cout << "Delete " << ii << " " << iH << " " << 
-					//	gr->number << endl;
-					gr->AMR[iH - 1][ii]->Delete();
-					//cout << "Delete2" << endl;
-					delete gr->AMR[iH - 1][ii];
+					else
+					{
+						gr->AMR[iH - 1][ii]->Delete();
+						delete gr->AMR[iH - 1][ii];
+					}
 				}
 			}
 			gr->AMR.clear();
@@ -884,14 +953,13 @@ void Setka::MK_delete(short int zone_MK)
 	}
 
 	// Записываем моменты
-	if (true)
+	if (this->phys_param->culc_cell_moments == true)
 	{
 		if (file_exists(this->phys_param->MK_file))
 		{
 			this->Download_cell_MK_parameters(this->phys_param->MK_file, zone_MK);
 		}
 		this->Save_cell_MK_parameters(this->phys_param->MK_file);
-
 	}
 
 	cout << "END MK_delete" << endl;
@@ -915,6 +983,9 @@ void Setka::MK_go(short int zone_MK)
 #pragma omp parallel for schedule(dynamic)
 	for (auto& gr : this->MK_Grans[zone_MK - 1])
 	{
+		Eigen::Vector3d n;
+		Eigen::Vector3d t;
+		Eigen::Vector3d m;
 
 		#pragma omp critical (first) 
 		{
@@ -939,9 +1010,16 @@ void Setka::MK_go(short int zone_MK)
 		}
 		double full_gran_potok = gr->MK_Potok;
 
+
 		if (full_gran_potok < 0.0000001 * MK_Potoks[zone_MK - 1]/ this->MK_Grans[zone_MK - 1].size())
 		{
 			continue;
+		}
+
+		if (gr->type != Type_Gran::Us)
+		{
+			n << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
+			get_bazis(n, t, m);
 		}
 
 		// Разыгрываем каждый сорт отдельно
@@ -994,7 +1072,16 @@ void Setka::MK_go(short int zone_MK)
 				P.Addcoord(poz);
 
 				// Находим скорость частицы
-				func->Get_random_velosity(func, gr->area[0], poz, this->Sensors[sens_num1]);
+				if (gr->type != Type_Gran::Us)
+				{
+					// Можно разыгрывать аналитическую функцию распределения на границе, а не табличную
+					this->Velosity_initial(this->Sensors[sens_num1], poz, n, t, m);
+				}
+				else
+				{
+					func->Get_random_velosity(func, gr->area[0], poz, this->Sensors[sens_num1]);
+				}
+
 				P.AddVel(poz);
 
 				// Некоторые проверки разыгрынной скорости частицы
@@ -1125,10 +1212,10 @@ void Setka::MK_go(short int zone_MK)
 				P.I_do = 0.0;
 
 				//cout << "FLY" << endl;
+
 				this->MK_fly_immit(P, zone_MK, this->Sensors[sens_num2]); // Запускаем частицу в полёт   // !! Не написана
 				//exit(-1);
 				//cout << "END" << endl;
-				//exit(-1);
 			}
 		}
 	}
@@ -1219,6 +1306,14 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 	// Главный цикл по ячейкам
 	// Выйти из него можно только если частица достигнет конца области
+
+	Eigen::Vector3d coord_init;
+	Eigen::Vector3d Vel_init;
+
+	coord_init << P.coord[0], P.coord[1], P.coord[2];
+	Vel_init << P.Vel[0], P.Vel[1], P.Vel[2];
+
+
 	unsigned int k_cikl = 0;
 	bool vtoroy_shans = false;
 	bool vtoroy_shans2 = false;
@@ -1234,9 +1329,11 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		if (P.cel->MK_zone != zone_MK)
 		{
 			cout << "Error 8767567487" << endl;
-			return;
-			cout << P.cel->MK_zone << "   " << zone_MK  << endl;
+			cout << P.cel->MK_zone << "   " << zone_MK << endl;
 			cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
+			cout << P.Vel[0] << " " << P.Vel[1] << " " << P.Vel[2] << endl;
+			cout << k_cikl << endl;
+			return;
 			exit(-1);
 		}
 
@@ -1296,15 +1393,15 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 				for (short int i = 0; i < 3; i++)
 				{
-					if (k1 < 10)
+					if (k1 < 2)
 					{
 						P.coord[i] += 1e-6 * P.Vel[i];
 					}
-					else if (k1 < 20)
+					else if (k1 < 4)
 					{
 						P.coord[i] += 1e-5 * P.Vel[i];
 					}
-					else if(k1 < 98)
+					else if(k1 < 6)
 					{
 						P.coord[i] = P.coord[i] + (Cell_centerr[i] - P.coord[i]) / 800.0;
 					}
@@ -1327,7 +1424,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				}
 			}
 
-			if (k1 > 100)
+			if (k1 > 7)
 			{
 				if (vtoroy_shans2 == false)
 				{
@@ -1336,11 +1433,20 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 					P.coord[0] = coord_do[0];
 					P.coord[1] = coord_do[1];
 					P.coord[2] = coord_do[2];
-					perturbVectorKeepingMagnitude(P.Vel[0], P.Vel[1], P.Vel[2], 0.001);
+					perturbVectorKeepingMagnitude(P.Vel[0], P.Vel[1], P.Vel[2], 0.01);
+
+					if (P.cel->MK_zone != zone_MK)
+					{
+						cout << "Error 9856312132" << endl;
+					}
+
+
 					continue;
 				}
 
 				cout << "Poteryal D" << endl;
+				cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
+				cout << P.Vel[0] << " " << P.Vel[1] << " " << P.Vel[2] << endl;
 				return;
 				//cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 				//whach(P.cel->number);
@@ -1481,6 +1587,8 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 					}
 				}
 
+
+
 				double uz_M = Velosity_2(u, cp) / (uz * kv(cp) * cp * const_pi * sqrtpi_);
 				double uz_E = Velosity_3(u, cp);
 
@@ -1511,6 +1619,10 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				P.sort = (short int)(P.cel->type);
 				P.KSI = -log(1.0 - Sens->MakeRandom());
 				vtoroy_shans = false;
+				if (P.cel->MK_zone != zone_MK)
+				{
+					cout << "Error 9088565453" << endl;
+				}
 				continue;
 				//return this->MK_fly_immit(P, zone_MK, Sens);
 			}
@@ -1555,8 +1667,9 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 			if (gran->cells[0]->MK_zone == zone_MK) nn = 0;
 			auto AMR = gran->AMR[P.sort - 1][nn];
 
-			if (this->phys_param->culc_AMR == true)
+			if (this->phys_param->culc_AMR == true && gran->type == Type_Gran::Us)
 			{
+				// В грани на границе нет смысла ничего записывать
 				AMR->Add_particle(P.Vel[0], P.Vel[1], P.Vel[2], P.mu); // мьютексы внутри
 			}
 
@@ -1572,7 +1685,11 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 	vv1:
 		kkk2++;
 		// точно находим следующую ячейку
-		P.cel = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cell_next);
+		Cell* Cell_next_ = Cell_next;
+		P.cel = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cell_next_);
+
+		// Кажется в случае проблем надо просто подтянуть ячейку к центру грани
+
 		if (P.cel == nullptr)
 		{
 			//cout << "Error  8545342078" << endl; // ТУТ надо фиксить  22.0351 15.9061 -398.559
@@ -1618,6 +1735,12 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				P.cel = Cell_do;
 				perturbVectorKeepingMagnitude(P.Vel[0], P.Vel[1], P.Vel[2], 0.01);
 				vtoroy_shans = true;
+
+				if (P.cel->MK_zone != zone_MK)
+				{
+					cout << "Error 1213563589" << endl;
+				}
+
 				continue;
 			}
 
@@ -1627,7 +1750,9 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 		if (P.cel == nullptr)
 		{
-			if (kkk2 < 20)
+			// В этом случае точка часто попадает в угол ячеки или на грань
+
+			if (kkk2 < 2)
 			{
 				for (short int i = 0; i < 3; i++)
 				{
@@ -1635,6 +1760,20 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				}
 				goto vv1;
 			}
+			else if (kkk2 < 5)
+			{
+				perturbVector(P.coord[0], P.coord[1], P.coord[2], Cell_do->geo_parameters["l_size"]/100);
+				goto vv1;
+			}
+			else if (kkk2 < 8)
+			{
+				for (short int i = 0; i < 3; i++)
+				{
+					P.coord[i] += (-Cell_do->center[0][i] + P.coord[i]) / 100.0;
+				}
+				goto vv1;
+			}
+
 			cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 			cout << "Poteryal B" << endl;
 			return;
@@ -1644,11 +1783,80 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		//cout << "2 Soburausi otpravit " << endl;
 		//cout << "P.coord = " << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 		vtoroy_shans = false;
+
+		if (P.cel->MK_zone != zone_MK)
+		{
+			cout << "Error 4562190567" << endl;
+		}
+
 		continue;
 		//return this->MK_fly_immit(P, zone_MK, Sens);
 	}
 }
 
+double Setka::Get_Spotok_inf(const Eigen::Vector3d& n)
+{
+	Eigen::Vector3d V_inf_;
+	V_inf_ << this->phys_param->Velosity_inf, 0.0, 0.0;
+
+	double Ux = V_inf_.dot(n);
+
+	return -(-exp(-kv(Ux)) + sqrtpi_ * Ux * erfc(Ux)) / (2.0 * sqrtpi_);
+}
+
+void Setka::Velosity_initial(Sensor* s, Eigen::Vector3d& V,
+	const Eigen::Vector3d& n, const Eigen::Vector3d& t, 
+	const Eigen::Vector3d& m)
+{
+	Eigen::Vector3d V_inf_;
+	Eigen::Vector3d V_inf;
+	V_inf_ << this->phys_param->Velosity_inf, 0.0, 0.0;
+
+	V_inf[0] = V_inf_.dot(n);
+	V_inf[1] = V_inf_.dot(t);
+	V_inf[2] = V_inf_.dot(m);
+
+	double ksi3, ksi4, ksi5, ksi6;
+	double z = 0;
+	double p1 = fabs(V_inf[0]) * sqrtpi_ /
+		(1.0 + fabs(V_inf[0]) * sqrtpi_);
+
+	do
+	{
+		ksi3 = s->MakeRandom();
+		ksi4 = s->MakeRandom();
+		ksi5 = s->MakeRandom();
+		ksi6 = s->MakeRandom();
+
+		if (p1 > ksi3)
+		{
+			z = cos(const_pi * ksi5) * sqrt(-log(ksi4));
+		}
+		else
+		{
+			if (ksi4 <= 0.5)
+			{
+				z = -sqrt(-log(2.0 * ksi4));
+			}
+			else
+			{
+				z = sqrt(-log(2.0 * (1.0 - ksi4)));
+			}
+		}
+	} while (fabs(z + V_inf[0]) / (fabs(V_inf[0]) + fabs(z)) < ksi6 || z > -V_inf[0]);
+
+	double V1 = z + V_inf[0];
+
+	double ksi1 = s->MakeRandom();
+	double ksi2 = s->MakeRandom();
+	double a = sqrt(-log(ksi2));
+	double V2 = V_inf[1] + a * cos(2.0 * const_pi * ksi1);
+	double V3 = V_inf[2] + a * sin(2.0 * const_pi * ksi1);
+
+	V = V1 * n + V2 * t + V3 * m;
+
+	return;
+}
 
 bool Setka::Time_to_vilet(const MK_particle& P, double& time, Gran*& gran)
 {

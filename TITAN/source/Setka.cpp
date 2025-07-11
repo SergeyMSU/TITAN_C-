@@ -187,20 +187,11 @@ void Setka::Algoritm(short int alg)
 		this->Tecplot_print_gran_with_condition(6);
 
 		// Готовим MK, датчики, функции распределения
-		short int zone_play = 4;   // 6   4  
-		this->MK_prepare(zone_play);
-		this->MK_go(zone_play);
-		this->MK_delete(zone_play);
-
-		return;
-
-		zone_play = 6;   // 6   4  
-		this->MK_prepare(zone_play);
-		this->MK_go(zone_play);
-		this->MK_delete(zone_play);
+		short int zone_play = 3;   // 6   4  
 
 		this->phys_param->N_per_gran = 10000;
-		for (short int ii = 0; ii < 3; ii++)
+		this->phys_param->culc_cell_moments = false;    // Нужно ли считать моменты в ячейках?
+		for (short int ii = 0; ii < 0; ii++)
 		{
 			zone_play = 3;   // 6   4  
 			this->MK_prepare(zone_play);
@@ -208,34 +199,8 @@ void Setka::Algoritm(short int alg)
 			this->MK_delete(zone_play);
 		}
 
-		for (short int ii = 0; ii < 3; ii++)
-		{
-			zone_play = 5;   // 6   4  
-			this->MK_prepare(zone_play);
-			this->MK_go(zone_play);
-			this->MK_delete(zone_play);
-		}
-
-		for (short int ii = 0; ii < 3; ii++)
-		{
-			zone_play = 7;   // 6   4  
-			this->MK_prepare(zone_play);
-			this->MK_go(zone_play);
-			this->MK_delete(zone_play);
-		}
-
-		this->phys_param->N_per_gran = 100000;
-		zone_play = 3;   // 6   4  
-		this->MK_prepare(zone_play);
-		this->MK_go(zone_play);
-		this->MK_delete(zone_play);
-
-		zone_play = 5;   // 6   4  
-		this->MK_prepare(zone_play);
-		this->MK_go(zone_play);
-		this->MK_delete(zone_play);
-
-		zone_play = 7;   // 6   4  
+		this->phys_param->culc_cell_moments = true;    // Нужно ли считать моменты в ячейках?
+		this->phys_param->N_per_gran = 150000;
 		this->MK_prepare(zone_play);
 		this->MK_go(zone_play);
 		this->MK_delete(zone_play);
@@ -259,7 +224,7 @@ Cell* Setka::Find_cell_point(const double& x, const double& y, const double& z, 
 	while (true)
 	{
 		kkk++;
-		if (kkk > 1000000)
+		if (kkk > 10000)
 		{
 			//cout << "Ne naydeno! A " << endl;
 			return nullptr;
