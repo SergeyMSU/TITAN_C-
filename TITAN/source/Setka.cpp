@@ -187,7 +187,58 @@ void Setka::Algoritm(short int alg)
 		this->Tecplot_print_gran_with_condition(6);
 
 		// Готовим MK, датчики, функции распределения
-		short int zone_play = 1;   // 6   4  
+		short int zone_play = 2;   // 6   4  
+		this->MK_prepare(zone_play);
+		this->MK_go(zone_play);
+		this->MK_delete(zone_play);
+
+		zone_play = 4;   // 6   4  
+		this->MK_prepare(zone_play);
+		this->MK_go(zone_play);
+		this->MK_delete(zone_play);
+
+		zone_play = 6;   // 6   4  
+		this->MK_prepare(zone_play);
+		this->MK_go(zone_play);
+		this->MK_delete(zone_play);
+
+		this->phys_param->N_per_gran = 10000;
+		for (short int ii = 0; ii < 3; ii++)
+		{
+			zone_play = 3;   // 6   4  
+			this->MK_prepare(zone_play);
+			this->MK_go(zone_play);
+			this->MK_delete(zone_play);
+		}
+
+		for (short int ii = 0; ii < 3; ii++)
+		{
+			zone_play = 5;   // 6   4  
+			this->MK_prepare(zone_play);
+			this->MK_go(zone_play);
+			this->MK_delete(zone_play);
+		}
+
+		for (short int ii = 0; ii < 3; ii++)
+		{
+			zone_play = 7;   // 6   4  
+			this->MK_prepare(zone_play);
+			this->MK_go(zone_play);
+			this->MK_delete(zone_play);
+		}
+
+		this->phys_param->N_per_gran = 100000;
+		zone_play = 3;   // 6   4  
+		this->MK_prepare(zone_play);
+		this->MK_go(zone_play);
+		this->MK_delete(zone_play);
+
+		zone_play = 5;   // 6   4  
+		this->MK_prepare(zone_play);
+		this->MK_go(zone_play);
+		this->MK_delete(zone_play);
+
+		zone_play = 7;   // 6   4  
 		this->MK_prepare(zone_play);
 		this->MK_go(zone_play);
 		this->MK_delete(zone_play);
