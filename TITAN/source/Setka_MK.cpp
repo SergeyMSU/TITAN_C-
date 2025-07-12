@@ -616,12 +616,12 @@ void Setka::MK_prepare(short int zone_MK)
 								gr->AMR[iH - 1][ii]->Size() < 5000)
 							{
 								unsigned short int NN = 1;
-								while (NN > 0)
-								{
+								//while (NN > 0)
+								//{
 									//cout << "Rifine" << endl;
 									NN = gr->AMR[iH - 1][ii]->Refine();
 									NNall += NN;
-								}
+								//}
 							}
 
 							if (gr->AMR[iH - 1][ii]->Size() > 5000)
@@ -801,6 +801,9 @@ void Setka::MK_prepare(short int zone_MK)
 				gr->AMR[3][ni]->SpotokV = sjv * gr->area[0];
 				S += gr->AMR[3][ni]->SpotokV;
 				gr->MK_Potok += gr->AMR[3][ni]->SpotokV;
+
+				//cout << " Potok = " << sjv << endl;
+				//exit(-1);
 			}
 
 
@@ -884,6 +887,8 @@ void Setka::MK_delete(short int zone_MK)
 #pragma omp parallel for schedule(dynamic)
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
 		{
+			if (gr->type != Type_Gran::Us) continue;
+
 			short int ni = 1;
 			if (gr->cells[0]->MK_zone == zone_MK)
 			{
@@ -1016,6 +1021,7 @@ void Setka::MK_go(short int zone_MK)
 			continue;
 		}
 
+		// Получаем нормаль для граничных граней (это будет внешняя нормаль)
 		if (gr->type != Type_Gran::Us)
 		{
 			n << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];

@@ -187,20 +187,7 @@ void Setka::Algoritm(short int alg)
 		this->Tecplot_print_gran_with_condition(6);
 
 		// Готовим MK, датчики, функции распределения
-		short int zone_play = 3;   // 6   4  
-
-		this->phys_param->N_per_gran = 10000;
-		this->phys_param->culc_cell_moments = false;    // Нужно ли считать моменты в ячейках?
-		for (short int ii = 0; ii < 0; ii++)
-		{
-			zone_play = 3;   // 6   4  
-			this->MK_prepare(zone_play);
-			this->MK_go(zone_play);
-			this->MK_delete(zone_play);
-		}
-
-		this->phys_param->culc_cell_moments = true;    // Нужно ли считать моменты в ячейках?
-		this->phys_param->N_per_gran = 150000;
+		short int zone_play = 7;   // 6   4  
 		this->MK_prepare(zone_play);
 		this->MK_go(zone_play);
 		this->MK_delete(zone_play);
