@@ -186,6 +186,8 @@ void Setka::Algoritm(short int alg)
 		this->Tecplot_print_gran_with_condition(5);
 		this->Tecplot_print_gran_with_condition(6);
 
+		// Надо проверить зону 7 на постоянных полях с перезарядкой (на Максвелле) - не уверен в правильности
+
 		// Готовим MK, датчики, функции распределения
 		short int zone_play = 7;   // 6   4  
 		this->MK_prepare(zone_play);
