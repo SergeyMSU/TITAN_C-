@@ -461,15 +461,6 @@ void Setka::Set_MK_Zone(void)
 		Centr[1] = gr->center[0][1];
 		Centr[2] = gr->center[0][2];
 
-		if (gr->type == Type_Gran::Outer_Hard )
-		{
-			if (Centr[0] < 0)
-			{
-				this->MK_Grans[6].push_back(gr);
-				gr->MK_type.push_back(7);
-			}
-		}
-
 		if (gr->type != Type_Gran::Us && Centr[0] < 0)
 		{
 			if (gr->cells[0]->type == Type_cell::Zone_4)
@@ -512,7 +503,7 @@ void Setka::Set_MK_Zone(void)
 	}
 
 	// ѕровер€ем, что в массивах нет повторов
-	if (false)
+	if (true)
 	{
 		for (size_t jj = 0; jj < 7; jj++)
 		{
@@ -531,6 +522,7 @@ void Setka::Set_MK_Zone(void)
 				{
 					cout << "ERROR 6435856408" << endl;
 					cout << jj << endl;
+					exit(-1);
 				}
 			}
 		}
@@ -802,7 +794,7 @@ void Setka::MK_prepare(short int zone_MK)
 				S += gr->AMR[3][ni]->SpotokV;
 				gr->MK_Potok += gr->AMR[3][ni]->SpotokV;
 
-				cout << " Potok = " << sjv << endl;
+				//cout << " Potok = " << sjv << endl;
 				//exit(-1);
 			}
 
