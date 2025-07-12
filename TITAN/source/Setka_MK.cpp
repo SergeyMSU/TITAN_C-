@@ -802,7 +802,7 @@ void Setka::MK_prepare(short int zone_MK)
 				S += gr->AMR[3][ni]->SpotokV;
 				gr->MK_Potok += gr->AMR[3][ni]->SpotokV;
 
-				//cout << " Potok = " << sjv << endl;
+				cout << " Potok = " << sjv << endl;
 				//exit(-1);
 			}
 
@@ -1483,10 +1483,20 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 		// ѕолучаем параметры плазмы в €чейке ----------------------------
 		double ro = P.cel->parameters[0]["rho"];
-		double cp = sqrt(P.cel->parameters[0]["p"] / ro);
+		double p = P.cel->parameters[0]["p"];
+		double rho_He = P.cel->parameters[0]["n_He"];
+		double cp;// = sqrt(P.cel->parameters[0]["p"] / ro);
 		double vx = P.cel->parameters[0]["Vx"];			// —корости плазмы в €чейке
 		double vy = P.cel->parameters[0]["Vy"];
 		double vz = P.cel->parameters[0]["Vz"];
+
+		double rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E;
+		
+		Sootnosheniya(ro, p, rho_He, 0.0, 0.0, (int)(P.cel->type),
+			rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
+
+		ro = rho_Th;
+		cp = sqrt(p_Th / rho_Th);
 
 		/*double ro = 1.0;
 		double cp = 1.0;
