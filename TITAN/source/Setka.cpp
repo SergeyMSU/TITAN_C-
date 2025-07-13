@@ -188,11 +188,28 @@ void Setka::Algoritm(short int alg)
 
 		// Надо проверить зону 7 на постоянных полях с перезарядкой (на Максвелле) - не уверен в правильности
 
-		// Готовим MK, датчики, функции распределения
-		short int zone_play = 7;   // 6   4  
-		this->MK_prepare(zone_play);
-		this->MK_go(zone_play);
-		this->MK_delete(zone_play);
+		vector<short int> zones_number;
+
+		zones_number.push_back(6);
+		zones_number.push_back(4);
+		zones_number.push_back(2);
+		zones_number.push_back(1);
+		zones_number.push_back(3);
+		zones_number.push_back(5);
+		zones_number.push_back(7);
+		zones_number.push_back(5);
+		zones_number.push_back(3);
+		zones_number.push_back(1);
+		zones_number.push_back(2);
+		zones_number.push_back(4);
+
+		for (const auto& zone_play : zones_number)
+		{
+			cout << "Start zone = " << zone_play << endl;
+			this->MK_prepare(zone_play);
+			this->MK_go(zone_play);
+			this->MK_delete(zone_play);
+		}
 	}
 }
 
