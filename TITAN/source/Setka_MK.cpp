@@ -500,6 +500,13 @@ void Setka::Set_MK_Zone(void)
 	for (size_t jj = 0; jj < 7; jj++)
 	{
 		cout << "MK_grans:  " << jj << "   size = " << this->MK_Grans[jj].size() << endl;
+		unsigned int N_ = 0;
+		for (auto& gr : this->MK_Grans[jj])
+		{
+			if (gr->type == Type_Gran::Us) N_++;
+		}
+		cout << "Only active:  " << N_ << endl;
+
 	}
 
 	// Проверяем, что в массивах нет повторов
@@ -529,6 +536,10 @@ void Setka::Set_MK_Zone(void)
 			
 
 	}
+
+
+
+
 
 	cout << "END Set_MK_Zone" << endl;
 }
@@ -574,6 +585,9 @@ void Setka::MK_prepare(short int zone_MK)
 	// Готовим/загружаем AMR сетку для граней
 	if (true)
 	{
+		unsigned int NN1_ = 0;
+		unsigned int NN2_ = 0;
+
 		unsigned short int NNall = 0;
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
 		{
@@ -664,10 +678,26 @@ void Setka::MK_prepare(short int zone_MK)
 						gr->AMR[iH - 1][ii]->parameters["nn"] = 0.0;
 						gr->AMR[iH - 1][ii]->parameters["Smu"] = 0.0;
 					}
+
+				}
+			}
+
+			if (gr->type == Type_Gran::Us)
+			{
+				for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
+				{
+					short int ni = 1;  // определяем выходящую функцию распределения
+					if (gr->cells[0]->MK_zone == zone_MK)
+					{
+						ni = 0;
+					}
+					NN1_ += gr->AMR[iH - 1][ni]->Size();
+					NN2_++;
 				}
 			}
 		}
 		cout << "Izmelcheno  " << NNall << "  yacheek" << endl;
+		cout << "Srednee chislo chastic v AMR na vixodnix granyax =  " << 1.0 * NN1_/ NN2_ << endl;
 	}
 
 	// Можно удалить файлы граничных граней, так как они только место занимают
@@ -1534,8 +1564,8 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				double t_ex = ksi / Vel_norm;
 				P.I_do = 0.0;
 				for (short int i = 0; i < 3; i++) P.coord[i] += t_ex * P.Vel[i];
-				auto Cnow = P.cel;
-				auto CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
+				Cell* Cnow = P.cel;
+				Cell* CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
 
 				if (P.cel != CC)
 				{
@@ -1629,6 +1659,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				vtoroy_shans = false;
 				if (P.cel->MK_zone != zone_MK)
 				{
+					cout << P.cel->number << " " << Cell_do->number << endl;
 					cout << "Error 9088565453" << endl;
 				}
 				continue;
@@ -1700,14 +1731,6 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 		if (P.cel == nullptr)
 		{
-			//cout << "Error  8545342078" << endl; // ТУТ надо фиксить  22.0351 15.9061 -398.559
-			//whach(P.coord[0]);
-			//whach(P.coord[1]);
-			//whach(P.coord[2]);
-			//whach(P.Vel[0]);
-			//whach(P.Vel[1]);
-			//whach(P.Vel[2]);
-			//exit(-1);
 			for (auto& gr : Cell_do->grans)
 			{
 				if (gr->Have_zone_number(zone_MK))
@@ -1760,7 +1783,31 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		{
 			// В этом случае точка часто попадает в угол ячеки или на грань
 
-			if (kkk2 < 2)
+			if (kkk2 < 3)
+			{
+				Eigen::Vector3d normal;
+				normal << gran->normal[0][0], gran->normal[0][1], gran->normal[0][2];
+				if (gran->cells[0] != Cell_do)
+				{
+					normal *= -1.0;
+				}
+				double l_ = norm2(gran->yzels[0]->coord[0][0] - gran->yzels[1]->coord[0][0],
+					gran->yzels[0]->coord[0][1] - gran->yzels[1]->coord[0][1],
+					gran->yzels[0]->coord[0][2] - gran->yzels[1]->coord[0][2]);
+				l_ = min(l_, norm2(gran->yzels[0]->coord[0][0] - gran->yzels[2]->coord[0][0],
+					gran->yzels[0]->coord[0][1] - gran->yzels[2]->coord[0][1],
+					gran->yzels[0]->coord[0][2] - gran->yzels[2]->coord[0][2]));
+				l_ = min(l_, norm2(gran->yzels[0]->coord[0][0] - gran->yzels[3]->coord[0][0],
+					gran->yzels[0]->coord[0][1] - gran->yzels[3]->coord[0][1],
+					gran->yzels[0]->coord[0][2] - gran->yzels[3]->coord[0][2]));
+
+				for (short int i = 0; i < 3; i++)
+				{
+					P.coord[i] += (gran->center[0][i] - P.coord[i])/200.0 + normal[i] * l_ / 200.0;
+				}
+				goto vv1;
+			}
+			if (kkk2 < 4)
 			{
 				for (short int i = 0; i < 3; i++)
 				{
@@ -1768,12 +1815,12 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				}
 				goto vv1;
 			}
-			else if (kkk2 < 5)
+			else if (kkk2 < 6)
 			{
 				perturbVector(P.coord[0], P.coord[1], P.coord[2], Cell_do->geo_parameters["l_size"]/100);
 				goto vv1;
 			}
-			else if (kkk2 < 8)
+			else if (kkk2 < 9)
 			{
 				for (short int i = 0; i < 3; i++)
 				{
