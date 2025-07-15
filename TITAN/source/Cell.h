@@ -16,6 +16,9 @@ class Cell
 public:
 	vector<Yzel*> yzels;
 	vector<Gran*> grans;
+	//vector<Edge*> edges;          // ¬ектор рЄбер нужен только дл€ правильного вычислени€ ротеров
+	
+
 	int number = 0;                // номера начинаютс€ с единицы
 	bool is_inner = false;         // явл€етс€ ли €чейка внутренней (которые считаютс€ отдельно)
 	mutex mut;

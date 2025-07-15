@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0002.bin");  // 6
+    S1.Download_cell_parameters("parameters_0003.bin");  // 6
     // c 4 включил bn = 0
     // с 5 начались проблемы с давлением на контакте (становиться меньше 0)
     // с 6 добавил обнуление bn перед контактом
@@ -121,7 +121,12 @@ int main()
 
     //S1.Save_cell_parameters("parameters_0003.bin");
 
-    S1.Culc_divergence_velocity_in_cell();
+    S1.Edges_create();
+
+    S1.Culc_divergence_in_cell();
+    S1.Culc_rotors_in_cell();
+
+
     S1.Save_for_interpolate("For_intertpolate_1.bin");
     Interpol SS = Interpol("For_intertpolate_1.bin");
 

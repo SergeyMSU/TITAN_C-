@@ -16,6 +16,9 @@ public:
 	bool regim_otladki = true;
 
 
+	vector<Edge*> All_Edges; // Вектор рёбер нужен только для правильного вычисления ротеров
+	// По умолчанию рёбра не создаются, они создаются в отдельной функции
+
 	vector<Yzel*> All_Yzel;
 	vector <vector<Yzel*>> Yzel_2D;
 	vector <vector<Yzel*>> Krug_Yzel;         // Узлы в кругу (в головной области)  
@@ -92,6 +95,8 @@ public:
 	///// БЛОК ГЕОМЕТРИИ ****************************************************************************
 	//****************************************************************************
 	
+	void Edges_create(void);
+
 	void Find_Yzel_Sosed_for_sglag(void);
 	// Находим узлы-соседи в головной области HP и BS
 	// Для сглаживания поверхностей
@@ -170,7 +175,11 @@ public:
 	int determ_zone(Cell* C, short int now); // Определить зону, в которой находится ячейка
 	// Зоны есть  1, 2, 3, 4
 
-	void Culc_divergence_velocity_in_cell(void); 
+	void Culc_rotors_in_cell(void);
+	// Считает ротор векторной величины в ячейке
+	// Пока зделал для ротора нормированного магнитного поля
+
+	void Culc_divergence_in_cell(void); 
 	// В каждой ячейке считает дивергенцию скорости
 
 	void Set_MK_Zone(void);

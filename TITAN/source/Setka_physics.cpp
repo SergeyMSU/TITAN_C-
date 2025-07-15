@@ -1809,23 +1809,222 @@ void Setka::Download_cell_MK_parameters(string filename, short int zone_except)
 	in.close();
 }
 
-void Setka::Culc_divergence_velocity_in_cell(void)
+void Setka::Culc_rotors_in_cell(void)
 {
-	cout << "Start: Culc_divergence_velocity_in_cell" << endl;
-	unordered_map<string, double> par_left, par_right;
-	Eigen::Vector3d normal, Vel;
+	cout << "Start: Culc_rotor_in_cell" << endl;
+
+	this->phys_param->param_names.push_back("rotB/b2_x");
+	this->phys_param->param_names.push_back("rotB/b2_y");
+	this->phys_param->param_names.push_back("rotB/b2_z");
+	// Добавили переменную для интерполяции
+	unsigned int k1 = 0;
+
+#pragma omp parallel for schedule(dynamic)
+	for (auto& cell : this->All_Cell)
+	{
+		#pragma omp critical (first) 
+		{
+			k1++;
+			if (k1 % 10000 == 0)
+			{
+				cout << "Gran = " << k1 << "    Iz: " << this->All_Cell.size() << endl;
+			}
+		}
+
+		int n = 0;  // Число элементов матрицы или граней в ячейке
+		n = cell->grans.size();
+		Eigen::MatrixXd M(n, 3);
+		Eigen::VectorXd F(n);
+
+		short int ig = -1;
+		for (auto gr : cell->grans)
+		{
+			ig++;
+			Eigen::Vector3d center_gr;
+			Eigen::Vector3d normal;
+			double B_on_gran = 0.0;
+			center_gr << gr->center[0][0], gr->center[0][1], gr->center[0][2];
+			normal << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
+
+			if (gr->cells[0] != cell) normal = -normal;
+
+
+			for (auto ed : gr->edges)
+			{
+				Eigen::Vector3d ll;
+				Eigen::Vector3d ed_center;
+				Eigen::Vector3d Vec;
+				Eigen::Vector3d Vec_all;
+				int v_all = 0;
+
+				Vec_all << 0.0, 0.0, 0.0;
+
+				ll << (ed->A->coord[0][0] - ed->B->coord[0][0]),
+					(ed->A->coord[0][1] - ed->B->coord[0][1]),
+					(ed->A->coord[0][2] - ed->B->coord[0][2]);
+
+				ed_center << (ed->A->coord[0][0] + ed->B->coord[0][0]) / 2.0,
+					(ed->A->coord[0][1] + ed->B->coord[0][1]) / 2.0,
+					(ed->A->coord[0][2] + ed->B->coord[0][2]) / 2.0;
+
+				if (true)
+				{
+					for (auto gr_ : ed->grans)
+					{
+						if (gr_->cells.size() == 1)
+						{
+							if (gr_->cells[0]->type != cell->type)
+							{
+								continue;
+							}
+						}
+						else
+						{
+							if (gr_->cells[0]->type != cell->type &&
+								gr_->cells[1]->type != cell->type)
+							{
+								continue;
+							}
+						}
+
+						unordered_map<string, double> par_left, par_right;
+						if (gr_->type == Type_Gran::Us)
+						{
+							this->Snos_on_Gran(gr_, par_left, par_right, 0);
+
+							if (gr_->type2 == Type_Gran_surf::Us)
+							{
+								Vec << (par_left["Bx"] + par_right["Bx"]) / 2.0,
+									(par_left["By"] + par_right["By"]) / 2.0,
+									(par_left["Bz"] + par_right["Bz"]) / 2.0;
+							}
+							else
+							{
+								if (gr_->cells[0]->type == cell->type)
+								{
+									Vec << par_right["Bx"],
+										par_right["By"],
+										par_right["Bz"];
+								}
+								else
+								{
+									Vec << par_left["Bx"],
+										par_left["By"],
+										par_left["Bz"];
+								}
+							}
+						}
+						else
+						{
+							Vec << cell->parameters[0]["Bx"], cell->parameters[0]["By"], cell->parameters[0]["Bz"];
+						}
+
+						v_all++;
+						Vec_all += Vec;
+					}
+				}
+				else
+				{
+					for (auto ce : ed->cells)
+					{
+						v_all++;
+						Vec_all[0] += ce->parameters[0]["Bx"];
+						Vec_all[1] += ce->parameters[0]["By"];
+						Vec_all[2] += ce->parameters[0]["Bz"];
+					}
+				}
+
+
+				Vec_all /= v_all;
+
+				Eigen::Vector3d nn = (ed_center - center_gr).cross(ll);
+
+				double norm = Vec_all.norm();
+				Vec_all /= (kv(norm));
+
+				if (nn.dot(normal) > 0)
+				{
+					B_on_gran += Vec_all.dot(ll);
+				}
+				else
+				{
+					B_on_gran -= Vec_all.dot(ll);
+				}
+			}
+
+			B_on_gran /= gr->area[0];
+
+
+			M(ig, 0) = normal[0];
+			M(ig, 1) = normal[1];
+			M(ig, 2) = normal[2];
+			F[ig] = B_on_gran;
+		}
+
+		Eigen::Vector3d vvv = M.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(F);
+
+		cell->parameters[0]["rotB/b2_x"] = vvv[0];
+		cell->parameters[0]["rotB/b2_y"] = vvv[1];
+		cell->parameters[0]["rotB/b2_z"] = vvv[2];
+
+		/*cout << F[0] << " " <<
+			F[1] << " " <<
+			F[2] << " " <<
+			F[3] << " " <<
+			F[4] << " " <<
+			F[5] << endl;
+
+		cout << M(0, 0) << " " << M(0, 1) << " " << M(0, 2) << endl;
+		cout << M(1, 0) << " " << M(1, 1) << " " << M(1, 2) << endl;
+		cout << M(2, 0) << " " << M(2, 1) << " " << M(2, 2) << endl;
+		cout << M(3, 0) << " " << M(3, 1) << " " << M(3, 2) << endl;
+		cout << M(4, 0) << " " << M(4, 1) << " " << M(4, 2) << endl;
+		cout << M(5, 0) << " " << M(5, 1) << " " << M(5, 2) << endl;
+
+		cout << vvv[0] << " " << vvv[1] << " " << vvv[2] << endl;
+
+		exit(-1);*/
+	}
+
+	cout << "End: Culc_rotor_in_cell" << endl;
+}
+
+
+void Setka::Culc_divergence_in_cell(void)
+{
+	cout << "Start: Culc_divergence_in_cell" << endl;
 
 	this->phys_param->param_names.push_back("divV");
+	this->phys_param->param_names.push_back("div_eB");
+	this->phys_param->param_names.push_back("div_et");
+	this->phys_param->param_names.push_back("gradK_x");
+	this->phys_param->param_names.push_back("gradK_y");
+	this->phys_param->param_names.push_back("gradK_z");
+	this->phys_param->param_names.push_back("et_x");
+	this->phys_param->param_names.push_back("et_y");
+	this->phys_param->param_names.push_back("et_z");
 	// Добавили переменную для интерполяции
 
+#pragma omp parallel for
 	for (size_t i_step = 0; i_step < this->All_Cell.size(); i_step++)
 	{
+		unordered_map<string, double> par_left, par_right;
+		Eigen::Vector3d normal, Vel;
+		Eigen::Vector3d eB, gradK;
+
 		auto& cell = this->All_Cell[i_step];
 		double divV = 0.0;
+		double div_eB = 0.0;
+		double div_et = 0.0;
+		gradK << 0.0, 0.0, 0.0;
 
 		// пробегаемся по всем граням 
 		for (const auto& gr : cell->grans)
 		{
+			eB << 0.0, 0.0, 0.0;
+			Vel << 0.0, 0.0, 0.0;
+
+
 			if (gr->cells[0] == cell)
 			{
 				normal << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
@@ -1844,33 +2043,71 @@ void Setka::Culc_divergence_velocity_in_cell(void)
 					Vel << (par_left["Vx"] + par_right["Vx"])/2.0, 
 						(par_left["Vy"] + par_right["Vy"]) / 2.0,
 						(par_left["Vz"] + par_right["Vz"]) / 2.0;
+					eB << (par_left["Bx"] + par_right["Bx"]) / 2.0,
+						(par_left["By"] + par_right["By"]) / 2.0,
+						(par_left["Bz"] + par_right["Bz"]) / 2.0;
 				}
 				else
 				{
 					if (gr->cells[0] == cell)
 					{
-						Vel << par_right["Vx"],
-							par_right["Vy"],
-							par_right["Vz"];
-					}
-					else
-					{
 						Vel << par_left["Vx"],
 							par_left["Vy"],
 							par_left["Vz"];
+						eB << par_left["Bx"],
+							par_left["By"],
+							par_left["Bz"];
+					}
+					else
+					{
+						Vel << par_right["Vx"],
+							par_right["Vy"],
+							par_right["Vz"];
+						eB << par_right["Bx"],
+							par_right["By"],
+							par_right["Bz"];
 					}
 				}
 			}
 			else
 			{
 				Vel << cell->parameters[0]["Vx"], cell->parameters[0]["Vy"], cell->parameters[0]["Vz"];
+				eB << cell->parameters[0]["Bx"], cell->parameters[0]["By"], cell->parameters[0]["Bz"];
 			}
+
+			double norm = eB.norm();
+			eB /= norm;
+
+			Eigen::Vector3d t, m;
+			get_bazis(eB, t, m);
+
+			gradK += normal * gr->area[0]/ norm;
 			
 			divV += Vel.dot(normal) * gr->area[0];
+			div_eB += eB.dot(normal) * gr->area[0];
+			div_et += t.dot(normal) * gr->area[0];
 		}
 
 		cell->parameters[0]["divV"] = divV/cell->volume[0];
+		cell->parameters[0]["div_eB"] = div_eB /cell->volume[0];
+		gradK = gradK /cell->volume[0];
+
+		cell->parameters[0]["div_et"] = div_et / cell->volume[0];
+
+		cell->parameters[0]["gradK_x"] = gradK[0];
+		cell->parameters[0]["gradK_y"] = gradK[1];
+		cell->parameters[0]["gradK_z"] = gradK[2];
+
+		Eigen::Vector3d t, m;
+		eB << cell->parameters[0]["Bx"], cell->parameters[0]["By"],
+			cell->parameters[0]["Bz"];
+		eB.normalize();
+		get_bazis(eB, t, m);
+
+		cell->parameters[0]["et_x"] = t[0];
+		cell->parameters[0]["et_y"] = t[1];
+		cell->parameters[0]["et_z"] = t[2];
 	}
 
-	cout << "End: Culc_divergence_velocity_in_cell" << endl;
+	cout << "End: Culc_divergence_in_cell" << endl;
 }

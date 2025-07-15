@@ -4377,3 +4377,94 @@ void Setka::Tecplot_print_plane_interpolation(Eigen::Vector3d A, Eigen::Vector3d
 
 	cout << "End: Tecplot_print_plane_interpolation" << endl;
 }
+
+struct PairHash {
+	size_t operator()(const std::pair<Yzel*, Yzel*>& p) const {
+		// Комбинируем хеши указателей
+		return std::hash<Yzel*>()(p.first) ^ (std::hash<Yzel*>()(p.second) << 1);
+	}
+};
+// Возможны коллизии (например, пары (A, B) и (B, A) дадут одинаковый хеш, 
+// если ^ используется без дополнительных преобразований).
+
+void Setka::Edges_create(void)
+{
+	cout << "Start: Edges_create" << endl;
+	this->Renumerate();
+
+	Edge* Edge_;
+	std::unordered_map<std::pair<Yzel*, Yzel*>, Edge*, PairHash>  map;
+
+
+	for (auto& gr: this->All_Gran)
+	{
+		for (short int i = 0; i < gr->yzels.size(); i++)
+		{
+			short int ii = i + 1;
+			if (ii >= gr->yzels.size()) ii = 0;
+
+			std::pair<Yzel*, Yzel*> p1 = { gr->yzels[i] , gr->yzels[ii] };
+			std::pair<Yzel*, Yzel*> p2 = { gr->yzels[ii] , gr->yzels[i] };
+
+			if (map.find(p1) != map.end() || map.find(p2) != map.end())
+			{
+				Edge* AA;
+				if (map.find(p1) != map.end())
+				{
+					AA = map[p1];
+				}
+				else
+				{
+					AA = map[p2];
+				}
+
+				AA->grans.push_back(gr);
+				gr->edges.push_back(AA);
+			}
+			else
+			{
+				Edge_ = new Edge();
+				Edge_->grans.push_back(gr);
+				Edge_->A = gr->yzels[i];
+				Edge_->B = gr->yzels[ii];
+				map[p1] = Edge_;
+				this->All_Edges.push_back(Edge_);
+				gr->edges.push_back(Edge_);
+			}
+		}
+	}
+
+	unsigned int nn = 0;
+
+	// Теперь добавляем ячейки в рёбра
+	for (auto& ed : this->All_Edges)
+	{
+		for (const auto& gr : ed->grans)
+		{
+			if (std::find(ed->cells.begin(),
+				ed->cells.end(), gr->cells[0]) ==
+				ed->cells.end())
+			{
+				ed->cells.push_back(gr->cells[0]);
+			}
+
+			if (gr->cells.size() >= 2)
+			{
+				if (std::find(ed->cells.begin(),
+					ed->cells.end(), gr->cells[1]) ==
+					ed->cells.end())
+				{
+					ed->cells.push_back(gr->cells[1]);
+				}
+			}
+		}
+
+		nn += ed->cells.size();
+	}
+
+	cout << "V srednem = " << (1.0 * nn) / this->All_Edges.size() << endl;
+
+
+
+	cout << "End: Edges_create" << endl;
+}

@@ -11,6 +11,7 @@ class Yzel;
 class Luch;
 class Cell;
 class Gran;
+class Edge;
 class Surfaces;
 class Interpol;
 class Int_point;
@@ -28,6 +29,7 @@ class MK_particle;
 
 #include <filesystem>
 #include <string>
+#include <utility>
 #include <sstream>
 #include <iostream>
 #include <vector>
@@ -93,6 +95,7 @@ using namespace std;
 #include "Help_funk.h"
 #include "Luch.h"
 #include "Gran.h"
+#include "Edge.h"
 #include "Cell.h"
 #include "Yzel.h"
 #include "Surfaces.h"
