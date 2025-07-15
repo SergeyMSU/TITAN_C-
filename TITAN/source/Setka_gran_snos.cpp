@@ -205,7 +205,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			double r3, r1, rr, r2, r4;
 
 			if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
-				B->type == Type_cell::Zone_1 && BB->type == Type_cell::Zone_1)
+					B->type == Type_cell::Zone_1 && BB->type == Type_cell::Zone_1)
 			{
 				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
 				r3 = AAc.norm();
@@ -326,7 +326,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 			}
 			else if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
-			B->type == Type_cell::Zone_1 && BB->type == Type_cell::Zone_2)
+					B->type == Type_cell::Zone_1 && BB->type == Type_cell::Zone_2)
 			{
 				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
 				r3 = AAc.norm();
@@ -440,7 +440,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 			}
 			else if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
-			B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_2)
+					B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_2)
 			{
 				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
 				r3 = AAc.norm();
@@ -540,7 +540,87 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				}
 			}
 			else if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_2 &&
-				B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_2)
+					B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_2)
+			{
+				for (auto& nam : this->phys_param->param_names)
+				{
+					par_left[nam] = linear2(-d1, A->parameters[now][nam],
+						d2, B->parameters[now][nam], 0.0);
+					par_right[nam] = linear(-d1, A->parameters[now][nam],
+						d2, B->parameters[now][nam],
+						d2 + dd2, BB->parameters[now][nam], 0.0);
+
+					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
+						|| nam == "Vz")
+					{
+						for (auto& nam2 : this->phys_param->H_name)
+						{
+							par_left[nam + nam2] = linear2(-d1, A->parameters[now][nam + nam2],
+								d2, B->parameters[now][nam + nam2], 0.0);
+							par_right[nam + nam2] = linear(-d1, A->parameters[now][nam + nam2],
+								d2, B->parameters[now][nam + nam2],
+								d2 + dd2, BB->parameters[now][nam + nam2], 0.0);
+						}
+					}
+				}
+			}
+			else if( (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_2 &&
+					B->type == Type_cell::Zone_3 && BB->type == Type_cell::Zone_3) ||
+					(AA->type == Type_cell::Zone_3 && A->type == Type_cell::Zone_3 &&
+					B->type == Type_cell::Zone_4 && BB->type == Type_cell::Zone_4))
+			{
+				for (auto& nam : this->phys_param->param_names)
+				{
+					par_left[nam] = linear2(-dd1 - d1, AA->parameters[now][nam],
+						-d1, A->parameters[now][nam], 0.0);
+					par_right[nam] = linear2(d2, B->parameters[now][nam],
+						d2 + dd2, BB->parameters[now][nam], 0.0);
+
+					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
+						|| nam == "Vz")
+					{
+						for (auto& nam2 : this->phys_param->H_name)
+						{
+							par_left[nam + nam2] = linear2(-dd1 - d1, AA->parameters[now][nam + nam2],
+								-d1, A->parameters[now][nam + nam2], 0.0);
+							par_right[nam + nam2] = linear2(d2, 
+								B->parameters[now][nam + nam2],
+								d2 + dd2, BB->parameters[now][nam + nam2], 0.0);
+						}
+					}
+				}
+			}
+			else if ( (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_2 &&
+					B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_3) ||
+					(AA->type == Type_cell::Zone_3 && A->type == Type_cell::Zone_3 &&
+					B->type == Type_cell::Zone_3 && BB->type == Type_cell::Zone_4))
+			{
+				for (auto& nam : this->phys_param->param_names)
+				{
+					par_left[nam] = linear(-dd1 - d1, AA->parameters[now][nam],
+						-d1, A->parameters[now][nam],
+						d2, B->parameters[now][nam], 0.0);
+					par_right[nam] = linear2(-d1, A->parameters[now][nam],
+						d2, B->parameters[now][nam], 0.0);
+
+					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
+						|| nam == "Vz")
+					{
+						for (auto& nam2 : this->phys_param->H_name)
+						{
+							par_left[nam + nam2] = linear(-dd1 - d1, AA->parameters[now][nam + nam2],
+								-d1, A->parameters[now][nam + nam2],
+								d2, B->parameters[now][nam + nam2], 0.0);
+							par_right[nam + nam2] = linear2(-d1, A->parameters[now][nam + nam2],
+								d2, B->parameters[now][nam + nam2], 0.0);
+						}
+					}
+				}
+			}
+			else if((AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_3 &&
+					B->type == Type_cell::Zone_3 && BB->type == Type_cell::Zone_3) || 
+					(AA->type == Type_cell::Zone_3 && A->type == Type_cell::Zone_4 &&
+					B->type == Type_cell::Zone_4 && BB->type == Type_cell::Zone_4))
 			{
 				for (auto& nam : this->phys_param->param_names)
 				{

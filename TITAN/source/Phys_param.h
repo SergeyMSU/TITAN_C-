@@ -59,7 +59,7 @@ public:
 
     bool sglag_HP = true;
     double velocity_HP = 0.1;
-    double sglag_HP_k_sphere = 0.0001;  //0.001    // Сферическое сглиживание в головной части * 100 - ОТКЛЮЧЕНО
+    double sglag_HP_k_sphere = 0.002;  //0.001    // Cглиживание в головной части
     double sglag_HP_k = 0.001;          // Сглаживание не в головной области
     double sglag_HP_angle = 1.2;    // коэффициент усилинея сглаживания по углу
     double sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
