@@ -1808,3 +1808,69 @@ void Setka::Download_cell_MK_parameters(string filename, short int zone_except)
 
 	in.close();
 }
+
+void Setka::Culc_divergence_velocity_in_cell(void)
+{
+	cout << "Start: Culc_divergence_velocity_in_cell" << endl;
+	unordered_map<string, double> par_left, par_right;
+	Eigen::Vector3d normal, Vel;
+
+	this->phys_param->param_names.push_back("divV");
+	// Добавили переменную для интерполяции
+
+	for (size_t i_step = 0; i_step < this->All_Cell.size(); i_step++)
+	{
+		auto& cell = this->All_Cell[i_step];
+		double divV = 0.0;
+
+		// пробегаемся по всем граням 
+		for (const auto& gr : cell->grans)
+		{
+			if (gr->cells[0] == cell)
+			{
+				normal << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
+			}
+			else
+			{
+				normal << -gr->normal[0][0], -gr->normal[0][1], -gr->normal[0][2];
+			}
+
+			if (gr->type == Type_Gran::Us)
+			{
+				this->Snos_on_Gran(gr, par_left, par_right, 0);
+
+				if (gr->type2 == Type_Gran_surf::Us)
+				{
+					Vel << (par_left["Vx"] + par_right["Vx"])/2.0, 
+						(par_left["Vy"] + par_right["Vy"]) / 2.0,
+						(par_left["Vz"] + par_right["Vz"]) / 2.0;
+				}
+				else
+				{
+					if (gr->cells[0] == cell)
+					{
+						Vel << par_right["Vx"],
+							par_right["Vy"],
+							par_right["Vz"];
+					}
+					else
+					{
+						Vel << par_left["Vx"],
+							par_left["Vy"],
+							par_left["Vz"];
+					}
+				}
+			}
+			else
+			{
+				Vel << cell->parameters[0]["Vx"], cell->parameters[0]["Vy"], cell->parameters[0]["Vz"];
+			}
+			
+			divV += Vel.dot(normal) * gr->area[0];
+		}
+
+		cell->parameters[0]["divV"] = divV/cell->volume[0];
+	}
+
+	cout << "End: Culc_divergence_velocity_in_cell" << endl;
+}

@@ -170,6 +170,9 @@ public:
 	int determ_zone(Cell* C, short int now); // ќпределить зону, в которой находитс€ €чейка
 	// «оны есть  1, 2, 3, 4
 
+	void Culc_divergence_velocity_in_cell(void); 
+	// ¬ каждой €чейке считает дивергенцию скорости
+
 	void Set_MK_Zone(void);
 
 	void Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,

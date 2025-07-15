@@ -83,7 +83,7 @@ int main()
     }
     
 
-    for (int i = 1; i <= 6 * 3; i++) // 6 * 2
+    for (int i = 1; i <= 0; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -119,8 +119,9 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0003.bin");
+    //S1.Save_cell_parameters("parameters_0003.bin");
 
+    S1.Culc_divergence_velocity_in_cell();
     S1.Save_for_interpolate("For_intertpolate_1.bin");
     Interpol SS = Interpol("For_intertpolate_1.bin");
 

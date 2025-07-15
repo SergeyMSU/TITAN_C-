@@ -62,7 +62,25 @@ Phys_param::Phys_param()
     this->param_names.push_back("Vz_H4");
     this->param_names.push_back("p_H4");
 
-    // Задаём имена дополнительных жидкостей
+    if (this->is_PUI == true)
+    {
+        this->param_names.push_back("rho_Pui_1");
+        this->param_names.push_back("rho_Pui_2");
+        this->param_names.push_back("rho_Pui_3");
+        this->param_names.push_back("p_Pui_1");
+        this->param_names.push_back("p_Pui_2");
+        this->param_names.push_back("p_Pui_3");
+    }
+
+    // Задаём имена дополнительныхъ жидкостей пикапов
+    if (this->is_PUI == true)
+    {
+        this->pui_name.push_back("_Pui_1");
+        this->pui_name.push_back("_Pui_2");
+        this->pui_name.push_back("_Pui_3");
+    }
+
+    // Задаём имена дополнительных жидкостей водорода
     this->H_name.push_back("_H1");
     this->H_name.push_back("_H2");
     this->H_name.push_back("_H3");

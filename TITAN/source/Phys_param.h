@@ -15,8 +15,11 @@ public:
 
     vector<string> param_names;
     // Все имена параметров, наличие которых мы ожидаем в ячейках!
-    vector<string> H_name;   // имена дополнительных жидкостей
+    vector<string> H_name;   // имена дополнительных жидкостей водорода
+    vector<string> pui_name;   // имена дополнительных жидкостей пикапов
     vector<string> MK_param;   // дополнительные параметры для MK
+
+    bool is_PUI = false;       // Считаем ли пикапы?
 
 
     double Velosity_inf = -2.54327;   // Значение скорости смеси на бесконечности
