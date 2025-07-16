@@ -255,7 +255,7 @@ void Setka::Init_physics(void)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			if (i->center[0][1] > 200)
+			if (i->center[0][0] > 200)
 			{
 				i->parameters[0]["rho"] = 1.60063; // 1.0 * (1.0 + this->phys_param->mn_He_inf);
 				i->parameters[0]["n_He"] = 0.6; // this->phys_param->mn_He_inf;
