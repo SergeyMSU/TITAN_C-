@@ -2305,16 +2305,22 @@ void Setka::Calculating_measure(unsigned short int st_time)
 	macros1(7, 0, 1, 1);*/
 
 	// Следующий порядкок вычисления является важным
+#pragma omp parallel for
 	for (auto& i : this->All_Cell)
 	{
 		i->Culc_center(st_time);
 	}
+#pragma omp barrier
 
+#pragma omp parallel for
 	for (auto& i : this->All_Gran)
 	{
 		i->Culc_measure(st_time);
 	}
 
+#pragma omp barrier
+
+#pragma omp parallel for
 	for (auto& i : this->All_Cell)
 	{
 		i->Culc_volume(st_time);
@@ -3957,7 +3963,8 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 
 }
 
-void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, const double& c, const double& d, string name)
+void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, 
+	const double& b, const double& c, const double& d, string name, bool razmer)
 {
 	// Находим нормаль к плоскости
 	cout << "Start: Tecplot_print_2D " << name << endl;
@@ -4191,7 +4198,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 	{
 		fout << ", " << nam;
 	}
-	fout << ", Mach, BB_8pi";
+	fout << ", Mach, BB_8pi, rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E";
 	fout << endl;
 
 	fout << "ZONE T=HP, ";
@@ -4262,7 +4269,9 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 			}
 			else
 			{
-				fout << C(0) << " " << C(1) << " " << C(2);
+				double kk = 1.0;
+				if (razmer == true) kk = this->phys_param->Get_razmer("r");
+				fout << C(0) * kk << " " << C(1) * kk << " " << C(2) * kk;
 			}
 
 
@@ -4272,7 +4281,9 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 				{
 					if (nam != "Q")
 					{
-						fout << " " << parameters[nam];
+						double kk = 1.0;
+						if (razmer == true) kk = this->phys_param->Get_razmer(nam);
+						fout << " " << parameters[nam] * kk;
 					}
 					else
 					{
@@ -4285,9 +4296,52 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, const double& b, c
 				}
 			}
 
+			short int zone;
+			if (parameters["Q"] / parameters["rho"] < 50)
+			{
+				if (sqrt(parameters["rho"]) * norm2(parameters["Vx"], parameters["Vy"], parameters["Vz"]) /
+					sqrt(this->phys_param->gamma * parameters["p"]) > 2)
+				{
+					zone = 1;
+				}
+				else
+				{
+					zone = 2;
+				}
+			}
+			else
+			{
+				if (sqrt(parameters["rho"]) * norm2(parameters["Vx"], parameters["Vy"], parameters["Vz"]) /
+					sqrt(this->phys_param->gamma * parameters["p"]) > 1)
+				{
+					zone = 4;
+				}
+				else
+				{
+					zone = 3;
+				}
+			}
+
+
+			double rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E;
+
+			Sootnosheniya(parameters["rho"], parameters["p"], parameters["n_He"],
+				0.0, 0.0, zone, rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
+
+			double kT = 1.0;
+			if (razmer == true) kT = this->phys_param->Get_razmer("T");
+
+			double kp = 1.0;
+			if (razmer == true) kp = this->phys_param->Get_razmer("p");
+
+			double krho = 1.0;
+			if (razmer == true) krho = this->phys_param->Get_razmer("rho");
+
 			fout << " " << sqrt(parameters["rho"]) * norm2(parameters["Vx"], parameters["Vy"], parameters["Vz"])/
 				sqrt(this->phys_param->gamma * parameters["p"]) << " " 
-				<< norm2(parameters["Bx"], parameters["By"], parameters["Bz"]) / (8.0 * const_pi);
+				<< norm2(parameters["Bx"], parameters["By"], parameters["Bz"]) / (8.0 * const_pi) << 
+				" " << rho_Th * krho << " " <<  rho_E * krho << " " << p_Th * kp << " " <<
+				p_Pui * kp << " " << T_Th * kT << " " << T_E * kT;
 
 
 			fout << endl;

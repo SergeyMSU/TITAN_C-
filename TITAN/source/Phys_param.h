@@ -19,19 +19,23 @@ public:
     vector<string> pui_name;   // имена дополнительных жидкостей пикапов
     vector<string> MK_param;   // дополнительные параметры для MK
 
+    unordered_map<string, double> perevod_razmer;
+
     bool is_PUI = false;       // Считаем ли пикапы?
 
 
     double Velosity_inf = -2.54327;   // Значение скорости смеси на бесконечности
     double B_inf = 8.91006;           // Значение МОДУЛЯ магнитного поля на бесконечности
-    double alphaB_inf = 0.76604444;     // Направление магнитного поля на бесконечности
+    double alphaB_inf = 0.6981317;     // угол в радианах - Направление магнитного поля на бесконечности
     double B_0 = 114.037;             // Магнитное поле на 1 а.е.
     double p_0 = 3118.94;             // давление на 1 а.е.
     double par_a_2 = 0.102046;         // Параметр в сечении перезарядки
     double par_n_H_LISM = 3.0;        // б/р Концентрация водорода на бесконечности 
-    double par_Kn = 39.3412;
+    double par_Kn = 40.0906;
     double mn_He_0 = 0.035194;        // Множитель концентрации гелия на 1 АЕ
     double mn_He_inf = 0.15;        // Множитель концентрации гелия на inf
+    double mep = 0.000544617;      // Отношение массы электрона к массе протона
+
     short int num_H = 4;           // Сколько сортов водорода для МК
 
     // параметры
@@ -62,7 +66,7 @@ public:
 
     bool sglag_HP = true;
     double velocity_HP = 0.1;
-    double sglag_HP_k_sphere = 0.002;  //0.001    // Cглиживание в головной части
+    double sglag_HP_k_sphere = 0.1;  //0.005 0.002    // Cглиживание в головной части
     double sglag_HP_k = 0.001;          // Сглаживание не в головной области
     double sglag_HP_angle = 1.2;    // коэффициент усилинея сглаживания по углу
     double sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
@@ -105,6 +109,11 @@ public:
 
     double Get_rho_0(const double& the);
     double Get_v_0(const double& the);
+    double Get_T_0(const double& the);
+
+    double Get_razmer(string par);  // Возвращает коэффициент для перевода 
+    // параметра в размерные значения
+
 
     void Get_Potok(const double& rho, const double& p, const double& u, const double& v,
         const double& w, const double& bx, const double& by, const double& bz,

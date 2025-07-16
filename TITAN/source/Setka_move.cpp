@@ -54,10 +54,12 @@ B[2] *= r1 / p[1];\
 \
 V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / time;\
 \
+AA->mut.lock();\
 AA->velocity[0] += V[0];\
 AA->velocity[1] += V[1];\
 AA->velocity[2] += V[2];\
 AA->num_velocity++;\
+AA->mut.unlock();\
 \
 B = A;\
 B[1] *= r2 / p[1];\
@@ -65,10 +67,12 @@ B[2] *= r2 / p[1];\
 \
 V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / time;\
 \
+AA->mut.lock();\
 AA->velocity[0] += V[0];\
 AA->velocity[1] += V[1];\
 AA->velocity[2] += V[2];\
 AA->num_velocity++;\
+AA->mut.unlock();\
 \
 B = A;\
 B[1] *= r3 / p[1];\
@@ -76,10 +80,12 @@ B[2] *= r3 / p[1];\
 \
 V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / time;\
 \
+AA->mut.lock();\
 AA->velocity[0] += V[0];\
 AA->velocity[1] += V[1];\
 AA->velocity[2] += V[2];\
 AA->num_velocity++;\
+AA->mut.unlock();\
 \
 B = A;\
 B[1] *= r4 / p[1];\
@@ -87,10 +93,12 @@ B[2] *= r4 / p[1];\
 \
 V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / time;\
 \
+AA->mut.lock();\
 AA->velocity[0] += V[0];\
 AA->velocity[1] += V[1];\
 AA->velocity[2] += V[2];\
-AA->num_velocity++;
+AA->num_velocity++;\
+AA->mut.unlock();
 
 
 #define  macros2(p, AA) p[0] = polar_angle(AA->coord[now][0],\
@@ -184,22 +192,12 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 		for (auto& yz : gr->yzels)
 		{
-#pragma omp critical (s1) 
-			{
-				yz->velocity[0] += this->phys_param->velocity_TS * dsl * gr->normal[now][0];
-			}
-#pragma omp critical (s2) 
-			{
-				yz->velocity[1] += this->phys_param->velocity_TS * dsl * gr->normal[now][1];
-			}
-#pragma omp critical (s3) 
-			{
-				yz->velocity[2] += this->phys_param->velocity_TS * dsl * gr->normal[now][2];
-			}
-#pragma omp critical (s4) 
-			{
-				yz->num_velocity++;
-			}
+			yz->mut.lock();
+			yz->velocity[0] += this->phys_param->velocity_TS * dsl * gr->normal[now][0];
+			yz->velocity[1] += this->phys_param->velocity_TS * dsl * gr->normal[now][1];
+			yz->velocity[2] += this->phys_param->velocity_TS * dsl * gr->normal[now][2];
+			yz->num_velocity++;
+			yz->mut.unlock();
 		}
 
 	}
@@ -365,22 +363,12 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			for (auto& yz : gr->yzels)
 			{
-#pragma omp critical (s1) 
-				{
-					yz->velocity[0] += this->phys_param->velocity_HP * dsc * gr->normal[now][0];
-				}
-#pragma omp critical (s2) 
-				{
-					yz->velocity[1] += this->phys_param->velocity_HP * dsc * gr->normal[now][1];
-				}
-#pragma omp critical (s3) 
-				{
-					yz->velocity[2] += this->phys_param->velocity_HP * dsc * gr->normal[now][2];
-				}
-#pragma omp critical (s4) 
-				{
-					yz->num_velocity++;
-				}
+				yz->mut.lock();
+				yz->velocity[0] += this->phys_param->velocity_HP * dsc * gr->normal[now][0];
+				yz->velocity[1] += this->phys_param->velocity_HP * dsc * gr->normal[now][1];
+				yz->velocity[2] += this->phys_param->velocity_HP * dsc * gr->normal[now][2];
+				yz->num_velocity++;
+				yz->mut.unlock();
 			}
 
 		}
@@ -460,22 +448,12 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			for (auto& yz : gr->yzels)
 			{
-#pragma omp critical (s5) 
-				{
-					yz->velocity[0] += 0.1 * dsr * gr->normal[now][0];
-				}
-#pragma omp critical (s6) 
-				{
-					yz->velocity[1] += 0.1 * dsr * gr->normal[now][1];
-				}
-#pragma omp critical (s7) 
-				{
-					yz->velocity[2] += 0.1 * dsr * gr->normal[now][2];
-				}
-#pragma omp critical (s8) 
-				{
-					yz->num_velocity++;
-				}
+				yz->mut.lock();
+				yz->velocity[0] += 0.1 * dsr * gr->normal[now][0];
+				yz->velocity[1] += 0.1 * dsr * gr->normal[now][1];
+				yz->velocity[2] += 0.1 * dsr * gr->normal[now][2];
+				yz->num_velocity++;
+				yz->mut.unlock();
 			}
 
 		}
@@ -486,10 +464,10 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 	if (this->phys_param->sglag_TS == true)
 	{
-		Eigen::Vector3d A, B, V;
-
+#pragma omp parallel for
 		for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
 		{
+			Eigen::Vector3d A, B, V;
 			auto gr = this->Gran_TS[i_step];
 			A << gr->center[now][0], gr->center[now][1], gr->center[now][2];
 			double rr = A.norm();
@@ -517,10 +495,12 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			for (auto& yz : gr->yzels)
 			{
+				yz->mut.lock();
 				yz->velocity[0] += V(0);
 				yz->velocity[1] += V(1);
 				yz->velocity[2] += V(2);
 				yz->num_velocity++;
+				yz->mut.unlock();
 			}
 		}
 
@@ -537,41 +517,86 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		Eigen::Vector3d A, B, V;
 
 		// Сглаживание в головной области х > 0
-		// Здесть просто Лаплас в сферических СК.
+		// Здесть просто Лаплас в сферических СК. или декартовых
 		// Лаплас в декартовых работает очень плохо и "сплющивает" поверхность
-		if (false) // Это старый вариант сглаживания, сейчас работает другой
+		if (true) // Это старый вариант сглаживания, сейчас работает другой
 		{
-			for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
-			{
-				auto gr = this->Gran_HP[i_step];
-				A << gr->center[now][0], gr->center[now][1], gr->center[now][2];
-
-				double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
-
-				// Включаем радиально-сферическое сглаживание только в головной зоне
-				if (phi > phi_a + const_pi / 180.0) continue;
-
-
-				double rr = A.norm();
-				double r = 0.0;
-				for (auto& j : gr->grans_surf)
+			
+			if (false)
+			{   // Лаплас в сферических
+				#pragma omp parallel for private(A, B, V)
+				for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
 				{
-					r += norm2(j->center[now][0], j->center[now][1], j->center[now][2]);
-				}
-				r /= gr->grans_surf.size();
+					auto gr = this->Gran_HP[i_step];
+					A << gr->center[now][0], gr->center[now][1], gr->center[now][2];
 
-				B = A * r / rr;
+					double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
 
-				V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_k_sphere * (B - A) / time;
+					// Включаем радиально-сферическое сглаживание только в головной зоне
+					if (phi > phi_a + const_pi / 180.0) continue;
 
-				for (auto& yz : gr->yzels)
-				{
-					yz->velocity[0] += V(0);
-					yz->velocity[1] += V(1);
-					yz->velocity[2] += V(2);
-					yz->num_velocity++;
+
+					double rr = A.norm();
+					double r = 0.0;
+					for (auto& j : gr->grans_surf)
+					{
+						r += norm2(j->center[now][0], j->center[now][1], j->center[now][2]);
+					}
+					r /= gr->grans_surf.size();
+
+					B = A * r / rr;
+
+					V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_k_sphere * (B - A) / time;
+
+					for (auto& yz : gr->yzels)
+					{
+						yz->mut.lock();
+						yz->velocity[0] += V(0);
+						yz->velocity[1] += V(1);
+						yz->velocity[2] += V(2);
+						yz->num_velocity++;
+						yz->mut.unlock();
+					}
 				}
 			}
+			else if (true)
+			{
+				// Лаплас в декартовых
+				#pragma omp parallel for private(A, B, V)
+				for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
+				{
+					auto gr = this->Gran_HP[i_step];
+					A << gr->center[now][0], gr->center[now][1], gr->center[now][2];
+					
+					double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+
+					// Включаем радиально-сферическое сглаживание только в головной зоне
+					if (phi > phi_a + const_pi / 180.0) continue;
+					B = 2 * A;
+
+					for (auto& j : gr->grans_surf)
+					{
+						B[0] += j->center[now][0];
+						B[1] += j->center[now][1];
+						B[2] += j->center[now][2];
+					}
+					B /= (gr->grans_surf.size() + 2.0);
+
+
+					V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_k_sphere * (B - A) / time;
+
+					for (auto& yz : gr->yzels)
+					{
+						yz->mut.lock();
+						yz->velocity[0] += V(0);
+						yz->velocity[1] += V(1);
+						yz->velocity[2] += V(2);
+						yz->num_velocity++;
+						yz->mut.unlock();
+					}
+				}
+			}
+
 		}
 
 		Yzel* AA, * AA1, * AA11, * AA2, * AA22, * AA3, * AA33, * AA4, * AA44;
@@ -582,122 +607,134 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		double r1, r2, r3, r4;
 
 		// Сглаживание в головной области (новое - сплайнами)
-		for (auto& yz : this->Yzels_HP_sglag)
+		if (false)
 		{
-			AA = yz;
-			AA1 = yz->Yzel_sosed_sglag["AA1"];
-			AA11 = yz->Yzel_sosed_sglag["AA11"];
-			AA2 = yz->Yzel_sosed_sglag["AA3"];
-			AA22 = yz->Yzel_sosed_sglag["AA33"];
-			AA3 = yz->Yzel_sosed_sglag["AA2"];
-			AA33 = yz->Yzel_sosed_sglag["AA22"];
-			AA4 = yz->Yzel_sosed_sglag["AA4"];
-			AA44 = yz->Yzel_sosed_sglag["AA44"];
+#pragma omp parallel for private(a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
+			for (auto& yz : this->Yzels_HP_sglag)
+			{
+				AA = yz;
+				AA1 = yz->Yzel_sosed_sglag["AA1"];
+				AA11 = yz->Yzel_sosed_sglag["AA11"];
+				AA2 = yz->Yzel_sosed_sglag["AA3"];
+				AA22 = yz->Yzel_sosed_sglag["AA33"];
+				AA3 = yz->Yzel_sosed_sglag["AA2"];
+				AA33 = yz->Yzel_sosed_sglag["AA22"];
+				AA4 = yz->Yzel_sosed_sglag["AA4"];
+				AA44 = yz->Yzel_sosed_sglag["AA44"];
 
 
-			macros2(p, AA);
-			macros2(p1, AA1);
-			macros2(p11, AA11);
-			macros2(p3, AA3);
-			macros2(p33, AA33);
+				macros2(p, AA);
+				macros2(p1, AA1);
+				macros2(p11, AA11);
+				macros2(p3, AA3);
+				macros2(p33, AA33);
 
-			solveQuadraticEquation(p3[0], p3[1], 
-				p1[0], p1[1], p11[0], p11[1], a, b, c); 
-			r1 = a * kv(p[0]) + b * p[0] + c; 
-				
-			solveQuadraticEquation(p33[0], p33[1], 
-				p3[0], p3[1], p1[0], p1[1], a, b, c); 
-			r2 = a * kv(p[0]) + b * p[0] + c; 
+				solveQuadraticEquation(p3[0], p3[1],
+					p1[0], p1[1], p11[0], p11[1], a, b, c);
+				r1 = a * kv(p[0]) + b * p[0] + c;
 
-				
-			p2[0] = polar_angle(AA2->coord[now][1], AA2->coord[now][2]); 
-			p2[1] = norm2(AA2->coord[now][0], AA2->coord[now][1], AA2->coord[now][2]);
-				
-			p[0] = polar_angle(AA->coord[now][1], AA->coord[now][2]); 
-				
-			p4[0] = polar_angle(AA4->coord[now][1], AA4->coord[now][2]); 
-			p4[1] = norm2(AA4->coord[now][0], AA4->coord[now][1], AA4->coord[now][2]);
-				
-			p22[0] = polar_angle(AA22->coord[now][1], AA22->coord[now][2]); 
-			p22[1] = norm2(AA22->coord[now][0], AA22->coord[now][1], AA22->coord[now][2]);
-				
-			p44[0] = polar_angle(AA44->coord[now][1], AA44->coord[now][2]); 
-			p44[1] = norm2(AA44->coord[now][0], AA44->coord[now][1], AA44->coord[now][2]);
-				
-			solveQuadraticEquation(p2[0], p2[1], 
-				p4[0], p4[1], p44[0], p44[1], a, b, c); 
-			r3 = a * kv(p[0]) + b * p[0] + c; 
-				
-			solveQuadraticEquation(p4[0], p4[1], 
-				p2[0], p2[1], p22[0], p22[1], a, b, c); 
-			r4 = a * kv(p[0]) + b * p[0] + c; 
-				
-			A << AA->coord[now][0], AA->coord[now][1], AA->coord[now][2]; 
-				
-			B = A; 
-			B[0] *= r1 / p[1];
-			B[1] *= r1 / p[1]; 
-			B[2] *= r1 / p[1]; 
-				
-			V = this->phys_param->velocity_HP * 
-				this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_sphere *
-				this->phys_param->sglag_HP_k_sphere * (B - A) / time;
-				
-			AA->velocity[0] += V[0]; 
-			AA->velocity[1] += V[1]; 
-			AA->velocity[2] += V[2]; 
-			AA->num_velocity++; 
-				
-			B = A; 
-			B[0] *= r2 / p[1];
-			B[1] *= r2 / p[1]; 
-			B[2] *= r2 / p[1]; 
-				
-			V = this->phys_param->velocity_HP * 
-				this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_sphere *
-				this->phys_param->sglag_HP_k_sphere * (B - A) / time; \
-				
-			AA->velocity[0] += V[0]; 
-			AA->velocity[1] += V[1]; 
-			AA->velocity[2] += V[2]; 
-			AA->num_velocity++; 
-				
-			B = A; 
-			B[0] *= r3 / p[1];
-			B[1] *= r3 / p[1]; 
-			B[2] *= r3 / p[1]; 
-				
-			V = this->phys_param->velocity_HP * 
-				this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_sphere *
-				this->phys_param->sglag_HP_k_sphere * (B - A) / time; \
-				
-			AA->velocity[0] += V[0]; 
-			AA->velocity[1] += V[1]; 
-			AA->velocity[2] += V[2]; 
-			AA->num_velocity++; 
-				
-			B = A; 
-			B[0] *= r4 / p[1];
-			B[1] *= r4 / p[1]; 
-			B[2] *= r4 / p[1]; 
-				
-			V = this->phys_param->velocity_HP * 
-				this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_sphere *
-				this->phys_param->sglag_HP_k_sphere * (B - A) / time; \
-				
-			AA->velocity[0] += V[0]; 
-			AA->velocity[1] += V[1]; 
-			AA->velocity[2] += V[2]; 
-			AA->num_velocity++;
+				solveQuadraticEquation(p33[0], p33[1],
+					p3[0], p3[1], p1[0], p1[1], a, b, c);
+				r2 = a * kv(p[0]) + b * p[0] + c;
 
+
+				p2[0] = polar_angle(AA2->coord[now][1], AA2->coord[now][2]);
+				p2[1] = norm2(AA2->coord[now][0], AA2->coord[now][1], AA2->coord[now][2]);
+
+				p[0] = polar_angle(AA->coord[now][1], AA->coord[now][2]);
+
+				p4[0] = polar_angle(AA4->coord[now][1], AA4->coord[now][2]);
+				p4[1] = norm2(AA4->coord[now][0], AA4->coord[now][1], AA4->coord[now][2]);
+
+				p22[0] = polar_angle(AA22->coord[now][1], AA22->coord[now][2]);
+				p22[1] = norm2(AA22->coord[now][0], AA22->coord[now][1], AA22->coord[now][2]);
+
+				p44[0] = polar_angle(AA44->coord[now][1], AA44->coord[now][2]);
+				p44[1] = norm2(AA44->coord[now][0], AA44->coord[now][1], AA44->coord[now][2]);
+
+				solveQuadraticEquation(p2[0], p2[1],
+					p4[0], p4[1], p44[0], p44[1], a, b, c);
+				r3 = a * kv(p[0]) + b * p[0] + c;
+
+				solveQuadraticEquation(p4[0], p4[1],
+					p2[0], p2[1], p22[0], p22[1], a, b, c);
+				r4 = a * kv(p[0]) + b * p[0] + c;
+
+				A << AA->coord[now][0], AA->coord[now][1], AA->coord[now][2];
+
+				B = A;
+				B[0] *= r1 / p[1];
+				B[1] *= r1 / p[1];
+				B[2] *= r1 / p[1];
+
+				V = this->phys_param->velocity_HP *
+					this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_sphere *
+					this->phys_param->sglag_HP_k_sphere * (B - A) / time;
+
+				AA->mut.lock();
+				AA->velocity[0] += V[0];
+				AA->velocity[1] += V[1];
+				AA->velocity[2] += V[2];
+				AA->num_velocity++;
+				AA->mut.unlock();
+
+				B = A;
+				B[0] *= r2 / p[1];
+				B[1] *= r2 / p[1];
+				B[2] *= r2 / p[1];
+
+				V = this->phys_param->velocity_HP *
+					this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_sphere *
+					this->phys_param->sglag_HP_k_sphere * (B - A) / time; \
+
+					AA->mut.lock();
+				AA->velocity[0] += V[0];
+				AA->velocity[1] += V[1];
+				AA->velocity[2] += V[2];
+				AA->num_velocity++;
+				AA->mut.unlock();
+
+				B = A;
+				B[0] *= r3 / p[1];
+				B[1] *= r3 / p[1];
+				B[2] *= r3 / p[1];
+
+				V = this->phys_param->velocity_HP *
+					this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_sphere *
+					this->phys_param->sglag_HP_k_sphere * (B - A) / time; \
+
+					AA->mut.lock();
+				AA->velocity[0] += V[0];
+				AA->velocity[1] += V[1];
+				AA->velocity[2] += V[2];
+				AA->num_velocity++;
+				AA->mut.unlock();
+
+				B = A;
+				B[0] *= r4 / p[1];
+				B[1] *= r4 / p[1];
+				B[2] *= r4 / p[1];
+
+				V = this->phys_param->velocity_HP *
+					this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_sphere *
+					this->phys_param->sglag_HP_k_sphere * (B - A) / time; \
+
+					AA->mut.lock();
+				AA->velocity[0] += V[0];
+				AA->velocity[1] += V[1];
+				AA->velocity[2] += V[2];
+				AA->num_velocity++;
+				AA->mut.unlock();
+
+			}
 		}
-
 
 
 		// Параболическое сглаживание на A лучах
 		int nn = this->A_Luch.size();
 		int mm = this->A_Luch[0].size();
 
+#pragma omp parallel for private(a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
 		for (size_t i = 0; i < nn; i++)
 		{
 			short int ip = i + 1;
@@ -751,7 +788,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		// Параболическое сглаживание на B лучах
 		nn = this->B_Luch.size();
 		mm = this->B_Luch[0].size();
-
+#pragma omp parallel for private(a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
 		for (size_t i = 0; i < nn; i++)
 		{
 			short int ip = i + 1;
@@ -821,6 +858,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		nn = this->E_Luch.size();
 		mm = this->E_Luch[0].size();
 
+#pragma omp parallel for private(a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
 		for (size_t i = 0; i < nn; i++)
 		{
 			short int ip = i + 1;
@@ -889,6 +927,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		nn = this->D_Luch.size();
 		mm = this->geo->N4 - 1; // this->D_Luch[0].size();
 
+#pragma omp parallel for private(a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
 		for (size_t i = 0; i < nn; i++)
 		{
 			short int ip = i + 1;
@@ -1041,7 +1080,6 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 	
 	// Надо подвинуть узлы, которые продолжают BS
 	if (this->phys_param->move_BS == true)
-		//if(false)
 	{
 		short int NN = this->A_Luch[0].size() - 1;
 		for (short int i = 0; i < this->A_Luch.size(); i++)

@@ -29,6 +29,7 @@ public:
 
 	double velocity[3];
 	int num_velocity = 0;
+	mutex mut;
 
 	unordered_map<string, Yzel*> Yzel_sosed_sglag;
 	// Узлы - соседи для сглаживания поверхности

@@ -92,7 +92,15 @@ Phys_param::Phys_param()
     this->MK_param.push_back("MK_n_H2"); this->param_names.push_back("MK_n_H2");
     this->MK_param.push_back("MK_n_H3"); this->param_names.push_back("MK_n_H3");
     this->MK_param.push_back("MK_n_H4"); this->param_names.push_back("MK_n_H4");
+    
 
+    // Перевод в размерные единицы   СГС
+    this->perevod_razmer["r"] = 4.21132;
+    this->perevod_razmer["rho"] = 0.06;
+    this->perevod_razmer["V"] = 1.03804e6;
+    this->perevod_razmer["p"] = 1.08137e-13;
+    this->perevod_razmer["B"] = 3.28842e-7;    // Магнитное поле в микрогауссах
+    this->perevod_razmer["T"] = 6530.0;  
 
 
 	this->Matr << -0.9958639688067077,  0.01776569097515556,  0.08910295088675518,
@@ -165,7 +173,38 @@ double Phys_param::Get_rho_0(const double& the)
     double np1 = np[i];
     double np2 = np[i + 1];
 
-    return (np1 + (the - theta1) * (np2 - np1) / (theta2 - theta1)) / this->char_rho;
+    return (np1 + (the - theta1) * (np2 - np1) / (theta2 - theta1)) / (this->perevod_razmer["rho"]);
+}
+
+double Phys_param::Get_T_0(const double& the)
+{
+    const auto& angles = this->heliolat_deg;
+    const auto& np = this->T_K;
+
+    // Проверка на выход за пределы диапазона
+    if (the < angles.front() || the > angles.back()) {
+        cout << "Ygol " + std::to_string(the) + " out of diapazon!" << endl;
+        cout << "ERROR  0989767567" << endl;
+    }
+
+    // Поиск ближайших точек
+    size_t i = 0;
+    while (i < angles.size() - 1 && angles[i + 1] < the) {
+        i++;
+    }
+
+    // Если угол точно совпадает с одним из значений в файле
+    if (std::abs(the - angles[i]) < 1e-6) {
+        return np[i];
+    }
+
+    // Линейная интерполяция: n_p = np1 + (theta - theta1) * (np2 - np1) / (theta2 - theta1)
+    double theta1 = angles[i];
+    double theta2 = angles[i + 1];
+    double np1 = np[i];
+    double np2 = np[i + 1];
+
+    return (np1 + (the - theta1) * (np2 - np1) / (theta2 - theta1)) / (this->perevod_razmer["T"]);
 }
 
 double Phys_param::Get_v_0(const double& the)
@@ -196,7 +235,8 @@ double Phys_param::Get_v_0(const double& the)
     double np1 = np[i];
     double np2 = np[i + 1];
 
-    return (np1 + (the - theta1) * (np2 - np1) / (theta2 - theta1)) / this->char_v;
+    return (np1 + (the - theta1) * (np2 - np1) / (theta2 - theta1)) / 
+        (this->perevod_razmer["V"]/100000.0);
 
     return 0.0;
 }
@@ -1907,3 +1947,22 @@ void Phys_param::lev(const double& enI, const double& pI, const double& rI, cons
     return;
 }
 
+
+double Phys_param::Get_razmer(string par)
+{
+    if (par == "r") return this->perevod_razmer["r"];
+
+    if (par == "rho" || par == "n_He") return this->perevod_razmer["rho"];
+
+    if (par == "V" || par == "Vx" || par == "Vy"
+        || par == "Vz") return this->perevod_razmer["V"];
+
+    if (par == "p") return this->perevod_razmer["p"];
+
+    if (par == "B" || par == "Bx" || par == "By" || 
+        par == "Bz") return this->perevod_razmer["B"];
+
+    if (par == "T") return this->perevod_razmer["T"];
+
+    return 1.0;
+}

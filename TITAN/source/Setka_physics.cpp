@@ -255,20 +255,19 @@ void Setka::Init_physics(void)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			if ( sqrt(kv(i->center[0][1]) + kv(i->center[0][2])) > 380)
+			if (i->center[0][1] > 200)
 			{
-				i->parameters[0]["rho"] = 1.0;
+				i->parameters[0]["rho"] = 1.60063; // 1.0 * (1.0 + this->phys_param->mn_He_inf);
+				i->parameters[0]["n_He"] = 0.6; // this->phys_param->mn_He_inf;
+				i->parameters[0]["p"] = 1.15; // 1 + (i->parameters["n_He"]) /
+					//(i->parameters["rho"] - i->parameters["n_He"]);
 				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters[0]["Vy"] = 0.0;
 				i->parameters[0]["Vz"] = 0.0;
-				i->parameters[0]["p"] = 1.0;
-
-				i->parameters[0]["rho_H4"] = 1.0;
-				i->parameters[0]["Vx_H4"] = this->phys_param->Velosity_inf;
-				i->parameters[0]["Vy_H4"] = 0.0;
-				i->parameters[0]["Vz_H4"] = 0.0;
-				i->parameters[0]["p_H4"] = 0.5;
-				i->parameters[1] = i->parameters[0];
+				i->parameters[0]["Bx"] = -this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
+				i->parameters[0]["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
+				i->parameters[0]["Bz"] = 0.0;
+				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
 			}
 
 		}
@@ -374,10 +373,10 @@ void Setka::Init_physics(void)
 		{
 			if (i->type == Type_Gran::Outer_Hard)
 			{
-				i->parameters["rho"] = 1.0 * (1.0 + this->phys_param->mn_He_inf);
-				i->parameters["n_He"] = this->phys_param->mn_He_inf;
-				i->parameters["p"] = 1 + (i->parameters["n_He"]) /
-					(i->parameters["rho"] - i->parameters["n_He"]);
+				i->parameters["rho"] = 1.60063; // 1.0 * (1.0 + this->phys_param->mn_He_inf);
+				i->parameters["n_He"] = 0.6; // this->phys_param->mn_He_inf;
+				i->parameters["p"] = 1.15; // 1 + (i->parameters["n_He"]) /
+					//(i->parameters["rho"] - i->parameters["n_He"]);
 				i->parameters["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters["Vy"] = 0.0;
 				i->parameters["Vz"] = 0.0;
@@ -416,10 +415,19 @@ void Setka::Init_physics(void)
 
 				mV = this->phys_param->Get_v_0(the);
 
-				i->parameters["rho"] = this->phys_param->Get_rho_0(the) * pow(this->phys_param->R_0 / r, 2);
-				i->parameters["n_He"] = this->phys_param->mn_He_0 * i->parameters["rho"];
-				i->parameters["rho"] = i->parameters["rho"] * (1.0 + this->phys_param->mn_He_0);
-				i->parameters["p"] = (1.0 + 3.0 * this->phys_param->mn_He_0 /2.0) * this->phys_param->p_0 *
+				double Tp = this->phys_param->Get_T_0(the); // Температура
+
+				double np = this->phys_param->Get_rho_0(the);
+
+				double rho = (this->phys_param->mep + 2.0 * this->phys_param->mn_He_0 * 
+					this->phys_param->mep + 
+					1.0 + 4.0 * this->phys_param->mn_He_0) * np;
+
+
+
+				i->parameters["rho"] = rho * pow(this->phys_param->R_0 / r, 2);
+				i->parameters["n_He"] = 4.0 * this->phys_param->mn_He_0 * np * pow(this->phys_param->R_0 / r, 2);
+				i->parameters["p"] = (1.0 + 3.0 * this->phys_param->mn_He_0 /2.0) * np * Tp *
 					pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
 				i->parameters["Vx"] = mV * vec(0);
 				i->parameters["Vy"] = mV * vec(1);

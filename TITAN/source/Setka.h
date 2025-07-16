@@ -289,7 +289,7 @@ public:
 
 	void Tecplot_print_2D(Interpol* Int1, const double& a, const double& b,
 		const double& c, const double& d,
-		string name);
+		string name, bool razmer = false);
 	// Плоскость   a x + b y + c z + d = 0;
 };
 
