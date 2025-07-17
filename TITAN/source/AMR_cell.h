@@ -9,11 +9,11 @@ public:
 
 	AMR_cell* I_self;            // Указатель на себя
 
-	unsigned short int level = 0;
+	uint8_t level = 0;
 	AMR_cell* parent = nullptr;    // Ячейка - родитель
-	unsigned short int nx = 0;           // Номер данной ячейки в ячейке-родителе
-	unsigned short int ny = 0;
-	unsigned short int nz = 0;
+	uint8_t nx = 0;           // Номер данной ячейки в ячейке-родителе
+	uint8_t ny = 0;
+	uint8_t nz = 0;
 
 	struct Flags {
 		unsigned is_divided : 1;     // 1 бит  // Разделена ли ячейка

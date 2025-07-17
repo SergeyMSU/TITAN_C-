@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0006.bin");  // 4  
+    S1.Download_cell_parameters("parameters_0001.bin");  // 4  
     // 6 - до изменения параметров
 
     cout << "C2 " << endl;
@@ -81,7 +81,7 @@ int main()
     }
     
 
-    for (int i = 1; i <= 6 * 0; i++) // 6 * 2
+    for (int i = 1; i <= 6 * 5; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -117,11 +117,11 @@ int main()
         return 0;
     }
 
-    //S1.Save_cell_parameters("parameters_0001.bin");
+    S1.Save_cell_parameters("parameters_0002.bin");
 
-    S1.Edges_create();
-    S1.Culc_divergence_in_cell();
-    S1.Culc_rotors_in_cell();
+    //S1.Edges_create();
+    //S1.Culc_divergence_in_cell();
+    //S1.Culc_rotors_in_cell();
 
 
     S1.Save_for_interpolate("For_intertpolate_1.bin");

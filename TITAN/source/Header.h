@@ -30,6 +30,7 @@ class MK_particle;
 #include <filesystem>
 #include <string>
 #include <utility>
+#include <cstdint>
 #include <sstream>
 #include <iostream>
 #include <vector>
