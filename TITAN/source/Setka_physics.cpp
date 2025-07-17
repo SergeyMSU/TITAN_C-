@@ -2012,14 +2012,16 @@ void Setka::Culc_divergence_in_cell(void)
 	cout << "Start: Culc_divergence_in_cell" << endl;
 
 	this->phys_param->param_names.push_back("divV");
-	this->phys_param->param_names.push_back("div_eB");
-	this->phys_param->param_names.push_back("div_et");
-	this->phys_param->param_names.push_back("gradK_x");
-	this->phys_param->param_names.push_back("gradK_y");
-	this->phys_param->param_names.push_back("gradK_z");
-	this->phys_param->param_names.push_back("et_x");
-	this->phys_param->param_names.push_back("et_y");
-	this->phys_param->param_names.push_back("et_z");
+	this->phys_param->param_names.push_back("DIVk_x");
+	this->phys_param->param_names.push_back("DIVk_y");
+	this->phys_param->param_names.push_back("DIVk_z");
+	//this->phys_param->param_names.push_back("div_et");
+	//this->phys_param->param_names.push_back("gradK_x");
+	//this->phys_param->param_names.push_back("gradK_y");
+	//this->phys_param->param_names.push_back("gradK_z");
+	//this->phys_param->param_names.push_back("et_x");
+	//this->phys_param->param_names.push_back("et_y");
+	//this->phys_param->param_names.push_back("et_z");
 	// Добавили переменную для интерполяции
 
 #pragma omp parallel for
@@ -2033,6 +2035,7 @@ void Setka::Culc_divergence_in_cell(void)
 		double divV = 0.0;
 		double div_eB = 0.0;
 		double div_et = 0.0;
+		double div_em = 0.0;
 		gradK << 0.0, 0.0, 0.0;
 
 		// пробегаемся по всем граням 
@@ -2103,27 +2106,40 @@ void Setka::Culc_divergence_in_cell(void)
 			divV += Vel.dot(normal) * gr->area[0];
 			div_eB += eB.dot(normal) * gr->area[0];
 			div_et += t.dot(normal) * gr->area[0];
+			div_em += m.dot(normal) * gr->area[0];
 		}
 
 		cell->parameters[0]["divV"] = divV/cell->volume[0];
-		cell->parameters[0]["div_eB"] = div_eB /cell->volume[0];
+
+
+		//cell->parameters[0]["div_eB"] = div_eB /cell->volume[0];
+		div_eB /= cell->volume[0];
 		gradK = gradK /cell->volume[0];
+		div_et /= cell->volume[0];
+		div_em /= cell->volume[0];
 
-		cell->parameters[0]["div_et"] = div_et / cell->volume[0];
+		//cell->parameters[0]["div_et"] = div_et / cell->volume[0];
 
-		cell->parameters[0]["gradK_x"] = gradK[0];
-		cell->parameters[0]["gradK_y"] = gradK[1];
-		cell->parameters[0]["gradK_z"] = gradK[2];
+		//cell->parameters[0]["gradK_x"] = gradK[0];
+		//cell->parameters[0]["gradK_y"] = gradK[1];
+		//cell->parameters[0]["gradK_z"] = gradK[2];
 
-		Eigen::Vector3d t, m;
+		Eigen::Vector3d t, m, DIV, DIV_my;
 		eB << cell->parameters[0]["Bx"], cell->parameters[0]["By"],
 			cell->parameters[0]["Bz"];
+		double k_paral = 1.0 / eB.norm();
 		eB.normalize();
 		get_bazis(eB, t, m);
 
-		cell->parameters[0]["et_x"] = t[0];
-		cell->parameters[0]["et_y"] = t[1];
-		cell->parameters[0]["et_z"] = t[2];
+		DIV[0] = k_paral * div_eB + eB.dot(gradK);
+		DIV[1] = 0.05 * (k_paral * div_et + t.dot(gradK));
+		DIV[2] = 0.05 * (k_paral * div_em + m.dot(gradK));
+
+		DIV_my = DIV[0] * eB + DIV[1] * t + DIV[2] * m;
+
+		cell->parameters[0]["DIVk_x"] = DIV_my[0];
+		cell->parameters[0]["DIVk_y"] = DIV_my[1];
+		cell->parameters[0]["DIVk_z"] = DIV_my[2];
 	}
 
 	cout << "End: Culc_divergence_in_cell" << endl;

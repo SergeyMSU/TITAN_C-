@@ -9,30 +9,23 @@ public:
 
 	AMR_cell* I_self;            // Указатель на себя
 
-
 	unsigned short int level = 0;
 	AMR_cell* parent = nullptr;    // Ячейка - родитель
-	unsigned int nx = 0;           // Номер данной ячейки в ячейке-родителе
-	unsigned int ny = 0;
-	unsigned int nz = 0;
+	unsigned short int nx = 0;           // Номер данной ячейки в ячейке-родителе
+	unsigned short int ny = 0;
+	unsigned short int nz = 0;
 
 	struct Flags {
-		unsigned is_divided : 1;     // 1 бит
-		unsigned is_signif : 1;      // 1 бит
-		unsigned need_devide_x : 1;  // 1 бит
-		unsigned need_devide_y : 1;  // 1 бит
-		unsigned need_devide_z : 1;  // 1 бит
+		unsigned is_divided : 1;     // 1 бит  // Разделена ли ячейка
+		unsigned is_signif : 1;      // 1 бит // Сущестывенная ячейка, та, которую можно делить, если надо 
+	// определяется по процентру плотности к всему объёму
+		unsigned need_devide_x : 1;  // 1 бит  // Нужно ли её делить вдоль x?
+		unsigned need_devide_y : 1;  // 1 бит  // Нужно ли её делить вдоль y?
+		unsigned need_devide_z : 1;  // 1 бит  // Нужно ли её делить вдоль z?
 	} flags;  // Размер: 1 байт (вместо 5!)
 
-	bool is_divided = false;      // Разделена ли ячейка
 	boost::multi_array<AMR_cell*, 3> cells;  // Ячейки - дети
 
-	bool is_signif = false;  // Сущестывенная ячейка, та, которую можно делить, если надо 
-	// определяется по процентру плотности к всему объёму
-
-	bool need_devide_x = false;   // Нужно ли её делить вдоль x?
-	bool need_devide_y = false;   // Нужно ли её делить вдоль y?
-	bool need_devide_z = false;   // Нужно ли её делить вдоль z?
 
 	AMR_cell();
 

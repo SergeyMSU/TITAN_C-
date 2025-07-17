@@ -4,11 +4,19 @@ AMR_cell::AMR_cell()
 {
 	this->f = 0.0;
 	this->level = 0;
+
+
+	this->flags.is_divided = false;
+	this->flags.is_signif = false;
+	this->flags.need_devide_x = false;
+	this->flags.need_devide_y = false;
+	this->flags.need_devide_z = false;
+
 }
 
 void AMR_cell::Get_Moment(AMR_f* AMR, double& m, double& mu, double& mux, double& muu)
 {
-	if (this->is_divided == false)
+	if (this->flags.is_divided == false)
 	{
 		std::array<double, 3> center;
 		std::array<double, 3> razmer;
@@ -51,7 +59,7 @@ void AMR_cell::Get_f(AMR_f* AMR, double& S)
 	this->Get_Center(AMR, center, razmer);
 	double V = razmer[0] * razmer[1] * razmer[2];
 
-	if (this->is_divided == false)
+	if (this->flags.is_divided == false)
 	{
 		S += V * this->f * center[0];
 		return;
@@ -86,7 +94,7 @@ void AMR_cell::Get_f(AMR_f* AMR, double& S)
 
 double AMR_cell::Get_SpotokV(void)
 {
-	if (this->is_divided == false)
+	if (this->flags.is_divided == false)
 	{
 		return this->Spotok;
 	}
@@ -117,7 +125,7 @@ double AMR_cell::Get_SpotokV(void)
 
 void AMR_cell::divide(AMR_f* AMR, unsigned short int n1, unsigned short int n2, unsigned short int n3)
 {
-	this->is_divided = true;
+	this->flags.is_divided = true;
 
 	std::array<double, 3> center;
 	std::array<double, 3> razmer;
@@ -167,7 +175,7 @@ AMR_cell* AMR_cell::find_cell(const double& x, const double& y, const double& z,
 
 	auto A = this->cells[index1][index2][index3];
 
-	if (A->is_divided == false)
+	if (A->flags.is_divided == false)
 	{
 		return A;
 	}
@@ -222,11 +230,11 @@ AMR_cell* AMR_cell::get_sosed(AMR_f* AMR, short int nn)
 
 void AMR_cell::Print_info(void)
 {
-	if (this->is_divided == false)
+	if (this->flags.is_divided == false)
 	{
 		cout << "_________________________________" << endl;
 		cout << "level: " << this->level << endl;
-		cout << "is devided?: " << this->is_divided << endl;
+		cout << "is devided?: " << this->flags.is_divided << endl;
 		cout << "nx: " << this->nx << endl;
 		cout << "ny: " << this->ny << endl;
 		cout << "nz: " << this->nz << endl;
@@ -236,7 +244,7 @@ void AMR_cell::Print_info(void)
 	{
 		cout << "_________________________________" << endl;
 		cout << "level: " << this->level << endl;
-		cout << "is devided?: " << this->is_divided << endl;
+		cout << "is devided?: " << this->flags.is_divided << endl;
 		cout << "nx: " << this->nx << endl;
 		cout << "ny: " << this->ny << endl;
 		cout << "nz: " << this->nz << endl;
@@ -270,7 +278,7 @@ void AMR_cell::Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi,
 	const size_t dim3 = this->cells.shape()[2];
 	double SS = 0.0;
 
-	if (this->is_divided == true)
+	if (this->flags.is_divided == true)
 	{
 		for (size_t i = 0; i < dim1; ++i)
 		{
@@ -382,7 +390,7 @@ void AMR_cell::Get_Center(AMR_f* AMR, std::array<double, 3>& center)
 			cell = cell->cells[i[0]][i[1]][i[2]];
 		}
 
-		if (cell->is_divided == true)
+		if (cell->flags.is_divided == true)
 		{
 			xn = cell->cells.shape()[0];
 			yn = cell->cells.shape()[1];
@@ -444,7 +452,7 @@ void AMR_cell::Get_Center(AMR_f* AMR, std::array<double, 3>& center, std::array<
 			cell = cell->cells[i[0]][i[1]][i[2]];
 		}
 
-		if (cell->is_divided == true)
+		if (cell->flags.is_divided == true)
 		{
 			xn = cell->cells.shape()[0];
 			yn = cell->cells.shape()[1];
@@ -465,7 +473,7 @@ void AMR_cell::Get_Center(AMR_f* AMR, std::array<double, 3>& center, std::array<
 
 void AMR_cell::Get_Centers(AMR_f* AMR, std::vector<std::array<double, 3>>& centers)
 {
-	if (this->is_divided == false)
+	if (this->flags.is_divided == false)
 	{
 		std::array<double, 3> center;
 		this->Get_Center(AMR, center);
@@ -501,7 +509,7 @@ void AMR_cell::Get_all_cells(vector<AMR_cell*>& cells)
 			for (size_t k = 0; k < nz; ++k)
 			{
 				AMR_cell* cell = this->cells[i][j][k];
-				if (cell->is_divided == false) {
+				if (cell->flags.is_divided == false) {
 					cells.push_back(cell);
 				}
 				else
@@ -676,7 +684,7 @@ void AMR_cell::Slice_plane(AMR_f* AMR, const double& a, const double& b, const d
 void AMR_cell::Save_cell(std::ofstream& out)
 {
 	double h = this->f;
-	if (this->is_divided == true) h = 0.0;
+	if (this->flags.is_divided == true) h = 0.0;
 	out.write(reinterpret_cast<const char*>(&h), sizeof(double));
 
 	unsigned short int l = this->level;
@@ -716,7 +724,7 @@ void AMR_cell::Read_cell(std::ifstream& in)
 	// Выделяем память под вложенный массив
 	this->cells.resize(boost::extents[dims[0]][dims[1]][dims[2]]);
 
-	if (dims[0] > 0 || dims[1] > 0 || dims[2] > 0) this->is_divided = true;
+	if (dims[0] > 0 || dims[1] > 0 || dims[2] > 0) this->flags.is_divided = true;
 
 	// Рекурсивно читаем дочерние ячейки
 	for (size_t i = 0; i < dims[0]; ++i) 

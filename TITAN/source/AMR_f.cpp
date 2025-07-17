@@ -326,7 +326,7 @@ AMR_cell* AMR_f::find_cell(const double& x, const double& y, const double& z)
 
 	auto A = this->cells[index1][index2][index3];
 
-	if (A->is_divided == false)
+	if (A->flags.is_divided == false)
 	{
 		return A;
 	}
@@ -352,7 +352,7 @@ void AMR_f::Get_all_cells(vector<AMR_cell*>& cells)
 			for (size_t k = 0; k < nz; ++k)
 			{
 				AMR_cell* cell = this->cells[i][j][k];
-				if (cell->is_divided == false) {
+				if (cell->flags.is_divided == false) {
 					cells.push_back(cell);
 				}
 				else
@@ -557,7 +557,7 @@ unsigned int AMR_f::de_Refine(void)
 	{
 		parent = i->parent;
 		if (parent == nullptr) continue;
-		parent->need_devide_x = false;
+		parent->flags.need_devide_x = false;
 	}
 
 	for (const auto& i : cells)
@@ -569,17 +569,17 @@ unsigned int AMR_f::de_Refine(void)
 		mux = 0.0;
 		parent = i->parent;
 		if (parent == nullptr) continue;
-		if (parent->need_devide_x == true) continue;
-		parent->is_signif = false;
+		if (parent->flags.need_devide_x == true) continue;
+		parent->flags.is_signif = false;
 		parent->Get_Moment(this->AMR_self, m, mu, mux, muu);
-		if (m * 100.0 / this->Sf > procent) parent->is_signif = true;
-		if (mu * 100.0 / this->Sfu > procent) parent->is_signif = true;
-		if (mux * 100.0 / this->Sfux > procent) parent->is_signif = true;
-		if (muu * 100.0 / this->Sfuu > procent) parent->is_signif = true;
+		if (m * 100.0 / this->Sf > procent) parent->flags.is_signif = true;
+		if (mu * 100.0 / this->Sfu > procent) parent->flags.is_signif = true;
+		if (mux * 100.0 / this->Sfux > procent) parent->flags.is_signif = true;
+		if (muu * 100.0 / this->Sfuu > procent) parent->flags.is_signif = true;
 
-		if (parent->is_signif == false)
+		if (parent->flags.is_signif == false)
 		{
-			parent->need_devide_x = true;
+			parent->flags.need_devide_x = true;
 			parents.push_back(parent);
 			continue;
 		}
@@ -602,7 +602,7 @@ unsigned int AMR_f::de_Refine(void)
 
 
 		// Если дошли до сюда, то можно удалять ячейки
-		parent->need_devide_x = true;
+		parent->flags.need_devide_x = true;
 		parents.push_back(parent);
 		continue;
 	}
@@ -617,12 +617,12 @@ unsigned int AMR_f::de_Refine(void)
 	for (const auto& i : parents)
 	{
 		if(i == nullptr) continue;
-		if(i->is_divided == false) continue;
-		if (i->need_devide_x == false) continue;
+		if(i->flags.is_divided == false) continue;
+		if (i->flags.need_devide_x == false) continue;
 
-		i->need_devide_x = false;
+		i->flags.need_devide_x = false;
 		// В этом случае можно удалять дочерние ячейки
-		i->is_divided = false;
+		i->flags.is_divided = false;
 		//i->Get_Center(this->AMR_self, center, razmer);
 		//cout << center[0] << " " << center[1] << " " << center[2] << endl;
 		dim1 = i->cells.shape()[0];
@@ -680,7 +680,7 @@ unsigned int AMR_f::Refine(void)
 	double procent = this->procent_signif;
 	for (const auto& i : cells)
 	{
-		i->is_signif = false;
+		i->flags.is_signif = false;
 		i->Get_Center(this->AMR_self, center, razmer);
 		V = razmer[0] * razmer[1] * razmer[2];
 		u = norm2(center[0], center[1], center[2]);
@@ -689,59 +689,59 @@ unsigned int AMR_f::Refine(void)
 		mux = V * i->f * center[0];
 		muu = V * i->f * kv(u);
 
-		if (m * 100.0 / this->Sf > procent) i->is_signif = true;
-		if (mu * 100.0 / this->Sfu > procent) i->is_signif = true;
-		if (mux * 100.0 / this->Sfux > procent) i->is_signif = true;
-		if (muu * 100.0 / this->Sfuu > procent) i->is_signif = true;
+		if (m * 100.0 / this->Sf > procent) i->flags.is_signif = true;
+		if (mu * 100.0 / this->Sfu > procent) i->flags.is_signif = true;
+		if (mux * 100.0 / this->Sfux > procent) i->flags.is_signif = true;
+		if (muu * 100.0 / this->Sfuu > procent) i->flags.is_signif = true;
 	}
 
 	procent = this->procent_devide;
 	for (const auto& i : cells)
 	{
-		i->need_devide_x = false;
-		i->need_devide_y = false;
-		i->need_devide_z = false;
+		i->flags.need_devide_x = false;
+		i->flags.need_devide_y = false;
+		i->flags.need_devide_z = false;
 
-		if (i->is_signif == false) continue;
+		if (i->flags.is_signif == false) continue;
 
 		auto A = i->get_sosed(this->AMR_self, 0);
 		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
 		{
-			i->need_devide_x = true;
-			A->need_devide_x = true;
+			i->flags.need_devide_x = true;
+			A->flags.need_devide_x = true;
 		}
 		A = i->get_sosed(this->AMR_self, 1);
 		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
 		{
-			i->need_devide_x = true;
-			A->need_devide_x = true;
+			i->flags.need_devide_x = true;
+			A->flags.need_devide_x = true;
 		}
 		
 
 		A = i->get_sosed(this->AMR_self, 2);
 		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
 		{
-			i->need_devide_y = true;
-			A->need_devide_y = true;
+			i->flags.need_devide_y = true;
+			A->flags.need_devide_y = true;
 		}
 		A = i->get_sosed(this->AMR_self, 3);
 		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
 		{
-			i->need_devide_y = true;
-			A->need_devide_y = true;
+			i->flags.need_devide_y = true;
+			A->flags.need_devide_y = true;
 		}
 
 		A = i->get_sosed(this->AMR_self, 4);
 		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
 		{
-			i->need_devide_z = true;
-			A->need_devide_z = true;
+			i->flags.need_devide_z = true;
+			A->flags.need_devide_z = true;
 		}
 		A = i->get_sosed(this->AMR_self, 5);
 		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
 		{
-			i->need_devide_z = true;
-			A->need_devide_z = true;
+			i->flags.need_devide_z = true;
+			A->flags.need_devide_z = true;
 		}
 	}
 
@@ -751,7 +751,7 @@ unsigned int AMR_f::Refine(void)
 	unsigned int NN = 0;
 	for (const auto& i : cells)
 	{
-		if (i->need_devide_x == true)
+		if (i->flags.need_devide_x == true)
 		{
 			k1 = 2;
 		}
@@ -760,7 +760,7 @@ unsigned int AMR_f::Refine(void)
 			k1 = 1;
 		}
 
-		if (i->need_devide_y == true)
+		if (i->flags.need_devide_y == true)
 		{
 			k2 = 2;
 		}
@@ -769,7 +769,7 @@ unsigned int AMR_f::Refine(void)
 			k2 = 1;
 		}
 
-		if (i->need_devide_z == true)
+		if (i->flags.need_devide_z == true)
 		{
 			k3 = 2;
 		}

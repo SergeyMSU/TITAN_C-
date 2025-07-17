@@ -50,7 +50,7 @@ int main()
     S1.Tecplot_print_all_lush_in_2D();
     S1.Tecplot_print_all_cell_in_3D();
 
-    S1.Algoritm(2);
+    //S1.Algoritm(2);
     S1.Tecplot_print_all_gran_in_surface("TS");
     S1.Tecplot_print_all_gran_in_surface("HP");
     S1.Tecplot_print_all_gran_in_surface("BS");
@@ -119,9 +119,9 @@ int main()
 
     //S1.Save_cell_parameters("parameters_0001.bin");
 
-    //S1.Edges_create();
-    //S1.Culc_divergence_in_cell();
-    //S1.Culc_rotors_in_cell();
+    S1.Edges_create();
+    S1.Culc_divergence_in_cell();
+    S1.Culc_rotors_in_cell();
 
 
     S1.Save_for_interpolate("For_intertpolate_1.bin");
