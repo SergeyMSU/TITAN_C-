@@ -190,7 +190,7 @@ void Setka::Algoritm(short int alg)
 
 		vector<short int> zones_number;
 
-		zones_number.push_back(6);
+		/*zones_number.push_back(6);
 		zones_number.push_back(4);
 		zones_number.push_back(2);
 		zones_number.push_back(1);
@@ -201,7 +201,9 @@ void Setka::Algoritm(short int alg)
 		zones_number.push_back(3);
 		zones_number.push_back(1);
 		zones_number.push_back(2);
-		zones_number.push_back(4);
+		zones_number.push_back(4);*/
+
+		zones_number.push_back(3);
 
 		for (const auto& zone_play : zones_number)
 		{
@@ -4198,7 +4200,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 	{
 		fout << ", " << nam;
 	}
-	fout << ", Mach, BB_8pi, rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E";
+	fout << ", Mach, BB_8pi, rho_Th, p_Th, T_Th";
 	fout << endl;
 
 	fout << "ZONE T=HP, ";
@@ -4323,10 +4325,18 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			}
 
 
-			double rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E;
+			double rho_Th;
+			double p_Th;
+			double T_Th;
 
-			Sootnosheniya(parameters["rho"], parameters["p"], parameters["n_He"],
-				0.0, 0.0, zone, rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
+			unordered_map<string, double> param;
+
+			this->phys_param->Plasma_components(parameters["rho"], parameters["p"],
+				parameters["n_He"], zone, param);
+
+			rho_Th = param["rho_Th"];
+			p_Th = param["p_Th"];
+			T_Th = param["T_Th"];
 
 			double kT = 1.0;
 			if (razmer == true) kT = this->phys_param->Get_razmer("T");
@@ -4340,8 +4350,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			fout << " " << sqrt(parameters["rho"]) * norm2(parameters["Vx"], parameters["Vy"], parameters["Vz"])/
 				sqrt(this->phys_param->gamma * parameters["p"]) << " " 
 				<< norm2(parameters["Bx"], parameters["By"], parameters["Bz"]) / (8.0 * const_pi) << 
-				" " << rho_Th * krho << " " <<  rho_E * krho << " " << p_Th * kp << " " <<
-				p_Pui * kp << " " << T_Th * kT << " " << T_E * kT;
+				" " << rho_Th * krho  << " " << p_Th * kp << " " << T_Th * kT;
 
 
 			fout << endl;

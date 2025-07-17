@@ -268,6 +268,17 @@ void Setka::Init_physics(void)
 				i->parameters[0]["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
 				i->parameters[0]["Bz"] = 0.0;
 				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
+
+				i->parameters[1] = i->parameters[0];
+			}
+			else if (i->parameters[0]["Q"]/ i->parameters[0]["rho"] > 50.0)
+			{
+				i->parameters[0]["n_He"] = i->parameters[0]["n_He"] * 4.0;
+				i->parameters[0]["rho"] = i->parameters[0]["rho"] * 1.394;
+				i->parameters[0]["p"] = i->parameters[0]["p"] / 1.13;
+				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
+
+				i->parameters[1] = i->parameters[0];
 			}
 
 		}
@@ -597,17 +608,15 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 
 
 	double rho_Th;
-	double rho_E; 
 	double p_Th;
-	double p_Pui;
-	double T_Th; 
-	double T_E;
 
-	Sootnosheniya(C->parameters[now]["rho"], C->parameters[now]["p"],
-		C->parameters[now]["n_He"],
-		0.0, 0.0, zone,
-		rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
+	unordered_map<string, double> param;
 
+	this->phys_param->Plasma_components(C->parameters[now]["rho"], C->parameters[now]["p"],
+		C->parameters[now]["n_He"], zone, param);
+
+	rho_Th = param["rho_Th"];
+	p_Th = param["p_Th"];
 
 
 	double S1 = 0.0;
@@ -621,14 +630,14 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 			+ kv(C->parameters[now]["Vy"] - C->parameters[now]["Vy" + nam])
 			+ kv(C->parameters[now]["Vz"] - C->parameters[now]["Vz" + nam])
 			+ (64.0 / (9.0 * const_pi)) *
-			(p_Th / rho_Th
+			(2.0 * p_Th / rho_Th
 				+ 2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam]));
 
 		U_H[i] = sqrt(kv(C->parameters[now]["Vx"] - C->parameters[now]["Vx" + nam])
 			+ kv(C->parameters[now]["Vy"] - C->parameters[now]["Vy" + nam])
 			+ kv(C->parameters[now]["Vz"] - C->parameters[now]["Vz" + nam])
 			+ (4.0 / const_pi) *
-			(p_Th / rho_Th
+			(2.0 * p_Th / rho_Th
 				+ 2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam]));
 
 
@@ -650,7 +659,7 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		SOURSE[0][4] += nu[i] * ((kvv(C->parameters[now]["Vx" + nam], C->parameters[now]["Vy" + nam],
 			C->parameters[now]["Vz" + nam]) - kvv(C->parameters[now]["Vx"], C->parameters[now]["Vy"]
 				, C->parameters[now]["Vz"])) / 2.0 + (U_H[i] / U_M_H[i]) *
-			(2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam] - p_Th / rho_Th));
+			(2.0 * C->parameters[now]["p" + nam] / C->parameters[now]["rho" + nam] - 2.0 * p_Th / rho_Th));
 		i++;
 	}
 
@@ -668,7 +677,7 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		S2 = S2 + nu[i] *
 			(kvv(C->parameters[now]["Vx"], C->parameters[now]["Vy"],
 				C->parameters[now]["Vz"]) / 2.0
-				+ (U_H[i] / U_M_H[i]) * (p_Th / rho_Th));
+				+ (U_H[i] / U_M_H[i]) * (2.0 * p_Th / rho_Th));
 		i++;
 	}
 

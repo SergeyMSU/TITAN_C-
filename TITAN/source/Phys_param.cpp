@@ -17,13 +17,17 @@
 
 Phys_param::Phys_param()
 {
+    this->Plasma_components = [this](const double& rho, const double& p, const double& rho_He,
+        const short int& zone, unordered_map<string, double>& param) {
+            this->Plasma_components_1(rho, p, rho_He, zone, param); };
+
     // Парметры настройки MK
-    this->save_AMR = true;        // Нужно ли сохранять посчитанные функции распределения?
-    this->culc_AMR = true;        // Нужно ли считать функции распределения?
-    this->refine_AMR = true;      // Нужно ли мельчить посчитанные функции распределения?
-    this->N_per_gran = 100000;  // Сколько в среднем частиц вылетает с каждой грани
-    this->culc_cell_moments = true;    // Нужно ли считать моменты в ячейках?
-    this->de_refine_AMR = true;        // Нужно ли огрублять AMR сетку, если требуется?
+    this->save_AMR = false;        // Нужно ли сохранять посчитанные функции распределения?
+    this->culc_AMR = false;        // Нужно ли считать функции распределения?
+    this->refine_AMR = false;      // Нужно ли мельчить посчитанные функции распределения?
+    this->N_per_gran = 10000;  // Сколько в среднем частиц вылетает с каждой грани
+    this->culc_cell_moments = false;    // Нужно ли считать моменты в ячейках?
+    this->de_refine_AMR = false;        // Нужно ли огрублять AMR сетку, если требуется?
     this->MK_file = "parameters_MK_0001.bin";
 
 
@@ -143,6 +147,40 @@ Phys_param::Phys_param()
     }
 
     file.close();
+}
+
+void Phys_param::Plasma_components_1(const double& rho, const double& p, const double& rho_He,
+    const short int& zone, unordered_map<string, double>& param)
+{
+    // Без пикопов, только протоны, электроны и гелий
+    // Te == Tth
+    // Функция, определяющая температуры и концентрации гелия, 
+    // al - это заряд гелия
+    // если al = 1 то вне гелиопаузы
+    // если al = 2, то внутри гелиопаузы
+    short int al;
+
+    if (zone <= 2)
+    {
+        al = 2;
+    }
+    else
+    {
+        al = 1;
+    }
+
+    param["rho_Th"] = -(MF_meDmp * al * rho_He + 4.0 * (-rho + rho_He))
+        / (4.0 * (1.0 + MF_meDmp));
+
+
+    param["p_Th"] = p * (4.0 * rho - (4.0 + al * MF_meDmp) * rho_He) /
+        (8.0 * rho + (-7.0 + al + (1.0 - al) * MF_meDmp) * rho_He);
+
+
+    param["T_Th"] = 8.0 * (1.0 + MF_meDmp) * p  /
+        (8.0 * rho - (7.0 - al + (-1.0 + al) * MF_meDmp) * rho_He);
+
+    return;
 }
 
 double Phys_param::Get_rho_0(const double& the)

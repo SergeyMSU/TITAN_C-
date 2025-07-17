@@ -16,6 +16,14 @@ public:
 	unsigned int ny = 0;
 	unsigned int nz = 0;
 
+	struct Flags {
+		unsigned is_divided : 1;     // 1 бит
+		unsigned is_signif : 1;      // 1 бит
+		unsigned need_devide_x : 1;  // 1 бит
+		unsigned need_devide_y : 1;  // 1 бит
+		unsigned need_devide_z : 1;  // 1 бит
+	} flags;  // Размер: 1 байт (вместо 5!)
+
 	bool is_divided = false;      // Разделена ли ячейка
 	boost::multi_array<AMR_cell*, 3> cells;  // Ячейки - дети
 

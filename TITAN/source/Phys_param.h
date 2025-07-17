@@ -23,6 +23,10 @@ public:
 
     bool is_PUI = false;       // Считаем ли пикапы?
 
+    std::function<void (const double& , const double& , const double& ,
+        const short int& , unordered_map<string, double>& )> Plasma_components;
+
+
 
     double Velosity_inf = -2.54327;   // Значение скорости смеси на бесконечности
     double B_inf = 8.91006;           // Значение МОДУЛЯ магнитного поля на бесконечности
@@ -66,11 +70,11 @@ public:
 
     bool sglag_HP = true;
     double velocity_HP = 0.1;
-    double sglag_HP_k_sphere = 0.1;  //0.005 0.002    // Cглиживание в головной части
+    double sglag_HP_k_sphere = 0.01;  //0.005 0.002    // Cглаживание в головной части
     double sglag_HP_k = 0.001;          // Сглаживание не в головной области
-    double sglag_HP_angle = 1.2;    // коэффициент усилинея сглаживания по углу
+    double sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
     double sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
-    double sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области
+    double sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
 
 
     bool sglag_BS = false;
@@ -113,6 +117,10 @@ public:
 
     double Get_razmer(string par);  // Возвращает коэффициент для перевода 
     // параметра в размерные значения
+
+    // Разделение компонент плазмы
+    void Plasma_components_1(const double& rho, const double& p, const double& rho_He,
+        const short int& zone, unordered_map<string, double>& param);
 
 
     void Get_Potok(const double& rho, const double& p, const double& u, const double& v,

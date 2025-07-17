@@ -585,6 +585,7 @@ void Setka::MK_prepare(short int zone_MK)
 	// √отовим/загружаем AMR сетку дл€ граней
 	if (true)
 	{
+		cout << "Start: Zagruzka AMR" << endl;
 		unsigned int NN1_ = 0;
 		unsigned int NN2_ = 0;
 
@@ -619,7 +620,7 @@ void Setka::MK_prepare(short int zone_MK)
 							}
 
 							if (ni == ii && this->phys_param->refine_AMR == true && gr->type == Type_Gran::Us &&
-								gr->AMR[iH - 1][ii]->Size() < 5000)
+								gr->AMR[iH - 1][ii]->Size() < 3000)
 							{
 								unsigned short int NN = 1;
 								//while (NN > 0)
@@ -697,8 +698,9 @@ void Setka::MK_prepare(short int zone_MK)
 			}
 		}
 		cout << "Izmelcheno  " << NNall << "  yacheek" << endl;
-		cout << "Srednee chislo chastic v AMR na vixodnix granyax =  " << 1.0 * NN1_/ NN2_ << endl;
-	}
+		cout << "Srednee chislo yacheek v AMR na vixodnix granyax =  " << 1.0 * NN1_/ NN2_ << endl;
+		cout << "End: Zagruzka AMR" << endl;
+}
 
 	// ћожно удалить файлы граничных граней, так как они только место занимают
 	if (true)
@@ -1399,6 +1401,15 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				exit(-1);
 			}
 			b1 = this->Time_to_vilet(P, time, gran);
+			if (P.cel->MK_zone != zone_MK)
+			{
+				cout << "Error 9871216655" << endl;
+				cout << P.cel->MK_zone << "   " << zone_MK << endl;
+				cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
+				cout << P.Vel[0] << " " << P.Vel[1] << " " << P.Vel[2] << endl;
+				cout << k_cikl << endl;
+				exit(-1);
+			}
 
 			if (b1 == true && gran == nullptr)
 			{
@@ -1421,15 +1432,15 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 				for (short int i = 0; i < 3; i++)
 				{
-					if (k1 < 2)
+					/*if (k1 < 2)
 					{
 						P.coord[i] += 1e-6 * P.Vel[i];
 					}
 					else if (k1 < 4)
 					{
 						P.coord[i] += 1e-5 * P.Vel[i];
-					}
-					else if(k1 < 6)
+					}*/
+					if(k1 < 6)
 					{
 						P.coord[i] = P.coord[i] + (Cell_centerr[i] - P.coord[i]) / 800.0;
 					}
@@ -1512,13 +1523,21 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		double vy = P.cel->parameters[0]["Vy"];
 		double vz = P.cel->parameters[0]["Vz"];
 
-		double rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E;
+		double rho_Th, p_Th;
 		
-		Sootnosheniya(ro, p, rho_He, 0.0, 0.0, (int)(P.cel->type),
-			rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
+		//Sootnosheniya(ro, p, rho_He, 0.0, 0.0, (int)(P.cel->type),
+		//	rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
+
+		unordered_map<string, double> param;
+
+		this->phys_param->Plasma_components(ro, p,
+			rho_He, (int)(P.cel->type), param);
+
+		rho_Th = param["rho_Th"];
+		p_Th = param["p_Th"];
 
 		ro = rho_Th;
-		cp = sqrt(p_Th / rho_Th);
+		cp = sqrt(2.0 * p_Th / rho_Th);
 
 		/*double ro = 1.0;
 		double cp = 1.0;
@@ -1545,6 +1564,14 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		I += l / sig;
 		//cout << "C " << endl;
 		//if (true)
+
+		if (P.cel->MK_zone != zone_MK)
+		{
+			cout << P.cel->number << " " << Cell_do->number << endl;
+			cout << "Error 1654875068" << endl;
+			exit(-1);
+		}
+
 
 		if (vtoroy_shans == false)
 		{
@@ -1574,7 +1601,8 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 					{
 						P.coord[i] -= t_ex / 1000.0 * P.Vel[i];
 					}
-					Cnow = P.cel;
+
+					Cnow = CC;
 					CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
 					if (P.cel != CC)
 					{
@@ -1603,7 +1631,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 							}
 						}
 
-
+						Cnow = CC;
 						CC = Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, Cnow);
 
 						if (P.cel != CC)
