@@ -19,16 +19,16 @@ Phys_param::Phys_param()
 {
     if (this->is_PUI == true)
     {
-        this->num_H = 4;
+        this->num_H = 9;
     }
     else
     {
-        this->num_H = 9;
+        this->num_H = 4;
     }
 
     // 1 - 4 старые обычные сорта
     // 5 - 8 сорта водорода, рождённые от пикапов сорта 1
-    // 9 - сорт водорода от пикапов сорта 2 (во внутреннем ударном слое).
+    // 9 - сорт водорода от пикапов сорта 2 (такой сорт есть только во внутреннем ударном слое).
 
 
     this->Plasma_components = [this](const double& rho, const double& p, const double& rho_He,

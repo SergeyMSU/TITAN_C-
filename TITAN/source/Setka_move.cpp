@@ -129,7 +129,8 @@ void solveQuadraticEquation(const double& x1, const double& y1,
 void Setka::Culc_Velocity_surface(short int now, const double& time, short int metod)
 {
 	double dsr, dsc, dsl;
-	short int metod_ = metod;
+
+
 	
 	int now2 = (now + 1) % 2;
 
@@ -148,6 +149,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		auto gr = this->Gran_TS[i_step];
 		auto A = gr->cells[0];
 		auto B = gr->cells[1];
+
 
 		unordered_map<string, double> par_left;
 		unordered_map<string, double> par_right;
@@ -184,7 +186,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		double w = 0.0;
 
 
-		this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
+		this->phys_param->chlld(gr->Get_method(), gr->normal[now][0], gr->normal[now][1],
 			gr->normal[now][2],
 			w, qqq1, qqq2, qqq, false, 3,
 			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
@@ -211,6 +213,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			auto gr = this->Gran_HP[i_step];
 			auto A = gr->cells[0];
 			auto B = gr->cells[1];
+			short int metod_ = gr->Get_method();
 
 			if (gr->type2 != Type_Gran_surf::HP) cout << "Error 7823467276345679264978234" << endl;
 
@@ -384,6 +387,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			auto A = gr->cells[0];
 			auto B = gr->cells[1];
 
+
 			std::vector<double> qqq, qqq1, qqq2;
 			qqq.resize(8);
 			qqq1.resize(8);
@@ -440,7 +444,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			double w = 0.0;
 
-			this->phys_param->chlld(metod, gr->normal[now][0], gr->normal[now][1],
+			this->phys_param->chlld(gr->Get_method(), gr->normal[now][0], gr->normal[now][1],
 				gr->normal[now][2],
 				w, qqq1, qqq2, qqq, false, 3,
 				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
