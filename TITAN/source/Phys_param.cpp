@@ -17,6 +17,20 @@
 
 Phys_param::Phys_param()
 {
+    if (this->is_PUI == true)
+    {
+        this->num_H = 4;
+    }
+    else
+    {
+        this->num_H = 9;
+    }
+
+    // 1 - 4 старые обычные сорта
+    // 5 - 8 сорта водорода, рождённые от пикапов сорта 1
+    // 9 - сорт водорода от пикапов сорта 2 (во внутреннем ударном слое).
+
+
     this->Plasma_components = [this](const double& rho, const double& p, const double& rho_He,
         const short int& zone, unordered_map<string, double>& param) {
             this->Plasma_components_1(rho, p, rho_He, zone, param); };
@@ -42,38 +56,30 @@ Phys_param::Phys_param()
     this->param_names.push_back("Q");
     this->param_names.push_back("n_He");
 
-    this->param_names.push_back("rho_H1");
-    this->param_names.push_back("Vx_H1");
-    this->param_names.push_back("Vy_H1");
-    this->param_names.push_back("Vz_H1");
-    this->param_names.push_back("p_H1");
+    for (size_t ii = 1; ii <= this->num_H; ii++)
+    {
+        string nii = "rho_H" + to_string(ii);
+        this->param_names.push_back(nii);
 
-    this->param_names.push_back("rho_H2");
-    this->param_names.push_back("Vx_H2");
-    this->param_names.push_back("Vy_H2");
-    this->param_names.push_back("Vz_H2");
-    this->param_names.push_back("p_H2");
+        nii = "Vx_H" + to_string(ii);
+        this->param_names.push_back(nii);
 
-    this->param_names.push_back("rho_H3");
-    this->param_names.push_back("Vx_H3");
-    this->param_names.push_back("Vy_H3");
-    this->param_names.push_back("Vz_H3");
-    this->param_names.push_back("p_H3");
+        nii = "Vy_H" + to_string(ii);
+        this->param_names.push_back(nii);
 
-    this->param_names.push_back("rho_H4");
-    this->param_names.push_back("Vx_H4");
-    this->param_names.push_back("Vy_H4");
-    this->param_names.push_back("Vz_H4");
-    this->param_names.push_back("p_H4");
+        nii = "Vz_H" + to_string(ii);
+        this->param_names.push_back(nii);
+
+        nii = "p_H" + to_string(ii);
+        this->param_names.push_back(nii);
+    }
 
     if (this->is_PUI == true)
     {
         this->param_names.push_back("rho_Pui_1");
         this->param_names.push_back("rho_Pui_2");
-        this->param_names.push_back("rho_Pui_3");
         this->param_names.push_back("p_Pui_1");
         this->param_names.push_back("p_Pui_2");
-        this->param_names.push_back("p_Pui_3");
     }
 
     // Задаём имена дополнительныхъ жидкостей пикапов
@@ -81,14 +87,18 @@ Phys_param::Phys_param()
     {
         this->pui_name.push_back("_Pui_1");
         this->pui_name.push_back("_Pui_2");
-        this->pui_name.push_back("_Pui_3");
     }
 
+
+
     // Задаём имена дополнительных жидкостей водорода
-    this->H_name.push_back("_H1");
-    this->H_name.push_back("_H2");
-    this->H_name.push_back("_H3");
-    this->H_name.push_back("_H4");
+    for (size_t ii = 1; ii <= this->num_H; ii++)
+    {
+        string nii = "_H" + to_string(ii);
+        this->H_name.push_back(nii);
+    }
+
+
 
     // Параметры в ячейках для Монте-Карло
     this->MK_param.push_back("MK_n_H"); this->param_names.push_back("MK_n_H");

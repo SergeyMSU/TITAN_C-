@@ -21,7 +21,10 @@ public:
 
     unordered_map<string, double> perevod_razmer;
 
+
     bool is_PUI = false;       // Считаем ли пикапы?
+
+
 
     std::function<void (const double& , const double& , const double& ,
         const short int& , unordered_map<string, double>& )> Plasma_components;
@@ -39,8 +42,7 @@ public:
     double mn_He_0 = 0.035194;        // Множитель концентрации гелия на 1 АЕ
     double mn_He_inf = 0.15;        // Множитель концентрации гелия на inf
     double mep = 0.000544617;      // Отношение массы электрона к массе протона
-
-    short int num_H = 4;           // Сколько сортов водорода для МК
+    uint8_t num_H = 4;           // Сколько сортов водорода для МК
 
     // параметры
     double gamma = (5.0 / 3.0);       // показатель адиабаты
