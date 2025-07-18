@@ -80,7 +80,10 @@ void Luch::dvigenie(int i_time)
 		for (int j = 0; j < M2 - M11; j++)
 		{
 			double s = (j + 1.0) / (M2 - M11 + 1.0);
-			double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s);  // Линейное сгущение к обоим концам
+			//double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s);  // Линейное сгущение к обоим концам
+			double ss = s * (a * kv(1.0 - 3.0 * s + 2.0 * kv(s)) +
+				s * (7.0 + b * kv(1.0 - 2.0 * s) * (-1.0 + s) - 2.0 * s *
+					(9.0 + 2.0 * s * (-5.0 + 2.0 * s))));
 			r = R2 + dr * M11 + (R3 - R2 - dr * M11) * ss;
 			//r = R2 + dr * M11 + (j + 1) * (R3 - R2 - dr * M11) / (M2 - M11 + 1);
 			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
