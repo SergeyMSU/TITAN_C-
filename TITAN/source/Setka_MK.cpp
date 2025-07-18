@@ -1517,7 +1517,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		// ѕолучаем параметры плазмы в €чейке ----------------------------
 		double ro = P.cel->parameters[0]["rho"];
 		double p = P.cel->parameters[0]["p"];
-		double rho_He = P.cel->parameters[0]["n_He"];
+		double rho_He = P.cel->parameters[0]["rho_He"];
 		double cp;// = sqrt(P.cel->parameters[0]["p"] / ro);
 		double vx = P.cel->parameters[0]["Vx"];			// —корости плазмы в €чейке
 		double vy = P.cel->parameters[0]["Vy"];
@@ -1530,8 +1530,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 		unordered_map<string, double> param;
 
-		this->phys_param->Plasma_components(ro, p,
-			rho_He, (int)(P.cel->type), param);
+		this->phys_param->Plasma_components((int)(P.cel->type), P.cel->parameters[0], param);
 
 		rho_Th = param["rho_Th"];
 		p_Th = param["p_Th"];

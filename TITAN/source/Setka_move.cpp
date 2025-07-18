@@ -107,24 +107,6 @@ AA->mut.unlock();
 	p[1] = norm2(AA->coord[now][0], AA->coord[now][1], AA->coord[now][2]);
 
 
-void solveQuadraticEquation(const double& x1, const double& y1, 
-	const double& x2, const double& y2, 
-	const double& x3, const double& y3, double& a, double& b, double& c)
-{
-	double denom = (x1 - x2) * (x1 - x3) * (x2 - x3);
-	if (denom == 0) {
-		cout << "Points are collinear or have duplicate x-coordinates." << endl;
-		cout << "ERROR  7543851320" << endl;
-		exit(-1);
-	}
-
-	a = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom;
-	b = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom;
-	c = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom;
-
-	return;
-}
-
 
 void Setka::Culc_Velocity_surface(short int now, const double& time, short int metod)
 {
@@ -613,7 +595,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		// Сглаживание в головной области (новое - сплайнами)
 		if (false)
 		{
-#pragma omp parallel for private(a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
+#pragma omp parallel for private(A, B, V, a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
 			for (auto& yz : this->Yzels_HP_sglag)
 			{
 				AA = yz;
@@ -738,7 +720,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		int nn = this->A_Luch.size();
 		int mm = this->A_Luch[0].size();
 
-#pragma omp parallel for private(a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
+#pragma omp parallel for private(A, B, V, a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
 		for (size_t i = 0; i < nn; i++)
 		{
 			short int ip = i + 1;
@@ -792,7 +774,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		// Параболическое сглаживание на B лучах
 		nn = this->B_Luch.size();
 		mm = this->B_Luch[0].size();
-#pragma omp parallel for private(a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
+#pragma omp parallel for private(A, B, V, a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
 		for (size_t i = 0; i < nn; i++)
 		{
 			short int ip = i + 1;
@@ -862,7 +844,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		nn = this->E_Luch.size();
 		mm = this->E_Luch[0].size();
 
-#pragma omp parallel for private(a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
+#pragma omp parallel for private(A, B, V, a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
 		for (size_t i = 0; i < nn; i++)
 		{
 			short int ip = i + 1;
@@ -931,7 +913,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		nn = this->D_Luch.size();
 		mm = this->geo->N4 - 1; // this->D_Luch[0].size();
 
-#pragma omp parallel for private(a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
+#pragma omp parallel for private(A, B, V, a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
 		for (size_t i = 0; i < nn; i++)
 		{
 			short int ip = i + 1;

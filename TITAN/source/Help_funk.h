@@ -4,6 +4,10 @@
 
 bool file_exists(const std::string& filename);
 
+void solveQuadraticEquation(const double& x1, const double& y1,
+	const double& x2, const double& y2,
+	const double& x3, const double& y3, double& a, double& b, double& c);
+
 double maxwell(const double& n_H, const double& cp, const double& u1,
 	const double& u2, const double& u3,
 	const double& x, const double& y, const double& z);

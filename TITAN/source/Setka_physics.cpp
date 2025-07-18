@@ -257,10 +257,10 @@ void Setka::Init_physics(void)
 		{
 			if (i->center[0][0] > 200)
 			{
-				i->parameters[0]["rho"] = 1.60063; // 1.0 * (1.0 + this->phys_param->mn_He_inf);
-				i->parameters[0]["n_He"] = 0.6; // this->phys_param->mn_He_inf;
-				i->parameters[0]["p"] = 1.15; // 1 + (i->parameters["n_He"]) /
-					//(i->parameters["rho"] - i->parameters["n_He"]);
+				i->parameters[0]["rho"] = 1.60063; // 1.0 * (1.0 + this->phys_param->mrho_He_inf);
+				i->parameters[0]["rho_He"] = 0.6; // this->phys_param->mrho_He_inf;
+				i->parameters[0]["p"] = 1.15; // 1 + (i->parameters["rho_He"]) /
+					//(i->parameters["rho"] - i->parameters["rho_He"]);
 				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters[0]["Vy"] = 0.0;
 				i->parameters[0]["Vz"] = 0.0;
@@ -273,7 +273,7 @@ void Setka::Init_physics(void)
 			}
 			else if (i->parameters[0]["Q"]/ i->parameters[0]["rho"] > 50.0)
 			{
-				i->parameters[0]["n_He"] = i->parameters[0]["n_He"] * 4.0;
+				i->parameters[0]["rho_He"] = i->parameters[0]["rho_He"] * 4.0;
 				i->parameters[0]["rho"] = i->parameters[0]["rho"] * 1.394;
 				i->parameters[0]["p"] = i->parameters[0]["p"] / 1.13;
 				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
@@ -289,8 +289,8 @@ void Setka::Init_physics(void)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			i->parameters[0]["n_He"] = 0.000001;
-			i->parameters[0]["n_He"] = 0.000001;
+			i->parameters[0]["rho_He"] = 0.000001;
+			i->parameters[0]["rho_He"] = 0.000001;
 
 			for (short unsigned int j = 1; j < i->parameters.size(); j++)
 			{
@@ -303,6 +303,27 @@ void Setka::Init_physics(void)
 	// Проверяем наличие всех необходимых переменных
 	for (auto& i : this->All_Cell)
 	{
+		// Разбираемся с дивергенцией скорости
+		if (true)
+		{
+			if (this->phys_param->is_div_V_in_cell == true)
+			{
+				if (i->parameters[0].find("div_V") == i->parameters[0].end())
+				{
+					i->parameters[0]["div_V"] = 0.0;
+				}
+			}
+			else
+			{
+				if (i->parameters[0].find("div_V") != i->parameters[0].end())
+				{
+					i->parameters[0].erase("div_V");
+				}
+			}
+		}
+
+		i->parameters[1] = i->parameters[0];
+
 		for (auto& num : this->phys_param->param_names)
 		{
 			if (i->parameters[0].find(num) == i->parameters[0].end())
@@ -384,10 +405,10 @@ void Setka::Init_physics(void)
 		{
 			if (i->type == Type_Gran::Outer_Hard)
 			{
-				i->parameters["rho"] = 1.60063; // 1.0 * (1.0 + this->phys_param->mn_He_inf);
-				i->parameters["n_He"] = 0.6; // this->phys_param->mn_He_inf;
-				i->parameters["p"] = 1.15; // 1 + (i->parameters["n_He"]) /
-					//(i->parameters["rho"] - i->parameters["n_He"]);
+				i->parameters["rho"] = 1.60063; // 1.0 * (1.0 + this->phys_param->mrho_He_inf);
+				i->parameters["rho_He"] = 0.6; // this->phys_param->mrho_He_inf;
+				i->parameters["p"] = 1.15; // 1 + (i->parameters["rho_He"]) /
+					//(i->parameters["rho"] - i->parameters["rho_He"]);
 				i->parameters["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters["Vy"] = 0.0;
 				i->parameters["Vz"] = 0.0;
@@ -430,15 +451,15 @@ void Setka::Init_physics(void)
 
 				double np = this->phys_param->Get_rho_0(the);
 
-				double rho = (this->phys_param->mep + 2.0 * this->phys_param->mn_He_0 * 
+				double rho = (this->phys_param->mep + 2.0 * this->phys_param->mrho_He_0 * 
 					this->phys_param->mep + 
-					1.0 + 4.0 * this->phys_param->mn_He_0) * np;
+					1.0 + 4.0 * this->phys_param->mrho_He_0) * np;
 
 
 
 				i->parameters["rho"] = rho * pow(this->phys_param->R_0 / r, 2);
-				i->parameters["n_He"] = 4.0 * this->phys_param->mn_He_0 * np * pow(this->phys_param->R_0 / r, 2);
-				i->parameters["p"] = (1.0 + 3.0 * this->phys_param->mn_He_0 /2.0) * np * Tp *
+				i->parameters["rho_He"] = 4.0 * this->phys_param->mrho_He_0 * np * pow(this->phys_param->R_0 / r, 2);
+				i->parameters["p"] = (1.0 + 3.0 * this->phys_param->mrho_He_0 /2.0) * np * Tp *
 					pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
 				i->parameters["Vx"] = mV * vec(0);
 				i->parameters["Vy"] = mV * vec(1);
@@ -612,8 +633,7 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 
 	unordered_map<string, double> param;
 
-	this->phys_param->Plasma_components(C->parameters[now]["rho"], C->parameters[now]["p"],
-		C->parameters[now]["n_He"], zone, param);
+	this->phys_param->Plasma_components(zone, C->parameters[now], param);
 
 	rho_Th = param["rho_Th"];
 	p_Th = param["p_Th"];
@@ -933,6 +953,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			double Volume2 = cell->volume[now2];
 			int zone;
 
+			//unordered_map<string, double>&
+
 			std::vector<double> POTOK;
 			POTOK.resize(9);
 
@@ -979,7 +1001,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					POTOK[8] += sign_potok * gran->parameters["PdivB"];
 
 					POTOK2[0] += sign_potok * gran->parameters["PQ"];
-					POTOK2[1] += sign_potok * gran->parameters["Pn_He"];
+					POTOK2[1] += sign_potok * gran->parameters["Prho_He"];
 				}
 
 				for (short int i = 0; i < this->phys_param->H_name.size(); i++)
@@ -995,7 +1017,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			zone = this->determ_zone(cell, now1);
 			this->Calc_sourse_MF(cell, SOURSE, now1, zone);
 
-			double rho3, u3, v3, w3, bx3, by3, bz3, p3, Q3, n_He3, n_He;
+			double rho3, u3, v3, w3, bx3, by3, bz3, p3, Q3, rho_He3, rho_He;
 			double rho, vx, vy, vz, p, bx, by, bz, dsk, Q;
 
 			if (this->phys_param->culc_plasma == true)
@@ -1010,13 +1032,13 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					Q = 0.0;
 				}
 
-				if (cell->parameters[now1].find("n_He") != cell->parameters[now1].end())
+				if (cell->parameters[now1].find("rho_He") != cell->parameters[now1].end())
 				{
-					n_He = cell->parameters[now1]["n_He"];
+					rho_He = cell->parameters[now1]["rho_He"];
 				}
 				else
 				{
-					n_He = 0.0;
+					rho_He = 0.0;
 				}
 
 
@@ -1041,13 +1063,13 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					Q3 = 0.0;
 				}
 
-				if (cell->parameters[now1].find("n_He") != cell->parameters[now1].end())
+				if (cell->parameters[now1].find("rho_He") != cell->parameters[now1].end())
 				{
-					n_He3 = n_He * Volume / Volume2 - time * POTOK2[1] / Volume2;
+					rho_He3 = rho_He * Volume / Volume2 - time * POTOK2[1] / Volume2;
 				}
 				else
 				{
-					n_He3 = 0.0;
+					rho_He3 = 0.0;
 				}
 
 				if (rho3 < 0.00000001)
@@ -1082,7 +1104,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					whach(rho);
 					whach(time);
 					whach(Q);
-					whach(n_He);
+					whach(rho_He);
 
 					for (short unsigned int ik = 0; ik < 9; ik++)
 					{
@@ -1111,9 +1133,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				{
 					cell->parameters[now2]["Q"] = Q3;
 				}
-				if (cell->parameters[now1].find("n_He") != cell->parameters[now1].end())
+				if (cell->parameters[now1].find("rho_He") != cell->parameters[now1].end())
 				{
-					cell->parameters[now2]["n_He"] = n_He3;
+					cell->parameters[now2]["rho_He"] = rho_He3;
 				}
 				cell->parameters[now2]["Vx"] = u3;
 				cell->parameters[now2]["Vy"] = v3;
@@ -1329,10 +1351,10 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			konvect.push_back(0.0);
 		}
 
-		if (par_left.find("n_He") != par_left.end())
+		if (par_left.find("rho_He") != par_left.end())
 		{
-			konvect_left.push_back(par_left["n_He"]);
-			konvect_right.push_back(par_right["n_He"]);
+			konvect_left.push_back(par_left["rho_He"]);
+			konvect_right.push_back(par_right["rho_He"]);
 			konvect.push_back(0.0);
 		}
 
@@ -1405,20 +1427,47 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			gr->normal[now][1], gr->normal[now][2],
 			qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
 
+		if (this->phys_param->is_div_V_in_cell == true)
+		{
+			if (gr->type2 == Type_Gran_surf::Us)
+			{
+				gr->parameters["Pdiv_V"] = 0.5 * scalarProductFast(gr->normal[now][0],
+					gr->normal[now][1], gr->normal[now][2],
+					qqq1[1] + qqq2[1], qqq1[2] + qqq2[2], qqq1[3] + qqq2[3]) * area;
+			}
+			else if (gr->type2 == Type_Gran_surf::TS || gr->type2 == Type_Gran_surf::BS)
+			{
+				gr->parameters["Pdiv_V_L"] = scalarProductFast(gr->normal[now][0],
+					gr->normal[now][1], gr->normal[now][2],
+					qqq1[1], qqq1[2], qqq1[3]) * area;
+				gr->parameters["Pdiv_V_R"] = scalarProductFast(gr->normal[now][0],
+					gr->normal[now][1], gr->normal[now][2],
+					qqq2[1], qqq2[2], qqq2[3]) * area;
+			}
+		}
+
 		// Для контакта поток Bn равен нулю
 		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
 		{
 			gr->parameters["PdivB"] = 0.0;
 		}
 
+		// Для контакта поток Vn равен нулю
+		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->is_div_V_in_cell == true)
+		{
+			gr->parameters["Pdiv_V"] = 0.0;
+		}
+
+
+
 		if (par_left.find("Q") != par_left.end())
 		{
 			gr->parameters["PQ"] = konvect[0] * area; // Может быть неправльный порядок при других конвективных переменных
 		}
 
-		if (par_left.find("n_He") != par_left.end())
+		if (par_left.find("rho_He") != par_left.end())
 		{
-			gr->parameters["Pn_He"] = konvect[1] * area; // Может быть неправльный порядок при других конвективных переменных
+			gr->parameters["Prho_He"] = konvect[1] * area; // Может быть неправльный порядок при других конвективных переменных
 		}
 	}
 

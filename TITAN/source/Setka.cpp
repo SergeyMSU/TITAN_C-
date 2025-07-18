@@ -427,6 +427,9 @@ bool Setka::Test_geometr(void)
 			whach(V2);
 			whach(V3);
 			whach(i->volume[0]);
+			whach(i->center[0][0]);
+			whach(i->center[0][1]);
+			whach(i->center[0][2]);
 			whach(norm2(V1, V2, V3) / i->volume[0]);
 			exit(-1);
 		}
@@ -4338,8 +4341,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 
 			unordered_map<string, double> param;
 
-			this->phys_param->Plasma_components(parameters["rho"], parameters["p"],
-				parameters["n_He"], zone, param);
+			this->phys_param->Plasma_components(zone, parameters, param);
 
 			rho_Th = param["rho_Th"];
 			p_Th = param["p_Th"];

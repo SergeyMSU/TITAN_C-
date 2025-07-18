@@ -17,13 +17,33 @@
 
 Phys_param::Phys_param()
 {
+    this->sglag_HP = true;
+    this->velocity_HP = 0.1;
+    this->sglag_HP_k_sphere = 0.01;  //0.005 0.002    // Cглаживание в головной части
+    this->sglag_HP_k = 0.01; // 0.001         // Сглаживание не в головной области
+    this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
+    this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
+    this->sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
+
+
     if (this->is_PUI == true)
     {
         this->num_H = 9;
+        this->is_div_V_in_cell = true;
+        this->num_pui = 2;
+        this->pui_in_zone.resize(4, this->num_pui);
+        this->pui_in_zone << true, false,
+                             true, true,
+                             true, false,
+                             true, false;
+        // Предупреждение, может быть проблема с тем, что некоторые
+        // поверхности выделяются не полностью
     }
     else
     {
         this->num_H = 4;
+        this->is_div_V_in_cell = false;
+        this->num_pui = 0;
     }
 
     // 1 - 4 старые обычные сорта
@@ -31,9 +51,10 @@ Phys_param::Phys_param()
     // 9 - сорт водорода от пикапов сорта 2 (такой сорт есть только во внутреннем ударном слое).
 
 
-    this->Plasma_components = [this](const double& rho, const double& p, const double& rho_He,
-        const short int& zone, unordered_map<string, double>& param) {
-            this->Plasma_components_1(rho, p, rho_He, zone, param); };
+    this->Plasma_components = [this](const short int& zone,
+        unordered_map<string, double>& param_in_cell,
+        unordered_map<string, double>& param) {
+            this->Plasma_components_1(zone, param_in_cell, param); };
 
     // Парметры настройки MK
     this->save_AMR = false;        // Нужно ли сохранять посчитанные функции распределения?
@@ -54,8 +75,14 @@ Phys_param::Phys_param()
     this->param_names.push_back("By");
     this->param_names.push_back("Bz");
     this->param_names.push_back("Q");
-    this->param_names.push_back("n_He");
+    this->param_names.push_back("rho_He");
 
+    if (this->is_div_V_in_cell == true)
+    {
+        this->param_names.push_back("div_V");
+    }
+
+    // Добавляем водород
     for (size_t ii = 1; ii <= this->num_H; ii++)
     {
         string nii = "rho_H" + to_string(ii);
@@ -74,6 +101,7 @@ Phys_param::Phys_param()
         this->param_names.push_back(nii);
     }
 
+    // Добавляем пикапы
     if (this->is_PUI == true)
     {
         this->param_names.push_back("rho_Pui_1");
@@ -159,16 +187,21 @@ Phys_param::Phys_param()
     file.close();
 }
 
-void Phys_param::Plasma_components_1(const double& rho, const double& p, const double& rho_He,
-    const short int& zone, unordered_map<string, double>& param)
+void Phys_param::Plasma_components_1(const short int& zone, 
+    unordered_map<string, double>& param_in_cell,
+    unordered_map<string, double>& param)
 {
-    // Без пикопов, только протоны, электроны и гелий
+    // Без пикапов, только протоны, электроны и гелий
     // Te == Tth
     // Функция, определяющая температуры и концентрации гелия, 
     // al - это заряд гелия
     // если al = 1 то вне гелиопаузы
     // если al = 2, то внутри гелиопаузы
     short int al;
+
+    double rho = param_in_cell["rho"];
+    double p = param_in_cell["p"];
+    double rho_He = param_in_cell["rho_He"];
 
     if (zone <= 2)
     {
@@ -2000,7 +2033,7 @@ double Phys_param::Get_razmer(string par)
 {
     if (par == "r") return this->perevod_razmer["r"];
 
-    if (par == "rho" || par == "n_He") return this->perevod_razmer["rho"];
+    if (par == "rho" || par == "rho_He") return this->perevod_razmer["rho"];
 
     if (par == "V" || par == "Vx" || par == "Vy"
         || par == "Vz") return this->perevod_razmer["V"];

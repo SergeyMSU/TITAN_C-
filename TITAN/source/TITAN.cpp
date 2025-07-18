@@ -80,8 +80,7 @@ int main()
         cout << yz44->coord[0][0] << " " << yz44->coord[0][1] << " " << yz44->coord[0][2] << endl;
     }
     
-
-    for (int i = 1; i <= 6 * 4; i++) // 6 * 2
+    for (int i = 1; i <= 6 * 2; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;

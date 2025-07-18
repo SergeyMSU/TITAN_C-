@@ -278,6 +278,24 @@ Cell* Get_Sosed(Cell* C, Gran* gr)
 	return nullptr;
 }
 
+void solveQuadraticEquation(const double& x1, const double& y1,
+	const double& x2, const double& y2,
+	const double& x3, const double& y3, double& a, double& b, double& c)
+{
+	double denom = (x1 - x2) * (x1 - x3) * (x2 - x3);
+	if (denom == 0) {
+		cout << "Points are collinear or have duplicate x-coordinates." << endl;
+		cout << "ERROR  7543851320" << endl;
+		exit(-1);
+	}
+
+	a = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom;
+	b = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom;
+	c = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom;
+
+	return;
+}
+
 
 void Sootnosheniya(const double& rho, const double& p, const double& rho_He, 
 	const double& rho_Pui, const double& T_Pui, 

@@ -24,10 +24,20 @@ public:
 
     bool is_PUI = false;       // Считаем ли пикапы?
 
+    uint8_t num_pui = 2;           // Сколько сортов пикапов в ячейках
+
+    Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>  pui_in_zone;   
+    // Матрица показывает в какой зоне какие сорта пикапов присутствуют
+
+    bool is_div_V_in_cell = false;       // Считаем ли дивергенцию скорости в ячейках 
+    // на каждом шаге? Нужно, например, для учёта пикапов
+    // может и без пикапов понадобиться, поэтому тут отдельный маячок
 
 
-    std::function<void (const double& , const double& , const double& ,
-        const short int& , unordered_map<string, double>& )> Plasma_components;
+
+    std::function<void (const short int&,
+        unordered_map<string, double>&,
+        unordered_map<string, double>&)> Plasma_components;
 
 
 
@@ -39,8 +49,8 @@ public:
     double par_a_2 = 0.102046;         // Параметр в сечении перезарядки
     double par_n_H_LISM = 3.0;        // б/р Концентрация водорода на бесконечности 
     double par_Kn = 40.0906;
-    double mn_He_0 = 0.035194;        // Множитель концентрации гелия на 1 АЕ
-    double mn_He_inf = 0.15;        // Множитель концентрации гелия на inf
+    double mrho_He_0 = 0.035194;        // Множитель концентрации гелия на 1 АЕ
+    double mrho_He_inf = 0.15;        // Множитель концентрации гелия на inf
     double mep = 0.000544617;      // Отношение массы электрона к массе протона
     uint8_t num_H = 4;           // Сколько сортов водорода для МК
 
@@ -73,7 +83,7 @@ public:
     bool sglag_HP = true;
     double velocity_HP = 0.1;
     double sglag_HP_k_sphere = 0.01;  //0.005 0.002    // Cглаживание в головной части
-    double sglag_HP_k = 0.01; // 0.001         // Сглаживание не в головной области
+    double sglag_HP_k = 0.1; // 0.001         // Сглаживание не в головной области
     double sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
     double sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
     double sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
@@ -121,8 +131,9 @@ public:
     // параметра в размерные значения
 
     // Разделение компонент плазмы
-    void Plasma_components_1(const double& rho, const double& p, const double& rho_He,
-        const short int& zone, unordered_map<string, double>& param);
+    void Plasma_components_1(const short int& zone,
+        unordered_map<string, double>& param_in_cell,
+        unordered_map<string, double>& param);
 
 
     void Get_Potok(const double& rho, const double& p, const double& u, const double& v,

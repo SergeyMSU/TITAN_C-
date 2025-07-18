@@ -13,7 +13,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			if (this->phys_param->culc_plasma == true)
 			{
 				par_left["rho"] = C->parameters[now]["rho"];
-				par_left["n_He"] = C->parameters[now]["n_He"];
+				par_left["rho_He"] = C->parameters[now]["rho_He"];
 				par_left["Q"] = C->parameters[now]["Q"];
 				par_left["p"] = C->parameters[now]["p"];
 				par_left["Vx"] = C->parameters[now]["Vx"];
@@ -24,7 +24,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				par_left["Bz"] = C->parameters[now]["Bz"];
 
 				par_right["rho"] = gr->parameters["rho"];
-				par_right["n_He"] = gr->parameters["n_He"];
+				par_right["rho_He"] = gr->parameters["rho_He"];
 				par_right["Q"] = gr->parameters["Q"];
 				par_right["p"] = gr->parameters["p"];
 				par_right["Vx"] = gr->parameters["Vx"];
@@ -97,7 +97,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			if (this->phys_param->culc_plasma == true)
 			{
 				par_left["rho"] = C->parameters[now]["rho"];
-				par_left["n_He"] = C->parameters[now]["n_He"];
+				par_left["rho_He"] = C->parameters[now]["rho_He"];
 				par_left["Q"] = C->parameters[now]["Q"];
 				par_left["p"] = C->parameters[now]["p"];
 				par_left["Vx"] = C->parameters[now]["Vx"];
@@ -127,7 +127,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				}
 
 				par_right["rho"] = par_left["rho"];
-				par_right["n_He"] = par_left["n_He"];
+				par_right["rho_He"] = par_left["rho_He"];
 				par_right["Q"] = par_left["Q"];
 				par_right["p"] = par_left["p"];
 				par_right["Vx"] = par_left["Vx"];
@@ -274,7 +274,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			
 				for (auto& nam : this->phys_param->param_names)
 				{
-					if (nam == "rho" || nam == "n_He" || nam == "Q")
+					if (nam == "rho" || nam == "rho_He" || nam == "Q")
 					{
 						par_left[nam] = linear(-dd1 - d1, AA->parameters[now][nam] * kv(r3),
 							-d1, A->parameters[now][nam] * kv(r1),
@@ -392,7 +392,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 				for (auto& nam : this->phys_param->param_names)
 				{
-					if (nam == "rho" || nam == "n_He" || nam == "Q")
+					if (nam == "rho" || nam == "rho_He" || nam == "Q")
 					{
 						par_left[nam] = linear(-dd1 - d1, AA->parameters[now][nam] * kv(r3),
 							-d1, A->parameters[now][nam] * kv(r1),
@@ -496,7 +496,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 				for (auto& nam : this->phys_param->param_names)
 				{
-					if (nam == "rho" || nam == "n_He" || nam == "Q")
+					if (nam == "rho" || nam == "rho_He" || nam == "Q")
 					{
 						par_left[nam] = linear2(-dd1 - d1, AA->parameters[now][nam] * kv(r3),
 							-d1, A->parameters[now][nam] * kv(r1), 0.0) / kv(rr);
@@ -673,11 +673,11 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 			if (par_left["rho"] < 0.0000001) par_left["rho"] = A->parameters[now]["rho"];
 			if (par_left["Q"] < 0.0000001) par_left["Q"] = A->parameters[now]["Q"];
-			if (par_left["n_He"] < 0.0000001) par_left["n_He"] = A->parameters[now]["n_He"];
+			if (par_left["rho_He"] < 0.0000001) par_left["rho_He"] = A->parameters[now]["rho_He"];
 			if (par_left["p"] < 0.0000001) par_left["p"] = A->parameters[now]["p"];
 			if (par_right["rho"] < 0.0000001) par_right["rho"] = B->parameters[now]["rho"];
 			if (par_right["Q"] < 0.0000001) par_right["Q"] = B->parameters[now]["Q"];
-			if (par_right["n_He"] < 0.0000001) par_right["n_He"] = B->parameters[now]["n_He"];
+			if (par_right["rho_He"] < 0.0000001) par_right["rho_He"] = B->parameters[now]["rho_He"];
 			if (par_right["p"] < 0.0000001) par_right["p"] = B->parameters[now]["p"];
 			
 			for (auto& nam2 : this->phys_param->H_name)
@@ -760,7 +760,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 					par_left["rho"] = A->parameters[now]["rho"] * kv(r1) / kv(rr);
 					par_left["Q"] = A->parameters[now]["Q"] * kv(r1) / kv(rr);
-					par_left["n_He"] = A->parameters[now]["n_He"] * kv(r1) / kv(rr);
+					par_left["rho_He"] = A->parameters[now]["rho_He"] * kv(r1) / kv(rr);
 					par_left["p"] = A->parameters[now]["p"] * kvg(r1) / kvg(rr);
 
 					for (auto& nam : this->phys_param->H_name)
@@ -777,7 +777,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				{
 					par_left["rho"] = A->parameters[now]["rho"];
 					par_left["Q"] = A->parameters[now]["Q"];
-					par_left["n_He"] = A->parameters[now]["n_He"];
+					par_left["rho_He"] = A->parameters[now]["rho_He"];
 					par_left["p"] = A->parameters[now]["p"];
 					par_left["Vx"] = A->parameters[now]["Vx"];
 					par_left["Vy"] = A->parameters[now]["Vy"];
@@ -838,7 +838,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 					par_right["rho"] = B->parameters[now]["rho"] * kv(r1) / kv(rr);
 					par_right["Q"] = B->parameters[now]["Q"] * kv(r1) / kv(rr);
-					par_right["n_He"] = B->parameters[now]["n_He"] * kv(r1) / kv(rr);
+					par_right["rho_He"] = B->parameters[now]["rho_He"] * kv(r1) / kv(rr);
 					par_right["p"] = B->parameters[now]["p"] * kvg(r1) / kvg(rr);
 					
 					for (auto& nam : this->phys_param->H_name)
@@ -855,7 +855,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				{
 					par_right["rho"] = B->parameters[now]["rho"];
 					par_right["Q"] = B->parameters[now]["Q"];
-					par_right["n_He"] = B->parameters[now]["n_He"];
+					par_right["rho_He"] = B->parameters[now]["rho_He"];
 					par_right["p"] = B->parameters[now]["p"];
 					par_right["Vx"] = B->parameters[now]["Vx"];
 					par_right["Vy"] = B->parameters[now]["Vy"];
