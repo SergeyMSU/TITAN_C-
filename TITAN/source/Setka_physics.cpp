@@ -303,27 +303,6 @@ void Setka::Init_physics(void)
 	// Проверяем наличие всех необходимых переменных
 	for (auto& i : this->All_Cell)
 	{
-		// Разбираемся с дивергенцией скорости
-		if (true)
-		{
-			if (this->phys_param->is_div_V_in_cell == true)
-			{
-				if (i->parameters[0].find("div_V") == i->parameters[0].end())
-				{
-					i->parameters[0]["div_V"] = 0.0;
-				}
-			}
-			else
-			{
-				if (i->parameters[0].find("div_V") != i->parameters[0].end())
-				{
-					i->parameters[0].erase("div_V");
-				}
-			}
-		}
-
-		i->parameters[1] = i->parameters[0];
-
 		for (auto& num : this->phys_param->param_names)
 		{
 			if (i->parameters[0].find(num) == i->parameters[0].end())
@@ -953,20 +932,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			double Volume2 = cell->volume[now2];
 			int zone;
 
-			//unordered_map<string, double>&
+			unordered_map<string, double> POTOK;
 
-			std::vector<double> POTOK;
-			POTOK.resize(9);
+			//std::vector<double> POTOK;
+			//POTOK.resize(9);
 
-			std::vector<double> POTOK2; // Для конвективных параметров
-			POTOK2.resize(2);
-
-			boost::multi_array<double, 2> POTOK_F(boost::extents[this->phys_param->H_name.size()][5]);
-			for (short int i = 0; i < this->phys_param->H_name.size(); ++i) {
-				for (short int j = 0; j < 5; ++j) {
-					POTOK_F[i][j] = 0.0;
-				}
-			}
 
 			boost::multi_array<double, 2> SOURSE(boost::extents[this->phys_param->H_name.size() + 1][5]);
 			
@@ -977,40 +947,41 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				}
 			}
 
-			POTOK[0] = POTOK[1] = POTOK[2] = POTOK[3] = POTOK[4] = POTOK[5] = 
-				POTOK[6] = POTOK[7] = POTOK[8] = 0.0;
-
-			POTOK2[0] = 0.0;
-			POTOK2[1] = 0.0;
+			for (const auto& names : this->phys_param->param_names)
+			{
+				POTOK[names] = 0.0;
+			}
+			POTOK["divB"] = 0.0;
 
 			for (auto& gran : cell->grans)
 			{
 				short int sign_potok = 1;
 				if (gran->cells[0] != cell) sign_potok = -1;
 
-				if (this->phys_param->culc_plasma == true)
+				for (const auto& names : this->phys_param->param_names)
 				{
-					POTOK[0] += sign_potok * gran->parameters["Pm"];
-					POTOK[1] += sign_potok * gran->parameters["PVx"];
-					POTOK[2] += sign_potok * gran->parameters["PVy"];
-					POTOK[3] += sign_potok * gran->parameters["PVz"];
-					POTOK[4] += sign_potok * gran->parameters["Pe"];
-					POTOK[5] += sign_potok * gran->parameters["PBx"];
-					POTOK[6] += sign_potok * gran->parameters["PBy"];
-					POTOK[7] += sign_potok * gran->parameters["PBz"];
-					POTOK[8] += sign_potok * gran->parameters["PdivB"];
-
-					POTOK2[0] += sign_potok * gran->parameters["PQ"];
-					POTOK2[1] += sign_potok * gran->parameters["Prho_He"];
+					POTOK[names] += sign_potok * gran->parameters["P" + names];
 				}
 
-				for (short int i = 0; i < this->phys_param->H_name.size(); i++)
+				POTOK["divB"] += sign_potok * gran->parameters["PdivB"];
+
+				if (this->phys_param->is_div_V_in_cell == true)
 				{
-					POTOK_F[i][0] += sign_potok * gran->parameters["Pm" + this->phys_param->H_name[i]];
-					POTOK_F[i][1] += sign_potok * gran->parameters["PVx" + this->phys_param->H_name[i]];
-					POTOK_F[i][2] += sign_potok * gran->parameters["PVy" + this->phys_param->H_name[i]];
-					POTOK_F[i][3] += sign_potok * gran->parameters["PVz" + this->phys_param->H_name[i]];
-					POTOK_F[i][4] += sign_potok * gran->parameters["Pe" + this->phys_param->H_name[i]];
+					if (gran->type2 != Type_Gran_surf::TS && gran->type2 != Type_Gran_surf::BS)
+					{
+						POTOK["div_V"] += sign_potok * gran->parameters["Pdiv_V"];
+					}
+					else
+					{
+						if (gran->cells[0] == cell)
+						{
+							POTOK["div_V"] += sign_potok * gran->parameters["Pdiv_V_L"];
+						}
+						else
+						{
+							POTOK["div_V"] += sign_potok * gran->parameters["Pdiv_V_R"];
+						}
+					}
 				}
 			}
 
@@ -1020,7 +991,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			double rho3, u3, v3, w3, bx3, by3, bz3, p3, Q3, rho_He3, rho_He;
 			double rho, vx, vy, vz, p, bx, by, bz, dsk, Q;
 
-			if (this->phys_param->culc_plasma == true)
+			// Считаем плазму
+			if (true)
 			{
 				rho = cell->parameters[now1]["rho"];
 				if (cell->parameters[now1].find("Q") != cell->parameters[now1].end())
@@ -1052,11 +1024,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				bz = cell->parameters[now1]["Bz"];
 				dsk = scalarProductFast(vx, vy, vz, bx, by, bz);
 
-				rho3 = rho * Volume / Volume2 - time * POTOK[0] / Volume2;
+				rho3 = rho * Volume / Volume2 - time * POTOK["rho"] / Volume2;
 
 				if (cell->parameters[now1].find("Q") != cell->parameters[now1].end())
 				{
-					Q3 = Q * Volume / Volume2 - time * POTOK2[0] / Volume2;
+					Q3 = Q * Volume / Volume2 - time * POTOK["Q"] / Volume2;
 				}
 				else
 				{
@@ -1065,7 +1037,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				if (cell->parameters[now1].find("rho_He") != cell->parameters[now1].end())
 				{
-					rho_He3 = rho_He * Volume / Volume2 - time * POTOK2[1] / Volume2;
+					rho_He3 = rho_He * Volume / Volume2 - time * POTOK["rho_He"] / Volume2;
 				}
 				else
 				{
@@ -1079,19 +1051,19 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					cout << "Plasma  rho < 0" << endl;
 				}
 
-				u3 = (rho * vx * Volume / Volume2 - time * (POTOK[1] + (bx / cpi4) * POTOK[8]) / Volume2
+				u3 = (rho * vx * Volume / Volume2 - time * (POTOK["Vx"] + (bx / cpi4) * POTOK["divB"]) / Volume2
 					+ time * SOURSE[0][1]) / rho3;
-				v3 = (rho * vy * Volume / Volume2 - time * (POTOK[2] + (by / cpi4) * POTOK[8]) / Volume2
+				v3 = (rho * vy * Volume / Volume2 - time * (POTOK["Vy"] + (by / cpi4) * POTOK["divB"]) / Volume2
 					+ time * SOURSE[0][2]) / rho3;
-				w3 = (rho * vz * Volume / Volume2 - time * (POTOK[3] + (bz / cpi4) * POTOK[8]) / Volume2
+				w3 = (rho * vz * Volume / Volume2 - time * (POTOK["Vz"] + (bz / cpi4) * POTOK["divB"]) / Volume2
 					+ time * SOURSE[0][3]) / rho3;
 
-				bx3 = bx * Volume / Volume2 - time * (POTOK[5] + vx * POTOK[8]) / Volume2;
-				by3 = by * Volume / Volume2 - time * (POTOK[6] + vy * POTOK[8]) / Volume2;
-				bz3 = bz * Volume / Volume2 - time * (POTOK[7] + vz * POTOK[8]) / Volume2;
+				bx3 = bx * Volume / Volume2 - time * (POTOK["Bx"] + vx * POTOK["divB"]) / Volume2;
+				by3 = by * Volume / Volume2 - time * (POTOK["By"] + vy * POTOK["divB"]) / Volume2;
+				bz3 = bz * Volume / Volume2 - time * (POTOK["Bz"] + vz * POTOK["divB"]) / Volume2;
 
 				p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz) + kvv(bx, by, bz) / 25.13274122871834590768) * Volume / Volume2
-					- time * (POTOK[4] + (dsk / cpi4) * POTOK[8]) / Volume2 + time * SOURSE[0][4]) -
+					- time * (POTOK["p"] + (dsk / cpi4) * POTOK["divB"]) / Volume2 + time * SOURSE[0][4]) -
 					0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
 
 
@@ -1108,7 +1080,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 					for (short unsigned int ik = 0; ik < 9; ik++)
 					{
-						cout << "ik: " << POTOK[ik] << endl;
+						cout << "ik: " << endl;// << POTOK[ik] << endl;
 					}
 					exit(-1);
 				}
@@ -1165,7 +1137,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				vz = cell->parameters[now1]["Vz" + nam];
 				p = cell->parameters[now1]["p" + nam];
 
-				rho3 = rho * Volume / Volume2 - time * POTOK_F[i][0] / Volume2 + time * SOURSE[i + 1][0];
+				rho3 = rho * Volume / Volume2 - time * POTOK["rho" + nam] / Volume2 + time * SOURSE[i + 1][0];
 
 				if (rho3 < 0.00000001)
 				{
@@ -1173,16 +1145,16 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					//cout << "Hidrogen  rho < 0  " << nam << endl;
 				}
 
-				u3 = (rho * vx * Volume / Volume2 - time * (POTOK_F[i][1]) / Volume2
+				u3 = (rho * vx * Volume / Volume2 - time * (POTOK["Vx" + nam]) / Volume2
 					+ time * SOURSE[i + 1][1]) / rho3;
-				v3 = (rho * vy * Volume / Volume2 - time * (POTOK_F[i][2]) / Volume2
+				v3 = (rho * vy * Volume / Volume2 - time * (POTOK["Vy" + nam]) / Volume2
 					+ time * SOURSE[i + 1][2]) / rho3;
-				w3 = (rho * vz * Volume / Volume2 - time * (POTOK_F[i][3]) / Volume2
+				w3 = (rho * vz * Volume / Volume2 - time * (POTOK["Vz" + nam]) / Volume2
 					+ time * SOURSE[i + 1][3]) / rho3;
 
 
 				p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz)) * Volume / Volume2
-					- time * (POTOK_F[i][4]) / Volume2 + time * SOURSE[i + 1][4]) -
+					- time * (POTOK["p" + nam]) / Volume2 + time * SOURSE[i + 1][4]) -
 					0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
 
 				if (p3 < 0.00000001)
@@ -1212,12 +1184,18 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				auto& cell = this->Cell_Center;
 				double Volume = 4.0 * const_pi * kyb(this->geo->R0)/3.0;
 
-				boost::multi_array<double, 2> POTOK_F(boost::extents[this->phys_param->H_name.size()][5]);
-				for (short int i = 0; i < this->phys_param->H_name.size(); ++i) {
-					for (short int j = 0; j < 5; ++j) {
-						POTOK_F[i][j] = 0.0;
-					}
+
+				unordered_map<string, double> POTOK_F;
+
+				for (const auto& names: this->phys_param->H_name)
+				{
+					POTOK_F["Prho" + names] = 0.0;
+					POTOK_F["PVx" + names] = 0.0;
+					POTOK_F["PVy" + names] = 0.0;
+					POTOK_F["PVz" + names] = 0.0;
+					POTOK_F["Pp" + names] = 0.0;
 				}
+
 
 				for (auto& gran : this->All_boundary_Gran)
 				{
@@ -1225,13 +1203,13 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 					short int sign_potok = -1;
 
-					for (short int i = 1; i < this->phys_param->H_name.size(); i++)
+					for (const auto& names : this->phys_param->H_name)
 					{
-						POTOK_F[i][0] += sign_potok * gran->parameters["Pm" + this->phys_param->H_name[i]];
-						POTOK_F[i][1] += sign_potok * gran->parameters["PVx" + this->phys_param->H_name[i]];
-						POTOK_F[i][2] += sign_potok * gran->parameters["PVy" + this->phys_param->H_name[i]];
-						POTOK_F[i][3] += sign_potok * gran->parameters["PVz" + this->phys_param->H_name[i]];
-						POTOK_F[i][4] += sign_potok * gran->parameters["Pe" + this->phys_param->H_name[i]];
+						POTOK_F[names] += sign_potok * gran->parameters["Prho" + names];
+						POTOK_F[names] += sign_potok * gran->parameters["PVx" + names];
+						POTOK_F[names] += sign_potok * gran->parameters["PVy" + names];
+						POTOK_F[names] += sign_potok * gran->parameters["PVz" + names];
+						POTOK_F[names] += sign_potok * gran->parameters["Pp" + names];
 					}
 				}
 
@@ -1250,20 +1228,20 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					vz = cell->parameters[now1]["Vz" + nam];
 					p = cell->parameters[now1]["p" + nam];
 
-					rho3 = rho - time * POTOK_F[i][0] / Volume;
+					rho3 = rho - time * POTOK_F["rho" + nam] / Volume;
 
 					if (rho3 < 0.0001)
 					{
 						rho3 = 0.0001;
 					}
 
-					u3 = (rho * vx - time * (POTOK_F[i][1]) / Volume) / rho3;
-					v3 = (rho * vy - time * (POTOK_F[i][2]) / Volume) / rho3;
-					w3 = (rho * vz - time * (POTOK_F[i][3]) / Volume) / rho3;
+					u3 = (rho * vx - time * (POTOK_F["Vx" + nam]) / Volume) / rho3;
+					v3 = (rho * vy - time * (POTOK_F["Vy" + nam]) / Volume) / rho3;
+					w3 = (rho * vz - time * (POTOK_F["Vz" + nam]) / Volume) / rho3;
 
 
 					p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz))
-						- time * (POTOK_F[i][4]) / Volume) -
+						- time * (POTOK_F["p" + nam]) / Volume) -
 						0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
 
 					if (p3 < 0.0001)
@@ -1415,11 +1393,11 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			}
 		}
 
-		gr->parameters["Pm"] = qqq[0] * area;
+		gr->parameters["Prho"] = qqq[0] * area;
 		gr->parameters["PVx"] = qqq[1] * area;
 		gr->parameters["PVy"] = qqq[2] * area;
 		gr->parameters["PVz"] = qqq[3] * area;
-		gr->parameters["Pe"] = qqq[4] * area;
+		gr->parameters["Pp"] = qqq[4] * area;
 		gr->parameters["PBx"] = qqq[5] * area;
 		gr->parameters["PBy"] = qqq[6] * area;
 		gr->parameters["PBz"] = qqq[7] * area;
@@ -1516,11 +1494,11 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			}
 		}
 
-		gr->parameters["Pm" + nam] = qqq[0] * area;
+		gr->parameters["Prho" + nam] = qqq[0] * area;
 		gr->parameters["PVx" + nam] = qqq[1] * area;
 		gr->parameters["PVy" + nam] = qqq[2] * area;
 		gr->parameters["PVz" + nam] = qqq[3] * area;
-		gr->parameters["Pe" + nam] = qqq[4] * area;
+		gr->parameters["Pp" + nam] = qqq[4] * area;
 
 	}
 

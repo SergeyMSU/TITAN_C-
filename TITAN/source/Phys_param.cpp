@@ -77,10 +77,6 @@ Phys_param::Phys_param()
     this->param_names.push_back("Q");
     this->param_names.push_back("rho_He");
 
-    if (this->is_div_V_in_cell == true)
-    {
-        this->param_names.push_back("div_V");
-    }
 
     // Добавляем водород
     for (size_t ii = 1; ii <= this->num_H; ii++)
