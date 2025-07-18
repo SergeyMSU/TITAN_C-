@@ -1397,7 +1397,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		else
 		{
 			bool left_ydar = false;
-			if (gr->type2 == Type_Gran_surf::TS) left_ydar = true;
+			//if (gr->type2 == Type_Gran_surf::TS) left_ydar = true;
 
 			this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
 				gr->normal[now][2],

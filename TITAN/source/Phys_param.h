@@ -41,7 +41,7 @@ public:
     Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  pui_condition;
     // ћатрица граничных условий дл€ пикапов
 
-    Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  plasma_condition;
+    Eigen::Matrix<int8_t, Eigen::Dynamic, Eigen::Dynamic>  plasma_condition;
     // ћатрица граничных условий дл€ плазмы
 
     Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  hydrogen_condition;

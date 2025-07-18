@@ -25,7 +25,7 @@ Phys_param::Phys_param()
     this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
     this->sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
 
-
+    cout << "B " << endl;
     if (this->is_PUI == true)
     {
         this->num_H = 9;
@@ -54,14 +54,14 @@ Phys_param::Phys_param()
         this->hydrogen_condition.resize(3, this->num_H);
         this->hydrogen_condition << 2, 3, 3, 3,
                                     1, 1, 1, 2,
-                                    1, 1; 1, 1;
+                                    1, 1, 1, 1;
         
     }
 
     // 1 - 4 старые обычные сорта
     // 5 - 8 сорта водорода, рождённые от пикапов сорта 1
     // 9 - сорт водорода от пикапов сорта 2 (такой сорт есть только во внутреннем ударном слое).
-
+    cout << "A " << endl;
     this->plasma_condition.resize(3, 1);
     this->plasma_condition << 2,
                               2,

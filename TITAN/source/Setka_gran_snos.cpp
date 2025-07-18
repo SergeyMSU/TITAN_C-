@@ -13,7 +13,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 		if (gr->type == Type_Gran::Outer_Hard) type_gran = 1;
 		if (gr->type == Type_Gran::Outer_Soft) type_gran = 2;
 
-		int8_t plasma_cond = this->phys_param->plasma_condition[type_gran];
+		int8_t plasma_cond = this->phys_param->plasma_condition(type_gran, 0);
 
 		if (plasma_cond == 1)
 		{
@@ -65,7 +65,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 		uint8_t ii = 0;
 		for (const auto& nam : this->phys_param->H_name)
 		{
-			int8_t hydrogen_cond = this->phys_param->hydrogen_condition[type_gran, ii];
+			int8_t hydrogen_cond = this->phys_param->hydrogen_condition(type_gran, ii);
 			if (hydrogen_cond == 1)
 			{
 				par_left["rho" + nam] = C->parameters[now]["rho" + nam];
@@ -97,11 +97,11 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
 				par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
 
-				par_left["rho" + nam] = gr->parameters["rho" + nam];
-				par_left["p" + nam] = gr->parameters["p" + nam];
-				par_left["Vx" + nam] = gr->parameters["Vx" + nam];
-				par_left["Vy" + nam] = gr->parameters["Vy" + nam];
-				par_left["Vz" + nam] = gr->parameters["Vz" + nam];
+				par_right["rho" + nam] = gr->parameters["rho" + nam];
+				par_right["p" + nam] = gr->parameters["p" + nam];
+				par_right["Vx" + nam] = gr->parameters["Vx" + nam];
+				par_right["Vy" + nam] = gr->parameters["Vy" + nam];
+				par_right["Vz" + nam] = gr->parameters["Vz" + nam];
 			}
 			else if (hydrogen_cond == 3)
 			{
@@ -127,15 +127,15 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			ii++;
 		}
 
-		uint8_t ii = 0;
+		ii = 0;
 		for (const auto& nam : this->phys_param->pui_name)
 		{
-			int8_t hydrogen_cond = this->phys_param->pui_condition[type_gran, ii];
-			if (hydrogen_cond == 0)
+			int8_t pui_cond = this->phys_param->pui_condition(type_gran, ii);
+			if (pui_cond == 0)
 			{
 				continue;
 			}
-			if (hydrogen_cond == 1)
+			if (pui_cond == 1)
 			{
 				par_left["rho" + nam] = C->parameters[now]["rho" + nam];
 				par_left["p" + nam] = C->parameters[now]["p" + nam];
@@ -143,13 +143,13 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				par_right["rho" + nam] = par_left["rho" + nam];
 				par_right["p" + nam] = par_left["p" + nam];
 			}
-			else if (hydrogen_cond == 2)
+			else if (pui_cond == 2)
 			{
 				par_left["rho" + nam] = C->parameters[now]["rho" + nam];
 				par_left["p" + nam] = C->parameters[now]["p" + nam];
 
-				par_left["rho" + nam] = gr->parameters["rho" + nam];
-				par_left["p" + nam] = gr->parameters["p" + nam];
+				par_right["rho" + nam] = gr->parameters["rho" + nam];
+				par_right["p" + nam] = gr->parameters["p" + nam];
 			}
 			else
 			{
