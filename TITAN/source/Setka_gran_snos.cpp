@@ -6,96 +6,18 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 	// Для граничных граней не надо делать ТВД
 	if (gr->type != Type_Gran::Us)
 	{
-		if (gr->type == Type_Gran::Inner_Hard || gr->type == Type_Gran::Outer_Hard)
+		auto C = gr->cells[0];
+
+		int8_t type_gran;
+		if (gr->type == Type_Gran::Inner_Hard) type_gran = 0;
+		if (gr->type == Type_Gran::Outer_Hard) type_gran = 1;
+		if (gr->type == Type_Gran::Outer_Soft) type_gran = 2;
+
+		int8_t plasma_cond = this->phys_param->plasma_condition[type_gran];
+
+		if (plasma_cond == 1)
 		{
-			auto C = gr->cells[0];
-
-			if(true)
-			{
-				par_left["rho"] = C->parameters[now]["rho"];
-				par_left["rho_He"] = C->parameters[now]["rho_He"];
-				par_left["Q"] = C->parameters[now]["Q"];
-				par_left["p"] = C->parameters[now]["p"];
-				par_left["Vx"] = C->parameters[now]["Vx"];
-				par_left["Vy"] = C->parameters[now]["Vy"];
-				par_left["Vz"] = C->parameters[now]["Vz"];
-				par_left["Bx"] = C->parameters[now]["Bx"];
-				par_left["By"] = C->parameters[now]["By"];
-				par_left["Bz"] = C->parameters[now]["Bz"];
-
-				par_right["rho"] = gr->parameters["rho"];
-				par_right["rho_He"] = gr->parameters["rho_He"];
-				par_right["Q"] = gr->parameters["Q"];
-				par_right["p"] = gr->parameters["p"];
-				par_right["Vx"] = gr->parameters["Vx"];
-				par_right["Vy"] = gr->parameters["Vy"];
-				par_right["Vz"] = gr->parameters["Vz"];
-				par_right["Bx"] = gr->parameters["Bx"];
-				par_right["By"] = gr->parameters["By"];
-				par_right["Bz"] = gr->parameters["Bz"];
-
-			}
-
-			for (auto& nam : this->phys_param->H_name)
-			{
-				// Для четвёртого сорта жёсткие гран условия
-				if (gr->type == Type_Gran::Outer_Hard && nam == "_H4")
-				{
-					par_left["rho" + nam] = C->parameters[now]["rho" + nam];
-					par_left["p" + nam] = C->parameters[now]["p" + nam];
-					par_left["Vx" + nam] = C->parameters[now]["Vx" + nam];
-					par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
-					par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
-
-					par_right["rho" + nam] = gr->parameters["rho" + nam];
-					par_right["p" + nam] = gr->parameters["p" + nam];
-					par_right["Vx" + nam] = gr->parameters["Vx" + nam];
-					par_right["Vy" + nam] = gr->parameters["Vy" + nam];
-					par_right["Vz" + nam] = gr->parameters["Vz" + nam];
-				}
-				else if (gr->type == Type_Gran::Outer_Hard || nam == "_H1")
-				{
-					par_left["rho" + nam] = C->parameters[now]["rho" + nam];
-					par_left["p" + nam] = C->parameters[now]["p" + nam];
-					par_left["Vx" + nam] = C->parameters[now]["Vx" + nam];
-					par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
-					par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
-
-					par_right["rho" + nam] = par_left["rho" + nam];
-					par_right["p" + nam] = par_left["p" + nam];
-					par_right["Vx" + nam] = par_left["Vx" + nam];
-					par_right["Vy" + nam] = par_left["Vy" + nam];
-					par_right["Vz" + nam] = par_left["Vz" + nam];
-				}
-				else if (gr->type == Type_Gran::Inner_Hard)// Для  H2  H3  H4    и  Inner_Hard  -  делаем через центральную фиктивную ячейку
-				{
-					auto A = gr->cells[0];
-					auto B = this->Cell_Center;
-					par_left["rho" + nam] = A->parameters[now]["rho" + nam];
-					par_left["p" + nam] = A->parameters[now]["p" + nam];
-					par_left["Vx" + nam] = A->parameters[now]["Vx" + nam];
-					par_left["Vy" + nam] = A->parameters[now]["Vy" + nam];
-					par_left["Vz" + nam] = A->parameters[now]["Vz" + nam];
-
-					par_right["rho" + nam] = B->parameters[now]["rho" + nam];
-					par_right["p" + nam] = B->parameters[now]["p" + nam];
-					par_right["Vx" + nam] = B->parameters[now]["Vx" + nam];
-					par_right["Vy" + nam] = B->parameters[now]["Vy" + nam];
-					par_right["Vz" + nam] = B->parameters[now]["Vz" + nam];
-				}
-				else
-				{
-					cout << "Error 8653496143 " << endl;
-					cout << nam << endl;
-					exit(-1);
-				}
-			}
-		}
-		else if (gr->type == Type_Gran::Outer_Soft)
-		{
-			auto C = gr->cells[0];
-
-			for (auto& nam : this->phys_param->param_names)
+			for (auto& nam : this->phys_param->plasma_name)
 			{
 				par_left[nam] = C->parameters[now][nam];
 			}
@@ -120,9 +42,38 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				}
 			}
 
-			// Запрещаем затекание жидкости через мягкие граничные условия
-			for (auto& nam : this->phys_param->H_name)
+			for (auto& nam : this->phys_param->plasma_name)
 			{
+				par_right[nam] = par_left[nam];
+			}
+		}
+		else if (plasma_cond == 2)
+		{
+			for (auto& nam : this->phys_param->plasma_name)
+			{
+				par_left[nam] = C->parameters[now][nam];
+				par_right[nam] = gr->parameters[nam];
+			}
+		}
+		else
+		{
+			cout << "Error 8965655332" << endl;
+			exit(-1);
+		}
+
+
+		uint8_t ii = 0;
+		for (const auto& nam : this->phys_param->H_name)
+		{
+			int8_t hydrogen_cond = this->phys_param->hydrogen_condition[type_gran, ii];
+			if (hydrogen_cond == 1)
+			{
+				par_left["rho" + nam] = C->parameters[now]["rho" + nam];
+				par_left["p" + nam] = C->parameters[now]["p" + nam];
+				par_left["Vx" + nam] = C->parameters[now]["Vx" + nam];
+				par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
+				par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
+
 				if (par_left["Vx" + nam] * gr->normal[now][0] +
 					par_left["Vy" + nam] * gr->normal[now][1] +
 					par_left["Vz" + nam] * gr->normal[now][2] < 0.0)
@@ -131,18 +82,83 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					par_left["Vy" + nam] = 0.1 * gr->normal[now][1];
 					par_left["Vz" + nam] = 0.1 * gr->normal[now][2];
 				}
-			}
 
-			for (auto& nam : this->phys_param->param_names)
-			{
-				par_right[nam] = par_left[nam];
+				par_right["rho" + nam] = par_left["rho" + nam];
+				par_right["p" + nam] = par_left["p" + nam];
+				par_right["Vx" + nam] = par_left["Vx" + nam];
+				par_right["Vy" + nam] = par_left["Vy" + nam];
+				par_right["Vz" + nam] = par_left["Vz" + nam];
 			}
+			else if (hydrogen_cond == 2)
+			{
+				par_left["rho" + nam] = C->parameters[now]["rho" + nam];
+				par_left["p" + nam] = C->parameters[now]["p" + nam];
+				par_left["Vx" + nam] = C->parameters[now]["Vx" + nam];
+				par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
+				par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
+
+				par_left["rho" + nam] = gr->parameters["rho" + nam];
+				par_left["p" + nam] = gr->parameters["p" + nam];
+				par_left["Vx" + nam] = gr->parameters["Vx" + nam];
+				par_left["Vy" + nam] = gr->parameters["Vy" + nam];
+				par_left["Vz" + nam] = gr->parameters["Vz" + nam];
+			}
+			else if (hydrogen_cond == 3)
+			{
+				auto A = C;
+				auto B = this->Cell_Center;
+				par_left["rho" + nam] = A->parameters[now]["rho" + nam];
+				par_left["p" + nam] = A->parameters[now]["p" + nam];
+				par_left["Vx" + nam] = A->parameters[now]["Vx" + nam];
+				par_left["Vy" + nam] = A->parameters[now]["Vy" + nam];
+				par_left["Vz" + nam] = A->parameters[now]["Vz" + nam];
+
+				par_right["rho" + nam] = B->parameters[now]["rho" + nam];
+				par_right["p" + nam] = B->parameters[now]["p" + nam];
+				par_right["Vx" + nam] = B->parameters[now]["Vx" + nam];
+				par_right["Vy" + nam] = B->parameters[now]["Vy" + nam];
+				par_right["Vz" + nam] = B->parameters[now]["Vz" + nam];
+			}
+			else
+			{
+				cout << "Error 0989876098" << endl;
+				exit(-1);
+			}
+			ii++;
 		}
-		else
+
+		uint8_t ii = 0;
+		for (const auto& nam : this->phys_param->pui_name)
 		{
-			cout << "Error 5473190855" << endl;
-			exit(-1);
+			int8_t hydrogen_cond = this->phys_param->pui_condition[type_gran, ii];
+			if (hydrogen_cond == 0)
+			{
+				continue;
+			}
+			if (hydrogen_cond == 1)
+			{
+				par_left["rho" + nam] = C->parameters[now]["rho" + nam];
+				par_left["p" + nam] = C->parameters[now]["p" + nam];
+
+				par_right["rho" + nam] = par_left["rho" + nam];
+				par_right["p" + nam] = par_left["p" + nam];
+			}
+			else if (hydrogen_cond == 2)
+			{
+				par_left["rho" + nam] = C->parameters[now]["rho" + nam];
+				par_left["p" + nam] = C->parameters[now]["p" + nam];
+
+				par_left["rho" + nam] = gr->parameters["rho" + nam];
+				par_left["p" + nam] = gr->parameters["p" + nam];
+			}
+			else
+			{
+				cout << "Error 0989876098" << endl;
+				exit(-1);
+			}
+			ii++;
 		}
+
 	}
 	else
 	{
