@@ -952,6 +952,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				POTOK[names] = 0.0;
 			}
 			POTOK["divB"] = 0.0;
+			if (this->phys_param->is_div_V_in_cell == true) POTOK["div_V"] = 0.0;
 
 			for (auto& gran : cell->grans)
 			{
@@ -1189,11 +1190,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				for (const auto& names: this->phys_param->H_name)
 				{
-					POTOK_F["Prho" + names] = 0.0;
-					POTOK_F["PVx" + names] = 0.0;
-					POTOK_F["PVy" + names] = 0.0;
-					POTOK_F["PVz" + names] = 0.0;
-					POTOK_F["Pp" + names] = 0.0;
+					POTOK_F["rho" + names] = 0.0;
+					POTOK_F["Vx" + names] = 0.0;
+					POTOK_F["Vy" + names] = 0.0;
+					POTOK_F["Vz" + names] = 0.0;
+					POTOK_F["p" + names] = 0.0;
 				}
 
 
@@ -1205,11 +1206,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 					for (const auto& names : this->phys_param->H_name)
 					{
-						POTOK_F[names] += sign_potok * gran->parameters["Prho" + names];
-						POTOK_F[names] += sign_potok * gran->parameters["PVx" + names];
-						POTOK_F[names] += sign_potok * gran->parameters["PVy" + names];
-						POTOK_F[names] += sign_potok * gran->parameters["PVz" + names];
-						POTOK_F[names] += sign_potok * gran->parameters["Pp" + names];
+						POTOK_F["rho" + names] += sign_potok * gran->parameters["Prho" + names];
+						POTOK_F["Vx" + names] += sign_potok * gran->parameters["PVx" + names];
+						POTOK_F["Vy" + names] += sign_potok * gran->parameters["PVy" + names];
+						POTOK_F["Vz" + names] += sign_potok * gran->parameters["PVz" + names];
+						POTOK_F["p" + names] += sign_potok * gran->parameters["Pp" + names];
 					}
 				}
 
