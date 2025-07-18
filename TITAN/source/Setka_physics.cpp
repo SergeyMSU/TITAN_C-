@@ -2057,14 +2057,14 @@ void Setka::Culc_divergence_in_cell(void)
 	{
 		unordered_map<string, double> par_left, par_right;
 		Eigen::Vector3d normal, Vel;
-		Eigen::Vector3d eB, gradK;
+		Eigen::Vector3d eB;
 
 		auto& cell = this->All_Cell[i_step];
 		double divV = 0.0;
-		double div_eB = 0.0;
-		double div_et = 0.0;
-		double div_em = 0.0;
-		gradK << 0.0, 0.0, 0.0;
+		double DIVk_x = 0.0;
+		double DIVk_y = 0.0;
+		double DIVk_z = 0.0;
+
 
 		// пробегаемся по всем граням 
 		for (const auto& gr : cell->grans)
@@ -2124,50 +2124,31 @@ void Setka::Culc_divergence_in_cell(void)
 			}
 
 			double norm = eB.norm();
-			eB /= norm;
+			Eigen::Vector3d D1, D2, D3;
+			double k_paral = 1.0 / norm;
+			double k_perpend = 0.05 * k_paral;
 
-			Eigen::Vector3d t, m;
-			get_bazis(eB, t, m);
+			D1 << k_perpend + (k_paral - k_perpend) * eB[0] * eB[0] / kv(norm),
+				(k_paral - k_perpend)* eB[0] * eB[1] / kv(norm),
+				(k_paral - k_perpend)* eB[0] * eB[2] / kv(norm);
+			D2 << (k_paral - k_perpend) * eB[1] * eB[0] / kv(norm),
+				k_perpend + (k_paral - k_perpend)* eB[1] * eB[1] / kv(norm),
+				(k_paral - k_perpend)* eB[1] * eB[2] / kv(norm);
+			D3 << (k_paral - k_perpend) * eB[2] * eB[0] / kv(norm),
+				(k_paral - k_perpend) * eB[2] * eB[1] / kv(norm),
+				k_perpend + (k_paral - k_perpend)* eB[2] * eB[2] / kv(norm);
 
-			gradK += normal * gr->area[0]/ norm;
-			
 			divV += Vel.dot(normal) * gr->area[0];
-			div_eB += eB.dot(normal) * gr->area[0];
-			div_et += t.dot(normal) * gr->area[0];
-			div_em += m.dot(normal) * gr->area[0];
+			DIVk_x += D1.dot(normal) * gr->area[0];
+			DIVk_y += D2.dot(normal) * gr->area[0];
+			DIVk_z += D3.dot(normal) * gr->area[0];
+
 		}
 
 		cell->parameters[0]["divV"] = divV/cell->volume[0];
-
-
-		//cell->parameters[0]["div_eB"] = div_eB /cell->volume[0];
-		div_eB /= cell->volume[0];
-		gradK = gradK /cell->volume[0];
-		div_et /= cell->volume[0];
-		div_em /= cell->volume[0];
-
-		//cell->parameters[0]["div_et"] = div_et / cell->volume[0];
-
-		//cell->parameters[0]["gradK_x"] = gradK[0];
-		//cell->parameters[0]["gradK_y"] = gradK[1];
-		//cell->parameters[0]["gradK_z"] = gradK[2];
-
-		Eigen::Vector3d t, m, DIV, DIV_my;
-		eB << cell->parameters[0]["Bx"], cell->parameters[0]["By"],
-			cell->parameters[0]["Bz"];
-		double k_paral = 1.0 / eB.norm();
-		eB.normalize();
-		get_bazis(eB, t, m);
-
-		DIV[0] = k_paral * div_eB + eB.dot(gradK);
-		DIV[1] = 0.05 * (k_paral * div_et + t.dot(gradK));
-		DIV[2] = 0.05 * (k_paral * div_em + m.dot(gradK));
-
-		DIV_my = DIV[0] * eB + DIV[1] * t + DIV[2] * m;
-
-		cell->parameters[0]["DIVk_x"] = DIV_my[0];
-		cell->parameters[0]["DIVk_y"] = DIV_my[1];
-		cell->parameters[0]["DIVk_z"] = DIV_my[2];
+		cell->parameters[0]["DIVk_x"] = DIVk_x / cell->volume[0];
+		cell->parameters[0]["DIVk_y"] = DIVk_y / cell->volume[0];
+		cell->parameters[0]["DIVk_z"] = DIVk_z / cell->volume[0];
 	}
 
 	cout << "End: Culc_divergence_in_cell" << endl;
