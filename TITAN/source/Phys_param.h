@@ -15,6 +15,7 @@ public:
 
     vector<string> param_names;
     // ¬се имена параметров, наличие которых мы ожидаем в €чейках!
+    vector<string> plasma_name; // »мена плазменных значений
     vector<string> H_name;   // имена дополнительных жидкостей водорода
     vector<string> pui_name;   // имена дополнительных жидкостей пикапов
     vector<string> MK_param;   // дополнительные параметры дл€ MK
@@ -28,6 +29,24 @@ public:
 
     Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>  pui_in_zone;   
     // ћатрица показывает в какой зоне какие сорта пикапов присутствуют
+
+
+    // √раничные услови€ заданы дл€ каждого типа поверхности (их три)
+    // Inner_Hard, Outer_Hard, Outer_Soft
+    // 0 - гран услови€ не нужны, так как там нет этой компоненты
+    // 1 - сносовые   cells[0] | cells[0]
+    // 2 - жЄсткие  cells[0] | gran
+    // 3 - центральна€ €чейка cells[0] | Center 
+
+    Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  pui_condition;
+    // ћатрица граничных условий дл€ пикапов
+
+    Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  plasma_condition;
+    // ћатрица граничных условий дл€ плазмы
+
+    Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  hydrogen_condition;
+    // ћатрица граничных условий дл€ водорода
+
 
     bool is_div_V_in_cell = false;       // —читаем ли дивергенцию скорости в €чейках 
     // на каждом шаге? Ќужно, например, дл€ учЄта пикапов

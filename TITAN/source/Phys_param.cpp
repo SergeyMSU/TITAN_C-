@@ -36,20 +36,36 @@ Phys_param::Phys_param()
                              true, true,
                              true, false,
                              true, false;
+        // Пикапы будут задаваться везде (для простоты), просто где их нет будут определены нулями
         // Предупреждение, может быть проблема с тем, что некоторые
         // поверхности выделяются не полностью
+
+        this->pui_condition.resize(3, this->num_pui);
+        this->pui_condition << 2, 0,
+                               2, 0,
+                               1, 1;
     }
     else
     {
         this->num_H = 4;
         this->is_div_V_in_cell = false;
         this->num_pui = 0;
+
+        this->hydrogen_condition.resize(3, this->num_H);
+        this->hydrogen_condition << 2, 3, 3, 3,
+                                    1, 1, 1, 2,
+                                    1, 1; 1, 1;
+        
     }
 
     // 1 - 4 старые обычные сорта
     // 5 - 8 сорта водорода, рождённые от пикапов сорта 1
     // 9 - сорт водорода от пикапов сорта 2 (такой сорт есть только во внутреннем ударном слое).
 
+    this->plasma_condition.resize(3, 1);
+    this->plasma_condition << 2,
+                              2,
+                              1;
 
     this->Plasma_components = [this](const short int& zone,
         unordered_map<string, double>& param_in_cell,
@@ -66,16 +82,17 @@ Phys_param::Phys_param()
     this->MK_file = "parameters_MK_0001.bin";
 
 
-    this->param_names.push_back("rho"); 
-    this->param_names.push_back("p");
-    this->param_names.push_back("Vx");
-    this->param_names.push_back("Vy");
-    this->param_names.push_back("Vz");
-    this->param_names.push_back("Bx");
-    this->param_names.push_back("By");
-    this->param_names.push_back("Bz");
-    this->param_names.push_back("Q");
-    this->param_names.push_back("rho_He");
+    this->param_names.push_back("rho");  this->plasma_name.push_back("rho");
+    this->param_names.push_back("p"); this->plasma_name.push_back("p");
+    this->param_names.push_back("Vx"); this->plasma_name.push_back("Vx");
+    this->param_names.push_back("Vy"); this->plasma_name.push_back("Vy");
+    this->param_names.push_back("Vz"); this->plasma_name.push_back("Vz");
+    this->param_names.push_back("Bx"); this->plasma_name.push_back("Bx");
+    this->param_names.push_back("By"); this->plasma_name.push_back("By");
+    this->param_names.push_back("Bz"); this->plasma_name.push_back("Bz");
+    this->param_names.push_back("Q"); this->plasma_name.push_back("Q");
+    this->param_names.push_back("rho_He"); this->plasma_name.push_back("rho_He");
+
 
 
     // Добавляем водород

@@ -299,7 +299,8 @@ void Setka::Init_physics(void)
 		}
 	}
 
-	bool tt1 = false;
+
+	std::unordered_set<std::string> no_names;
 	// Проверяем наличие всех необходимых переменных
 	for (auto& i : this->All_Cell)
 	{
@@ -307,14 +308,20 @@ void Setka::Init_physics(void)
 		{
 			if (i->parameters[0].find(num) == i->parameters[0].end())
 			{
-				//cout << "Parameters: " << num << "    ne opredelen v cells" << endl;
-				tt1 = true;
+				i->parameters[0][num] = 0.0;
+				if (no_names.find(num) == no_names.end()) no_names.insert(num);
 			}
 		}
-		if (tt1 == true)
-		{
-			//cout << "Error 4532896514" << endl;
-			//exit(-1);
+
+		i->parameters[1] = i->parameters[0];
+	}
+
+	if (!no_names.empty()) 
+	{
+		std::cout << "Ne bilo nekotorix peremennix v yacheikax, oni bili opredeleni nulem. Elements:" << std::endl;
+		// Вариант 1: Через range-based for (C++11)
+		for (const auto& str : no_names) {
+			std::cout << " - " << str << std::endl;
 		}
 	}
 
@@ -401,6 +408,15 @@ void Setka::Init_physics(void)
 				i->parameters["Vy_H4"] = 0.0;
 				i->parameters["Vz_H4"] = 0.0;
 				i->parameters["p_H4"] = 0.5;
+
+				if (this->phys_param->is_PUI == true)
+				{
+					for (const auto& nam : this->phys_param->pui_name)
+					{
+						i->parameters["rho" + nam] = 0.0;
+						i->parameters["p" + nam] = 0.0;
+					}
+				}
 			}
 			else if(i->type == Type_Gran::Inner_Hard)
 			{
@@ -453,6 +469,15 @@ void Setka::Init_physics(void)
 				i->parameters["Vy_H1"] = mV * vec(1);
 				i->parameters["Vz_H1"] = mV * vec(2);
 				i->parameters["p_H1"] = 0.00001;
+
+				if (this->phys_param->is_PUI == true)
+				{
+					for (const auto& nam : this->phys_param->pui_name)
+					{
+						i->parameters["rho" + nam] = 0.0;
+						i->parameters["p" + nam] = 0.0;
+					}
+				}
 			}
 		}
 	}
@@ -1297,7 +1322,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 	Option.y = gr->center[now][1];
 	Option.z = gr->center[now][2];
 
-	if (this->phys_param->culc_plasma == true)
+	if (true)
 	{
 		Option.x = gr->center[now][0];
 		Option.y = gr->center[now][1];

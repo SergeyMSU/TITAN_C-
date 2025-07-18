@@ -9,8 +9,8 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 		if (gr->type == Type_Gran::Inner_Hard || gr->type == Type_Gran::Outer_Hard)
 		{
 			auto C = gr->cells[0];
-			// Нужно ли считать плазменные поля
-			if (this->phys_param->culc_plasma == true)
+
+			if(true)
 			{
 				par_left["rho"] = C->parameters[now]["rho"];
 				par_left["rho_He"] = C->parameters[now]["rho_He"];
@@ -94,21 +94,23 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 		else if (gr->type == Type_Gran::Outer_Soft)
 		{
 			auto C = gr->cells[0];
-			if (this->phys_param->culc_plasma == true)
-			{
-				par_left["rho"] = C->parameters[now]["rho"];
-				par_left["rho_He"] = C->parameters[now]["rho_He"];
-				par_left["Q"] = C->parameters[now]["Q"];
-				par_left["p"] = C->parameters[now]["p"];
-				par_left["Vx"] = C->parameters[now]["Vx"];
-				par_left["Vy"] = C->parameters[now]["Vy"];
-				par_left["Vz"] = C->parameters[now]["Vz"];
-				par_left["Bx"] = C->parameters[now]["Bx"];
-				par_left["By"] = C->parameters[now]["By"];
-				par_left["Bz"] = C->parameters[now]["Bz"];
 
-				// Запрещаем затекание жидкости через мягкие граничные условия
-				if (par_left["Vx"] * gr->normal[now][0] + 
+			for (auto& nam : this->phys_param->param_names)
+			{
+				par_left[nam] = C->parameters[now][nam];
+			}
+
+			if (gr->normal[now][0] < -0.95) // Для задней границы
+			{
+				// Отсос
+				if (par_left["Vx"] > this->phys_param->Velosity_inf / 7.0)
+				{
+					par_left["Vx"] = this->phys_param->Velosity_inf / 5.0;
+				}
+			}
+			else
+			{
+				if (par_left["Vx"] * gr->normal[now][0] +
 					par_left["Vy"] * gr->normal[now][1] +
 					par_left["Vz"] * gr->normal[now][2] < 0.0)
 				{
@@ -116,38 +118,11 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					par_left["Vy"] = 0.1 * gr->normal[now][1];
 					par_left["Vz"] = 0.1 * gr->normal[now][2];
 				}
-
-				if (gr->normal[now][0] < -0.9) // Для задней границы
-				{
-					// Отсос
-					if (par_left["Vx"] > this->phys_param->Velosity_inf / 7.0)
-					{
-						par_left["Vx"] = this->phys_param->Velosity_inf / 5.0;
-					}
-				}
-
-				par_right["rho"] = par_left["rho"];
-				par_right["rho_He"] = par_left["rho_He"];
-				par_right["Q"] = par_left["Q"];
-				par_right["p"] = par_left["p"];
-				par_right["Vx"] = par_left["Vx"];
-				par_right["Vy"] = par_left["Vy"];
-				par_right["Vz"] = par_left["Vz"];
-				par_right["Bx"] = par_left["Bx"];
-				par_right["By"] = par_left["By"];
-				par_right["Bz"] = par_left["Bz"];
-
 			}
 
+			// Запрещаем затекание жидкости через мягкие граничные условия
 			for (auto& nam : this->phys_param->H_name)
 			{
-				par_left["rho" + nam] = C->parameters[now]["rho" + nam];
-				par_left["p" + nam] = C->parameters[now]["p" + nam];
-				par_left["Vx" + nam] = C->parameters[now]["Vx" + nam];
-				par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
-				par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
-
-				// Запрещаем затекание жидкости через мягкие граничные условия
 				if (par_left["Vx" + nam] * gr->normal[now][0] +
 					par_left["Vy" + nam] * gr->normal[now][1] +
 					par_left["Vz" + nam] * gr->normal[now][2] < 0.0)
@@ -156,14 +131,11 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					par_left["Vy" + nam] = 0.1 * gr->normal[now][1];
 					par_left["Vz" + nam] = 0.1 * gr->normal[now][2];
 				}
+			}
 
-
-
-				par_right["rho" + nam] = par_left["rho" + nam];
-				par_right["p" + nam] = par_left["p" + nam];
-				par_right["Vx" + nam] = par_left["Vx" + nam];
-				par_right["Vy" + nam] = par_left["Vy" + nam];
-				par_right["Vz" + nam] = par_left["Vz" + nam];
+			for (auto& nam : this->phys_param->param_names)
+			{
+				par_right[nam] = par_left[nam];
 			}
 		}
 		else
