@@ -92,8 +92,8 @@ public:
     bool move_BS = true;
 
     bool sglag_TS = true;              // Делаем ли сглаживание TS
-    double velocity_TS = 0.01;
-    double sglag_TS_k = 0.005;         // Сглаживание на высоких широтах
+    double velocity_TS = 0.03;
+    double sglag_TS_k = 0.003;         // Сглаживание на высоких широтах
     //double sglag_TS_k_sphere = 0.001; // 0.3;   // Сглаживание в головной и хвостовой части
     double sglag_TS_k_sphere_head = 0.02; // 0.08;   // Сглаживание в головной части
     double sglag_TS_k_sphere_tail = 0.01; // 0.03;   // Сглаживание в хвостовой части
@@ -102,8 +102,8 @@ public:
     bool sglag_HP = true;
     double velocity_HP = 0.1;
     double sglag_HP_k_sphere = 0.01;  //0.005 0.002    // Cглаживание в головной части
-    double sglag_HP_k = 0.1; // 0.001         // Сглаживание не в головной области
-    double sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
+    double sglag_HP_k = 0.005; // 0.001         // Сглаживание не в головной области
+    double sglag_HP_angle = 1.2;    // 1.2 коэффициент усилинея сглаживания по углу
     double sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
     double sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
 
