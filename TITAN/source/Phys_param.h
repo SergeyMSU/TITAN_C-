@@ -20,6 +20,9 @@ public:
     vector<string> pui_name;   // имена дополнительных жидкостей пикапов
     vector<string> MK_param;   // дополнительные параметры для MK
 
+    std::unordered_set<std::string> r2_snos_names;
+    std::unordered_set<std::string> r2g_snos_names;
+
     unordered_map<string, double> perevod_razmer;
 
 
@@ -88,6 +91,10 @@ public:
     bool TVD = true;                   // Делаем ли ТВД?
 
     bool culc_plasma = true;     // НЕ АКТИВЕН      // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
+    
+    bool culc_atoms = true;             // Вычисляем ли атомы или оставляем их вмороженными
+
+    bool move_TS = true;               // Двигаем ли HP
     bool move_HP = true;               // Двигаем ли HP
     bool move_BS = true;
 
@@ -103,9 +110,9 @@ public:
     double velocity_HP = 0.1;
     double sglag_HP_k_sphere = 0.01;  //0.005 0.002    // Cглаживание в головной части
     double sglag_HP_k = 0.005; // 0.001         // Сглаживание не в головной области
-    double sglag_HP_angle = 1.2;    // 1.2 коэффициент усилинея сглаживания по углу
-    double sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
-    double sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
+    double sglag_HP_angle = 1.2;    // 1.2 коэффициент усиления сглаживания по углу
+    double sglag_HP_along = 1.0;    // коэффициент усиления сглаживания вдоль х
+    double sglag_HP_sphere = 0.01;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
 
 
     bool sglag_BS = false;

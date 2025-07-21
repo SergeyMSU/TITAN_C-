@@ -786,6 +786,15 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		}
 	}
 
+	this->Calculating_measure(0);
+	this->Calculating_measure(1);
+
+
+	for (auto& ce : this->All_Cell)
+	{
+		ce->parameters[1] = ce->parameters[0];
+	}
+
 	whach(this->Gran_TS.size());
 	whach(this->Gran_HP.size());
 	whach(this->Gran_BS.size());
@@ -803,6 +812,10 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	vector<Gran*>* gran_list;
 	vector<Cell*>* cell_list;
 
+	vector<Gran*> gran_list_;
+	vector<Cell*> cell_list_;
+
+	cout << "Vibor area" << endl;
 	// Если хотим отдельно считать внутреннюю и наружнюю области
 	if (false)
 	{
@@ -817,11 +830,42 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			cell_list = &this->Cell_outer_area;
 		}
 	}
-	else
+	else if(true)
 	{
 		gran_list = &this->All_Gran;
 		cell_list = &this->All_Cell;
 	}
+	else
+	{
+		for (auto& gr : this->All_Gran)
+		{
+			if (gr->cells.size() == 2)
+			{
+				if (gr->cells[0]->type == Type_cell::Zone_3 || gr->cells[0]->type == Type_cell::Zone_4
+					|| gr->cells[1]->type == Type_cell::Zone_3 || gr->cells[1]->type == Type_cell::Zone_4)
+				{
+					gran_list_.push_back(gr);
+				}
+			}
+			else
+			{
+				if (gr->cells[0]->type == Type_cell::Zone_3 || gr->cells[0]->type == Type_cell::Zone_4)
+				{
+					gran_list_.push_back(gr);
+				}
+			}
+		}
+		for (auto& ce : this->All_Cell)
+		{
+			if (ce->type == Type_cell::Zone_3 || ce->type == Type_cell::Zone_4)
+			{
+				cell_list_.push_back(ce);
+			}
+		}
+		gran_list = &gran_list_;
+		cell_list = &cell_list_;
+	}
+	cout << "END Vibor area" << endl;
 
 	Cell* A, B;
 	double dsr, dsc, dsl;
@@ -897,7 +941,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		
 
 		// Считаем скорости граней и сразу передвигаем опорные узлы
-		if (is_inner_area == false)
+		//if (is_inner_area == false)
+		if(true)
 		{
 			this->Culc_Velocity_surface(now1, time, 1);
 
@@ -964,8 +1009,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 
 			boost::multi_array<double, 2> SOURSE(boost::extents[this->phys_param->H_name.size() + 1][5]);
-			
-			for (short int i = 0; i < this->phys_param->H_name.size() + 1; ++i) 
+
+			for (short int i = 0; i < this->phys_param->H_name.size() + 1; ++i)
 			{
 				for (short int j = 0; j < 5; ++j) {
 					SOURSE[i][j] = 0.0;
@@ -1093,7 +1138,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
 
 
-				if (std::isnan(rho3) || std::fpclassify(rho3) == FP_SUBNORMAL || 
+				if (std::isnan(rho3) || std::fpclassify(rho3) == FP_SUBNORMAL ||
 					std::isnan(Q3) || std::fpclassify(Q3) == FP_SUBNORMAL)
 				{
 					cout << "Error  9851234578" << endl;
@@ -1116,20 +1161,20 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				{
 					p3 = 0.000001;
 
-						if (step % 25 == 0 && print_p_less_0 == false)
+					if (step % 25 == 0 && print_p_less_0 == false)
+					{
+#pragma omp critical (firstf) 
 						{
-							#pragma omp critical (firstf) 
-							{
-								cout << "Plasma  p < 0" << endl;
-								cout << cell->center[now2][0] << " " <<
-									cell->center[now2][1] << " " <<
-									cell->center[now2][2] << endl;
-							}
+							cout << "Plasma  p < 0" << endl;
+							cout << cell->center[now2][0] << " " <<
+								cell->center[now2][1] << " " <<
+								cell->center[now2][2] << endl;
 						}
-						print_p_less_0 = true;
-					
+					}
+					print_p_less_0 = true;
+
 				}
-				
+
 
 				cell->parameters[now2]["rho"] = rho3;
 				if (cell->parameters[now1].find("Q") != cell->parameters[now1].end())
@@ -1160,57 +1205,60 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 			// Теперь считаем для остальных жидкостей
 			int i = 0;
-			for (auto& nam : this->phys_param->H_name)
+			if (this->phys_param->culc_atoms == true)
 			{
-				rho = cell->parameters[now1]["rho" + nam];
-				vx = cell->parameters[now1]["Vx" + nam];
-				vy = cell->parameters[now1]["Vy" + nam];
-				vz = cell->parameters[now1]["Vz" + nam];
-				p = cell->parameters[now1]["p" + nam];
-
-				rho3 = rho * Volume / Volume2 - time * POTOK["rho" + nam] / Volume2 + time * SOURSE[i + 1][0];
-
-				if (rho3 < 0.00000001)
+				for (auto& nam : this->phys_param->H_name)
 				{
-					rho3 = 0.00000001;
-					//cout << "Hidrogen  rho < 0  " << nam << endl;
+					rho = cell->parameters[now1]["rho" + nam];
+					vx = cell->parameters[now1]["Vx" + nam];
+					vy = cell->parameters[now1]["Vy" + nam];
+					vz = cell->parameters[now1]["Vz" + nam];
+					p = cell->parameters[now1]["p" + nam];
+
+					rho3 = rho * Volume / Volume2 - time * POTOK["rho" + nam] / Volume2 + time * SOURSE[i + 1][0];
+
+					if (rho3 < 0.00000001)
+					{
+						rho3 = 0.00000001;
+						//cout << "Hidrogen  rho < 0  " << nam << endl;
+					}
+
+					u3 = (rho * vx * Volume / Volume2 - time * (POTOK["Vx" + nam]) / Volume2
+						+ time * SOURSE[i + 1][1]) / rho3;
+					v3 = (rho * vy * Volume / Volume2 - time * (POTOK["Vy" + nam]) / Volume2
+						+ time * SOURSE[i + 1][2]) / rho3;
+					w3 = (rho * vz * Volume / Volume2 - time * (POTOK["Vz" + nam]) / Volume2
+						+ time * SOURSE[i + 1][3]) / rho3;
+
+
+					p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz)) * Volume / Volume2
+						- time * (POTOK["p" + nam]) / Volume2 + time * SOURSE[i + 1][4]) -
+						0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
+
+					if (p3 < 0.00000001)
+					{
+						p3 = 0.00000001;
+						//cout << "Hidrogen  p < 0  " << nam << endl;
+						//cout << "Center = " << cell->center[now2][0] << " " <<
+						//	cell->center[now2][1] << " " <<
+						//	cell->center[now2][2] << endl;
+					}
+
+					cell->parameters[now2]["rho" + nam] = rho3;
+					cell->parameters[now2]["Vx" + nam] = u3;
+					cell->parameters[now2]["Vy" + nam] = v3;
+					cell->parameters[now2]["Vz" + nam] = w3;
+					cell->parameters[now2]["p" + nam] = p3;
+
+					i++;
 				}
-
-				u3 = (rho * vx * Volume / Volume2 - time * (POTOK["Vx" + nam]) / Volume2
-					+ time * SOURSE[i + 1][1]) / rho3;
-				v3 = (rho * vy * Volume / Volume2 - time * (POTOK["Vy" + nam]) / Volume2
-					+ time * SOURSE[i + 1][2]) / rho3;
-				w3 = (rho * vz * Volume / Volume2 - time * (POTOK["Vz" + nam]) / Volume2
-					+ time * SOURSE[i + 1][3]) / rho3;
-
-
-				p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz)) * Volume / Volume2
-					- time * (POTOK["p" + nam]) / Volume2 + time * SOURSE[i + 1][4]) -
-					0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
-
-				if (p3 < 0.00000001)
-				{
-					p3 = 0.00000001;
-					//cout << "Hidrogen  p < 0  " << nam << endl;
-					//cout << "Center = " << cell->center[now2][0] << " " <<
-					//	cell->center[now2][1] << " " <<
-					//	cell->center[now2][2] << endl;
-				}
-
-				cell->parameters[now2]["rho" + nam] = rho3;
-				cell->parameters[now2]["Vx" + nam] = u3;
-				cell->parameters[now2]["Vy" + nam] = v3;
-				cell->parameters[now2]["Vz" + nam] = w3;
-				cell->parameters[now2]["p" + nam] = p3;
-
-				i++;
 			}
 		}
 
 #pragma omp barrier
 
 		// Считаем фиктивную центральную ячейку
-		if(true) 
+		if (this->phys_param->culc_atoms == true)
 			{
 				auto& cell = this->Cell_Center;
 				double Volume = 4.0 * const_pi * kyb(this->geo->R0)/3.0;
@@ -1367,6 +1415,20 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			konvect.push_back(0.0);
 		}
 
+		if (this->phys_param->is_PUI == true)
+		{
+			for (const auto& nam : this->phys_param->pui_name)
+			{
+				konvect_left.push_back(par_left["rho" + nam]);
+				konvect_right.push_back(par_right["rho" + nam]);
+				konvect.push_back(0.0);
+
+				konvect_left.push_back(par_left["p" + nam]);
+				konvect_right.push_back(par_right["p" + nam]);
+				konvect.push_back(0.0);
+			}
+		}
+
 		// Если это контакт, записываем магнитное давление в обычное
 		// И удаляем магнитные поля
 		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
@@ -1478,61 +1540,76 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		{
 			gr->parameters["Prho_He"] = konvect[1] * area; // Может быть неправльный порядок при других конвективных переменных
 		}
+
+		if (this->phys_param->is_PUI == true)
+		{
+			uint8_t ip = 2;
+			for (const auto& nam : this->phys_param->pui_name)
+			{
+				gr->parameters["Prho" + nam] = konvect[ip] * area;
+				ip++;
+				gr->parameters["Pp" + nam] = konvect[ip] * area;
+				ip++;
+			}
+		}
+
 	}
 
 	konvect_left.clear();
 	konvect_right.clear();
 	konvect.clear();
 
-	for (auto& nam : this->phys_param->H_name)
+	if (this->phys_param->culc_atoms == true)
 	{
-		Option.fluid = nam;
-		qqq1[0] = par_left["rho" + nam];
-		qqq1[1] = par_left["Vx" + nam];
-		qqq1[2] = par_left["Vy" + nam];
-		qqq1[3] = par_left["Vz" + nam];
-		qqq1[4] = par_left["p" + nam];
-		qqq1[5] = 0.0;
-		qqq1[6] = 0.0;
-		qqq1[7] = 0.0;
-
-		qqq2[0] = par_right["rho" + nam];
-		qqq2[1] = par_right["Vx" + nam];
-		qqq2[2] = par_right["Vy" + nam];
-		qqq2[3] = par_right["Vz" + nam];
-		qqq2[4] = par_right["p" + nam];
-		qqq2[5] = 0.0;
-		qqq2[6] = 0.0;
-		qqq2[7] = 0.0;
-
-		// metod
-		this->phys_param->chlld(0, gr->normal[now][0], gr->normal[now][1],
-			gr->normal[now][2],
-			w, qqq1, qqq2, qqq, false, 1,
-			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-			Option);
-
-		
-		if (gr->type == Type_Gran::Us)
+		for (auto& nam : this->phys_param->H_name)
 		{
-			double dnt = this->phys_param->KFL * dist
-				/ (max(fabs(dsl), fabs(dsr)) + fabs(w));
+			Option.fluid = nam;
+			qqq1[0] = par_left["rho" + nam];
+			qqq1[1] = par_left["Vx" + nam];
+			qqq1[2] = par_left["Vy" + nam];
+			qqq1[3] = par_left["Vz" + nam];
+			qqq1[4] = par_left["p" + nam];
+			qqq1[5] = 0.0;
+			qqq1[6] = 0.0;
+			qqq1[7] = 0.0;
 
-			if (dnt < loc_time)
+			qqq2[0] = par_right["rho" + nam];
+			qqq2[1] = par_right["Vx" + nam];
+			qqq2[2] = par_right["Vy" + nam];
+			qqq2[3] = par_right["Vz" + nam];
+			qqq2[4] = par_right["p" + nam];
+			qqq2[5] = 0.0;
+			qqq2[6] = 0.0;
+			qqq2[7] = 0.0;
+
+			// metod
+			this->phys_param->chlld(0, gr->normal[now][0], gr->normal[now][1],
+				gr->normal[now][2],
+				w, qqq1, qqq2, qqq, false, 1,
+				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+				Option);
+
+
+			if (gr->type == Type_Gran::Us)
 			{
-				loc_time = min(loc_time, dnt);
-				name = nam;
+				double dnt = this->phys_param->KFL * dist
+					/ (max(fabs(dsl), fabs(dsr)) + fabs(w));
+
+				if (dnt < loc_time)
+				{
+					loc_time = min(loc_time, dnt);
+					name = nam;
+				}
 			}
+
+			gr->parameters["Prho" + nam] = qqq[0] * area;
+			gr->parameters["PVx" + nam] = qqq[1] * area;
+			gr->parameters["PVy" + nam] = qqq[2] * area;
+			gr->parameters["PVz" + nam] = qqq[3] * area;
+			gr->parameters["Pp" + nam] = qqq[4] * area;
+
 		}
-
-		gr->parameters["Prho" + nam] = qqq[0] * area;
-		gr->parameters["PVx" + nam] = qqq[1] * area;
-		gr->parameters["PVy" + nam] = qqq[2] * area;
-		gr->parameters["PVz" + nam] = qqq[3] * area;
-		gr->parameters["Pp" + nam] = qqq[4] * area;
-
 	}
-
 
 	return loc_time;
 }

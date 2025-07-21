@@ -63,68 +63,71 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 
 		uint8_t ii = 0;
-		for (const auto& nam : this->phys_param->H_name)
+		if (this->phys_param->culc_atoms == true)
 		{
-			int8_t hydrogen_cond = this->phys_param->hydrogen_condition(type_gran, ii);
-			if (hydrogen_cond == 1)
+			for (const auto& nam : this->phys_param->H_name)
 			{
-				par_left["rho" + nam] = C->parameters[now]["rho" + nam];
-				par_left["p" + nam] = C->parameters[now]["p" + nam];
-				par_left["Vx" + nam] = C->parameters[now]["Vx" + nam];
-				par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
-				par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
-
-				if (par_left["Vx" + nam] * gr->normal[now][0] +
-					par_left["Vy" + nam] * gr->normal[now][1] +
-					par_left["Vz" + nam] * gr->normal[now][2] < 0.0)
+				int8_t hydrogen_cond = this->phys_param->hydrogen_condition(type_gran, ii);
+				if (hydrogen_cond == 1)
 				{
-					par_left["Vx" + nam] = 0.1 * gr->normal[now][0];
-					par_left["Vy" + nam] = 0.1 * gr->normal[now][1];
-					par_left["Vz" + nam] = 0.1 * gr->normal[now][2];
+					par_left["rho" + nam] = C->parameters[now]["rho" + nam];
+					par_left["p" + nam] = C->parameters[now]["p" + nam];
+					par_left["Vx" + nam] = C->parameters[now]["Vx" + nam];
+					par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
+					par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
+
+					if (par_left["Vx" + nam] * gr->normal[now][0] +
+						par_left["Vy" + nam] * gr->normal[now][1] +
+						par_left["Vz" + nam] * gr->normal[now][2] < 0.0)
+					{
+						par_left["Vx" + nam] = 0.1 * gr->normal[now][0];
+						par_left["Vy" + nam] = 0.1 * gr->normal[now][1];
+						par_left["Vz" + nam] = 0.1 * gr->normal[now][2];
+					}
+
+					par_right["rho" + nam] = par_left["rho" + nam];
+					par_right["p" + nam] = par_left["p" + nam];
+					par_right["Vx" + nam] = par_left["Vx" + nam];
+					par_right["Vy" + nam] = par_left["Vy" + nam];
+					par_right["Vz" + nam] = par_left["Vz" + nam];
 				}
+				else if (hydrogen_cond == 2)
+				{
+					par_left["rho" + nam] = C->parameters[now]["rho" + nam];
+					par_left["p" + nam] = C->parameters[now]["p" + nam];
+					par_left["Vx" + nam] = C->parameters[now]["Vx" + nam];
+					par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
+					par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
 
-				par_right["rho" + nam] = par_left["rho" + nam];
-				par_right["p" + nam] = par_left["p" + nam];
-				par_right["Vx" + nam] = par_left["Vx" + nam];
-				par_right["Vy" + nam] = par_left["Vy" + nam];
-				par_right["Vz" + nam] = par_left["Vz" + nam];
-			}
-			else if (hydrogen_cond == 2)
-			{
-				par_left["rho" + nam] = C->parameters[now]["rho" + nam];
-				par_left["p" + nam] = C->parameters[now]["p" + nam];
-				par_left["Vx" + nam] = C->parameters[now]["Vx" + nam];
-				par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
-				par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
+					par_right["rho" + nam] = gr->parameters["rho" + nam];
+					par_right["p" + nam] = gr->parameters["p" + nam];
+					par_right["Vx" + nam] = gr->parameters["Vx" + nam];
+					par_right["Vy" + nam] = gr->parameters["Vy" + nam];
+					par_right["Vz" + nam] = gr->parameters["Vz" + nam];
+				}
+				else if (hydrogen_cond == 3)
+				{
+					auto A = C;
+					auto B = this->Cell_Center;
+					par_left["rho" + nam] = A->parameters[now]["rho" + nam];
+					par_left["p" + nam] = A->parameters[now]["p" + nam];
+					par_left["Vx" + nam] = A->parameters[now]["Vx" + nam];
+					par_left["Vy" + nam] = A->parameters[now]["Vy" + nam];
+					par_left["Vz" + nam] = A->parameters[now]["Vz" + nam];
 
-				par_right["rho" + nam] = gr->parameters["rho" + nam];
-				par_right["p" + nam] = gr->parameters["p" + nam];
-				par_right["Vx" + nam] = gr->parameters["Vx" + nam];
-				par_right["Vy" + nam] = gr->parameters["Vy" + nam];
-				par_right["Vz" + nam] = gr->parameters["Vz" + nam];
+					par_right["rho" + nam] = B->parameters[now]["rho" + nam];
+					par_right["p" + nam] = B->parameters[now]["p" + nam];
+					par_right["Vx" + nam] = B->parameters[now]["Vx" + nam];
+					par_right["Vy" + nam] = B->parameters[now]["Vy" + nam];
+					par_right["Vz" + nam] = B->parameters[now]["Vz" + nam];
+				}
+				else
+				{
+					cout << "Error 0989876098" << endl;
+					exit(-1);
+				}
+				ii++;
 			}
-			else if (hydrogen_cond == 3)
-			{
-				auto A = C;
-				auto B = this->Cell_Center;
-				par_left["rho" + nam] = A->parameters[now]["rho" + nam];
-				par_left["p" + nam] = A->parameters[now]["p" + nam];
-				par_left["Vx" + nam] = A->parameters[now]["Vx" + nam];
-				par_left["Vy" + nam] = A->parameters[now]["Vy" + nam];
-				par_left["Vz" + nam] = A->parameters[now]["Vz" + nam];
-
-				par_right["rho" + nam] = B->parameters[now]["rho" + nam];
-				par_right["p" + nam] = B->parameters[now]["p" + nam];
-				par_right["Vx" + nam] = B->parameters[now]["Vx" + nam];
-				par_right["Vy" + nam] = B->parameters[now]["Vy" + nam];
-				par_right["Vz" + nam] = B->parameters[now]["Vz" + nam];
-			}
-			else
-			{
-				cout << "Error 0989876098" << endl;
-				exit(-1);
-			}
-			ii++;
 		}
 
 		ii = 0;
@@ -262,7 +265,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			
 				for (auto& nam : this->phys_param->param_names)
 				{
-					if (nam == "rho" || nam == "rho_He" || nam == "Q")
+					if (this->phys_param->r2_snos_names.find(nam) != this->phys_param->r2_snos_names.end())
 					{
 						par_left[nam] = linear(-dd1 - d1, AA->parameters[now][nam] * kv(r3),
 							-d1, A->parameters[now][nam] * kv(r1),
@@ -271,7 +274,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 							d2, B->parameters[now][nam] * kv(r2),
 							d2 + dd2, BB->parameters[now][nam] * kv(r4), 0.0) / kv(rr);
 					}
-					else if(nam == "p")
+					else if (this->phys_param->r2g_snos_names.find(nam) != this->phys_param->r2g_snos_names.end())
 					{
 						par_left[nam] = linear(-dd1 - d1, AA->parameters[now][nam] * kvg(r3),
 							-d1, A->parameters[now][nam] * kvg(r1),
@@ -281,10 +284,10 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 							d2 + dd2, BB->parameters[now][nam] * kvg(r4), 0.0) / kvg(rr);
 					}
 					else if (nam == "Vx" || nam == "Vy" || nam == "Vz" 
-						|| nam == "Bx" || nam == "By" || nam == "Bz")
+						|| nam == "Bx" || nam == "By" || nam == "Bz"
+						|| nam == "Vx_H1" || nam == "Vy_H1" || nam == "Vz_H1")
 					{
 						// PASS
-						;
 					}
 					else
 					{
@@ -294,21 +297,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						par_right[nam] = linear(-d1, A->parameters[now][nam],
 							d2, B->parameters[now][nam],
 							d2 + dd2, BB->parameters[now][nam], 0.0);
-					}
-
-					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
-						|| nam == "Vz")
-					{
-						for (auto& nam2 : this->phys_param->H_name)
-						{
-							if (nam2 == "_H1" && (nam == "Vx" || nam == "Vy" || nam == "Vz")) continue;
-							par_left[nam + nam2] = linear(-dd1 - d1, AA->parameters[now][nam + nam2],
-								-d1, A->parameters[now][nam + nam2],
-								d2, B->parameters[now][nam + nam2], 0.0);
-							par_right[nam + nam2] = linear(-d1, A->parameters[now][nam + nam2],
-								d2, B->parameters[now][nam + nam2],
-								d2 + dd2, BB->parameters[now][nam + nam2], 0.0);
-						}
 					}
 				}
 
@@ -380,7 +368,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 				for (auto& nam : this->phys_param->param_names)
 				{
-					if (nam == "rho" || nam == "rho_He" || nam == "Q")
+					if (this->phys_param->r2_snos_names.find(nam) != this->phys_param->r2_snos_names.end())
 					{
 						par_left[nam] = linear(-dd1 - d1, AA->parameters[now][nam] * kv(r3),
 							-d1, A->parameters[now][nam] * kv(r1),
@@ -388,7 +376,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						par_right[nam] = linear2(-d1, A->parameters[now][nam] * kv(r1),
 							d2, B->parameters[now][nam] * kv(r2), 0.0) / kv(rr);
 					}
-					else if (nam == "p")
+					if (this->phys_param->r2g_snos_names.find(nam) != this->phys_param->r2g_snos_names.end())
 					{
 						par_left[nam] = linear(-dd1 - d1, AA->parameters[now][nam] * kvg(r3),
 							-d1, A->parameters[now][nam] * kvg(r1),
@@ -397,7 +385,8 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 							d2, B->parameters[now][nam] * kvg(r2), 0.0) / kvg(rr);
 					}
 					else if (nam == "Vx" || nam == "Vy" || nam == "Vz"
-						|| nam == "Bx" || nam == "By" || nam == "Bz")
+						|| nam == "Bx" || nam == "By" || nam == "Bz"
+						|| nam == "Vx_H1" || nam == "Vy_H1" || nam == "Vz_H1")
 					{
 						// PASS
 						;
@@ -409,20 +398,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 							d2, B->parameters[now][nam], 0.0);
 						par_right[nam] = linear2(-d1, A->parameters[now][nam],
 							d2, B->parameters[now][nam], 0.0);
-					}
-
-					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
-						|| nam == "Vz")
-					{
-						for (auto& nam2 : this->phys_param->H_name)
-						{
-							if (nam2 == "_H1" && (nam == "Vx" || nam == "Vy" || nam == "Vz")) continue;
-							par_left[nam + nam2] = linear(-dd1 - d1, AA->parameters[now][nam + nam2],
-								-d1, A->parameters[now][nam + nam2],
-								d2, B->parameters[now][nam + nam2], 0.0);
-							par_right[nam + nam2] = linear2(-d1, A->parameters[now][nam + nam2],
-								d2, B->parameters[now][nam + nam2], 0.0);
-						}
 					}
 				}
 
@@ -484,14 +459,14 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 				for (auto& nam : this->phys_param->param_names)
 				{
-					if (nam == "rho" || nam == "rho_He" || nam == "Q")
+					if (this->phys_param->r2_snos_names.find(nam) != this->phys_param->r2_snos_names.end())
 					{
 						par_left[nam] = linear2(-dd1 - d1, AA->parameters[now][nam] * kv(r3),
 							-d1, A->parameters[now][nam] * kv(r1), 0.0) / kv(rr);
 						par_right[nam] = linear2(d2, B->parameters[now][nam],
 							d2 + dd2, BB->parameters[now][nam], 0.0);
 					}
-					else if (nam == "p")
+					if (this->phys_param->r2g_snos_names.find(nam) != this->phys_param->r2g_snos_names.end())
 					{
 						par_left[nam] = linear2(-dd1 - d1, AA->parameters[now][nam] * kvg(r3),
 							-d1, A->parameters[now][nam] * kvg(r1), 0.0) / kvg(rr);
@@ -499,7 +474,8 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 							d2 + dd2, BB->parameters[now][nam], 0.0);
 					}
 					else if (nam == "Vx" || nam == "Vy" || nam == "Vz"
-						|| nam == "Bx" || nam == "By" || nam == "Bz")
+						|| nam == "Bx" || nam == "By" || nam == "Bz"
+						|| nam == "Vx_H1" || nam == "Vy_H1" || nam == "Vz_H1")
 					{
 						par_right[nam] = linear2(d2, B->parameters[now][nam],
 							d2 + dd2, BB->parameters[now][nam], 0.0);
@@ -510,20 +486,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 							-d1, A->parameters[now][nam], 0.0);
 						par_right[nam] = linear2(d2, B->parameters[now][nam],
 							d2 + dd2, BB->parameters[now][nam], 0.0);
-					}
-
-					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
-						|| nam == "Vz")
-					{
-						for (auto& nam2 : this->phys_param->H_name)
-						{
-							par_right[nam + nam2] = linear2(d2, B->parameters[now][nam + nam2],
-								d2 + dd2, BB->parameters[now][nam + nam2], 0.0);
-
-							if (nam2 == "_H1" && (nam == "Vx" || nam == "Vy" || nam == "Vz")) continue;
-							par_left[nam + nam2] = linear2(-dd1 - d1, AA->parameters[now][nam + nam2],
-								-d1, A->parameters[now][nam + nam2], 0.0);
-						}
 					}
 				}
 			}
@@ -537,19 +499,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					par_right[nam] = linear(-d1, A->parameters[now][nam],
 						d2, B->parameters[now][nam],
 						d2 + dd2, BB->parameters[now][nam], 0.0);
-
-					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
-						|| nam == "Vz")
-					{
-						for (auto& nam2 : this->phys_param->H_name)
-						{
-							par_left[nam + nam2] = linear2(-d1, A->parameters[now][nam + nam2],
-								d2, B->parameters[now][nam + nam2], 0.0);
-							par_right[nam + nam2] = linear(-d1, A->parameters[now][nam + nam2],
-								d2, B->parameters[now][nam + nam2],
-								d2 + dd2, BB->parameters[now][nam + nam2], 0.0);
-						}
-					}
 				}
 			}
 			else if( (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_2 &&
@@ -563,19 +512,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						-d1, A->parameters[now][nam], 0.0);
 					par_right[nam] = linear2(d2, B->parameters[now][nam],
 						d2 + dd2, BB->parameters[now][nam], 0.0);
-
-					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
-						|| nam == "Vz")
-					{
-						for (auto& nam2 : this->phys_param->H_name)
-						{
-							par_left[nam + nam2] = linear2(-dd1 - d1, AA->parameters[now][nam + nam2],
-								-d1, A->parameters[now][nam + nam2], 0.0);
-							par_right[nam + nam2] = linear2(d2, 
-								B->parameters[now][nam + nam2],
-								d2 + dd2, BB->parameters[now][nam + nam2], 0.0);
-						}
-					}
 				}
 			}
 			else if ( (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_2 &&
@@ -590,19 +526,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						d2, B->parameters[now][nam], 0.0);
 					par_right[nam] = linear2(-d1, A->parameters[now][nam],
 						d2, B->parameters[now][nam], 0.0);
-
-					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
-						|| nam == "Vz")
-					{
-						for (auto& nam2 : this->phys_param->H_name)
-						{
-							par_left[nam + nam2] = linear(-dd1 - d1, AA->parameters[now][nam + nam2],
-								-d1, A->parameters[now][nam + nam2],
-								d2, B->parameters[now][nam + nam2], 0.0);
-							par_right[nam + nam2] = linear2(-d1, A->parameters[now][nam + nam2],
-								d2, B->parameters[now][nam + nam2], 0.0);
-						}
-					}
 				}
 			}
 			else if((AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_3 &&
@@ -617,19 +540,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					par_right[nam] = linear(-d1, A->parameters[now][nam],
 						d2, B->parameters[now][nam],
 						d2 + dd2, BB->parameters[now][nam], 0.0);
-
-					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
-						|| nam == "Vz")
-					{
-						for (auto& nam2 : this->phys_param->H_name)
-						{
-							par_left[nam + nam2] = linear2(-d1, A->parameters[now][nam + nam2],
-								d2, B->parameters[now][nam + nam2], 0.0);
-							par_right[nam + nam2] = linear(-d1, A->parameters[now][nam + nam2],
-								d2, B->parameters[now][nam + nam2],
-								d2 + dd2, BB->parameters[now][nam + nam2], 0.0);
-						}
-					}
 				}
 			}
 			else
@@ -642,20 +552,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					par_right[nam] = linear(-d1, A->parameters[now][nam],
 						d2, B->parameters[now][nam],
 						d2 + dd2, BB->parameters[now][nam], 0.0);
-
-					if (nam == "rho" || nam == "p" || nam == "Vx" || nam == "Vy"
-						|| nam == "Vz")
-					{
-						for (auto& nam2 : this->phys_param->H_name)
-						{
-							par_left[nam + nam2] = linear(-dd1 - d1, AA->parameters[now][nam + nam2],
-								-d1, A->parameters[now][nam + nam2],
-								d2, B->parameters[now][nam + nam2], 0.0);
-							par_right[nam + nam2] = linear(-d1, A->parameters[now][nam + nam2],
-								d2, B->parameters[now][nam + nam2],
-								d2 + dd2, BB->parameters[now][nam + nam2], 0.0);
-						}
-					}
 				}
 			}
 
@@ -668,7 +564,18 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			if (par_right["rho_He"] < 0.0000001) par_right["rho_He"] = B->parameters[now]["rho_He"];
 			if (par_right["p"] < 0.0000001) par_right["p"] = B->parameters[now]["p"];
 			
-			for (auto& nam2 : this->phys_param->H_name)
+			if (this->phys_param->culc_atoms == true)
+			{
+				for (auto& nam2 : this->phys_param->H_name)
+				{
+					if (par_left["rho" + nam2] < 0.0000001) par_left["rho" + nam2] = A->parameters[now]["rho" + nam2];
+					if (par_left["p" + nam2] < 0.0000001) par_left["p" + nam2] = A->parameters[now]["p" + nam2];
+					if (par_right["rho" + nam2] < 0.0000001) par_right["rho" + nam2] = B->parameters[now]["rho" + nam2];
+					if (par_right["p" + nam2] < 0.0000001) par_right["p" + nam2] = B->parameters[now]["p" + nam2];
+				}
+			}
+
+			for (auto& nam2 : this->phys_param->pui_name)
 			{
 				if (par_left["rho" + nam2] < 0.0000001) par_left["rho" + nam2] = A->parameters[now]["rho" + nam2];
 				if (par_left["p" + nam2] < 0.0000001) par_left["p" + nam2] = A->parameters[now]["p" + nam2];
@@ -702,133 +609,151 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				}
 			}
 
-			if (this->phys_param->culc_plasma == true)
+			Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
+
+			if (A->type == Type_cell::Zone_1)
 			{
-				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
+				Eigen::Vector3d Ac, G;
+				Ac << A->center[now][0], A->center[now][1], A->center[now][2];
+				G << gr->center[now][0], gr->center[now][1], gr->center[now][2];
+				double r1 = Ac.norm();
+				double rr = G.norm();
 
-				if (A->type == Type_cell::Zone_1)
+				// Преобразуем нужные векторные величины
+				if (true)
 				{
-					Eigen::Vector3d Ac, G;
-					Ac << A->center[now][0], A->center[now][1], A->center[now][2];
-					G << gr->center[now][0], gr->center[now][1], gr->center[now][2];
-					double r1 = Ac.norm();
-					double rr = G.norm();
+					std::array<string, 3> V1;
+					std::array<string, 3> V2;
+					std::array<string, 3> V3;
 
-					// Преобразуем нужные векторные величины
-					if (true)
+					V1[0] = "Vx";
+					V2[0] = "Vy";
+					V3[0] = "Vz";
+
+					V1[1] = "Bx";
+					V2[1] = "By";
+					V3[1] = "Bz";
+
+					V1[2] = "Vx_H1";
+					V2[2] = "Vy_H1";
+					V3[2] = "Vz_H1";
+
+					for (short int ik = 0; ik < 3; ik++)
 					{
-						std::array<string, 3> V1;
-						std::array<string, 3> V2;
-						std::array<string, 3> V3;
+						// Переводим скорости в сферическую с.к.
+						spherical_skorost(Ac[2], Ac[0], Ac[1],
+							A->parameters[now][V3[ik]], A->parameters[now][V1[ik]],
+							A->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
 
-						V1[0] = "Vx";
-						V2[0] = "Vy";
-						V3[0] = "Vz";
-
-						V1[1] = "Bx";
-						V2[1] = "By";
-						V3[1] = "Bz";
-
-						V1[2] = "Vx_H1";
-						V2[2] = "Vy_H1";
-						V3[2] = "Vz_H1";
-
-						for (short int ik = 0; ik < 3; ik++)
-						{
-							// Переводим скорости в сферическую с.к.
-							spherical_skorost(Ac[2], Ac[0], Ac[1],
-								A->parameters[now][V3[ik]], A->parameters[now][V1[ik]],
-								A->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
-
-							dekard_skorost(G[2], G[0], G[1],
-								VA[0], VA[1], VA[2],
-								par_left[V3[ik]], par_left[V1[ik]], par_left[V2[ik]]);
-						}
-					}
-
-					par_left["rho"] = A->parameters[now]["rho"] * kv(r1) / kv(rr);
-					par_left["Q"] = A->parameters[now]["Q"] * kv(r1) / kv(rr);
-					par_left["rho_He"] = A->parameters[now]["rho_He"] * kv(r1) / kv(rr);
-					par_left["p"] = A->parameters[now]["p"] * kvg(r1) / kvg(rr);
-
-					for (auto& nam : this->phys_param->H_name)
-					{
-						par_left["rho" + nam] = A->parameters[now]["rho" + nam];
-						par_left["p" + nam] = A->parameters[now]["p" + nam];
-						if (nam == "_H1") continue;
-						par_left["Vx" + nam] = A->parameters[now]["Vx" + nam];
-						par_left["Vy" + nam] = A->parameters[now]["Vy" + nam];
-						par_left["Vz" + nam] = A->parameters[now]["Vz" + nam];
-					}
-				}
-				else
-				{
-					par_left["rho"] = A->parameters[now]["rho"];
-					par_left["Q"] = A->parameters[now]["Q"];
-					par_left["rho_He"] = A->parameters[now]["rho_He"];
-					par_left["p"] = A->parameters[now]["p"];
-					par_left["Vx"] = A->parameters[now]["Vx"];
-					par_left["Vy"] = A->parameters[now]["Vy"];
-					par_left["Vz"] = A->parameters[now]["Vz"];
-					par_left["Bx"] = A->parameters[now]["Bx"];
-					par_left["By"] = A->parameters[now]["By"];
-					par_left["Bz"] = A->parameters[now]["Bz"];
-
-					for (auto& nam : this->phys_param->H_name)
-					{
-						par_left["rho" + nam] = A->parameters[now]["rho" + nam];
-						par_left["p" + nam] = A->parameters[now]["p" + nam];
-						par_left["Vx" + nam] = A->parameters[now]["Vx" + nam];
-						par_left["Vy" + nam] = A->parameters[now]["Vy" + nam];
-						par_left["Vz" + nam] = A->parameters[now]["Vz" + nam];
+						dekard_skorost(G[2], G[0], G[1],
+							VA[0], VA[1], VA[2],
+							par_left[V3[ik]], par_left[V1[ik]], par_left[V2[ik]]);
 					}
 				}
 
-				if (B->type == Type_cell::Zone_1)
+				par_left["rho"] = A->parameters[now]["rho"] * kv(r1) / kv(rr);
+				par_left["Q"] = A->parameters[now]["Q"] * kv(r1) / kv(rr);
+				par_left["rho_He"] = A->parameters[now]["rho_He"] * kv(r1) / kv(rr);
+				par_left["p"] = A->parameters[now]["p"] * kvg(r1) / kvg(rr);
+
+				for (auto& nam : this->phys_param->pui_name)
 				{
-					Eigen::Vector3d Ac, G;
-					Ac << B->center[now][0], B->center[now][1], B->center[now][2];
-					G << gr->center[now][0], gr->center[now][1], gr->center[now][2];
-					double r1 = Ac.norm();
-					double rr = G.norm();
+					par_left["rho" + nam] = A->parameters[now]["rho" + nam] * kv(r1) / kv(rr);
+					par_left["p" + nam] = A->parameters[now]["p" + nam] * kvg(r1) / kvg(rr);
+				}
 
-					// Преобразуем нужные векторные величины
-					if (true)
+				for (auto& nam : this->phys_param->H_name)
+				{
+					par_left["rho" + nam] = A->parameters[now]["rho" + nam];
+					par_left["p" + nam] = A->parameters[now]["p" + nam];
+					if (nam == "_H1") continue;
+					par_left["Vx" + nam] = A->parameters[now]["Vx" + nam];
+					par_left["Vy" + nam] = A->parameters[now]["Vy" + nam];
+					par_left["Vz" + nam] = A->parameters[now]["Vz" + nam];
+				}
+			}
+			else
+			{
+				par_left["rho"] = A->parameters[now]["rho"];
+				par_left["Q"] = A->parameters[now]["Q"];
+				par_left["rho_He"] = A->parameters[now]["rho_He"];
+				par_left["p"] = A->parameters[now]["p"];
+				par_left["Vx"] = A->parameters[now]["Vx"];
+				par_left["Vy"] = A->parameters[now]["Vy"];
+				par_left["Vz"] = A->parameters[now]["Vz"];
+				par_left["Bx"] = A->parameters[now]["Bx"];
+				par_left["By"] = A->parameters[now]["By"];
+				par_left["Bz"] = A->parameters[now]["Bz"];
+
+				for (auto& nam : this->phys_param->pui_name)
+				{
+					par_left["rho" + nam] = A->parameters[now]["rho" + nam];
+					par_left["p" + nam] = A->parameters[now]["p" + nam];
+				}
+
+				for (auto& nam : this->phys_param->H_name)
+				{
+					par_left["rho" + nam] = A->parameters[now]["rho" + nam];
+					par_left["p" + nam] = A->parameters[now]["p" + nam];
+					par_left["Vx" + nam] = A->parameters[now]["Vx" + nam];
+					par_left["Vy" + nam] = A->parameters[now]["Vy" + nam];
+					par_left["Vz" + nam] = A->parameters[now]["Vz" + nam];
+				}
+			}
+
+			if (B->type == Type_cell::Zone_1)
+			{
+				Eigen::Vector3d Ac, G;
+				Ac << B->center[now][0], B->center[now][1], B->center[now][2];
+				G << gr->center[now][0], gr->center[now][1], gr->center[now][2];
+				double r1 = Ac.norm();
+				double rr = G.norm();
+
+				// Преобразуем нужные векторные величины
+				if (true)
+				{
+					std::array<string, 3> V1;
+					std::array<string, 3> V2;
+					std::array<string, 3> V3;
+
+					V1[0] = "Vx";
+					V2[0] = "Vy";
+					V3[0] = "Vz";
+
+					V1[1] = "Bx";
+					V2[1] = "By";
+					V3[1] = "Bz";
+
+					V1[2] = "Vx_H1";
+					V2[2] = "Vy_H1";
+					V3[2] = "Vz_H1";
+
+					for (short int ik = 0; ik < 3; ik++)
 					{
-						std::array<string, 3> V1;
-						std::array<string, 3> V2;
-						std::array<string, 3> V3;
+						// Переводим скорости в сферическую с.к.
+						spherical_skorost(Ac[2], Ac[0], Ac[1],
+							B->parameters[now][V3[ik]], B->parameters[now][V1[ik]],
+							B->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
 
-						V1[0] = "Vx";
-						V2[0] = "Vy";
-						V3[0] = "Vz";
-
-						V1[1] = "Bx";
-						V2[1] = "By";
-						V3[1] = "Bz";
-
-						V1[2] = "Vx_H1";
-						V2[2] = "Vy_H1";
-						V3[2] = "Vz_H1";
-
-						for (short int ik = 0; ik < 3; ik++)
-						{
-							// Переводим скорости в сферическую с.к.
-							spherical_skorost(Ac[2], Ac[0], Ac[1],
-								B->parameters[now][V3[ik]], B->parameters[now][V1[ik]],
-								B->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
-
-							dekard_skorost(G[2], G[0], G[1],
-								VA[0], VA[1], VA[2],
-								par_right[V3[ik]], par_right[V1[ik]], par_right[V2[ik]]);
-						}
+						dekard_skorost(G[2], G[0], G[1],
+							VA[0], VA[1], VA[2],
+							par_right[V3[ik]], par_right[V1[ik]], par_right[V2[ik]]);
 					}
+				}
 
-					par_right["rho"] = B->parameters[now]["rho"] * kv(r1) / kv(rr);
-					par_right["Q"] = B->parameters[now]["Q"] * kv(r1) / kv(rr);
-					par_right["rho_He"] = B->parameters[now]["rho_He"] * kv(r1) / kv(rr);
-					par_right["p"] = B->parameters[now]["p"] * kvg(r1) / kvg(rr);
+				par_right["rho"] = B->parameters[now]["rho"] * kv(r1) / kv(rr);
+				par_right["Q"] = B->parameters[now]["Q"] * kv(r1) / kv(rr);
+				par_right["rho_He"] = B->parameters[now]["rho_He"] * kv(r1) / kv(rr);
+				par_right["p"] = B->parameters[now]["p"] * kvg(r1) / kvg(rr);
+
+				for (auto& nam : this->phys_param->pui_name)
+				{
+					par_right["rho" + nam] = B->parameters[now]["rho" + nam] * kv(r1) / kv(rr);
+					par_right["p" + nam] = B->parameters[now]["p" + nam] * kvg(r1) / kvg(rr);
+				}
 					
+				if (this->phys_param->culc_atoms == true)
+				{
 					for (auto& nam : this->phys_param->H_name)
 					{
 						par_right["rho" + nam] = B->parameters[now]["rho" + nam];
@@ -839,19 +764,28 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						par_right["Vz" + nam] = B->parameters[now]["Vz" + nam];
 					}
 				}
-				else
-				{
-					par_right["rho"] = B->parameters[now]["rho"];
-					par_right["Q"] = B->parameters[now]["Q"];
-					par_right["rho_He"] = B->parameters[now]["rho_He"];
-					par_right["p"] = B->parameters[now]["p"];
-					par_right["Vx"] = B->parameters[now]["Vx"];
-					par_right["Vy"] = B->parameters[now]["Vy"];
-					par_right["Vz"] = B->parameters[now]["Vz"];
-					par_right["Bx"] = B->parameters[now]["Bx"];
-					par_right["By"] = B->parameters[now]["By"];
-					par_right["Bz"] = B->parameters[now]["Bz"];
+			}
+			else
+			{
+				par_right["rho"] = B->parameters[now]["rho"];
+				par_right["Q"] = B->parameters[now]["Q"];
+				par_right["rho_He"] = B->parameters[now]["rho_He"];
+				par_right["p"] = B->parameters[now]["p"];
+				par_right["Vx"] = B->parameters[now]["Vx"];
+				par_right["Vy"] = B->parameters[now]["Vy"];
+				par_right["Vz"] = B->parameters[now]["Vz"];
+				par_right["Bx"] = B->parameters[now]["Bx"];
+				par_right["By"] = B->parameters[now]["By"];
+				par_right["Bz"] = B->parameters[now]["Bz"];
 
+				for (auto& nam : this->phys_param->pui_name)
+				{
+					par_right["rho" + nam] = B->parameters[now]["rho" + nam];
+					par_right["p" + nam] = B->parameters[now]["p" + nam];
+				}
+
+				if (this->phys_param->culc_atoms == true)
+				{
 					for (auto& nam : this->phys_param->H_name)
 					{
 						par_right["rho" + nam] = B->parameters[now]["rho" + nam];
@@ -862,6 +796,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					}
 				}
 			}
+			
 		}
 	}
 }

@@ -125,65 +125,68 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 	}
 
 	// —читаем движение TS
-#pragma omp parallel for private(dsr, dsc, dsl)
-	for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
+	if (this->phys_param->move_TS == true)
 	{
-		auto gr = this->Gran_TS[i_step];
-		auto A = gr->cells[0];
-		auto B = gr->cells[1];
-
-
-		unordered_map<string, double> par_left;
-		unordered_map<string, double> par_right;
-
-		Snos_on_Gran(gr, par_left, par_right, now);
-
-		std::vector<double> qqq, qqq1, qqq2;
-		qqq.resize(8);
-		qqq1.resize(8);
-		qqq2.resize(8);
-		std::vector<double> konvect_left, konvect_right, konvect;
-		PrintOptions Option = PrintOptions{};
-		Option.fluid = "plasma_TS";
-
-		//A->parameters[now]
-		qqq1[0] = par_left["rho"];
-		qqq1[1] = par_left["Vx"];
-		qqq1[2] = par_left["Vy"];
-		qqq1[3] = par_left["Vz"];
-		qqq1[4] = par_left["p"];
-		qqq1[5] = par_left["Bx"];
-		qqq1[6] = par_left["By"];
-		qqq1[7] = par_left["Bz"];
-
-		qqq2[0] = par_right["rho"];
-		qqq2[1] = par_right["Vx"];
-		qqq2[2] = par_right["Vy"];
-		qqq2[3] = par_right["Vz"];
-		qqq2[4] = par_right["p"];
-		qqq2[5] = par_right["Bx"];
-		qqq2[6] = par_right["By"];
-		qqq2[7] = par_right["Bz"];
-
-		double w = 0.0;
-
-
-		this->phys_param->chlld(gr->Get_method(), gr->normal[now][0], gr->normal[now][1],
-			gr->normal[now][2],
-			w, qqq1, qqq2, qqq, false, 3,
-			konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-			Option);
-
-		for (auto& yz : gr->yzels)
+		#pragma omp parallel for private(dsr, dsc, dsl)
+		for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
 		{
-			yz->mut.lock();
-			yz->velocity[0] += this->phys_param->velocity_TS * dsl * gr->normal[now][0];
-			yz->velocity[1] += this->phys_param->velocity_TS * dsl * gr->normal[now][1];
-			yz->velocity[2] += this->phys_param->velocity_TS * dsl * gr->normal[now][2];
-			yz->num_velocity++;
-			yz->mut.unlock();
-		}
+			auto gr = this->Gran_TS[i_step];
+			auto A = gr->cells[0];
+			auto B = gr->cells[1];
 
+
+			unordered_map<string, double> par_left;
+			unordered_map<string, double> par_right;
+
+			Snos_on_Gran(gr, par_left, par_right, now);
+
+			std::vector<double> qqq, qqq1, qqq2;
+			qqq.resize(8);
+			qqq1.resize(8);
+			qqq2.resize(8);
+			std::vector<double> konvect_left, konvect_right, konvect;
+			PrintOptions Option = PrintOptions{};
+			Option.fluid = "plasma_TS";
+
+			//A->parameters[now]
+			qqq1[0] = par_left["rho"];
+			qqq1[1] = par_left["Vx"];
+			qqq1[2] = par_left["Vy"];
+			qqq1[3] = par_left["Vz"];
+			qqq1[4] = par_left["p"];
+			qqq1[5] = par_left["Bx"];
+			qqq1[6] = par_left["By"];
+			qqq1[7] = par_left["Bz"];
+
+			qqq2[0] = par_right["rho"];
+			qqq2[1] = par_right["Vx"];
+			qqq2[2] = par_right["Vy"];
+			qqq2[3] = par_right["Vz"];
+			qqq2[4] = par_right["p"];
+			qqq2[5] = par_right["Bx"];
+			qqq2[6] = par_right["By"];
+			qqq2[7] = par_right["Bz"];
+
+			double w = 0.0;
+
+
+			this->phys_param->chlld(gr->Get_method(), gr->normal[now][0], gr->normal[now][1],
+				gr->normal[now][2],
+				w, qqq1, qqq2, qqq, false, 3,
+				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+				Option);
+
+			for (auto& yz : gr->yzels)
+			{
+				yz->mut.lock();
+				yz->velocity[0] += this->phys_param->velocity_TS * dsl * gr->normal[now][0];
+				yz->velocity[1] += this->phys_param->velocity_TS * dsl * gr->normal[now][1];
+				yz->velocity[2] += this->phys_param->velocity_TS * dsl * gr->normal[now][2];
+				yz->num_velocity++;
+				yz->mut.unlock();
+			}
+
+		}
 	}
 
 	// —читаем движение HP
@@ -508,7 +511,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		if (true) // Ёто старый вариант сглаживани€, сейчас работает другой
 		{
 			
-			if (false)
+			if (true)
 			{   // Ћаплас в сферических
 				#pragma omp parallel for private(A, B, V)
 				for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
@@ -545,7 +548,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 					}
 				}
 			}
-			else if (true)
+			if (true)
 			{
 				// Ћаплас в декартовых
 				#pragma omp parallel for private(A, B, V)
@@ -654,7 +657,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				B[2] *= r1 / p[1];
 
 				V = this->phys_param->velocity_HP *
-					this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_sphere *
+					this->phys_param->sglag_HP_sphere *
 					this->phys_param->sglag_HP_k_sphere * (B - A) / time;
 
 				AA->mut.lock();
@@ -670,10 +673,10 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				B[2] *= r2 / p[1];
 
 				V = this->phys_param->velocity_HP *
-					this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_sphere *
-					this->phys_param->sglag_HP_k_sphere * (B - A) / time; \
+					this->phys_param->sglag_HP_sphere *
+					this->phys_param->sglag_HP_k_sphere * (B - A) / time; 
 
-					AA->mut.lock();
+				AA->mut.lock();
 				AA->velocity[0] += V[0];
 				AA->velocity[1] += V[1];
 				AA->velocity[2] += V[2];
@@ -686,10 +689,10 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				B[2] *= r3 / p[1];
 
 				V = this->phys_param->velocity_HP *
-					this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_sphere *
-					this->phys_param->sglag_HP_k_sphere * (B - A) / time; \
+					this->phys_param->sglag_HP_sphere *
+					this->phys_param->sglag_HP_k_sphere * (B - A) / time; 
 
-					AA->mut.lock();
+				AA->mut.lock();
 				AA->velocity[0] += V[0];
 				AA->velocity[1] += V[1];
 				AA->velocity[2] += V[2];
@@ -702,10 +705,10 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				B[2] *= r4 / p[1];
 
 				V = this->phys_param->velocity_HP *
-					this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_sphere *
-					this->phys_param->sglag_HP_k_sphere * (B - A) / time; \
+					this->phys_param->sglag_HP_sphere *
+					this->phys_param->sglag_HP_k_sphere * (B - A) / time; 
 
-					AA->mut.lock();
+				AA->mut.lock();
 				AA->velocity[0] += V[0];
 				AA->velocity[1] += V[1];
 				AA->velocity[2] += V[2];

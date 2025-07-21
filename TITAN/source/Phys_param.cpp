@@ -25,6 +25,11 @@ Phys_param::Phys_param()
     this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
     this->sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
 
+    this->culc_atoms = false;  
+
+
+
+
     cout << "B " << endl;
     if (this->is_PUI == true)
     {
@@ -128,6 +133,19 @@ Phys_param::Phys_param()
     {
         this->pui_name.push_back("_Pui_1");
         this->pui_name.push_back("_Pui_2");
+    }
+
+    // Именя для особого сноса в ТВД
+    this->r2_snos_names.insert("rho");
+    this->r2_snos_names.insert("Q");
+    this->r2_snos_names.insert("rho_He");
+
+    this->r2g_snos_names.insert("p");
+
+    if (this->is_PUI == true)
+    {
+        this->r2_snos_names.insert("rho_Pui_1");
+        this->r2g_snos_names.insert("p_Pui_1");
     }
 
 
