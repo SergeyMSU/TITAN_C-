@@ -19,6 +19,7 @@ public:
     vector<string> H_name;   // имена дополнительных жидкостей водорода
     vector<string> pui_name;   // имена дополнительных жидкостей пикапов
     vector<string> MK_param;   // дополнительные параметры для MK
+    vector<string> p_pui_name;   
 
     std::unordered_set<std::string> r2_snos_names;
     std::unordered_set<std::string> r2g_snos_names;
@@ -50,6 +51,20 @@ public:
     Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  hydrogen_condition;
     // Матрица граничных условий для водорода
 
+    // Матрицы взаимодействия сортов по областям
+    Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  hydrogen_arise_1;
+    Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  proton_arise_1;
+
+    Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  hydrogen_arise_2;
+    Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  proton_arise_2;
+
+    Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  hydrogen_arise_3;
+    Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  proton_arise_3;
+
+    Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  hydrogen_arise_4;
+    Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  proton_arise_4;
+
+
 
     bool is_div_V_in_cell = false;       // Считаем ли дивергенцию скорости в ячейках 
     // на каждом шаге? Нужно, например, для учёта пикапов
@@ -78,7 +93,7 @@ public:
 
     // параметры
     double gamma = (5.0 / 3.0);       // показатель адиабаты
-    double g1 = (5.0 / 3.0 - 1.0);       // показатель адиабаты
+    double g1 = (5.0 / 3.0 - 1.0);       // показатель адиабаты - 1
 
     // Характерные параметры
     double R_0 = 0.233017;             // Характерный размер 1 а.е.

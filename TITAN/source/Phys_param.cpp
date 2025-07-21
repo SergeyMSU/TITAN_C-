@@ -19,7 +19,7 @@ Phys_param::Phys_param()
 {
     this->sglag_HP = true;
     this->velocity_HP = 0.1;
-    this->sglag_HP_k_sphere = 0.01;  //0.005 0.002    // Cглаживание в головной части
+    this->sglag_HP_k_sphere = 0.03;  //0.005 0.002    // Cглаживание в головной части
     this->sglag_HP_k = 0.01; // 0.001         // Сглаживание не в головной области
     this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
     this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
@@ -30,7 +30,6 @@ Phys_param::Phys_param()
 
 
 
-    cout << "B " << endl;
     if (this->is_PUI == true)
     {
         this->num_H = 9;
@@ -60,13 +59,61 @@ Phys_param::Phys_param()
         this->hydrogen_condition << 2, 3, 3, 3,
                                     1, 1, 1, 2,
                                     1, 1, 1, 1;
+
+        this->hydrogen_arise_1.resize(this->num_H, this->num_pui + 1);
+        this->hydrogen_arise_1 << 1,
+                                  1,
+                                  1,
+                                  1;
+
+        this->hydrogen_arise_2.resize(this->num_H, this->num_pui + 1);
+        this->hydrogen_arise_2 << 2,
+                                  2,
+                                  2,
+                                  2;
+
+        this->hydrogen_arise_3.resize(this->num_H, this->num_pui + 1);
+        this->hydrogen_arise_3 << 3,
+                                  3,
+                                  3,
+                                  3;
+
+        this->hydrogen_arise_4.resize(this->num_H, this->num_pui + 1);
+        this->hydrogen_arise_4 << 4,
+                                  4,
+                                  4,
+                                  4;
+
+        proton_arise_1.resize(this->num_H, this->num_pui + 1);
+        this->proton_arise_1 << 0,
+                                0,
+                                0,
+                                0;
+
+        proton_arise_2.resize(this->num_H, this->num_pui + 1);
+        this->proton_arise_2 << 0,
+                                0,
+                                0,
+                                0;
+
+        proton_arise_3.resize(this->num_H, this->num_pui + 1);
+        this->proton_arise_3 << 0,
+                                0,
+                                0,
+                                0;
+
+        proton_arise_4.resize(this->num_H, this->num_pui + 1);
+        this->proton_arise_4 << 0,
+                                0,
+                                0,
+                                0;
         
     }
 
     // 1 - 4 старые обычные сорта
     // 5 - 8 сорта водорода, рождённые от пикапов сорта 1
     // 9 - сорт водорода от пикапов сорта 2 (такой сорт есть только во внутреннем ударном слое).
-    cout << "A " << endl;
+    
     this->plasma_condition.resize(3, 1);
     this->plasma_condition << 2,
                               2,
@@ -134,6 +181,9 @@ Phys_param::Phys_param()
         this->pui_name.push_back("_Pui_1");
         this->pui_name.push_back("_Pui_2");
     }
+
+    this->p_pui_name = this->pui_name;
+    this->p_pui_name.push_back("_p");
 
     // Именя для особого сноса в ТВД
     this->r2_snos_names.insert("rho");

@@ -610,6 +610,264 @@ void Setka::Init_TVD(void)
 	}
 }
 
+double U_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
+{
+	double uu = (V1 - V2).norm();
+	return sqrt((4.0 / const_pi) * (T1 + T2) + kv(uu));
+}
+
+double Um_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
+{
+	double uu = (V1 - V2).norm();
+	return sqrt((16.0 / const_pi) * T1 + (9.0 * const_pi / 4.0) * T2 + 4.0 * kv(uu));
+}
+
+double UE_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
+{
+	double uu = (V1 - V2).norm();
+	return sqrt((4.0 / const_pi) * T1 + (64.0 / 9.0 / const_pi) * T2 + kv(uu));
+}
+
+
+
+void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
+	short int now, short int zone)
+{
+	// Названия жидкостей
+	// p, Pui1, Pui2, ....
+	// H1, H2, H3, H4, .....
+	// 
+	// Для каждой жидкости нужна rho, T
+	// Также нужна средняя скорость плазмы и Скорости всех сортов водорода
+	unordered_map<string, double> rho;  // "_p", "_Pui_1", .... , "_H1", ...
+	unordered_map<string, double> T;    // "_p", "_Pui_1", ...., "_H1", ...
+	unordered_map<string, Eigen::Vector3d> V;    // "_p", "_H1", ...
+
+	// Получаем переменные -----------------------------------------------------------------
+
+	// Все переменные получены -------------------------------------------------------------
+
+
+	// Скорости - это симметричные функции
+	unordered_map<string, double> U;    // _p_H1, _p_H2, ...., _Pui_1_H1, ...
+	unordered_map<string, double> Um;   // _p_H1, _p_H2, ...., _Pui_1_H1, ...
+	unordered_map<string, double> UE;   // _p_H1, _p_H2, ...., _Pui_1_H1, ...
+	unordered_map<string, double> sig;  // _p_H1, _p_H2, ...., _Pui_1_H1, ...
+
+	if (true)
+	{
+		for (const auto& nam1 : this->phys_param->p_pui_name)
+		{
+			for (const auto& nam2 : this->phys_param->H_name)
+			{
+				U[nam1 + nam2] = U_bera(T[nam1], T[nam2], V[nam1], V[nam2]);
+				U[nam2 + nam1] = U_bera(T[nam2], T[nam1], V[nam2], V[nam1]);
+
+				Um[nam1 + nam2] = Um_bera(T[nam1], T[nam2], V[nam1], V[nam2]);
+				Um[nam2 + nam1] = Um_bera(T[nam2], T[nam1], V[nam2], V[nam1]);
+
+				UE[nam1 + nam2] = UE_bera(T[nam1], T[nam2], V[nam1], V[nam2]);
+				UE[nam2 + nam1] = UE_bera(T[nam2], T[nam1], V[nam2], V[nam1]);
+
+				sig[nam1 + nam2] = kv(1.0 - this->phys_param->par_a_2 * log(U[nam1 + nam2]));
+				sig[nam2 + nam1] = kv(1.0 - this->phys_param->par_a_2 * log(U[nam2 + nam1]));
+			}
+		}
+
+	}
+
+	unordered_map<string, double> Hrho;
+	unordered_map<string, double> HE;
+	unordered_map<string, Eigen::Vector3d> Hm;
+	unordered_map<string, double> Hp;
+
+	if (true)
+	{
+		for (const auto& nam1 : this->phys_param->p_pui_name)
+		{
+			for (const auto& nam2 : this->phys_param->H_name)
+			{
+				Hrho[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * U[nam1 + nam2];
+				Hrho[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * U[nam2 + nam1];
+
+				Hm[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * (U[nam2 + nam1] * V["_p"] +
+					T[nam1] / Um[nam2 + nam1] * (V["_p"] - V[nam2]));
+				Hm[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * (U[nam1 + nam2] * V[nam2] -
+					T[nam2] / Um[nam1 + nam2] * (V["_p"] - V[nam2]));
+
+				HE[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * (0.5 * U[nam2 + nam1] * V["_p"].squaredNorm() +
+					T[nam1] / Um[nam2 + nam1] * V["_p"].dot(V["_p"] - V[nam2]) + 
+					3.0/4.0 * T[nam1] * UE[nam2 + nam1]);
+
+				HE[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * (0.5 * U[nam1 + nam2] * V[nam2].squaredNorm() -
+					T[nam2] / Um[nam1 + nam2] * V[nam2].dot(V["_p"] - V[nam2]) +
+					3.0 / 4.0 * T[nam2] * UE[nam1 + nam2]);
+
+				Hp[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * this->phys_param->g1 * 3.0 / 4.0 *
+					T[nam1] * UE[nam2 + nam1];
+
+				Hp[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * this->phys_param->g1 *
+					((0.5 * U[nam1 + nam2] + T[nam2] / Um[nam1 + nam2]) * (V["_p"] - V[nam2]).squaredNorm() +
+						3.0 / 4.0 * T[nam2] * UE[nam1 + nam2]);
+			}
+		}
+
+	}
+
+	if (true)
+	{
+		SOURSE["rho"] = 0.0;
+		SOURSE["m_x"] = 0.0;
+		SOURSE["m_y"] = 0.0;
+		SOURSE["m_z"] = 0.0;
+		SOURSE["E"] = 0.0;
+
+		// Заполняем общие суммарные источники для плазмы  --------------------------------------
+		for (const auto& nam1 : this->phys_param->p_pui_name)
+		{
+			for (const auto& nam2 : this->phys_param->H_name)
+			{
+				auto SS = (-Hm[nam2 + nam1] + Hm[nam1 + nam2]);
+				SOURSE["m_x"] += SS[0];
+				SOURSE["m_y"] += SS[1];
+				SOURSE["m_z"] += SS[2];
+
+				SOURSE["E"] += (-HE[nam2 + nam1] + HE[nam1 + nam2]);
+			}
+		}
+
+		// Заполняем источники водорода  --------------------------------------------------------------------
+		for (const auto& nam2 : this->phys_param->H_name)
+		{
+			SOURSE["rho" + nam2] = 0.0;
+			SOURSE["m_x" + nam2] = 0.0;
+			SOURSE["m_y" + nam2] = 0.0;
+			SOURSE["m_z" + nam2] = 0.0;
+			SOURSE["E" + nam2] = 0.0;
+		}
+
+		// Сначала потери
+		for (const auto& nam2 : this->phys_param->H_name)
+		{
+			for (const auto& nam1 : this->phys_param->p_pui_name)
+			{
+				SOURSE["rho" + nam2] += (-Hrho[nam1 + nam2]);
+
+				SOURSE["m_x" + nam2] += (-Hm[nam1 + nam2][0]);
+				SOURSE["m_y" + nam2] += (-Hm[nam1 + nam2][1]);
+				SOURSE["m_z" + nam2] += (-Hm[nam1 + nam2][2]);
+
+				SOURSE["E" + nam2] += (-HE[nam1 + nam2]);
+			}
+		}
+
+		// Теперь притоки
+		Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>* A;
+		Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>* B;
+		if (zone == 1)
+		{
+			A = &this->phys_param->hydrogen_arise_1;
+			B = &this->phys_param->proton_arise_1;
+		}
+		else if (zone == 2)
+		{
+			A = &this->phys_param->hydrogen_arise_2;
+			B = &this->phys_param->proton_arise_2;
+		}
+		else if (zone == 3)
+		{
+			A = &this->phys_param->hydrogen_arise_3;
+			B = &this->phys_param->proton_arise_3;
+		}
+		else
+		{
+			A = &this->phys_param->hydrogen_arise_4;
+			B = &this->phys_param->proton_arise_4;
+		}
+
+		for (short int i = 0; i < A->rows(); ++i) 
+		{
+			for (short int j = 0; j < A->cols(); ++j)
+			{
+				short iH = (*A)(i, j);
+				auto nam2 = this->phys_param->H_name[i];
+				auto nam1 = this->phys_param->p_pui_name[j];
+
+				SOURSE["rho" + this->phys_param->H_name[iH - 1]] += 
+					Hrho[nam2 + nam1];
+				SOURSE["m_x" + this->phys_param->H_name[iH - 1]] +=
+					Hm[nam2 + nam1][0];
+				SOURSE["m_y" + this->phys_param->H_name[iH - 1]] +=
+					Hm[nam2 + nam1][1];
+				SOURSE["m_z" + this->phys_param->H_name[iH - 1]] +=
+					Hm[nam2 + nam1][2];
+				SOURSE["E" + this->phys_param->H_name[iH - 1]] +=
+					HE[nam2 + nam1];
+			}
+		}
+
+		// Заполняем источники пикапов -----------------------------------------------------
+		for (const auto& nam2 : this->phys_param->pui_name)
+		{
+			SOURSE["rho" + nam2] = 0.0;
+			SOURSE["p" + nam2] = 0.0;
+		}
+
+		// Сначала потери
+		for (const auto& nam1 : this->phys_param->pui_name)
+		{
+			for (const auto& nam2 : this->phys_param->H_name)
+			{
+				SOURSE["p" + nam1] += (-Hp[nam2 + nam1]);
+			}
+		}
+
+		// Притоки/потери массы
+		for (short int i = 0; i < B->rows(); ++i)
+		{
+			for (short int j = 0; j < B->cols(); ++j)
+			{
+				short ipui = (*A)(i, j);
+
+				auto nam2 = this->phys_param->H_name[i];
+				auto nam1 = this->phys_param->p_pui_name[j];
+
+				if (j == 0)
+				{
+					if (ipui == 0) continue;
+					SOURSE["rho" + this->phys_param->pui_name[ipui - 1]] +=
+						Hrho[nam1 + nam2];
+				}
+				else
+				{
+					if (ipui != j)
+					{
+						SOURSE["rho" + nam1] -=
+							Hrho[nam1 + nam2];
+					}
+				}
+			}
+		}
+
+		// Притоки энергии
+		for (short int i = 0; i < B->rows(); ++i)
+		{
+			for (short int j = 0; j < B->cols(); ++j)
+			{
+				short ipui = (*A)(i, j);
+
+				auto nam2 = this->phys_param->H_name[i];
+				auto nam1 = this->phys_param->p_pui_name[j];
+
+				if (ipui == 0) continue;
+
+				SOURSE["E" + this->phys_param->pui_name[ipui - 1]] +=
+					HE[nam1 + nam2];
+			}
+		}
+	}
+}
+
 void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE, 
 	short int now, short int zone)
 {
@@ -832,8 +1090,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	}
 	else if(true)
 	{
-		gran_list = &this->All_Gran;
-		cell_list = &this->All_Cell;
+		//gran_list = &this->All_Gran;
+		//cell_list = &this->All_Cell;
+
+		gran_list = &this->Gran_outer_area;
+		cell_list = &this->Cell_outer_area;
 	}
 	else
 	{
@@ -1113,6 +1374,40 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				else
 				{
 					rho_He3 = 0.0;
+				}
+
+				if (this->phys_param->is_PUI == true)
+				{
+					for (const auto& nam : this->phys_param->pui_name)
+					{
+						if (this->regim_otladki == true)
+						{
+							if (POTOK.find("rho" + nam) == POTOK.end() || POTOK.find("p" + nam) == POTOK.end())
+							{
+								cout << "Error 9876341200" << endl;
+								exit(-1);
+							}
+						}
+
+						cell->parameters[now2]["rho" + nam] = cell->parameters[now1]["rho" + nam] 
+							* Volume / Volume2 - time * POTOK["rho" + nam] / Volume2;
+
+						double ppp = cell->parameters[now1]["p" + nam];
+						double pppp = ppp
+							* Volume / Volume2 - time * POTOK["p" + nam] / Volume2
+							- time * this->phys_param->g1 * ppp * POTOK["div_V"] / Volume2;
+
+						cell->parameters[now2]["p" + nam] = pppp;
+
+						if (this->regim_otladki == true)
+						{
+							if (std::isnan(pppp) || std::fpclassify(pppp) == FP_SUBNORMAL)
+							{
+								cout << "Error 9651211156" << endl;
+								exit(-1);
+							}
+						}
+					}
 				}
 
 				if (rho3 < 0.00000001)
