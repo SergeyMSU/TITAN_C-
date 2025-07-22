@@ -1288,7 +1288,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 		// —читаем скорости граней и сразу передвигаем опорные узлы
 		//if (is_inner_area == false)
-		if(true)
+		if(this->phys_param->move_setka == true)
 		{
 			this->Culc_Velocity_surface(now1, time, 1);
 
@@ -1414,7 +1414,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			double rho, vx, vy, vz, p, bx, by, bz, dsk, Q;
 
 			// —читаем плазму
-			if (true)
+			if (this->phys_param->culc_plasma == true)
 			{
 				rho = cell->parameters[now1]["rho"];
 				if (cell->parameters[now1].find("Q") != cell->parameters[now1].end())
@@ -1809,7 +1809,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 	Option.y = gr->center[now][1];
 	Option.z = gr->center[now][2];
 
-	if (true)
+	if (this->phys_param->culc_plasma == true)
 	{
 		Option.x = gr->center[now][0];
 		Option.y = gr->center[now][1];

@@ -16,6 +16,7 @@ public:
     vector<string> param_names;
     // Все имена параметров, наличие которых мы ожидаем в ячейках!
     vector<string> plasma_name; // Имена плазменных значений
+    vector<string> H_param_names;
     vector<string> H_name;   // имена дополнительных жидкостей водорода
     vector<string> pui_name;   // имена дополнительных жидкостей пикапов
     vector<string> MK_param;   // дополнительные параметры для MK
@@ -102,40 +103,41 @@ public:
 
 
     // Настройки расчёта Плазмы
-    double KFL = 0.8;                   // критерий Куранта
-    bool TVD = true;                   // Делаем ли ТВД?
+    double KFL;                   // критерий Куранта
+    bool TVD;                   // Делаем ли ТВД?
 
-    bool culc_plasma = true;     // НЕ АКТИВЕН      // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
+    bool culc_plasma;     // НЕ АКТИВЕН      // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
+    bool culc_atoms;             // Вычисляем ли атомы или оставляем их вмороженными
+    bool move_setka;
     
-    bool culc_atoms = true;             // Вычисляем ли атомы или оставляем их вмороженными
+    
+    bool move_TS;               // Двигаем ли HP
+    bool move_HP;               // Двигаем ли HP
+    bool move_BS;
 
-    bool move_TS = true;               // Двигаем ли HP
-    bool move_HP = true;               // Двигаем ли HP
-    bool move_BS = true;
-
-    bool sglag_TS = true;              // Делаем ли сглаживание TS
-    double velocity_TS = 0.03;
-    double sglag_TS_k = 0.003;         // Сглаживание на высоких широтах
+    bool sglag_TS;              // Делаем ли сглаживание TS
+    double velocity_TS;
+    double sglag_TS_k;         // Сглаживание на высоких широтах
     //double sglag_TS_k_sphere = 0.001; // 0.3;   // Сглаживание в головной и хвостовой части
-    double sglag_TS_k_sphere_head = 0.02; // 0.08;   // Сглаживание в головной части
-    double sglag_TS_k_sphere_tail = 0.01; // 0.03;   // Сглаживание в хвостовой части
+    double sglag_TS_k_sphere_head; // 0.08;   // Сглаживание в головной части
+    double sglag_TS_k_sphere_tail; // 0.03;   // Сглаживание в хвостовой части
     // Не может быть больше 1
 
-    bool sglag_HP = true;
-    double velocity_HP = 0.1;
-    double sglag_HP_k_sphere = 0.01;  //0.005 0.002    // Cглаживание в головной части
-    double sglag_HP_k = 0.005; // 0.001         // Сглаживание не в головной области
-    double sglag_HP_angle = 1.2;    // 1.2 коэффициент усиления сглаживания по углу
-    double sglag_HP_along = 1.0;    // коэффициент усиления сглаживания вдоль х
-    double sglag_HP_sphere = 0.01;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
+    bool sglag_HP;
+    double velocity_HP;
+    double sglag_HP_k_sphere;  //0.005 0.002    // Cглаживание в головной части
+    double sglag_HP_k; // 0.001         // Сглаживание не в головной области
+    double sglag_HP_angle;    // 1.2 коэффициент усиления сглаживания по углу
+    double sglag_HP_along;    // коэффициент усиления сглаживания вдоль х
+    double sglag_HP_sphere;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
 
 
-    bool sglag_BS = false;
-    double sglag_BS_k = 0.05;
+    bool sglag_BS;
+    double sglag_BS_k;
 
 
-    bool null_bn_on_HP = true;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
-    bool bn_in_p_on_HP = true;   // Для ячеек рядом с HP записываем магнитное поле в давление
+    bool null_bn_on_HP;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
+    bool bn_in_p_on_HP;   // Для ячеек рядом с HP записываем магнитное поле в давление
 
 
      // Настройки расчёта МК  ********************************************************
@@ -163,6 +165,7 @@ public:
 
 
     Phys_param();
+    void set_parameters(void);
 
     double Get_rho_0(const double& the);
     double Get_v_0(const double& the);

@@ -544,7 +544,17 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			}
 			else
 			{
-				for (auto& nam : this->phys_param->param_names)
+				vector<string>* parameters;
+				if (this->phys_param->culc_plasma == true)
+				{
+					parameters = &this->phys_param->param_names;
+				}
+				else
+				{
+					parameters = &this->phys_param->H_param_names;
+				}
+
+				for (const auto& nam : *parameters)
 				{
 					par_left[nam] = linear(-dd1 - d1, AA->parameters[now][nam],
 						-d1, A->parameters[now][nam],
@@ -555,14 +565,17 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				}
 			}
 
-			if (par_left["rho"] < 0.0000001) par_left["rho"] = A->parameters[now]["rho"];
-			if (par_left["Q"] < 0.0000001) par_left["Q"] = A->parameters[now]["Q"];
-			if (par_left["rho_He"] < 0.0000001) par_left["rho_He"] = A->parameters[now]["rho_He"];
-			if (par_left["p"] < 0.0000001) par_left["p"] = A->parameters[now]["p"];
-			if (par_right["rho"] < 0.0000001) par_right["rho"] = B->parameters[now]["rho"];
-			if (par_right["Q"] < 0.0000001) par_right["Q"] = B->parameters[now]["Q"];
-			if (par_right["rho_He"] < 0.0000001) par_right["rho_He"] = B->parameters[now]["rho_He"];
-			if (par_right["p"] < 0.0000001) par_right["p"] = B->parameters[now]["p"];
+			if (this->phys_param->culc_plasma == true)
+			{
+				if (par_left["rho"] < 0.0000001) par_left["rho"] = A->parameters[now]["rho"];
+				if (par_left["Q"] < 0.0000001) par_left["Q"] = A->parameters[now]["Q"];
+				if (par_left["rho_He"] < 0.0000001) par_left["rho_He"] = A->parameters[now]["rho_He"];
+				if (par_left["p"] < 0.0000001) par_left["p"] = A->parameters[now]["p"];
+				if (par_right["rho"] < 0.0000001) par_right["rho"] = B->parameters[now]["rho"];
+				if (par_right["Q"] < 0.0000001) par_right["Q"] = B->parameters[now]["Q"];
+				if (par_right["rho_He"] < 0.0000001) par_right["rho_He"] = B->parameters[now]["rho_He"];
+				if (par_right["p"] < 0.0000001) par_right["p"] = B->parameters[now]["p"];
+			}
 			
 			if (this->phys_param->culc_atoms == true)
 			{

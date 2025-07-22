@@ -17,18 +17,7 @@
 
 Phys_param::Phys_param()
 {
-    this->sglag_HP = true;
-    this->velocity_HP = 0.1;
-    this->sglag_HP_k_sphere = 0.035;  //0.005 0.002    // Cглаживание в головной части
-    this->sglag_HP_k = 0.01; // 0.001         // Сглаживание не в головной области
-    this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
-    this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
-    this->sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
-
-    this->culc_atoms = true;  
-
-
-
+    this->set_parameters();
 
     if (this->is_PUI == true)
     {
@@ -152,18 +141,23 @@ Phys_param::Phys_param()
     {
         string nii = "rho_H" + to_string(ii);
         this->param_names.push_back(nii);
+        this->H_param_names.push_back(nii);
 
         nii = "Vx_H" + to_string(ii);
         this->param_names.push_back(nii);
+        this->H_param_names.push_back(nii);
 
         nii = "Vy_H" + to_string(ii);
         this->param_names.push_back(nii);
+        this->H_param_names.push_back(nii);
 
         nii = "Vz_H" + to_string(ii);
         this->param_names.push_back(nii);
+        this->H_param_names.push_back(nii);
 
         nii = "p_H" + to_string(ii);
         this->param_names.push_back(nii);
+        this->H_param_names.push_back(nii);
     }
 
     // Добавляем пикапы
@@ -267,6 +261,47 @@ Phys_param::Phys_param()
 
     file.close();
 }
+
+void Phys_param::set_parameters(void)
+{
+    // Настройки расчёта Плазмы
+    this->KFL = 0.8;                   // критерий Куранта
+    this->TVD = true;                  // Делаем ли ТВД?
+
+    this->culc_plasma = false;          // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
+    this->culc_atoms = true;           // Вычисляем ли атомы или оставляем их вмороженными
+    this->move_setka = false;
+
+
+    this->move_TS = true;               // Двигаем ли TS
+    this->move_HP = true;               // Двигаем ли HP
+    this->move_BS = true;
+
+    this->sglag_TS = true;              // Делаем ли сглаживание TS
+    this->velocity_TS = 0.03;
+    this->sglag_TS_k = 0.003;            // Сглаживание на высоких широтах
+    this->sglag_TS_k_sphere_head = 0.02; // 0.08;   // Сглаживание в головной части
+    this->sglag_TS_k_sphere_tail = 0.01; // 0.03;   // Сглаживание в хвостовой части
+    
+
+
+    this->sglag_HP = true;
+    this->velocity_HP = 0.1;
+    this->sglag_HP_k_sphere = 0.035;  //0.005 0.002    // Cглаживание в головной части
+    this->sglag_HP_k = 0.01; // 0.001         // Сглаживание не в головной области
+    this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
+    this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
+    this->sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
+
+
+    this->sglag_BS = false;
+    this->sglag_BS_k = 0.05;
+
+
+    this->null_bn_on_HP = true;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
+    this->bn_in_p_on_HP = true;   // Для ячеек рядом с HP записываем магнитное поле в давление
+}
+
 
 void Phys_param::Plasma_components_1(const short int& zone, 
     unordered_map<string, double>& param_in_cell,
