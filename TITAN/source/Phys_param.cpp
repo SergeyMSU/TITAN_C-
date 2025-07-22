@@ -19,13 +19,13 @@ Phys_param::Phys_param()
 {
     this->sglag_HP = true;
     this->velocity_HP = 0.1;
-    this->sglag_HP_k_sphere = 0.03;  //0.005 0.002    // Cглаживание в головной части
+    this->sglag_HP_k_sphere = 0.035;  //0.005 0.002    // Cглаживание в головной части
     this->sglag_HP_k = 0.01; // 0.001         // Сглаживание не в головной области
     this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
     this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
     this->sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
 
-    this->culc_atoms = false;  
+    this->culc_atoms = true;  
 
 
 

@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0003.bin");  // 4  
+    S1.Download_cell_parameters("parameters_0004.bin");  // 4  
     // 6 - до изменения параметров
     // 8 - перед включением только внешней области
 
@@ -81,7 +81,7 @@ int main()
         cout << yz44->coord[0][0] << " " << yz44->coord[0][1] << " " << yz44->coord[0][2] << endl;
     }
     
-    for (int i = 1; i <= 12 * 11; i++) // 6 * 2
+    for (int i = 1; i <= 3; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -117,7 +117,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0004.bin");
+    S1.Save_cell_parameters("parameters_0011.bin");
 
     //S1.Edges_create();
     //S1.Culc_divergence_in_cell();
