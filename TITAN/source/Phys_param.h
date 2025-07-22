@@ -28,9 +28,9 @@ public:
     unordered_map<string, double> perevod_razmer;
 
 
-    bool is_PUI = false;       // Считаем ли пикапы?
+    bool is_PUI;       // Считаем ли пикапы?
 
-    uint8_t num_pui = 2;           // Сколько сортов пикапов в ячейках
+    uint8_t num_pui;           // Сколько сортов пикапов в ячейках
 
     Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>  pui_in_zone;   
     // Матрица показывает в какой зоне какие сорта пикапов присутствуют
@@ -176,6 +176,10 @@ public:
 
     // Разделение компонент плазмы
     void Plasma_components_1(const short int& zone,
+        unordered_map<string, double>& param_in_cell,
+        unordered_map<string, double>& param);
+
+    void Plasma_components_2(const short int& zone,
         unordered_map<string, double>& param_in_cell,
         unordered_map<string, double>& param);
 

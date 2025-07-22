@@ -29,9 +29,8 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0012.bin");  // 4  
-    // 6 - до изменения параметров
-    // 8 - перед включением только внешней области
+    S1.Download_cell_parameters("parameters_0015.bin");  // 4  
+    // 4 - до смены расчёта атомов методом Бера
 
     cout << "C2 " << endl;
 
@@ -81,11 +80,34 @@ int main()
         cout << yz44->coord[0][0] << " " << yz44->coord[0][1] << " " << yz44->coord[0][2] << endl;
     }
     
-    for (int i = 1; i <= 1; i++) // 6 * 2
+    for (int i = 1; i <= 12 * 16; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 400, 1); // 400   1
+        S1.Go(false, 50, 1); // 400   1
+        S1.Go(true, 150, 1); // 400   1
+
+        S1.Go(false, 50, 1); // 400   1
+        S1.Go(true, 150, 1); // 400   1
+
+        S1.Go(false, 50, 1); // 400   1
+        S1.Go(true, 150, 1); // 400   1
+
+        S1.Go(false, 50, 1); // 400   1
+        S1.Go(true, 150, 1); // 400   1
+
+        S1.Go(false, 50, 1); // 400   1
+        S1.Go(true, 150, 1); // 400   1
+
+        S1.Go(false, 50, 1); // 400   1
+        S1.Go(true, 150, 1); // 400   1
+
+        S1.Go(false, 50, 1); // 400   1
+        S1.Go(true, 150, 1); // 400   1
+
+        S1.Go(false, 50, 1); // 400   1
+        S1.Go(true, 150, 1); // 400   1
+
 
         S1.Tecplot_print_cell_plane_parameters();
         S1.Tecplot_print_all_lush_in_2D();
@@ -117,7 +139,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0013.bin");
+    S1.Save_cell_parameters("parameters_0016.bin");
 
     //S1.Edges_create();
     //S1.Culc_divergence_in_cell();

@@ -37,6 +37,102 @@ Phys_param::Phys_param()
         this->pui_condition << 2, 0,
                                2, 0,
                                1, 1;
+
+
+        this->hydrogen_condition.resize(3, this->num_H);
+        this->hydrogen_condition << 2, 3, 3, 3, 2, 3, 3, 3, 3,
+                                    1, 1, 1, 2, 1, 1, 1, 1, 2,
+                                    1, 1, 1, 1, 1, 1, 1, 1, 1;
+
+        this->hydrogen_arise_1.resize(this->num_H, this->num_pui + 1);
+        this->hydrogen_arise_1 << 1, 5, 5,
+                                  1, 5, 5,
+                                  1, 5, 5,
+                                  1, 5, 5,
+                                  1, 5, 5,
+                                  1, 5, 5,
+                                  1, 5, 5,
+                                  1, 5, 5,
+                                  1, 5, 5;
+
+        this->hydrogen_arise_2.resize(this->num_H, this->num_pui + 1);
+        this->hydrogen_arise_2 <<   2, 6, 7,
+                                    2, 6, 7,
+                                    2, 6, 7,
+                                    2, 6, 7,
+                                    2, 6, 7,
+                                    2, 6, 7,
+                                    2, 6, 7,
+                                    2, 6, 7,
+                                    2, 6, 7;
+
+        this->hydrogen_arise_3.resize(this->num_H, this->num_pui + 1);
+        this->hydrogen_arise_3 <<   3, 8, 8,
+                                    3, 8, 8,
+                                    3, 8, 8,
+                                    3, 8, 8,
+                                    3, 8, 8,
+                                    3, 8, 8,
+                                    3, 8, 8,
+                                    3, 8, 8,
+                                    3, 8, 8;
+
+        this->hydrogen_arise_4.resize(this->num_H, this->num_pui + 1);
+        this->hydrogen_arise_4 <<   4, 9, 9,
+                                    4, 9, 9,
+                                    4, 9, 9,
+                                    4, 9, 9,
+                                    4, 9, 9,
+                                    4, 9, 9,
+                                    4, 9, 9,
+                                    4, 9, 9,
+                                    4, 9, 9;
+
+        proton_arise_1.resize(this->num_H, this->num_pui + 1);
+        this->proton_arise_1 << 0, 0, 0,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1;
+
+        proton_arise_2.resize(this->num_H, this->num_pui + 1);
+        this->proton_arise_2 << 1, 2, 2,
+                                0, 1, 2,
+                                1, 2, 2,
+                                1, 2, 2,
+                                1, 2, 2,
+                                1, 2, 2,
+                                1, 2, 2,
+                                1, 2, 2,
+                                1, 2, 2;
+
+        proton_arise_3.resize(this->num_H, this->num_pui + 1);
+        this->proton_arise_3 << 1, 1, 1,
+                                1, 1, 1,
+                                0, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1;
+
+        proton_arise_4.resize(this->num_H, this->num_pui + 1);
+        this->proton_arise_4 << 1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                0, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1,
+                                1, 1, 1;
+
+
     }
     else
     {
@@ -111,7 +207,8 @@ Phys_param::Phys_param()
     this->Plasma_components = [this](const short int& zone,
         unordered_map<string, double>& param_in_cell,
         unordered_map<string, double>& param) {
-            this->Plasma_components_1(zone, param_in_cell, param); };
+            this->Plasma_components_2(zone, param_in_cell, param); };
+            //this->Plasma_components_1(zone, param_in_cell, param); };
 
     // Парметры настройки MK
     this->save_AMR = false;        // Нужно ли сохранять посчитанные функции распределения?
@@ -264,9 +361,12 @@ Phys_param::Phys_param()
 
 void Phys_param::set_parameters(void)
 {
+    this->is_PUI = false;       // Считаем ли пикапы?
+    this->num_pui = 2;         // Сколько сортов пикапов в ячейках
+
     // Настройки расчёта Плазмы
     this->KFL = 0.8;                   // критерий Куранта
-    this->TVD = true;                  // Делаем ли ТВД?
+    this->TVD = false;                  // Делаем ли ТВД?
 
     this->culc_plasma = false;          // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
     this->culc_atoms = true;           // Вычисляем ли атомы или оставляем их вмороженными
@@ -307,7 +407,7 @@ void Phys_param::Plasma_components_1(const short int& zone,
     unordered_map<string, double>& param_in_cell,
     unordered_map<string, double>& param)
 {
-    // Без пикапов, только протоны, электроны и гелий
+    // Без пикапов, только протоны и гелий
     // Te == Tth
     // Функция, определяющая температуры и концентрации гелия, 
     // al - это заряд гелия
@@ -338,6 +438,69 @@ void Phys_param::Plasma_components_1(const short int& zone,
 
     param["T_Th"] = 8.0 * (1.0 + MF_meDmp) * p  /
         (8.0 * rho - (7.0 - al + (-1.0 + al) * MF_meDmp) * rho_He);
+
+    return;
+}
+
+void Phys_param::Plasma_components_2(const short int& zone,
+    unordered_map<string, double>& param_in_cell,
+    unordered_map<string, double>& param)
+{
+    // Протоны, гелий, пикапы (два сорта)
+    // Te == Tth
+
+    // al - это заряд гелия
+    // если al = 1 то вне гелиопаузы
+    // если al = 2, то внутри гелиопаузы
+    short int al;
+
+    double rho = param_in_cell["rho"];
+    double p = param_in_cell["p"];
+    double rho_He = param_in_cell["rho_He"];
+    double rho_Pui_1, rho_Pui_2;
+    double p_Pui_1, p_Pui_2;
+
+    if (zone <= 2)
+    {
+        al = 2;
+    }
+    else
+    {
+        al = 1;
+    }
+
+
+    if (zone == 1 || zone == 3 || zone == 4)
+    {
+        // Здесь один сорт пикапов
+        rho_Pui_1 = param_in_cell["rho_Pui_1"];
+        p_Pui_1 = param_in_cell["p_Pui_1"];
+
+        param["rho_Th"] = -(-4.0 * rho + 4.0 * rho_He + al * MF_meDmp * rho_He + 
+            (4.0  + 4.0 * MF_meDmp) * rho_Pui_1)
+            / (4.0 * (1.0 + MF_meDmp));
+
+        param["T_Th"] = 8.0 * (1.0 + MF_meDmp) * (p - p_Pui_1) /
+            (8.0 * rho - (7.0 - al + (-1.0 + al) * MF_meDmp) * rho_He - 
+                4.0 * (1.0 + MF_meDmp) * rho_Pui_1);
+    }
+    else
+    {
+        // Здесь два сорта пикапов
+        rho_Pui_1 = param_in_cell["rho_Pui_1"];
+        p_Pui_1 = param_in_cell["p_Pui_1"];
+
+        rho_Pui_2 = param_in_cell["rho_Pui_2"];
+        p_Pui_2 = param_in_cell["p_Pui_2"];
+
+        param["rho_Th"] = -(-4.0 * rho + 4.0 * rho_He + al * MF_meDmp * rho_He +
+            (4.0 + 4.0 * MF_meDmp) * (rho_Pui_1 + rho_Pui_2))
+            / (4.0 * (1.0 + MF_meDmp));
+
+        param["T_Th"] = 8.0 * (1.0 + MF_meDmp) * (p - p_Pui_1 - p_Pui_2) /
+            (8.0 * rho - (7.0 - al + (-1.0 + al) * MF_meDmp) * rho_He -
+                4.0 * (1.0 + MF_meDmp) * (rho_Pui_1 + rho_Pui_2));
+    }
 
     return;
 }

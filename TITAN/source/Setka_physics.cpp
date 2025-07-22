@@ -308,7 +308,8 @@ void Setka::Init_physics(void)
 		{
 			if (i->parameters[0].find(num) == i->parameters[0].end())
 			{
-				i->parameters[0][num] = 0.0;
+				i->parameters[0][num] = 1e-7;
+
 				if (no_names.find(num) == no_names.end()) no_names.insert(num);
 			}
 		}
@@ -409,6 +410,15 @@ void Setka::Init_physics(void)
 				i->parameters["Vz_H4"] = 0.0;
 				i->parameters["p_H4"] = 0.5;
 
+				if (this->phys_param->num_H >= 9)
+				{
+					i->parameters["rho_H9"] = 0.000001;
+					i->parameters["Vx_H9"] = this->phys_param->Velosity_inf;
+					i->parameters["Vy_H9"] = 0.0;
+					i->parameters["Vz_H9"] = 0.0;
+					i->parameters["p_H9"] = 0.000001;
+				}
+
 				if (this->phys_param->is_PUI == true)
 				{
 					for (const auto& nam : this->phys_param->pui_name)
@@ -469,6 +479,15 @@ void Setka::Init_physics(void)
 				i->parameters["Vy_H1"] = mV * vec(1);
 				i->parameters["Vz_H1"] = mV * vec(2);
 				i->parameters["p_H1"] = 0.00001;
+
+				if (this->phys_param->num_H >= 5)
+				{
+					i->parameters["rho_H5"] = 0.00001;
+					i->parameters["Vx_H5"] = mV * vec(0);
+					i->parameters["Vy_H5"] = mV * vec(1);
+					i->parameters["Vz_H5"] = mV * vec(2);
+					i->parameters["p_H5"] = 0.00001;
+				}
 
 				if (this->phys_param->is_PUI == true)
 				{
@@ -675,6 +694,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 	{
 		pui_n++;
 		if (this->phys_param->pui_in_zone(zone, pui_n) == false) continue;
+
 		rho[nam1] = C->parameters[now]["rho" + nam1];
 		T[nam1] = 2.0 * C->parameters[now]["p" + nam1] / rho[nam1];
 	}
@@ -772,20 +792,23 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 		SOURSE["E"] = 0.0;
 
 		// Заполняем общие суммарные источники для плазмы  --------------------------------------
-		pui_n = -2;
-		for (const auto& nam1 : this->phys_param->p_pui_name)
+		if (this->phys_param->culc_plasma == true)
 		{
-			pui_n++;
-			if (pui_n >= 0 && this->phys_param->pui_in_zone(zone, pui_n) == false) continue;
-
-			for (const auto& nam2 : this->phys_param->H_name)
+			pui_n = -2;
+			for (const auto& nam1 : this->phys_param->p_pui_name)
 			{
-				auto SS = (-Hm[nam2 + nam1] + Hm[nam1 + nam2]);
-				SOURSE["m_x"] += SS[0];
-				SOURSE["m_y"] += SS[1];
-				SOURSE["m_z"] += SS[2];
+				pui_n++;
+				if (pui_n >= 0 && this->phys_param->pui_in_zone(zone, pui_n) == false) continue;
 
-				SOURSE["E"] += (-HE[nam2 + nam1] + HE[nam1 + nam2]);
+				for (const auto& nam2 : this->phys_param->H_name)
+				{
+					auto SS = (-Hm[nam2 + nam1] + Hm[nam1 + nam2]);
+					SOURSE["m_x"] += SS[0];
+					SOURSE["m_y"] += SS[1];
+					SOURSE["m_z"] += SS[2];
+
+					SOURSE["E"] += (-HE[nam2 + nam1] + HE[nam1 + nam2]);
+				}
 			}
 		}
 		//cout << "B6 " << endl;
@@ -893,7 +916,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 			{
 				for (short int j = 0; j < B->cols(); ++j)
 				{
-					short ipui = (*A)(i, j);
+					short ipui = (*B)(i, j);
 
 					auto nam2 = this->phys_param->H_name[i];
 					auto nam1 = this->phys_param->p_pui_name[j];
@@ -923,7 +946,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 			{
 				for (short int j = 0; j < B->cols(); ++j)
 				{
-					short ipui = (*A)(i, j);
+					short ipui = (*B)(i, j);
 
 					auto nam2 = this->phys_param->H_name[i];
 					auto nam1 = this->phys_param->p_pui_name[j];
@@ -948,8 +971,8 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 	/*for (const auto& [key, value] : SOURSE)
 	{
 		cout << key << "  " << value << endl;
-	}
-	cout << "B14 " << endl;*/
+	}*/
+	//cout << "B14 " << endl;
 	//exit(-1);
 }
 
@@ -1160,7 +1183,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	cout << "Vibor area" << endl;
 	// Если хотим отдельно считать внутреннюю и наружнюю области
-	if (false)
+	if (true)
 	{
 		if (is_inner_area == true)
 		{
@@ -1484,11 +1507,13 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 						}
 
 						cell->parameters[now2]["rho" + nam] = cell->parameters[now1]["rho" + nam] 
-							* Volume / Volume2 - time * POTOK["rho" + nam] / Volume2;
+							* Volume / Volume2 - time * POTOK["rho" + nam] / Volume2
+							+ time * SOURSE["rho" + nam];
 
 						double ppp = cell->parameters[now1]["p" + nam];
 						double pppp = ppp
 							* Volume / Volume2 - time * POTOK["p" + nam] / Volume2
+							+ time * 0.95 * SOURSE["p" + nam]
 							- time * this->phys_param->g1 * ppp * POTOK["div_V"] / Volume2;
 
 						cell->parameters[now2]["p" + nam] = pppp;
@@ -1528,6 +1553,13 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 						std::isnan(SOURSE["E"]) || std::fpclassify(SOURSE["E"]) == FP_SUBNORMAL)
 					{
 						cout << "Error 8634108946" << endl;
+						cout << SOURSE["m_x"] << endl;
+						cout << SOURSE["m_y"] << endl;
+						cout << SOURSE["m_z"] << endl;
+						cout << SOURSE["E"] << endl;
+						cout << zone << endl;
+						cout << cell->center[0][0] << " " << cell->center[0][1] << " " <<
+							cell->center[0][2] << endl;
 						exit(-1);
 					}
 
@@ -1692,7 +1724,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 #pragma omp barrier
 
 		// Считаем фиктивную центральную ячейку
-		if (this->phys_param->culc_atoms == true)
+		if (this->phys_param->culc_atoms == true && is_inner_area == true)
 			{
 				auto& cell = this->Cell_Center;
 				double Volume = 4.0 * const_pi * kyb(this->geo->R0)/3.0;
@@ -1789,7 +1821,8 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 	short int metod_ = metod;
 
 	unordered_map<string, double> par_left, par_right;
-	double w = gr->culc_velosity(now, time);
+	double w = 0.0;
+	if(this->phys_param->move_setka == true) w = gr->culc_velosity(now, time);
 	double loc_time = 10000000.0;
 
 	double dist;
