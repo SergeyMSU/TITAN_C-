@@ -566,7 +566,7 @@ void Setka::MK_prepare(short int zone_MK)
 			cout << "ERROR open  rnd_my.txt " << endl;
 			exit(-100);
 		}
-		double d, a1, b1, c;
+		double a1, b1, c;
 		for (int i = 0; i < 1021; i++)
 		{
 			fin2 >> a1 >> b1 >> c;
@@ -737,8 +737,10 @@ void Setka::MK_prepare(short int zone_MK)
 	{
 		//for (auto& gr : this->All_boundary_Gran)
 #pragma omp parallel for schedule(dynamic)
-		for (auto& gr : this->MK_Grans[zone_MK - 1])
+		//for (auto& gr : this->MK_Grans[zone_MK - 1])
+		for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
 		{
+			auto& gr = this->MK_Grans[zone_MK - 1][idx];
 			if (gr->type == Type_Gran::Outer_Hard || gr->type == Type_Gran::Outer_Soft)
 			//if(true)  // тестирование, задаём максвел для всех граней
 			//if (gr->type2 == Type_Gran_surf::BS)
@@ -909,8 +911,10 @@ void Setka::MK_delete(short int zone_MK)
 		unsigned int num_ = 0;
 		unsigned int sr_num = 0;
 #pragma omp parallel for schedule(dynamic)
-		for (auto& gr : this->MK_Grans[zone_MK - 1])
+		//for (auto& gr : this->MK_Grans[zone_MK - 1])
+		for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
 		{
+			auto& gr = this->MK_Grans[zone_MK - 1][idx];
 			if (gr->type != Type_Gran::Us) continue;
 
 			short int ni = 1;
@@ -1010,8 +1014,10 @@ void Setka::MK_go(short int zone_MK)
 	unsigned int ALL_N = 0;  // Общее число запущенных в итоге частиц
 	unsigned int k1 = 0;
 #pragma omp parallel for schedule(dynamic)
-	for (auto& gr : this->MK_Grans[zone_MK - 1])
+	//for (auto& gr : this->MK_Grans[zone_MK - 1])
+	for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
 	{
+		auto& gr = this->MK_Grans[zone_MK - 1][idx];
 		Eigen::Vector3d n;
 		Eigen::Vector3d t;
 		Eigen::Vector3d m;
@@ -2011,7 +2017,6 @@ void Setka::M_K_Change_Velosity(Sensor* sens, const double& Ur, const double& Ut
 	double p4 = 0.5 * sqrtpi_ * X / (1.0 + 0.5 * sqrtpi_ * X);
 	double om1, om2, om3, lo;
 	double y1, y2, y3, v1, v2, v3, u1, u2, u3, uuu, yy, h;
-	double D, ko;
 
 	double gg = 0.0;
 	double ksi1, ksi2, ksi3, ksi4, ksi5, ksi6;

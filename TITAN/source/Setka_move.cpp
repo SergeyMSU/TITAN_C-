@@ -599,8 +599,10 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		if (false)
 		{
 #pragma omp parallel for private(A, B, V, a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
-			for (auto& yz : this->Yzels_HP_sglag)
+			//for (auto& yz : this->Yzels_HP_sglag)
+			for (size_t idx = 0; idx < this->Yzels_HP_sglag.size(); ++idx)
 			{
+				auto& yz = this->Yzels_HP_sglag[idx];
 				AA = yz;
 				AA1 = yz->Yzel_sosed_sglag["AA1"];
 				AA11 = yz->Yzel_sosed_sglag["AA11"];

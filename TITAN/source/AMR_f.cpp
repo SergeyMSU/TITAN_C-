@@ -11,7 +11,6 @@ void AMR_f::Culk_SpotokV(const double& Squ)
 
 	this->Get_all_cells(cells);
 	double V;
-	double Vx, Vy, Vz;
 
 	//cout << "All_cells_do = " << cells.size() << endl;
 
@@ -121,6 +120,11 @@ AMR_f::AMR_f()
 	this->Vn = { 0.0, 0.0, 0.0 };
 	this->Vt = { 0.0, 0.0, 0.0 };
 	this->Vm = { 0.0, 0.0, 0.0 };
+
+	this->Sf = 0.0;
+	this->Sfu = 0.0;
+	this->Sfux = 0.0;
+	this->Sfuu = 0.0;
 }
 
 AMR_f::AMR_f(const double& xL, const double& xR, const double& yL, const double& yR, const double& zL,
@@ -142,6 +146,11 @@ AMR_f::AMR_f(const double& xL, const double& xR, const double& yL, const double&
 	this->Vn = { 0.0, 0.0, 0.0 };
 	this->Vt = { 0.0, 0.0, 0.0 };
 	this->Vm = { 0.0, 0.0, 0.0 };
+
+	this->Sf = 0.0;
+	this->Sfu = 0.0;
+	this->Sfux = 0.0;
+	this->Sfuu = 0.0;
 
 
 	this->cells.resize(boost::extents[xn][yn][zn]);
@@ -1054,7 +1063,6 @@ void AMR_f::Print_1D_Tecplot(AMR_f* AMR, const double& VV)
 	ex << this->Vn[0], this->Vn[1], this->Vn[2];
 	ey << this->Vt[0], this->Vt[1], this->Vt[2];
 	ez << this->Vm[0], this->Vm[1], this->Vm[2];
-	std::array<double, 3> center;
 	ofstream fout;
 	string name_f = "Tecplot_Print_1D_Tecplot.txt";
 

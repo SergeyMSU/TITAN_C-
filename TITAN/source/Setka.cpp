@@ -2318,24 +2318,27 @@ void Setka::Calculating_measure(unsigned short int st_time)
 
 	// —ледующий пор€дкок вычислени€ €вл€етс€ важным
 #pragma omp parallel for
-	for (auto& i : this->All_Cell)
+	//for (auto& i : this->All_Cell)
+	for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
 	{
-		i->Culc_center(st_time);
+		this->All_Cell[idx]->Culc_center(st_time);
 	}
 #pragma omp barrier
 
 #pragma omp parallel for
-	for (auto& i : this->All_Gran)
+	//for (auto& i : this->All_Gran)
+	for (size_t idx = 0; idx < this->All_Gran.size(); ++idx) 
 	{
-		i->Culc_measure(st_time);
+		this->All_Gran[idx]->Culc_measure(st_time);
 	}
 
 #pragma omp barrier
 
 #pragma omp parallel for
-	for (auto& i : this->All_Cell)
+	//for (auto& i : this->All_Cell)
+	for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
 	{
-		i->Culc_volume(st_time);
+			this->All_Cell[idx]->Culc_volume(st_time);
 	}
 }
 

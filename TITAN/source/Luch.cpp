@@ -612,7 +612,7 @@ void Luch::dvigenie(int i_time)
 
 		double phi = this->parameters["phi"];
 		int num = 0;
-		double x, y, z, r;
+		double x, y, z;
 
 		// Делаем непрямые лучи
 		double x0, y0, x1, y1, t1, t2, tt1, tt2;

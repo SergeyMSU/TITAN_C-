@@ -1237,7 +1237,6 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	cout << "END Vibor area" << endl;
 
 	Cell* A, B;
-	double dsr, dsc, dsl;
 
 
 	double time = 0.000001;  // Текущий шаг по времени
@@ -1758,8 +1757,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					}
 				}
 
-				double rho3, u3, v3, w3, bx3, by3, bz3, p3, Q3;
-				double rho, vx, vy, vz, p, bx, by, bz, dsk, Q;
+				double rho3, u3, v3, w3, p3;
+				double rho, vx, vy, vz, p;
 
 				// Теперь считаем для остальных жидкостей
 				int i = 1;
@@ -2439,8 +2438,10 @@ void Setka::Culc_rotors_in_cell(void)
 	unsigned int k1 = 0;
 
 #pragma omp parallel for schedule(dynamic)
-	for (auto& cell : this->All_Cell)
+	//for (auto& cell : this->All_Cell)
+	for (size_t idx = 0; idx < this->All_Cell.size(); ++idx) 
 	{
+		auto& cell = this->All_Cell[idx];
 		#pragma omp critical (first) 
 		{
 			k1++;
