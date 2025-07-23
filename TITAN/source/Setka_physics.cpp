@@ -1863,11 +1863,14 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 					if (this->regim_otladki == true)
 					{
-						if (norm2(u3, v3, w3) > 1000.0)
+						if (norm2(u3, v3, w3) > 1e20)
 						{
 							cout << "Error 9875463498" << endl;
 							whach(nam);
 							whach(zone);
+							whach(cell->center[0][0]);
+							whach(cell->center[0][1]);
+							whach(cell->center[0][2]);
 
 							whach(u3);
 							whach(v3);

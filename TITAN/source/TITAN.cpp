@@ -97,7 +97,7 @@ int main()
 
         //S1.Init_physics();
 
-        if (i % 6 == 0)
+        if (i % 3 == 0)
         {
             string namn = "parameters_promeg_11" + to_string(i) + ".bin";
             S1.Save_cell_parameters(namn);
