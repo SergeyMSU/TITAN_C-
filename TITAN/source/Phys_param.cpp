@@ -137,7 +137,6 @@ Phys_param::Phys_param()
     else
     {
         this->num_H = 4;
-        this->is_div_V_in_cell = false;
         this->num_pui = 0;
 
         this->hydrogen_condition.resize(3, this->num_H);
@@ -209,6 +208,7 @@ Phys_param::Phys_param()
         unordered_map<string, double>& param) {
             this->Plasma_components_2(zone, param_in_cell, param); };
             //this->Plasma_components_1(zone, param_in_cell, param); };
+
 
     // Парметры настройки MK
     this->save_AMR = false;        // Нужно ли сохранять посчитанные функции распределения?
@@ -364,6 +364,8 @@ Phys_param::Phys_param()
 
 void Phys_param::set_parameters(void)
 {
+    this->is_div_V_in_cell = false;
+
     this->is_PUI = true;       // Считаем ли пикапы?
     this->num_pui = 2;         // Сколько сортов пикапов в ячейках
 

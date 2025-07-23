@@ -3940,7 +3940,15 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 	{
 		fout << ", " << nam;
 	}
-	fout << ", BB_8Pi";
+	fout << ", BB_8Pi, rho_Th, T_Th";
+	if (std::find(Int1->param_names.begin(), Int1->param_names.end(), "rho_Pui_1") != Int1->param_names.end())
+	{
+		fout << ", T_Pui_1";
+	}
+	if (std::find(Int1->param_names.begin(), Int1->param_names.end(), "rho_Pui_2") != Int1->param_names.end())
+	{
+		fout << ", T_Pui_2";
+	}
 	fout << endl;
 
 	unsigned int N = 5000;
@@ -3969,7 +3977,30 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 				fout << " " << parameters["Q"]/ parameters["rho"];
 			}
 		}
+
+		unordered_map<string, double> param;
+		short int zone = 1;
+		if (parameters["Q"] / parameters["rho"] < 50.0)
+		{
+			zone = 2;
+		}
+		else
+		{
+			zone = 3;
+		}
+		this->phys_param->Plasma_components(zone, parameters, param);
+
 		fout << " " << kvv(parameters["Bx"], parameters["By"], parameters["Bz"]) / (8.0 * const_pi);
+		fout << " " << param["rho_Th"];
+		fout << " " << param["T_Th"];
+		if (std::find(Int1->param_names.begin(), Int1->param_names.end(), "rho_Pui_1") != Int1->param_names.end())
+		{
+			fout << " " << 2.0 * parameters["p_Pui_1"] / parameters["rho_Pui_1"];
+		}
+		if (std::find(Int1->param_names.begin(), Int1->param_names.end(), "rho_Pui_2") != Int1->param_names.end())
+		{
+			fout << " " << 2.0 * parameters["p_Pui_2"] / parameters["rho_Pui_2"];
+		}
 		fout << endl;
 
 	}
