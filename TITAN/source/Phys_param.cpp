@@ -44,16 +44,16 @@ Phys_param::Phys_param()
                                     1, 1, 1, 2, 1, 1, 1, 1, 2,
                                     1, 1, 1, 1, 1, 1, 1, 1, 1;
 
-        this->hydrogen_arise_1.resize(this->num_H, this->num_pui + 1);
-        this->hydrogen_arise_1 << 1, 5, 5,
-                                  1, 5, 5,
-                                  1, 5, 5,
-                                  1, 5, 5,
-                                  1, 5, 5,
-                                  1, 5, 5,
-                                  1, 5, 5,
-                                  1, 5, 5,
-                                  1, 5, 5;
+        this->hydrogen_arise_1.resize(this->num_H, this->num_pui + 1 - 1);
+        this->hydrogen_arise_1 << 1, 5,
+                                  1, 5,
+                                  1, 5,
+                                  1, 5,
+                                  1, 5,
+                                  1, 5,
+                                  1, 5,
+                                  1, 5,
+                                  1, 5;
 
         this->hydrogen_arise_2.resize(this->num_H, this->num_pui + 1);
         this->hydrogen_arise_2 <<   2, 6, 7,
@@ -66,71 +66,71 @@ Phys_param::Phys_param()
                                     2, 6, 7,
                                     2, 6, 7;
 
-        this->hydrogen_arise_3.resize(this->num_H, this->num_pui + 1);
-        this->hydrogen_arise_3 <<   3, 8, 8,
-                                    3, 8, 8,
-                                    3, 8, 8,
-                                    3, 8, 8,
-                                    3, 8, 8,
-                                    3, 8, 8,
-                                    3, 8, 8,
-                                    3, 8, 8,
-                                    3, 8, 8;
+        this->hydrogen_arise_3.resize(this->num_H, this->num_pui + 1 - 1);
+        this->hydrogen_arise_3 <<   3, 8,
+                                    3, 8,
+                                    3, 8,
+                                    3, 8,
+                                    3, 8,
+                                    3, 8,
+                                    3, 8,
+                                    3, 8,
+                                    3, 8;
 
-        this->hydrogen_arise_4.resize(this->num_H, this->num_pui + 1);
-        this->hydrogen_arise_4 <<   4, 9, 9,
-                                    4, 9, 9,
-                                    4, 9, 9,
-                                    4, 9, 9,
-                                    4, 9, 9,
-                                    4, 9, 9,
-                                    4, 9, 9,
-                                    4, 9, 9,
-                                    4, 9, 9;
+        this->hydrogen_arise_4.resize(this->num_H, this->num_pui + 1 - 1);
+        this->hydrogen_arise_4 <<   4, 9,
+                                    4, 9,
+                                    4, 9,
+                                    4, 9,
+                                    4, 9,
+                                    4, 9,
+                                    4, 9,
+                                    4, 9,
+                                    4, 9;
 
-        proton_arise_1.resize(this->num_H, this->num_pui + 1);
-        this->proton_arise_1 << 0, 0, 0,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1;
+        proton_arise_1.resize(this->num_H, this->num_pui + 1 - 1);
+        this->proton_arise_1 << 0, 0,
+                                1, 1,
+                                1, 1,
+                                1, 1,
+                                1, 1,
+                                1, 1,
+                                1, 1,
+                                1, 1,
+                                1, 1;
 
         proton_arise_2.resize(this->num_H, this->num_pui + 1);
-        this->proton_arise_2 << 1, 2, 2,
-                                0, 1, 2,
-                                1, 2, 2,
-                                1, 2, 2,
-                                1, 2, 2,
-                                1, 2, 2,
-                                1, 2, 2,
-                                1, 2, 2,
-                                1, 2, 2;
+        this->proton_arise_2 << 2, 2, 2,
+                                0, 0, 0,
+                                2, 2, 2,
+                                2, 2, 2,
+                                2, 2, 2,
+                                1, 1, 1,
+                                2, 2, 2,
+                                2, 2, 2,
+                                2, 2, 2;
 
-        proton_arise_3.resize(this->num_H, this->num_pui + 1);
-        this->proton_arise_3 << 1, 1, 1,
-                                1, 1, 1,
-                                0, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1;
+        proton_arise_3.resize(this->num_H, this->num_pui + 1 - 1);
+        this->proton_arise_3 << 1, 1,
+                                1, 1,
+                                0, 0,
+                                1, 1,
+                                1, 1,
+                                1, 1,
+                                1, 1,
+                                1, 1,
+                                1, 1;
 
-        proton_arise_4.resize(this->num_H, this->num_pui + 1);
-        this->proton_arise_4 << 1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                0, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1,
-                                1, 1, 1;
+        proton_arise_4.resize(this->num_H, this->num_pui + 1 - 1);
+        this->proton_arise_4 << 1, 1,
+                                1, 1,
+                                1, 1,
+                                0, 0,
+                                1, 1,
+                                1, 1,
+                                1, 1,
+                                1, 1,
+                                1, 1;
 
 
     }
@@ -273,8 +273,11 @@ Phys_param::Phys_param()
         this->pui_name.push_back("_Pui_2");
     }
 
-    this->p_pui_name = this->pui_name;
     this->p_pui_name.push_back("_p");
+    for (auto& nam : this->pui_name)
+    {
+        this->p_pui_name.push_back(nam);
+    }
 
     // Именя для особого сноса в ТВД
     this->r2_snos_names.insert("rho");
@@ -361,16 +364,16 @@ Phys_param::Phys_param()
 
 void Phys_param::set_parameters(void)
 {
-    this->is_PUI = false;       // Считаем ли пикапы?
+    this->is_PUI = true;       // Считаем ли пикапы?
     this->num_pui = 2;         // Сколько сортов пикапов в ячейках
 
     // Настройки расчёта Плазмы
     this->KFL = 0.8;                   // критерий Куранта
-    this->TVD = false;                  // Делаем ли ТВД?
+    this->TVD = true;                  // Делаем ли ТВД?
 
-    this->culc_plasma = false;          // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
+    this->culc_plasma = true;          // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
     this->culc_atoms = true;           // Вычисляем ли атомы или оставляем их вмороженными
-    this->move_setka = false;
+    this->move_setka = true;
 
 
     this->move_TS = true;               // Двигаем ли TS

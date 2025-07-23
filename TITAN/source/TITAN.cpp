@@ -80,33 +80,11 @@ int main()
         cout << yz44->coord[0][0] << " " << yz44->coord[0][1] << " " << yz44->coord[0][2] << endl;
     }
     
-    for (int i = 1; i <= 12 * 16; i++) // 6 * 2
+    for (int i = 1; i <= 1; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 50, 1); // 400   1
-        S1.Go(true, 150, 1); // 400   1
-
-        S1.Go(false, 50, 1); // 400   1
-        S1.Go(true, 150, 1); // 400   1
-
-        S1.Go(false, 50, 1); // 400   1
-        S1.Go(true, 150, 1); // 400   1
-
-        S1.Go(false, 50, 1); // 400   1
-        S1.Go(true, 150, 1); // 400   1
-
-        S1.Go(false, 50, 1); // 400   1
-        S1.Go(true, 150, 1); // 400   1
-
-        S1.Go(false, 50, 1); // 400   1
-        S1.Go(true, 150, 1); // 400   1
-
-        S1.Go(false, 50, 1); // 400   1
-        S1.Go(true, 150, 1); // 400   1
-
-        S1.Go(false, 50, 1); // 400   1
-        S1.Go(true, 150, 1); // 400   1
+        S1.Go(true, 50, 1); // 400   1
 
 
         S1.Tecplot_print_cell_plane_parameters();
@@ -139,7 +117,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0016.bin");
+    //S1.Save_cell_parameters("parameters_0016.bin");
 
     //S1.Edges_create();
     //S1.Culc_divergence_in_cell();
