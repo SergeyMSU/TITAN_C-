@@ -1094,7 +1094,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 
 					if (ipui == 0) continue;
 
-					SOURSE["E" + this->phys_param->pui_name[ipui - 1]] +=
+					SOURSE["p" + this->phys_param->pui_name[ipui - 1]] +=
 						HE[nam1 + nam2];
 				}
 			}
@@ -1659,7 +1659,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 							+ time * 0.95 * SOURSE["p" + nam]
 							- time * this->phys_param->g1 * ppp * POTOK["div_V"] / Volume2;
 
-						if (pppp < 0.0) pppp = 1e-7;
+						if (pppp < 0.0) pppp = 1e-8;
 
 						cell->parameters[now2]["p" + nam] = pppp;
 
@@ -1825,12 +1825,22 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 					}
 
+					if (rho < 1e-7)  // Отключаем источники, так как этой жидкости фактически нет
+					{
+						SOURSE["rho" + nam] = 0.0;
+						SOURSE["m_x" + nam] = 0.0;
+						SOURSE["m_y" + nam] = 0.0;
+						SOURSE["m_z" + nam] = 0.0;
+						SOURSE["E" + nam] = 0.0;
+
+					}
+
 					rho3 = rho * Volume / Volume2 - time * POTOK["rho" + nam] / Volume2 
 						+ time * SOURSE["rho" + nam];
 
-					if (rho3 < 0.00000001)
+					if (rho3 < 1e-8)
 					{
-						rho3 = 0.00000001;
+						rho3 = 1e-8;
 						//cout << "Hidrogen  rho < 0  " << nam << endl;
 					}
 
@@ -1846,13 +1856,21 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 						- time * (POTOK["p" + nam]) / Volume2 + time * SOURSE["E" + nam]) -
 						0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
 
-					if (p3 < 0.00000001)
+					if (p3 < 1e-8)
 					{
-						p3 = 0.00000001;
+						p3 = 1e-8;
 						//cout << "Hidrogen  p < 0  " << nam << endl;
 						//cout << "Center = " << cell->center[now2][0] << " " <<
 						//	cell->center[now2][1] << " " <<
 						//	cell->center[now2][2] << endl;
+					}
+
+					if (norm2(u3, v3, w3) > 1e3)
+					{
+						double ddf = norm2(u3, v3, w3);
+						u3 = u3 / ddf * 1e3;
+						v3 = v3 / ddf * 1e3;
+						w3 = w3 / ddf * 1e3;
 					}
 
 					cell->parameters[now2]["rho" + nam] = rho3;
@@ -1951,6 +1969,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			for (auto& nam : this->phys_param->H_name)
 			{
 				if (nam == "_H1") continue;
+				if (nam == "_H5") continue;
 
 				rho = cell->parameters[now1]["rho" + nam];
 				vx = cell->parameters[now1]["Vx" + nam];
@@ -1960,9 +1979,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				rho3 = rho - time * POTOK_F["rho" + nam] / Volume;
 
-				if (rho3 < 0.0001)
+				if (rho3 < 1e-8)
 				{
-					rho3 = 0.0001;
+					rho3 = 1e-8;
 				}
 
 				u3 = (rho * vx - time * (POTOK_F["Vx" + nam]) / Volume) / rho3;
@@ -1974,9 +1993,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					- time * (POTOK_F["p" + nam]) / Volume) -
 					0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
 
-				if (p3 < 0.0001)
+				if (p3 < 1e-8)
 				{
-					p3 = 0.0001;
+					p3 = 1e-8;
 				}
 
 				cell->parameters[now2]["rho" + nam] = rho3;
