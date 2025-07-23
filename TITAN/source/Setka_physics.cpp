@@ -747,6 +747,23 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 						std::isnan(sig[nam1 + nam2]) || std::fpclassify(sig[nam1 + nam2]) == FP_SUBNORMAL)
 					{
 						cout << "Error 4365877546g" << endl;
+						whach(pui_n);
+						whach(zone);
+						whach(nam1);
+						whach(nam2);
+						whach(U[nam1 + nam2]);
+						whach(Um[nam2 + nam1]);
+						whach(UE[nam1 + nam2]);
+						whach(sig[nam1 + nam2]);
+						whach(sig[nam2 + nam1]);
+
+						whach(rho[nam1]);
+						whach(rho[nam2]);
+						whach(T[nam1]);
+						whach(T[nam2]);
+						whach(V[nam2]);
+						whach(V["_p"]);
+
 						exit(-1);
 					}
 				}
@@ -1372,7 +1389,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	for (unsigned int step = 1; step <= steps; step++)
 	{
-		if (step % 1 == 0)
+		if (step % 10 == 0)
 		{
 			cout << "Global step = " << step << endl;
 			whach(time);
@@ -1450,7 +1467,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		// –асчитываем потоки через грани
 		// в private не добавл€ютс€ нормально vectora, надо либо обычные массивы делать, либо 
 		// создавать их внутри в каждом потоке
-#pragma omp parallel for reduction(min:loc_time)
+		#pragma omp parallel for reduction(min:loc_time)
 		for(int i_step = 0; i_step < gran_list->size(); i_step++)
 		{
 			//whach(GG->parameters["rho_H4"]);
@@ -1480,13 +1497,13 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			}
 		}
 
-#pragma omp barrier
+		#pragma omp barrier
 		//cout << "barrier" << endl;
 
 		bool print_p_less_0 = false;
 
 		// –асчитываем законы сохранени€ в €чейках
-#pragma omp parallel for
+		#pragma omp parallel for
 		for (size_t i_step = 0; i_step < cell_list->size(); i_step++)
 		{
 			auto& cell = (*cell_list)[i_step];
@@ -1629,15 +1646,20 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 							}
 						}
 
-						cell->parameters[now2]["rho" + nam] = cell->parameters[now1]["rho" + nam] 
+						double rhorho = cell->parameters[now1]["rho" + nam] 
 							* Volume / Volume2 - time * POTOK["rho" + nam] / Volume2
 							+ time * SOURSE["rho" + nam];
+
+						if (rhorho < 0.0) rhorho = 1e-7;
+						cell->parameters[now2]["rho" + nam] = rhorho;
 
 						double ppp = cell->parameters[now1]["p" + nam];
 						double pppp = ppp
 							* Volume / Volume2 - time * POTOK["p" + nam] / Volume2
 							+ time * 0.95 * SOURSE["p" + nam]
 							- time * this->phys_param->g1 * ppp * POTOK["div_V"] / Volume2;
+
+						if (pppp < 0.0) pppp = 1e-7;
 
 						cell->parameters[now2]["p" + nam] = pppp;
 
@@ -1882,88 +1904,87 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			}
 		}
 
-#pragma omp barrier
+		#pragma omp barrier
 
 		// —читаем фиктивную центральную €чейку
 		if (this->phys_param->culc_atoms == true && is_inner_area == true)
+		{
+			auto& cell = this->Cell_Center;
+			double Volume = 4.0 * const_pi * kyb(this->geo->R0)/3.0;
+
+			unordered_map<string, double> POTOK_F;
+
+			for (const auto& names: this->phys_param->H_name)
 			{
-				auto& cell = this->Cell_Center;
-				double Volume = 4.0 * const_pi * kyb(this->geo->R0)/3.0;
+				POTOK_F["rho" + names] = 0.0;
+				POTOK_F["Vx" + names] = 0.0;
+				POTOK_F["Vy" + names] = 0.0;
+				POTOK_F["Vz" + names] = 0.0;
+				POTOK_F["p" + names] = 0.0;
+			}
 
 
-				unordered_map<string, double> POTOK_F;
+			for (auto& gran : this->All_boundary_Gran)
+			{
+				if (gran->type != Type_Gran::Inner_Hard) continue;
 
-				for (const auto& names: this->phys_param->H_name)
+				short int sign_potok = -1;
+
+				for (const auto& names : this->phys_param->H_name)
 				{
-					POTOK_F["rho" + names] = 0.0;
-					POTOK_F["Vx" + names] = 0.0;
-					POTOK_F["Vy" + names] = 0.0;
-					POTOK_F["Vz" + names] = 0.0;
-					POTOK_F["p" + names] = 0.0;
-				}
-
-
-				for (auto& gran : this->All_boundary_Gran)
-				{
-					if (gran->type != Type_Gran::Inner_Hard) continue;
-
-					short int sign_potok = -1;
-
-					for (const auto& names : this->phys_param->H_name)
-					{
-						POTOK_F["rho" + names] += sign_potok * gran->parameters["Prho" + names];
-						POTOK_F["Vx" + names] += sign_potok * gran->parameters["PVx" + names];
-						POTOK_F["Vy" + names] += sign_potok * gran->parameters["PVy" + names];
-						POTOK_F["Vz" + names] += sign_potok * gran->parameters["PVz" + names];
-						POTOK_F["p" + names] += sign_potok * gran->parameters["Pp" + names];
-					}
-				}
-
-				double rho3, u3, v3, w3, p3;
-				double rho, vx, vy, vz, p;
-
-				// “еперь считаем дл€ остальных жидкостей
-				int i = 1;
-				for (auto& nam : this->phys_param->H_name)
-				{
-					if (nam == "_H1") continue;
-
-					rho = cell->parameters[now1]["rho" + nam];
-					vx = cell->parameters[now1]["Vx" + nam];
-					vy = cell->parameters[now1]["Vy" + nam];
-					vz = cell->parameters[now1]["Vz" + nam];
-					p = cell->parameters[now1]["p" + nam];
-
-					rho3 = rho - time * POTOK_F["rho" + nam] / Volume;
-
-					if (rho3 < 0.0001)
-					{
-						rho3 = 0.0001;
-					}
-
-					u3 = (rho * vx - time * (POTOK_F["Vx" + nam]) / Volume) / rho3;
-					v3 = (rho * vy - time * (POTOK_F["Vy" + nam]) / Volume) / rho3;
-					w3 = (rho * vz - time * (POTOK_F["Vz" + nam]) / Volume) / rho3;
-
-
-					p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz))
-						- time * (POTOK_F["p" + nam]) / Volume) -
-						0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
-
-					if (p3 < 0.0001)
-					{
-						p3 = 0.0001;
-					}
-
-					cell->parameters[now2]["rho" + nam] = rho3;
-					cell->parameters[now2]["Vx" + nam] = u3;
-					cell->parameters[now2]["Vy" + nam] = v3;
-					cell->parameters[now2]["Vz" + nam] = w3;
-					cell->parameters[now2]["p" + nam] = p3;
-
-					i++;
+					POTOK_F["rho" + names] += sign_potok * gran->parameters["Prho" + names];
+					POTOK_F["Vx" + names] += sign_potok * gran->parameters["PVx" + names];
+					POTOK_F["Vy" + names] += sign_potok * gran->parameters["PVy" + names];
+					POTOK_F["Vz" + names] += sign_potok * gran->parameters["PVz" + names];
+					POTOK_F["p" + names] += sign_potok * gran->parameters["Pp" + names];
 				}
 			}
+
+			double rho3, u3, v3, w3, p3;
+			double rho, vx, vy, vz, p;
+
+			// “еперь считаем дл€ остальных жидкостей
+			int i = 1;
+			for (auto& nam : this->phys_param->H_name)
+			{
+				if (nam == "_H1") continue;
+
+				rho = cell->parameters[now1]["rho" + nam];
+				vx = cell->parameters[now1]["Vx" + nam];
+				vy = cell->parameters[now1]["Vy" + nam];
+				vz = cell->parameters[now1]["Vz" + nam];
+				p = cell->parameters[now1]["p" + nam];
+
+				rho3 = rho - time * POTOK_F["rho" + nam] / Volume;
+
+				if (rho3 < 0.0001)
+				{
+					rho3 = 0.0001;
+				}
+
+				u3 = (rho * vx - time * (POTOK_F["Vx" + nam]) / Volume) / rho3;
+				v3 = (rho * vy - time * (POTOK_F["Vy" + nam]) / Volume) / rho3;
+				w3 = (rho * vz - time * (POTOK_F["Vz" + nam]) / Volume) / rho3;
+
+
+				p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz))
+					- time * (POTOK_F["p" + nam]) / Volume) -
+					0.5 * rho3 * kvv(u3, v3, w3)) * this->phys_param->g1;
+
+				if (p3 < 0.0001)
+				{
+					p3 = 0.0001;
+				}
+
+				cell->parameters[now2]["rho" + nam] = rho3;
+				cell->parameters[now2]["Vx" + nam] = u3;
+				cell->parameters[now2]["Vy" + nam] = v3;
+				cell->parameters[now2]["Vz" + nam] = w3;
+				cell->parameters[now2]["p" + nam] = p3;
+
+				i++;
+			}
+		}
 
 	}
 }
