@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0017.bin");  // 4  
+    S1.Download_cell_parameters("parameters_0018.bin");  // 4  
     // 4 - до смены расчёта атомов методом Бера
     // 25 немного посчитаны пикапы
 
@@ -59,7 +59,7 @@ int main()
     S1.Find_Yzel_Sosed_for_sglag();
 
 
-    for (int i = 1; i <= 10 * 4; i++) // 6 * 2
+    for (int i = 1; i <= 6 * 8; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -77,7 +77,7 @@ int main()
 
         //S1.Init_physics();
 
-        if (i % 3 == 0)
+        if (i % 6 == 0)
         {
             string namn = "parameters_promeg_11" + to_string(i) + ".bin";
             S1.Save_cell_parameters(namn);
@@ -97,7 +97,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0018.bin");
+    S1.Save_cell_parameters("parameters_0019.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();
