@@ -1331,7 +1331,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	cout << "Vibor area" << endl;
 	// Если хотим отдельно считать внутреннюю и наружнюю области
-	if (true)
+	if (false)
 	{
 		if (is_inner_area == true)
 		{
@@ -1683,9 +1683,13 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				if (rho3 < 0.00000001)
 				{
-					rho3 = 0.0001;
+					rho3 = 1e-6;
 					Q3 = Q / rho * rho3;
+					rho_He3 = 0.0;
 					cout << "Plasma  rho < 0" << endl;
+					cout << cell->center[now2][0] << " " <<
+						cell->center[now2][1] << " " <<
+						cell->center[now2][2] << endl;
 				}
 
 				if (this->regim_otladki == true)

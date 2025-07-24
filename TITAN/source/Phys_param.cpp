@@ -366,7 +366,7 @@ void Phys_param::set_parameters(void)
 {
     this->is_div_V_in_cell = false;
 
-    this->is_PUI = true;       // Считаем ли пикапы?
+    this->is_PUI = false;       // Считаем ли пикапы?
     this->num_pui = 2;         // Сколько сортов пикапов в ячейках
 
     // Настройки расчёта Плазмы

@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0024.bin");  // 4  
+    S1.Download_cell_parameters("parameters_0016.bin");  // 4  
     // 4 - до смены расчёта атомов методом Бера
 
     cout << "C2 " << endl;
@@ -62,8 +62,8 @@ int main()
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(true, 100, 1); // 400   1
-        S1.Go(false, 100, 1); // 400   1
+        S1.Go(true, 400, 1); // 400   1
+        //S1.Go(false, 100, 1); // 400   1
 
 
         S1.Tecplot_print_cell_plane_parameters();
@@ -76,7 +76,7 @@ int main()
 
         //S1.Init_physics();
 
-        if (i % 6 == 0)
+        if (i % 3 == 0)
         {
             string namn = "parameters_promeg_11" + to_string(i) + ".bin";
             S1.Save_cell_parameters(namn);
@@ -96,7 +96,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0025.bin");
+    S1.Save_cell_parameters("parameters_0017.bin");
 
     //S1.Edges_create();
     //S1.Culc_divergence_in_cell();
