@@ -31,6 +31,7 @@ int main()
 
     S1.Download_cell_parameters("parameters_0017.bin");  // 4  
     // 4 - до смены расчёта атомов методом Бера
+    // 25 немного посчитаны пикапы
 
     cout << "C2 " << endl;
 
@@ -62,16 +63,8 @@ int main()
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        if (i < 6)
-        {
-            S1.Go(true, 100, 1); // 400   1
-            S1.Go(false, 100, 1); // 400   1
-        }
-        else
-        {
-            S1.Go(true, 100, 1); // 400   1
-            S1.Go(false, 400, 1); // 400   1
-        }
+        S1.Go(false, 400, 1); // 400   1
+        S1.Go(true, 100, 1); // 400   1
 
 
         S1.Tecplot_print_cell_plane_parameters();
@@ -105,6 +98,7 @@ int main()
     }
 
     S1.Save_cell_parameters("parameters_0018.bin");
+    //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();
     //S1.Culc_divergence_in_cell();

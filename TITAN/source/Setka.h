@@ -209,6 +209,10 @@ public:
 	// возвращает шаг по времени
 
 	void Save_cell_parameters(string filename);
+	void Save_cell_pui_parameters(string filename);
+	// Записывает отношения параметров ПУИ к плазме, чтобы можно было 
+	// в другой программе начинать считать пуи не сначала а с какого-то момента
+
 	void Save_cell_MK_parameters(string filename);
 	void Download_cell_parameters(string filename);
 	void Download_cell_MK_parameters(string filename, short int zone_except);

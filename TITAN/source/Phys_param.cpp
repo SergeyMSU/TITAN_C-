@@ -203,11 +203,20 @@ Phys_param::Phys_param()
                               2,
                               1;
 
-    this->Plasma_components = [this](const short int& zone,
-        unordered_map<string, double>& param_in_cell,
-        unordered_map<string, double>& param) {
-            this->Plasma_components_2(zone, param_in_cell, param); };
-            //this->Plasma_components_1(zone, param_in_cell, param); };
+    if (this->is_PUI == true)
+    {
+        this->Plasma_components = [this](const short int& zone,
+            unordered_map<string, double>& param_in_cell,
+            unordered_map<string, double>& param) {
+                this->Plasma_components_2(zone, param_in_cell, param); };
+    }
+    else
+    {
+        this->Plasma_components = [this](const short int& zone,
+            unordered_map<string, double>& param_in_cell,
+            unordered_map<string, double>& param) {
+                this->Plasma_components_1(zone, param_in_cell, param); };
+    }
 
 
     // Парметры настройки MK
@@ -391,7 +400,7 @@ void Phys_param::set_parameters(void)
 
 
     this->sglag_HP = true;
-    this->velocity_HP = 0.1;
+    this->velocity_HP = 0.02;  // 0.1
     this->sglag_HP_k_sphere = 0.04;  //0.005 0.002    // Cглаживание в головной части
     this->sglag_HP_k = 0.01; // 0.001         // Сглаживание не в головной области
     this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу

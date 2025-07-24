@@ -688,6 +688,9 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 	V["_p"] = Eigen::Vector3d(C->parameters[now]["Vx"], 
 		C->parameters[now]["Vy"], C->parameters[now]["Vz"]);
 
+	if (rho["_p"] <= 1e-8) rho["_p"] = 1e-8;
+	if (T["_p"] <= 1e-8) T["_p"] = 1e-8;
+
 	//cout << "B1 " << endl;
 
 	short int pui_n = -1;
@@ -763,6 +766,9 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 						whach(T[nam2]);
 						whach(V[nam2]);
 						whach(V["_p"]);
+
+						whach(C->parameters[now]["rho"]);
+						whach(C->parameters[now]["rho_He"]);
 
 						exit(-1);
 					}
@@ -1657,7 +1663,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 							* Volume / Volume2 - time * POTOK["rho" + nam] / Volume2
 							+ time * SOURSE["rho" + nam];
 
-						if (rhorho < 0.0) rhorho = 1e-7;
+						if (rhorho <= 0.0) rhorho = 1e-7;
 						cell->parameters[now2]["rho" + nam] = rhorho;
 
 						double ppp = cell->parameters[now1]["p" + nam];
@@ -1690,6 +1696,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					cout << cell->center[now2][0] << " " <<
 						cell->center[now2][1] << " " <<
 						cell->center[now2][2] << endl;
+				}
+
+				if (rho_He3 < 0.0)
+				{
+					rho_He3 = 0.0;
 				}
 
 				if (this->regim_otladki == true)
@@ -1774,6 +1785,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				}
 
+
+				if (rho_He3 > rho3)
+				{
+					rho_He3 = rho3 * 0.1;
+				}
 
 				cell->parameters[now2]["rho"] = rho3;
 				if (cell->parameters[now1].find("Q") != cell->parameters[now1].end())
@@ -2415,6 +2431,42 @@ void Setka::Save_for_interpolate(string filename)
 	out.close();
 }
 
+void Setka::Save_cell_pui_parameters(string filename)
+{
+	std::ofstream out("PUI_" + filename, std::ios::binary);
+	if (!out) {
+		cout << "Error 097564537  Can not open file to writing: " + filename << endl;
+		exit(-1);
+	}
+
+	double d;
+	for (auto& i : this->All_Cell)
+	{
+		short int zone = this->determ_zone(i, 0);
+
+		if (zone != 2)
+		{
+			d = i->parameters[0]["rho_Pui_1"] / i->parameters[0]["rho"];
+			out.write(reinterpret_cast<const char*>(&d), sizeof(double));
+			d = i->parameters[0]["p_Pui_1"] / i->parameters[0]["p"];
+			out.write(reinterpret_cast<const char*>(&d), sizeof(double));
+		}
+		else
+		{
+			d = i->parameters[0]["rho_Pui_1"] / i->parameters[0]["rho"];
+			out.write(reinterpret_cast<const char*>(&d), sizeof(double));
+			d = i->parameters[0]["rho_Pui_2"] / i->parameters[0]["rho"];
+			out.write(reinterpret_cast<const char*>(&d), sizeof(double));
+			d = i->parameters[0]["p_Pui_1"] / i->parameters[0]["p"];
+			out.write(reinterpret_cast<const char*>(&d), sizeof(double));
+			d = i->parameters[0]["p_Pui_2"] / i->parameters[0]["p"];
+			out.write(reinterpret_cast<const char*>(&d), sizeof(double));
+		}
+	}
+
+	out.close();
+}
+
 void Setka::Save_cell_parameters(string filename)
 {
 	std::ofstream out(filename, std::ios::binary);
@@ -2468,6 +2520,8 @@ void Setka::Save_cell_parameters(string filename)
 
 		out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 	}
+
+	out.close();
 }
 
 void Setka::Save_cell_MK_parameters(string filename)
