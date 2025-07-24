@@ -3999,7 +3999,15 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 		}
 		if (std::find(Int1->param_names.begin(), Int1->param_names.end(), "rho_Pui_2") != Int1->param_names.end())
 		{
-			fout << " " << 2.0 * parameters["p_Pui_2"] / parameters["rho_Pui_2"];
+			if (parameters["rho_Pui_2"] < 1e-6)
+			{
+				fout << " " << 0.0;
+			}
+			else
+			{
+				fout << " " << 2.0 * parameters["p_Pui_2"] / parameters["rho_Pui_2"];
+			}
+			
 		}
 		fout << endl;
 
