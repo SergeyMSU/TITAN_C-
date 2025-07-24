@@ -59,7 +59,7 @@ int main()
     S1.Find_Yzel_Sosed_for_sglag();
 
 
-    for (int i = 1; i <= 6 * 3; i++) // 6 * 2
+    for (int i = 1; i <= 10 * 4; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;

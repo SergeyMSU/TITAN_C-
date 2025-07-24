@@ -1624,6 +1624,17 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				rho3 = rho * Volume / Volume2 - time * POTOK["rho"] / Volume2;
 
+				if (rho3 < 1e-7)
+				{
+					rho3 = 0.01;
+					Q3 = Q / rho * rho3;
+					rho_He3 = 0.0;
+					cout << "Plasma  rho < 0" << endl;
+					cout << cell->center[now2][0] << " " <<
+						cell->center[now2][1] << " " <<
+						cell->center[now2][2] << endl;
+				}
+
 				if (cell->parameters[now1].find("Q") != cell->parameters[now1].end())
 				{
 					Q3 = Q * Volume / Volume2 - time * POTOK["Q"] / Volume2;
@@ -1642,6 +1653,13 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					rho_He3 = 0.0;
 				}
 
+
+				if (rho_He3 < 0.0)
+				{
+					rho_He3 = 0.0;
+				}
+
+
 				if (this->phys_param->is_PUI == true)
 				{
 					short int pui_n = -1;
@@ -1659,7 +1677,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 							}
 						}
 
-						double rhorho = cell->parameters[now1]["rho" + nam] 
+						double rhorho = cell->parameters[now1]["rho" + nam]
 							* Volume / Volume2 - time * POTOK["rho" + nam] / Volume2
 							+ time * SOURSE["rho" + nam];
 
@@ -1687,21 +1705,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					}
 				}
 
-				if (rho3 < 0.00000001)
-				{
-					rho3 = 1e-6;
-					Q3 = Q / rho * rho3;
-					rho_He3 = 0.0;
-					cout << "Plasma  rho < 0" << endl;
-					cout << cell->center[now2][0] << " " <<
-						cell->center[now2][1] << " " <<
-						cell->center[now2][2] << endl;
-				}
 
-				if (rho_He3 < 0.0)
-				{
-					rho_He3 = 0.0;
-				}
 
 				if (this->regim_otladki == true)
 				{
