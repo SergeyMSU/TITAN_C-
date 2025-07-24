@@ -1331,7 +1331,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	cout << "Vibor area" << endl;
 	// Если хотим отдельно считать внутреннюю и наружнюю области
-	if (false)
+	if (true)
 	{
 		if (is_inner_area == true)
 		{

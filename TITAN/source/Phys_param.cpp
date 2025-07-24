@@ -374,7 +374,7 @@ void Phys_param::set_parameters(void)
     this->TVD = true;                  // Делаем ли ТВД?
 
     this->culc_plasma = true;          // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
-    this->culc_atoms = true;           // Вычисляем ли атомы или оставляем их вмороженными
+    this->culc_atoms = false;           // Вычисляем ли атомы или оставляем их вмороженными
     this->move_setka = true;
 
 

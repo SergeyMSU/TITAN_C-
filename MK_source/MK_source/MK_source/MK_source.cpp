@@ -81,18 +81,18 @@ void Culc_nu_maxwel(void)
                     al = (jj + 0.5) * const_pi / N2;
                     R = sqrt(kv(R0 * sin(al)) + kv(U - R0 * cos(al)));
                     S += R * sig(R) * kv(R0) * sin(al) * exp(-kv(R0 / cp));
-                    SS += R * kv(R0) * sin(al) * exp(-kv(R0 / cp));
-                    SSS += kv(R0) * sin(al) * exp(-kv(R0 / cp));
+                    //SS += R * kv(R0) * sin(al) * exp(-kv(R0 / cp));
+                    //SSS += kv(R0) * sin(al) * exp(-kv(R0 / cp));
                 }
             }
 
             S *= 2.0 * const_pi * dal * dR0;
-            SS *= 2.0 * const_pi * dal * dR0;
-            SSS *= 2.0 * const_pi * dal * dR0;
+            //SS *= 2.0 * const_pi * dal * dR0;
+            //SSS *= 2.0 * const_pi * dal * dR0;
             S /= pow(sqrt(const_pi) * cp, 3);
-            SS /= pow(sqrt(const_pi) * cp, 3);
-            SSS /= pow(sqrt(const_pi) * cp, 3);
-            SS *= sig(SS/SSS);
+            //SS /= pow(sqrt(const_pi) * cp, 3);
+            //SSS /= pow(sqrt(const_pi) * cp, 3);
+            //SS *= sig(SS/SSS);
             outfile.write(reinterpret_cast<const char*>(&S), sizeof(S));
             outfile2 << U << " " << cp << " " << S << " " << SS << " " << SS * 100/S - 100.0 << endl;
         }

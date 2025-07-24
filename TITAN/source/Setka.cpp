@@ -4417,6 +4417,79 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 	}
 
 	fout.close();
+
+	// Отдельно находим пересечение плоскости с поверхностями разрыва
+	
+	for (short int ik = 0; ik < 3; ik++)
+	{
+		std::vector< std::array<double, 3> > all_point_surf;
+		vector<Gran*>* AA;
+		if (ik == 0) AA = &this->Gran_HP;
+		if (ik == 1) AA = &this->Gran_TS;
+		if (ik == 2) AA = &this->Gran_BS;
+
+		for (const auto& gr : *AA)
+		{
+			std::vector< std::array<double, 3> > all_point;
+			std::array<double, 3> P1;
+			std::array<double, 3> P2;
+			std::array<double, 3> outIntersection;
+
+			for (size_t i = 0; i < 4; i++) // Пробегаемся по рёбрам
+			{
+				size_t ii = i + 1;
+				if (ii >= 4) ii = 0;
+				A1 = gr->yzels[i];
+				A2 = gr->yzels[ii];
+
+				P1 = { A1->coord[0][0], A1->coord[0][1], A1->coord[0][2] };
+				P2 = { A2->coord[0][0], A2->coord[0][1], A2->coord[0][2] };
+
+				//cout << "A" << endl;
+				aa = findIntersection(P1, P2, a, b, c, d, outIntersection);
+				//cout << "B" << endl;
+				if (aa == true)
+				{
+					all_point.push_back(outIntersection);
+				}
+				else
+				{
+					continue;
+				}
+			}
+
+
+			if (all_point.size() != 2) continue;
+
+			for (auto& ii : all_point)
+			{
+				all_point_surf.push_back(ii);
+			}
+		}
+
+		if (ik == 0) name_f = "HP_srez_" + name + ".txt";
+		if (ik == 1) name_f = "TS_srez_" + name + ".txt";
+		if (ik == 2) name_f = "BS_srez_" + name + ".txt";
+
+		fout.open(name_f);
+		fout << "TITLE = HP" << endl;
+		fout << "VARIABLES = X, Y" << endl;
+		fout << "ZONE T=HP, NODES = " << all_point_surf.size() << ", ELEMENTS = " << all_point_surf.size() / 2 << ", F = FEPOINT, ET = LINESEG" << endl;
+
+		for (auto& ii : all_point_surf)
+		{
+			fout << ii[0] << " " << ii[1] << endl;
+		}
+
+		for (size_t ii = 0; ii < all_point_surf.size() / 2; ii++)
+		{
+			fout << 2 * ii + 1 << " " << 2 * ii + 2 << endl;
+		}
+
+		fout.close();
+	}
+
+
 	cout << "End: Tecplot_print_2D " << name << endl;
 
 }
