@@ -1051,6 +1051,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 		}
 		//cout << "B10 " << endl;
 		// Притоки/потери массы
+		//Здесь подход отличается от остальных, хотя можно было одинаковый для всех сделать
 		if (this->phys_param->is_PUI == true)
 		{
 			for (short int i = 0; i < B->rows(); ++i)
@@ -1074,6 +1075,12 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 						{
 							SOURSE["rho" + nam1] -=
 								Hrho[nam1 + nam2];
+
+							if (ipui > 0)
+							{
+								SOURSE["rho" + this->phys_param->pui_name[ipui - 1]] +=
+									Hrho[nam1 + nam2];
+							}
 						}
 					}
 				}
@@ -1095,7 +1102,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 					if (ipui == 0) continue;
 
 					SOURSE["p" + this->phys_param->pui_name[ipui - 1]] +=
-						HE[nam1 + nam2];
+						Hp[nam1 + nam2];
 				}
 			}
 		}
@@ -1324,7 +1331,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	cout << "Vibor area" << endl;
 	// Если хотим отдельно считать внутреннюю и наружнюю области
-	if (false)
+	if (true)
 	{
 		if (is_inner_area == true)
 		{
@@ -1389,7 +1396,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	for (unsigned int step = 1; step <= steps; step++)
 	{
-		if (step % 10 == 0)
+		if (step % 25 == 0)
 		{
 			cout << "Global step = " << step << endl;
 			whach(time);
