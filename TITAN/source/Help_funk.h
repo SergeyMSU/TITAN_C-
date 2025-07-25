@@ -2,6 +2,8 @@
 #include <math.h>
 #include "Header.h"
 
+void pause_seconds(unsigned int n);
+
 bool file_exists(const std::string& filename);
 
 void solveQuadraticEquation(const double& x1, const double& y1,

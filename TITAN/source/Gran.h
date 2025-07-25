@@ -52,11 +52,12 @@ public:
 
 	// Для Монте-Карло
 	vector<array<AMR_f*, 2>> AMR;
+	// Первая направлена по нормали грани, вторая против нормали
 	double MK_Potok;  // Суммарный поток по всем сортам у грани
 	unsigned short int N_particle = 0; // Число частиц, попавших в грань
 	mutex mut;
 	
-	// Первая направлена по нормали грани, вторая против нормали
+	void Read_AMR(short int ni, short int nH, bool need_refine = false);
 
 	bool Have_zone_number(short int z);
 	// Проверяет есть ли в векторе MK_type зона с номером z?

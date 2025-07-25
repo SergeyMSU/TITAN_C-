@@ -50,6 +50,9 @@ public:
 	AMR_f(const double& xL, const double& xR, const double& yL, const double& yR, const double& zL,
 		const double& zR, unsigned int xn, unsigned int yn, unsigned int zn);
 
+	void AMR_resize(const double& xL, const double& xR, const double& yL, const double& yR, const double& zL,
+		const double& zR, unsigned int xn, unsigned int yn, unsigned int zn);
+
 	void Get_real_koordinate(const double& x, const double& y, 
 		const double& z, double& Vx, double& Vy, double& Vz);
 	// ѕо локальным координатам получает реальные глобальные координаты

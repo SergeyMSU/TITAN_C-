@@ -1,6 +1,15 @@
 ﻿#include "Help_funk.h"
 #include "Yzel.h"
 
+
+void pause_seconds(unsigned int n) 
+{
+	cout << "Pause - " << n << endl;
+	std::this_thread::sleep_for(std::chrono::seconds(n));
+	cout << "End  Pause - " << n << endl;
+}
+
+
 bool file_exists(const std::string& filename) {
 	std::ifstream file(filename);
 	return file.good();  // или просто return file.is_open();

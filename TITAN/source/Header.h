@@ -35,6 +35,7 @@ class MK_particle;
 #include <iostream>
 #include <vector>
 #include <list>
+#include <thread>
 #include <unordered_set>
 #include <unordered_map>
 #include <array>

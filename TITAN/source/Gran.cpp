@@ -12,6 +12,77 @@ short int Gran::Get_method()
 	return 0;
 }
 
+void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
+{
+	if (this->AMR.size() < nH)
+	{
+		cout << "Error 9yfhgrydttrjik743" << endl;
+		exit(-1);
+	}
+
+	if (this->AMR[nH - 1][ni] == nullptr)
+	{
+		this->AMR[nH - 1][ni] = new AMR_f();
+		this->AMR[nH - 1][ni]->AMR_self = this->AMR[nH - 1][ni];
+
+		// На всякий случай задаём нормаль
+		if (ni == 0)
+		{
+			this->AMR[nH - 1][ni]->Vn[0] = this->normal[0][0];
+			this->AMR[nH - 1][ni]->Vn[1] = this->normal[0][1];
+			this->AMR[nH - 1][ni]->Vn[2] = this->normal[0][2];
+		}
+		else
+		{
+			this->AMR[nH - 1][ni]->Vn[0] = -this->normal[0][0];
+			this->AMR[nH - 1][ni]->Vn[1] = -this->normal[0][1];
+			this->AMR[nH - 1][ni]->Vn[2] = -this->normal[0][2];
+		}
+		this->AMR[nH - 1][ni]->Set_bazis();
+
+		// Заполняем параметры на AMR
+		this->AMR[nH - 1][ni]->parameters["n"] = 0.0;
+		this->AMR[nH - 1][ni]->parameters["nn"] = 0.0;
+		this->AMR[nH - 1][ni]->parameters["Smu"] = 0.0;
+	}
+
+	if (this->AMR[nH - 1][ni]->cells.size() > 0)
+	{
+		cout << "Error 5678567yrewertfewgr" << endl;
+		exit(-1);
+	}
+
+	string name_f = "func_grans_AMR_" + to_string(ni) + "_H" +
+		to_string(nH) + "_" + to_string(this->number) + ".bin";
+	if (file_exists("data_AMR/" + name_f) && this->type == Type_Gran::Us)
+	{
+		// В этом случае просто считываем AMR - сетку
+		this->AMR[nH - 1][ni]->Read("data_AMR/" + name_f);
+
+
+		/*if (ni == ii && this->phys_param->refine_AMR == true && gr->type == Type_Gran::Us &&
+			gr->AMR[iH - 1][ii]->Size() < 3000)
+		{
+			unsigned short int NN = 1;
+			NN = gr->AMR[iH - 1][ii]->Refine();
+			NNall += NN;
+		}*/
+	}
+	else
+	{
+		if (this->type == Type_Gran::Us)
+		{
+			this->AMR[nH - 1][ni]->AMR_resize(0.0, 20.0, -20.0, 20.0,
+				-20.0, 20.0, 3, 6, 6);
+		}
+		else
+		{
+			this->AMR[nH - 1][ni]->AMR_resize(0.0, 20.0, -20.0, 20.0,
+				-20.0, 20.0, 1, 1, 1);
+		}
+	}
+}
+
 bool Gran::Have_zone_number(short int z)
 {
 	for (const auto& i : this->MK_type)

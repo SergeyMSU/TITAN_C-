@@ -590,92 +590,100 @@ void Setka::MK_prepare(short int zone_MK)
 		unsigned int NN2_ = 0;
 
 		unsigned short int NNall = 0;
+		double S = 0.0;
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
 		{
+			gr->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
+			gr->MK_Potok = 0.0;
 			if (gr->AMR.size() < this->phys_param->num_H)
 			{
 				gr->AMR.resize(this->phys_param->num_H);
 			}
 
+			short int ni = 1;  // Определяем выходящую функцию распределения
+			if (gr->cells[0]->MK_zone == zone_MK) ni = 0;
+
+			short int ni2 = 0; // Определяем входящую функцию распределения
+			if (gr->cells[0]->MK_zone == zone_MK) ni2 = 1;
+
+
 			for(short int ii = 0; ii <= 1; ii++)
 			{
 				for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
 				{
-					if (gr->AMR[iH - 1][ii] == nullptr)
+					gr->Read_AMR(ii, iH, false);
+					if (false)
 					{
-						string name_f = "func_grans_AMR_" + to_string(ii) + "_H" + 
-							to_string(iH) + "_" + to_string(gr->number) + ".bin";
-						if (file_exists("data_AMR/" + name_f) && gr->type == Type_Gran::Us)
+						if (gr->AMR[iH - 1][ii] == nullptr)
 						{
-							//cout << "Exist  " << iH << " " << ii << endl;
-							// В этом случае просто считываем AMR - сетку
-							gr->AMR[iH - 1][ii] = new AMR_f();
-							gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
-							gr->AMR[iH - 1][ii]->Read("data_AMR/" + name_f);
-
-							short int ni = 1;  // определяем выходящую функцию распределения
-							if (gr->cells[0]->MK_zone == zone_MK)
+							string name_f = "func_grans_AMR_" + to_string(ii) + "_H" +
+								to_string(iH) + "_" + to_string(gr->number) + ".bin";
+							if (file_exists("data_AMR/" + name_f) && gr->type == Type_Gran::Us)
 							{
-								ni = 0;  
-							}
-
-							if (ni == ii && this->phys_param->refine_AMR == true && gr->type == Type_Gran::Us &&
-								gr->AMR[iH - 1][ii]->Size() < 3000)
-							{
-								unsigned short int NN = 1;
-								NN = gr->AMR[iH - 1][ii]->Refine();
-								NNall += NN;
-							}
-
-							if (gr->AMR[iH - 1][ii]->Size() > 5000)
-							{
-								cout << "_____________________________" << endl;
-								cout << "Anomalious function  H = " << iH << "  ii = " << ii << endl;
-								cout << gr->center[0][0] << " " << gr->center[0][1] << " " <<
-									gr->center[0][2] << " " << endl;
-								cout << gr->AMR[iH - 1][ii]->Size() << endl;
-								cout << "_____________________________" << endl;
-							}
-						}
-						else
-						{
-							// В этом случае создаём новую AMR - сетку
-							//cout << "ih = " << iH << " " << ii << endl;
-							if (gr->type == Type_Gran::Us)
-							{
-								gr->AMR[iH - 1][ii] = new AMR_f(0.0, 20.0, -20.0, 20.0,
-									-20.0, 20.0, 3, 6, 6);
+								//cout << "Exist  " << iH << " " << ii << endl;
+								// В этом случае просто считываем AMR - сетку
+								gr->AMR[iH - 1][ii] = new AMR_f();
 								gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
+								gr->AMR[iH - 1][ii]->Read("data_AMR/" + name_f);
+
+
+								if (ni == ii && this->phys_param->refine_AMR == true && gr->type == Type_Gran::Us &&
+									gr->AMR[iH - 1][ii]->Size() < 3000)
+								{
+									unsigned short int NN = 1;
+									NN = gr->AMR[iH - 1][ii]->Refine();
+									NNall += NN;
+								}
+
+								if (gr->AMR[iH - 1][ii]->Size() > 5000)
+								{
+									cout << "_____________________________" << endl;
+									cout << "Anomalious function  H = " << iH << "  ii = " << ii << endl;
+									cout << gr->center[0][0] << " " << gr->center[0][1] << " " <<
+										gr->center[0][2] << " " << endl;
+									cout << gr->AMR[iH - 1][ii]->Size() << endl;
+									cout << "_____________________________" << endl;
+								}
 							}
 							else
 							{
-								gr->AMR[iH - 1][ii] = new AMR_f(0.0, 20.0, -20.0, 20.0,
-									-20.0, 20.0, 1, 1, 1);
-								gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
+								// В этом случае создаём новую AMR - сетку
+								//cout << "ih = " << iH << " " << ii << endl;
+								if (gr->type == Type_Gran::Us)
+								{
+									gr->AMR[iH - 1][ii] = new AMR_f(0.0, 20.0, -20.0, 20.0,
+										-20.0, 20.0, 3, 6, 6);
+									gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
+								}
+								else
+								{
+									gr->AMR[iH - 1][ii] = new AMR_f(0.0, 20.0, -20.0, 20.0,
+										-20.0, 20.0, 1, 1, 1);
+									gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
+								}
 							}
-						}
 
-						// На всякий случай задаём нормаль
-						if (ii == 0)
-						{
-							gr->AMR[iH - 1][ii]->Vn[0] = gr->normal[0][0];
-							gr->AMR[iH - 1][ii]->Vn[1] = gr->normal[0][1];
-							gr->AMR[iH - 1][ii]->Vn[2] = gr->normal[0][2];
-						}
-						else
-						{
-							gr->AMR[iH - 1][ii]->Vn[0] = -gr->normal[0][0];
-							gr->AMR[iH - 1][ii]->Vn[1] = -gr->normal[0][1];
-							gr->AMR[iH - 1][ii]->Vn[2] = -gr->normal[0][2];
-						}
-						gr->AMR[iH - 1][ii]->Set_bazis();
+							// На всякий случай задаём нормаль
+							if (ii == 0)
+							{
+								gr->AMR[iH - 1][ii]->Vn[0] = gr->normal[0][0];
+								gr->AMR[iH - 1][ii]->Vn[1] = gr->normal[0][1];
+								gr->AMR[iH - 1][ii]->Vn[2] = gr->normal[0][2];
+							}
+							else
+							{
+								gr->AMR[iH - 1][ii]->Vn[0] = -gr->normal[0][0];
+								gr->AMR[iH - 1][ii]->Vn[1] = -gr->normal[0][1];
+								gr->AMR[iH - 1][ii]->Vn[2] = -gr->normal[0][2];
+							}
+							gr->AMR[iH - 1][ii]->Set_bazis();
 
-						// Заполняем параметры на AMR
-						gr->AMR[iH - 1][ii]->parameters["n"] = 0.0;
-						gr->AMR[iH - 1][ii]->parameters["nn"] = 0.0;
-						gr->AMR[iH - 1][ii]->parameters["Smu"] = 0.0;
+							// Заполняем параметры на AMR
+							gr->AMR[iH - 1][ii]->parameters["n"] = 0.0;
+							gr->AMR[iH - 1][ii]->parameters["nn"] = 0.0;
+							gr->AMR[iH - 1][ii]->parameters["Smu"] = 0.0;
+						}
 					}
-
 				}
 			}
 
@@ -692,11 +700,51 @@ void Setka::MK_prepare(short int zone_MK)
 					NN2_++;
 				}
 			}
+
+			// Считаем сразу поток атомов через грань
+			if (true)
+			{
+				if (gr->type == Type_Gran::Us)
+				{
+					for (auto& ai : gr->AMR)
+					{
+						ai[ni2]->Culk_SpotokV(gr->area[0]);
+
+						S += ai[ni2]->SpotokV;
+						gr->MK_Potok += ai[ni2]->SpotokV;
+					}
+				}
+				else // Вручную посчитаем поток с границы расчётной области
+				{
+					for (size_t ijk = 0; ijk < this->phys_param->num_H; ijk++)
+					{
+						gr->AMR[ijk][ni2]->SpotokV = 0.0;
+					}
+
+					Eigen::Vector3d n;
+					n << -gr->AMR[3][ni2]->Vn[0], -gr->AMR[3][ni2]->Vn[1], -gr->AMR[3][ni2]->Vn[2];
+					// Так как нормаль должна быть внешняя к грани
+					double sjv = Get_Spotok_inf(n);
+					gr->AMR[3][ni2]->SpotokV = sjv * gr->area[0];
+					S += gr->AMR[3][ni2]->SpotokV;
+					gr->MK_Potok += gr->AMR[3][ni2]->SpotokV;
+				}
+			}
+
+			// Удалим сразу входящие функции распределения
+			for (short int iH = 1; iH <= gr->AMR.size(); iH++)
+			{
+				gr->AMR[iH - 1][ni2]->Delete();
+			}
+
 		}
 		cout << "Izmelcheno  " << NNall << "  yacheek" << endl;
 		cout << "Srednee chislo yacheek v AMR na vixodnix granyax =  " << 1.0 * NN1_/ NN2_ << endl;
 		cout << "End: Zagruzka AMR" << endl;
-}
+		this->MK_Potoks[zone_MK - 1] = S; // Входящий поток через всю границу зоны
+	}
+
+	pause_seconds(15);
 
 	// Можно удалить файлы граничных граней, так как они только место занимают
 	if (true)
@@ -787,7 +835,7 @@ void Setka::MK_prepare(short int zone_MK)
 	}
 
 	// Теперь для каждой функции распределения вычисляем поток через неё
-	if (true)
+	if (false)
 	{
 		double S = 0.0;
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
@@ -1059,6 +1107,8 @@ void Setka::MK_go(short int zone_MK)
 		{
 			auto& func = gr->AMR[nh_][ni];
 
+			if (gr->type == Type_Gran::Us) gr->Read_AMR(ni, nh_ + 1, false);
+
 			if (func->SpotokV < 0.0000001 * full_gran_potok)
 			{
 				// Функуция распределния нулевая, можно не разыгрывать
@@ -1249,6 +1299,8 @@ void Setka::MK_go(short int zone_MK)
 				//exit(-1);
 				//cout << "END" << endl;
 			}
+
+			if (gr->type == Type_Gran::Us) func->Delete();
 		}
 	}
 

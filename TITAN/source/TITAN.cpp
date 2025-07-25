@@ -62,7 +62,7 @@ int main()
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        //S1.Go(false, 100, 1); // 400   1
+        S1.Go(false, 100, 1); // 400   1
         S1.Go(true, 100, 1); // 400   1
 
 
@@ -76,7 +76,7 @@ int main()
 
         //S1.Init_physics();
 
-        if (i % 12 == 0)
+        if (i % 6 == 0)
         {
             string namn = "parameters_promeg_11" + to_string(i) + ".bin";
             S1.Save_cell_parameters(namn);
@@ -96,7 +96,7 @@ int main()
         return 0;
     }
 
-    //S1.Save_cell_parameters("parameters_0030.bin");
+    //S1.Save_cell_parameters("parameters_0032.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();

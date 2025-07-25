@@ -171,6 +171,41 @@ AMR_f::AMR_f(const double& xL, const double& xR, const double& yL, const double&
 	}
 }
 
+
+void AMR_f::AMR_resize(const double& xL, const double& xR, const double& yL, const double& yR, const double& zL,
+	const double& zR, unsigned int xn, unsigned int yn, unsigned int zn)
+{
+	this->xL = xL;
+	this->xR = xR;
+
+	this->yL = yL;
+	this->yR = yR;
+
+	this->zL = zL;
+	this->zR = zR;
+
+	this->xn = xn;
+	this->yn = yn;
+	this->zn = zn;
+
+	this->cells.resize(boost::extents[xn][yn][zn]);
+
+	for (int i = 0; i < xn; ++i) {
+		for (int j = 0; j < yn; ++j) {
+			for (int k = 0; k < zn; ++k) {
+				auto A = new AMR_cell();
+				A->nx = i;
+				A->ny = j;
+				A->nz = k;
+				A->parent = nullptr;
+				A->I_self = A;
+				A->level = 0;
+				this->cells[i][j][k] = A;
+			}
+		}
+	}
+}
+
 void AMR_f::Get_real_koordinate(const double& x, const double& y, const double& z, double& Vx, double& Vy, double& Vz)
 {
 	Eigen::Vector3d ex, ey, ez, ee;
