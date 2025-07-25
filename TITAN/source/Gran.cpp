@@ -24,26 +24,6 @@ void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 	{
 		this->AMR[nH - 1][ni] = new AMR_f();
 		this->AMR[nH - 1][ni]->AMR_self = this->AMR[nH - 1][ni];
-
-		// На всякий случай задаём нормаль
-		if (ni == 0)
-		{
-			this->AMR[nH - 1][ni]->Vn[0] = this->normal[0][0];
-			this->AMR[nH - 1][ni]->Vn[1] = this->normal[0][1];
-			this->AMR[nH - 1][ni]->Vn[2] = this->normal[0][2];
-		}
-		else
-		{
-			this->AMR[nH - 1][ni]->Vn[0] = -this->normal[0][0];
-			this->AMR[nH - 1][ni]->Vn[1] = -this->normal[0][1];
-			this->AMR[nH - 1][ni]->Vn[2] = -this->normal[0][2];
-		}
-		this->AMR[nH - 1][ni]->Set_bazis();
-
-		// Заполняем параметры на AMR
-		this->AMR[nH - 1][ni]->parameters["n"] = 0.0;
-		this->AMR[nH - 1][ni]->parameters["nn"] = 0.0;
-		this->AMR[nH - 1][ni]->parameters["Smu"] = 0.0;
 	}
 
 	if (this->AMR[nH - 1][ni]->cells.size() > 0)
@@ -60,13 +40,10 @@ void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 		this->AMR[nH - 1][ni]->Read("data_AMR/" + name_f);
 
 
-		/*if (ni == ii && this->phys_param->refine_AMR == true && gr->type == Type_Gran::Us &&
-			gr->AMR[iH - 1][ii]->Size() < 3000)
+		if (this->type == Type_Gran::Us && need_refine == true)
 		{
-			unsigned short int NN = 1;
-			NN = gr->AMR[iH - 1][ii]->Refine();
-			NNall += NN;
-		}*/
+			this->AMR[nH - 1][ni]->Refine();
+		}
 	}
 	else
 	{
@@ -81,6 +58,27 @@ void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 				-20.0, 20.0, 1, 1, 1);
 		}
 	}
+
+	// На всякий случай задаём нормаль
+	if (ni == 0)
+	{
+		this->AMR[nH - 1][ni]->Vn[0] = this->normal[0][0];
+		this->AMR[nH - 1][ni]->Vn[1] = this->normal[0][1];
+		this->AMR[nH - 1][ni]->Vn[2] = this->normal[0][2];
+	}
+	else
+	{
+		this->AMR[nH - 1][ni]->Vn[0] = -this->normal[0][0];
+		this->AMR[nH - 1][ni]->Vn[1] = -this->normal[0][1];
+		this->AMR[nH - 1][ni]->Vn[2] = -this->normal[0][2];
+	}
+	this->AMR[nH - 1][ni]->Set_bazis();
+
+	// Заполняем параметры на AMR
+	this->AMR[nH - 1][ni]->parameters["n"] = 0.0;
+	this->AMR[nH - 1][ni]->parameters["nn"] = 0.0;
+	this->AMR[nH - 1][ni]->parameters["Smu"] = 0.0;
+
 }
 
 bool Gran::Have_zone_number(short int z)

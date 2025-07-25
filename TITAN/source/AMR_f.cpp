@@ -96,6 +96,9 @@ void AMR_f::Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& 
 
 	cout << "Error 6453211877  " << endl;
 	whach(SS);
+	whach(nx);
+	whach(ny);
+	whach(nz);
 	whach(ksi);
 	whach(this->SpotokV);
 	exit(-1);
@@ -930,6 +933,8 @@ void AMR_f::Read(string namef)
 			}
 		}
 	}
+
+	in.close();
 }
 
 unsigned int AMR_f::Size(void)

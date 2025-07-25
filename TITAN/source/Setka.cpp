@@ -190,7 +190,7 @@ void Setka::Algoritm(short int alg)
 
 		vector<short int> zones_number;
 
-		/*zones_number.push_back(6);
+		zones_number.push_back(6);
 		zones_number.push_back(4);
 		zones_number.push_back(2);
 		zones_number.push_back(1);
@@ -201,9 +201,7 @@ void Setka::Algoritm(short int alg)
 		zones_number.push_back(3);
 		zones_number.push_back(1);
 		zones_number.push_back(2);
-		zones_number.push_back(4);*/
-
-		zones_number.push_back(6);
+		zones_number.push_back(4);
 
 		for (const auto& zone_play : zones_number)
 		{
@@ -3961,13 +3959,24 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 		fout << 1.0 * i / N * leng << " " << C(0) << " " << C(1) << " " << C(2);
 		for (auto& nam : Int1->param_names)
 		{
-			if (nam != "Q")
+			if (nam == "Q")
 			{
-				fout << " " << parameters[nam];
+				fout << " " << parameters["Q"] / parameters["rho"];
+			}
+			else if (nam == "rho_Pui_2")
+			{
+				if (parameters[nam] < 1e-7)
+				{
+					fout << " " << 0.0;
+				}
+				else
+				{
+					fout << " " << parameters[nam];
+				}
 			}
 			else
 			{
-				fout << " " << parameters["Q"]/ parameters["rho"];
+				fout << " " << parameters[nam];
 			}
 		}
 

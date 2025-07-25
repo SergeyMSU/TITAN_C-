@@ -1961,6 +1961,21 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 		#pragma omp barrier
 
+		// ”величим давление PUI за ударной волной
+		if (is_inner_area == false && this->phys_param->is_PUI == true)
+		{
+			#pragma omp parallel for
+			for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
+			{
+				auto gr = this->Gran_TS[i_step];
+				auto A = gr->cells[0];
+				auto B = gr->cells[1];
+
+				B->parameters[now2]["p_Pui_1"] = A->parameters[now2]["p_Pui_1"] *
+					B->parameters[now2]["p"] / A->parameters[now2]["p"];
+			}
+		}
+
 		// —читаем фиктивную центральную €чейку
 		if (this->phys_param->culc_atoms == true && is_inner_area == true)
 		{
