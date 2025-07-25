@@ -50,7 +50,7 @@ int main()
     S1.Tecplot_print_all_lush_in_2D();
     S1.Tecplot_print_all_cell_in_3D();
 
-    //S1.Algoritm(2);
+    S1.Algoritm(2);
     S1.Tecplot_print_all_gran_in_surface("TS");
     S1.Tecplot_print_all_gran_in_surface("HP");
     S1.Tecplot_print_all_gran_in_surface("BS");
@@ -58,7 +58,7 @@ int main()
     S1.Find_Yzel_Sosed_for_sglag();
 
 
-    for (int i = 1; i <= 6; i++) // 6 * 2
+    for (int i = 1; i <= 0; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -96,7 +96,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0030.bin");
+    //S1.Save_cell_parameters("parameters_0030.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();

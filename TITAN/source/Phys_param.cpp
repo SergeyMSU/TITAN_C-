@@ -219,14 +219,7 @@ Phys_param::Phys_param()
     }
 
 
-    // Парметры настройки MK
-    this->save_AMR = false;        // Нужно ли сохранять посчитанные функции распределения?
-    this->culc_AMR = false;        // Нужно ли считать функции распределения?
-    this->refine_AMR = false;      // Нужно ли мельчить посчитанные функции распределения?
-    this->N_per_gran = 10000;  // Сколько в среднем частиц вылетает с каждой грани
-    this->culc_cell_moments = false;    // Нужно ли считать моменты в ячейках?
-    this->de_refine_AMR = false;        // Нужно ли огрублять AMR сетку, если требуется?
-    this->MK_file = "parameters_MK_0001.bin";
+   
 
 
     this->param_names.push_back("rho");  this->plasma_name.push_back("rho");
@@ -375,7 +368,7 @@ void Phys_param::set_parameters(void)
 {
     this->is_div_V_in_cell = false;
 
-    this->is_PUI = true;       // Считаем ли пикапы?
+    this->is_PUI = false;       // Считаем ли пикапы?
     this->num_pui = 2;         // Сколько сортов пикапов в ячейках
 
     // Настройки расчёта Плазмы
@@ -414,6 +407,17 @@ void Phys_param::set_parameters(void)
 
     this->null_bn_on_HP = true;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
     this->bn_in_p_on_HP = true;   // Для ячеек рядом с HP записываем магнитное поле в давление
+
+
+    // Парметры настройки MK
+    this->save_AMR = false;        // Нужно ли сохранять посчитанные функции распределения?
+    this->culc_AMR = false;        // Нужно ли считать функции распределения?
+    this->refine_AMR = false;      // Нужно ли мельчить посчитанные функции распределения?
+    this->N_per_gran = 10000;  // Сколько в среднем частиц вылетает с каждой грани
+    this->culc_cell_moments = false;    // Нужно ли считать моменты в ячейках?
+    this->de_refine_AMR = false;        // Нужно ли огрублять AMR сетку, если требуется?
+    this->MK_file = "parameters_MK_0001.bin";
+
 }
 
 

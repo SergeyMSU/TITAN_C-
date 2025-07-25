@@ -623,12 +623,8 @@ void Setka::MK_prepare(short int zone_MK)
 								gr->AMR[iH - 1][ii]->Size() < 3000)
 							{
 								unsigned short int NN = 1;
-								//while (NN > 0)
-								//{
-									//cout << "Rifine" << endl;
-									NN = gr->AMR[iH - 1][ii]->Refine();
-									NNall += NN;
-								//}
+								NN = gr->AMR[iH - 1][ii]->Refine();
+								NNall += NN;
 							}
 
 							if (gr->AMR[iH - 1][ii]->Size() > 5000)
@@ -1540,6 +1536,9 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 		rho_Th = param["rho_Th"];
 		p_Th = param["p_Th"];
+
+		if (rho_Th <= 1e-8) rho_Th = 1e-8;
+		if (p_Th <= 1e-8/2.0) p_Th = 1e-8/2.0;
 
 		ro = rho_Th;
 		cp = sqrt(2.0 * p_Th / rho_Th);

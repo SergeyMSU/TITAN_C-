@@ -203,19 +203,12 @@ void Setka::Algoritm(short int alg)
 		zones_number.push_back(2);
 		zones_number.push_back(4);*/
 
-		zones_number.push_back(3);
+		zones_number.push_back(6);
 
 		for (const auto& zone_play : zones_number)
 		{
 			cout << "Start zone = " << zone_play << endl;
 			this->MK_prepare(zone_play);
-			int j = 0;
-			while (true)
-			{
-				j++;
-				if (j > 100) j = j - 100;
-			}
-			exit(-1);
 			this->MK_go(zone_play);
 			this->MK_delete(zone_play);
 		}
