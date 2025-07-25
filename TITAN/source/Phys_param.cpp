@@ -375,7 +375,7 @@ void Phys_param::set_parameters(void)
 {
     this->is_div_V_in_cell = false;
 
-    this->is_PUI = false;       // Считаем ли пикапы?
+    this->is_PUI = true;       // Считаем ли пикапы?
     this->num_pui = 2;         // Сколько сортов пикапов в ячейках
 
     // Настройки расчёта Плазмы
@@ -383,7 +383,7 @@ void Phys_param::set_parameters(void)
     this->TVD = true;                  // Делаем ли ТВД?
 
     this->culc_plasma = true;          // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
-    this->culc_atoms = false;           // Вычисляем ли атомы или оставляем их вмороженными
+    this->culc_atoms = true;           // Вычисляем ли атомы или оставляем их вмороженными
     this->move_setka = true;
 
 
@@ -400,7 +400,7 @@ void Phys_param::set_parameters(void)
 
 
     this->sglag_HP = true;
-    this->velocity_HP = 0.05;  // 0.1
+    this->velocity_HP = 0.1;  // 0.1
     this->sglag_HP_k_sphere = 0.04;  //0.005 0.002    // Cглаживание в головной части
     this->sglag_HP_k = 0.01; // 0.001         // Сглаживание не в головной области
     this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу

@@ -289,8 +289,11 @@ void Setka::Init_physics(void)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			i->parameters[0]["rho_He"] = 0.000001;
-			i->parameters[0]["rho_He"] = 0.000001;
+			i->parameters[0]["rho_Pui_1"] = 1e-7;
+			i->parameters[0]["p_Pui_1"] = 1e-7/2.0;
+
+			i->parameters[0]["rho_Pui_2"] = 1e-8;
+			i->parameters[0]["p_Pui_2"] = 1e-8 / 2.0;
 
 			for (short unsigned int j = 1; j < i->parameters.size(); j++)
 			{
@@ -1337,7 +1340,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	cout << "Vibor area" << endl;
 	// Если хотим отдельно считать внутреннюю и наружнюю области
-	if (true)
+	if (false)
 	{
 		if (is_inner_area == true)
 		{
