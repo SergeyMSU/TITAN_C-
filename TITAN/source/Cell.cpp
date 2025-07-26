@@ -427,12 +427,16 @@ void Cell::MK_Add_particle(MK_particle& P, const double& time)
 		{
 		case 1:
 			this->parameters[0]["MK_n_H1"] += time * P.mu;
+			break;
 		case 2:
 			this->parameters[0]["MK_n_H2"] += time * P.mu;
+			break;
 		case 3:
 			this->parameters[0]["MK_n_H3"] += time * P.mu;
+			break;
 		case 4:
 			this->parameters[0]["MK_n_H4"] += time * P.mu;
+			break;
 		default:
 			break;
 		}

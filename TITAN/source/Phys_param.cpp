@@ -368,7 +368,7 @@ void Phys_param::set_parameters(void)
 {
     this->is_div_V_in_cell = false;
 
-    this->is_PUI = false;       // Считаем ли пикапы?
+    this->is_PUI = true;       // Считаем ли пикапы?
     this->num_pui = 2;         // Сколько сортов пикапов в ячейках
 
     // Настройки расчёта Плазмы
@@ -385,16 +385,16 @@ void Phys_param::set_parameters(void)
     this->move_BS = true;
 
     this->sglag_TS = true;              // Делаем ли сглаживание TS
-    this->velocity_TS = 0.03;
+    this->velocity_TS = 0.05;            // 0.03
     this->sglag_TS_k = 0.003;            // Сглаживание на высоких широтах
-    this->sglag_TS_k_sphere_head = 0.02; // 0.08;   // Сглаживание в головной части
+    this->sglag_TS_k_sphere_head = 0.03; // 0.08;   // Сглаживание в головной части
     this->sglag_TS_k_sphere_tail = 0.01; // 0.03;   // Сглаживание в хвостовой части
     
 
 
     this->sglag_HP = true;
     this->velocity_HP = 0.1;  // 0.1
-    this->sglag_HP_k_sphere = 0.04;  //0.005 0.002    // Cглаживание в головной части
+    this->sglag_HP_k_sphere = 0.06;  //0.005 0.002    // Cглаживание в головной части
     this->sglag_HP_k = 0.01; // 0.001         // Сглаживание не в головной области
     this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
     this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х

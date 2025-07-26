@@ -1125,6 +1125,16 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 		value *= ddp;  
 	}
 
+	// Источники водорода не надо умножать на концентрацию водорода, иначе получится не правильно
+	for (auto& nam : this->phys_param->H_name)
+	{
+		SOURSE["rho" + nam] /= this->phys_param->par_n_H_LISM;
+		SOURSE["m_x" + nam] /= this->phys_param->par_n_H_LISM;
+		SOURSE["m_y" + nam] /= this->phys_param->par_n_H_LISM;
+		SOURSE["m_z" + nam] /= this->phys_param->par_n_H_LISM;
+		SOURSE["E" + nam] /= this->phys_param->par_n_H_LISM;
+	}
+
 	/*for (const auto& [key, value] : SOURSE)
 	{
 		cout << key << "  " << value << endl;
@@ -1405,7 +1415,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	for (unsigned int step = 1; step <= steps; step++)
 	{
-		if (step % 25 == 0)
+		if (step % 50 == 0)
 		{
 			cout << "Global step = " << step << endl;
 			whach(time);

@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0019.bin");  
+    S1.Download_cell_parameters("parameters_0035.bin");  
     // 19 стартовая точка от которой две параллели с пикапами и без
 
     cout << "C2 " << endl;
@@ -50,7 +50,7 @@ int main()
     S1.Tecplot_print_all_lush_in_2D();
     S1.Tecplot_print_all_cell_in_3D();
 
-    S1.Algoritm(2);
+    //S1.Algoritm(2);
     S1.Tecplot_print_all_gran_in_surface("TS");
     S1.Tecplot_print_all_gran_in_surface("HP");
     S1.Tecplot_print_all_gran_in_surface("BS");
@@ -58,12 +58,12 @@ int main()
     S1.Find_Yzel_Sosed_for_sglag();
 
 
-    for (int i = 1; i <= 0; i++) // 6 * 2
+    for (int i = 1; i <= 8 * 24; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 100, 1); // 400   1
-        S1.Go(true, 100, 1); // 400   1
+        S1.Go(false, 150, 1); // 400   1
+        S1.Go(true, 50, 1); // 400   1
 
 
         S1.Tecplot_print_cell_plane_parameters();
@@ -76,7 +76,7 @@ int main()
 
         //S1.Init_physics();
 
-        if (i % 6 == 0)
+        if (i % 12 == 0)
         {
             string namn = "parameters_promeg_11" + to_string(i) + ".bin";
             S1.Save_cell_parameters(namn);
@@ -96,7 +96,7 @@ int main()
         return 0;
     }
 
-    //S1.Save_cell_parameters("parameters_0034.bin");
+    S1.Save_cell_parameters("parameters_0036.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();
