@@ -35,6 +35,7 @@ public:
 	// ”злы - соседи дл€ сглаживани€ поверхности
 	// AA33  AA3  (AA)  AA1  AA11 - вдоль HP  направление в апвинд
 	// A22  AA2  (AA)  AA4  AA44  - вращение HP
+	std::unordered_set<Yzel*> Yzel_sosed_sglag2;
 
 	unordered_map<string, double> parameters;   // ѕараметры в узле (дл€ интерпол€ции надо)
 

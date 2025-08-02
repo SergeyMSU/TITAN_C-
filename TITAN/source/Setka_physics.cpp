@@ -1792,13 +1792,17 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					{
 #pragma omp critical (firstf) 
 						{
-							cout << "Plasma  p < 0" << endl;
-							cout << cell->center[now2][0] << " " <<
-								cell->center[now2][1] << " " <<
-								cell->center[now2][2] << endl;
+							if (print_p_less_0 == false)
+							{
+								cout << "Plasma  p < 0" << endl;
+								cout << cell->center[now2][0] << " " <<
+									cell->center[now2][1] << " " <<
+									cell->center[now2][2] << endl;
+								print_p_less_0 = true;
+							}
 						}
 					}
-					print_p_less_0 = true;
+					
 
 				}
 
@@ -2185,7 +2189,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			n[2] = gr->normal[now][2];
 
 			this->phys_param->Godunov_Solver_Alexashov(qqq1, qqq2,//
-				n, qqq, dsl, dsr, dsc, w, true);
+				n, qqq, dsl, dsr, dsc, w, this->phys_param->contact_hard);
 
 			qqq[5] = qqq[6] = qqq[7] = 0.0;
 			konvect[0] = 0.0;
@@ -2194,7 +2198,8 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		else
 		{
 			bool left_ydar = false;
-			if (gr->type2 == Type_Gran_surf::TS) left_ydar = true;
+			if (gr->type2 == Type_Gran_surf::TS && this->phys_param->TS_hard)
+				left_ydar = true;
 
 			this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
 				gr->normal[now][2],

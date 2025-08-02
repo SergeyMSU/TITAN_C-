@@ -368,12 +368,12 @@ void Phys_param::set_parameters(void)
 {
     this->is_div_V_in_cell = false;
 
-    this->is_PUI = true;       // Считаем ли пикапы?
+    this->is_PUI = false;       // Считаем ли пикапы?
     this->num_pui = 2;         // Сколько сортов пикапов в ячейках
 
     // Настройки расчёта Плазмы
     this->KFL = 0.8;                   // критерий Куранта
-    this->TVD = true;                  // Делаем ли ТВД?
+    this->TVD = false;                  // Делаем ли ТВД?
 
     this->culc_plasma = true;          // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
     this->culc_atoms = true;           // Вычисляем ли атомы или оставляем их вмороженными
@@ -385,17 +385,18 @@ void Phys_param::set_parameters(void)
     this->move_BS = true;
 
     this->sglag_TS = true;              // Делаем ли сглаживание TS
-    this->velocity_TS = 0.05;            // 0.03
-    this->sglag_TS_k = 0.003;            // Сглаживание на высоких широтах
-    this->sglag_TS_k_sphere_head = 0.03; // 0.08;   // Сглаживание в головной части
-    this->sglag_TS_k_sphere_tail = 0.01; // 0.03;   // Сглаживание в хвостовой части
+    this->velocity_TS = 0.2;            // 0.05
+    this->sglag_TS_k_sphere = 0.01;  //0.005 0.002    // Cглаживание в головной части
+    this->sglag_TS_k = 0.001;            // Сглаживание на высоких широтах
+    this->sglag_TS_k_sphere_head = 0.05; // 0.08;   // Сглаживание в головной части
+    this->sglag_TS_k_sphere_tail = 0.005; // 0.03;   // Сглаживание в хвостовой части
     
 
 
     this->sglag_HP = true;
-    this->velocity_HP = 0.1;  // 0.1
-    this->sglag_HP_k_sphere = 0.06;  //0.005 0.002    // Cглаживание в головной части
-    this->sglag_HP_k = 0.01; // 0.001         // Сглаживание не в головной области
+    this->velocity_HP = 1.0;  // 0.1
+    this->sglag_HP_k_sphere = 0.005;  //0.005 0.002    // Cглаживание в головной части
+    this->sglag_HP_k = 0.01; // 0.01         // Сглаживание не в головной области
     this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
     this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
     this->sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
@@ -405,9 +406,10 @@ void Phys_param::set_parameters(void)
     this->sglag_BS_k = 0.05;
 
 
-    this->null_bn_on_HP = true;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
-    this->bn_in_p_on_HP = true;   // Для ячеек рядом с HP записываем магнитное поле в давление
-
+    this->null_bn_on_HP = false;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
+    this->bn_in_p_on_HP = true;   // Для ячеек рядом с HP записываем магнитное поле в давление и решаем Годунова
+    this->contact_hard = false;
+    this->TS_hard = false;
 
     // Парметры настройки MK
     this->save_AMR = true;        // Нужно ли сохранять посчитанные функции распределения?

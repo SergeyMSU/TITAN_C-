@@ -453,46 +453,104 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 	if (this->phys_param->sglag_TS == true)
 	{
-#pragma omp parallel for
-		for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
+		//double phi_a = polar_angle(this->A_Luch[0][1]->Yzels[0]->coord[0][0],
+		//	norm2(0.0, this->A_Luch[0][1]->Yzels[0]->coord[0][1],
+		//		this->A_Luch[0][1]->Yzels[0]->coord[0][2]));
+
+		Eigen::Vector3d A, B, B2, V;
+
+		// Сглаживание в головной области х > 0
+		// Здесть просто Лаплас в сферических СК. или декартовых
+		// Лаплас в декартовых работает очень плохо и "сплющивает" поверхность
+		if (true) // Это старый вариант сглаживания, сейчас работает другой
 		{
-			Eigen::Vector3d A, B, V;
-			auto gr = this->Gran_TS[i_step];
-			A << gr->center[now][0], gr->center[now][1], gr->center[now][2];
-			double rr = A.norm();
-			double r = 0.0;
-			for (auto& j : gr->grans_surf)
-			{
-				r += norm2(j->center[now][0], j->center[now][1], j->center[now][2]);
-			}
-			r /= gr->grans_surf.size();
+			if (true)
+			{   // Лаплас в сферических новых
+#pragma omp parallel for private(A, B, V, B2) schedule(dynamic)
+				for (auto& yz : this->All_Yzel)
+				{
+					if (yz->type != Type_yzel::TS) continue;
+					A << yz->coord[now][0], yz->coord[now][1], yz->coord[now][2];
 
-			B = A * r / rr;
-			
-			double pk = this->phys_param->sglag_TS_k;
-			double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
-			if (phi > this->geo->tetta1)
-			{
-				pk = this->phys_param->sglag_TS_k_sphere_tail;
-			}
-			else if (phi < this->geo->tetta0)
-			{
-				pk = this->phys_param->sglag_TS_k_sphere_head;
-			}
+					//double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
 
-			V = this->phys_param->velocity_TS * pk * (B - A) / time;
+					// Включаем радиально-сферическое сглаживание только в головной зоне
+					//if (phi > phi_a + const_pi / 180.0) continue;
 
-			for (auto& yz : gr->yzels)
-			{
-				yz->mut.lock();
-				yz->velocity[0] += V(0);
-				yz->velocity[1] += V(1);
-				yz->velocity[2] += V(2);
-				yz->num_velocity++;
-				yz->mut.unlock();
+					B << yz->parameters["xc"], yz->parameters["yc"], yz->parameters["zc"];
+
+					double rr = (A - B).norm();
+					double r = 0.0;
+					for (auto& j : yz->Yzel_sosed_sglag2)
+					{
+						B2 << j->coord[now][0], j->coord[now][1], j->coord[now][2];
+						r += (B2 - B).norm();
+					}
+					r /= yz->Yzel_sosed_sglag2.size();
+
+					double k = (r / rr);
+					B2 = k * (A - B) + B;
+
+					V = this->phys_param->velocity_TS * 
+						this->phys_param->sglag_TS_k_sphere * (B2 - A) / time;
+
+					yz->mut.lock();
+					yz->velocity[0] += V(0);
+					yz->velocity[1] += V(1);
+					yz->velocity[2] += V(2);
+					yz->num_velocity++;
+					yz->mut.unlock();
+
+				}
 			}
 		}
 
+		if (false)
+		{
+			double phi_a = polar_angle(this->A_Luch[0][1]->Yzels[0]->coord[0][0],
+				norm2(0.0, this->A_Luch[0][1]->Yzels[0]->coord[0][1],
+					this->A_Luch[0][1]->Yzels[0]->coord[0][2]));
+
+			#pragma omp parallel for
+			for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
+			{
+				Eigen::Vector3d A, B, V;
+				auto gr = this->Gran_TS[i_step];
+				A << gr->center[now][0], gr->center[now][1], gr->center[now][2];
+				double rr = A.norm();
+				double r = 0.0;
+				for (auto& j : gr->grans_surf)
+				{
+					r += norm2(j->center[now][0], j->center[now][1], j->center[now][2]);
+				}
+				r /= gr->grans_surf.size();
+
+				B = A * r / rr;
+
+				double pk = this->phys_param->sglag_TS_k;
+				double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+				if (phi > this->geo->tetta1)
+				{
+					pk = this->phys_param->sglag_TS_k_sphere_tail;
+				}
+				else if (phi < this->geo->tetta0)
+				{
+					pk = this->phys_param->sglag_TS_k_sphere_head;
+				}
+
+				V = this->phys_param->velocity_TS * pk * (B - A) / time;
+
+				for (auto& yz : gr->yzels)
+				{
+					yz->mut.lock();
+					yz->velocity[0] += V(0);
+					yz->velocity[1] += V(1);
+					yz->velocity[2] += V(2);
+					yz->num_velocity++;
+					yz->mut.unlock();
+				}
+			}
+		}
 		
 	}
 
@@ -503,15 +561,53 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			norm2(0.0, this->A_Luch[0][1]->Yzels[0]->coord[0][1], 
 				this->A_Luch[0][1]->Yzels[0]->coord[0][2]));
 
-		Eigen::Vector3d A, B, V;
+		Eigen::Vector3d A, B, B2, V;
 
 		// Сглаживание в головной области х > 0
 		// Здесть просто Лаплас в сферических СК. или декартовых
 		// Лаплас в декартовых работает очень плохо и "сплющивает" поверхность
 		if (true) // Это старый вариант сглаживания, сейчас работает другой
 		{
-			
 			if (true)
+			{   // Лаплас в сферических новых
+#pragma omp parallel for private(A, B, V, B2) schedule(dynamic)
+				for (auto& yz : this->All_Yzel)
+				{
+					if (yz->type != Type_yzel::HP) continue;
+					A << yz->coord[now][0], yz->coord[now][1], yz->coord[now][2];
+					
+					double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+
+					// Включаем радиально-сферическое сглаживание только в головной зоне
+					if (phi > phi_a + const_pi / 180.0) continue;
+
+					B << yz->parameters["xc"], yz->parameters["yc"], yz->parameters["zc"];
+						
+					double rr = (A - B).norm();
+					double r = 0.0;
+					for (auto& j : yz->Yzel_sosed_sglag2)
+					{
+						B2 << j->coord[now][0], j->coord[now][1], j->coord[now][2];
+						r += (B2 - B).norm();
+					}
+					r /= yz->Yzel_sosed_sglag2.size();
+
+					double k = (r / rr);
+					B2 = k * (A - B) + B;
+
+					V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_k_sphere * (B2 - A) / time;
+					//V = this->phys_param->sglag_HP_k_sphere * (B - A) / time;
+
+					yz->mut.lock();
+					yz->velocity[0] += V(0);
+					yz->velocity[1] += V(1);
+					yz->velocity[2] += V(2);
+					yz->num_velocity++;
+					yz->mut.unlock();
+
+				}
+			}
+			if (false)
 			{   // Лаплас в сферических
 				#pragma omp parallel for private(A, B, V)
 				for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
@@ -548,7 +644,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 					}
 				}
 			}
-			if (true)
+			if (false)
 			{
 				// Лаплас в декартовых
 				#pragma omp parallel for private(A, B, V)
@@ -1628,6 +1724,324 @@ void Setka::Smooth_head_HP(void)
 	this->Calculating_measure(1);
 
 	cout << "End Smooth_head_HP" << endl;
+}
+
+void Setka::Smooth_head_HP3(void)
+{
+	int max_iterations = 8;
+	double tolerance = 1e-6;
+	double phi_a = polar_angle(this->A_Luch[0][1]->Yzels[0]->coord[0][0],
+		norm2(0.0, this->A_Luch[0][1]->Yzels[0]->coord[0][1],
+			this->A_Luch[0][1]->Yzels[0]->coord[0][2]));
+
+	cout << "Start Smooth_head_HP3" << endl;
+
+	for (auto& yz : this->All_Yzel)
+	{
+		if (yz->type != Type_yzel::HP) continue;
+
+		double phi = polar_angle(yz->coord[0][0], 
+			norm2(0.0, yz->coord[0][1], yz->coord[0][2]));
+
+		// Включаем радиально-сферическое сглаживание только в головной зоне
+		if (phi > phi_a + const_pi / 180.0) continue;
+
+		std::unordered_set<Yzel*> Yzels;
+		Yzels.insert(yz);
+		for (auto& gr : yz->grans)
+		{
+			if (gr->type2 != Type_Gran_surf::HP) continue;
+			for (auto& yz2 : gr->yzels)
+			{
+				Yzels.insert(yz2);
+			}
+		}
+
+		int n = Yzels.size();
+
+		if (n < 3)
+		{
+			cout << "Error  " << yz->coord[0][0] << " " << yz->coord[0][1] << " "
+				<< yz->coord[0][2] << endl;
+			continue;
+		}
+
+		yz->Yzel_sosed_sglag2.clear();
+		for (auto& i : Yzels)
+		{
+			if (i == yz) continue;
+			yz->Yzel_sosed_sglag2.insert(i);
+		}
+
+		std::vector<Eigen::Vector3d> points;
+		for (auto& i : Yzels)
+		{
+			Eigen::Vector3d AA;
+			AA << i->coord[0][0],
+				i->coord[0][1], i->coord[0][2];
+			points.push_back(AA);
+		}
+
+		Eigen::MatrixXd A(n, 3);
+		Eigen::VectorXd b(n);
+		for (int i = 0; i < n; ++i) {
+			A.row(i) = 2.0 * points[i];
+			b(i) = points[i].squaredNorm();
+		}
+
+		// 2. Вычитаем уравнения для уменьшения влияния численных ошибок
+		Eigen::Vector3d mean_point = Eigen::Vector3d::Zero();
+		for (const auto& p : points) mean_point += p;
+		mean_point /= n;
+
+		Eigen::MatrixXd A_centered = A.rowwise() - A.colwise().mean();
+		Eigen::VectorXd b_centered = b.array() - b.mean();
+
+		Eigen::Vector3d center = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+		double radius = 0.0;
+
+		// 2. Итеративное уточнение
+		Eigen::VectorXd weights = Eigen::VectorXd::Ones(n);
+		double prev_residual = std::numeric_limits<double>::max();
+
+		for (int iter = 0; iter < max_iterations; ++iter) {
+			// 2.1. Вычисляем текущий радиус как среднее расстояние до центра
+			radius = 0.0;
+			for (const auto& p : points) {
+				radius += (p - center).norm();
+			}
+			radius /= n;
+
+			// 2.2. Вычисляем невязки и веса (исключаем выбросы)
+			Eigen::VectorXd residuals(n);
+			double total_residual = 0.0;
+
+			for (size_t i = 0; i < n; ++i) {
+				double dist = (points[i] - center).norm();
+				residuals[i] = std::abs(dist - radius);
+				total_residual += residuals[i] * residuals[i];
+			}
+
+			double rms_residual = std::sqrt(total_residual / n);
+
+			// 2.3. Проверка критерия остановки
+			if (std::abs(prev_residual - rms_residual) < tolerance) {
+				break;
+			}
+			prev_residual = rms_residual;
+
+			// 2.4. Обновляем веса (используем стандартное отклонение вместо MAD)
+			double mean = residuals.mean();
+			double stddev = std::sqrt((residuals.array() - mean).square().sum() / n);
+			double cutoff = 2.5 * stddev;  // 2.5 сигма
+
+			for (size_t i = 0; i < n; ++i) 
+			{
+				if (residuals[i] < cutoff) 
+				{
+					double t = residuals[i] / cutoff;
+					weights[i] = (1.0 - t * t) * (1.0 - t * t);
+				}
+				else 
+				{
+					weights[i] = 0.0;
+				}
+			}
+
+			// 2.5. Решаем взвешенную систему
+			Eigen::MatrixXd WA = weights.asDiagonal() * A;
+			Eigen::VectorXd Wb = weights.asDiagonal() * b;
+			center = WA.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(Wb);
+		}
+
+		// 3. Вычисляем финальный радиус и невязку
+		radius = 0.0;
+		double final_residual = 0.0;
+		for (const auto& p : points) 
+		{
+			double dist = (p - center).norm();
+			radius += dist;
+		}
+		radius /= n;
+
+		for (const auto& p : points)
+		{
+			double dist = (p - center).norm();
+			final_residual += std::abs(dist - radius);
+		}
+		final_residual /= n;
+
+
+		yz->parameters["xc"] = center[0];
+		yz->parameters["yc"] = center[1];
+		yz->parameters["zc"] = center[2];
+
+		//cout << "center = " << center[0] << " " << center[1] <<
+		//	" " << center[2] << endl;
+		//cout << "final_residual = " << final_residual << endl;
+	}
+
+	//exit(-1);
+	cout << "End Smooth_head_HP3" << endl;
+}
+
+void Setka::Smooth_head_TS3(void)
+{
+	int max_iterations = 8;
+	double tolerance = 1e-6;
+	double phi_a = polar_angle(this->A_Luch[0][1]->Yzels[0]->coord[0][0],
+		norm2(0.0, this->A_Luch[0][1]->Yzels[0]->coord[0][1],
+			this->A_Luch[0][1]->Yzels[0]->coord[0][2]));
+
+	cout << "Start Smooth_head_TS3" << endl;
+
+	for (auto& yz : this->All_Yzel)
+	{
+		if (yz->type != Type_yzel::TS) continue;
+
+		double phi = polar_angle(yz->coord[0][0],
+			norm2(0.0, yz->coord[0][1], yz->coord[0][2]));
+
+		// Включаем радиально-сферическое сглаживание только в головной зоне
+		//if (phi > phi_a + const_pi / 180.0) continue;
+
+		std::unordered_set<Yzel*> Yzels;
+		Yzels.insert(yz);
+		for (auto& gr : yz->grans)
+		{
+			if (gr->type2 != Type_Gran_surf::TS) continue;
+			for (auto& yz2 : gr->yzels)
+			{
+				Yzels.insert(yz2);
+			}
+		}
+
+		int n = Yzels.size();
+
+		if (n < 3)
+		{
+			cout << "Error  " << yz->coord[0][0] << " " << yz->coord[0][1] << " "
+				<< yz->coord[0][2] << endl;
+			continue;
+		}
+
+		yz->Yzel_sosed_sglag2.clear();
+		for (auto& i : Yzels)
+		{
+			if (i == yz) continue;
+			yz->Yzel_sosed_sglag2.insert(i);
+		}
+
+		std::vector<Eigen::Vector3d> points;
+		for (auto& i : Yzels)
+		{
+			Eigen::Vector3d AA;
+			AA << i->coord[0][0],
+				i->coord[0][1], i->coord[0][2];
+			points.push_back(AA);
+		}
+
+		Eigen::MatrixXd A(n, 3);
+		Eigen::VectorXd b(n);
+		for (int i = 0; i < n; ++i) {
+			A.row(i) = 2.0 * points[i];
+			b(i) = points[i].squaredNorm();
+		}
+
+		// 2. Вычитаем уравнения для уменьшения влияния численных ошибок
+		Eigen::Vector3d mean_point = Eigen::Vector3d::Zero();
+		for (const auto& p : points) mean_point += p;
+		mean_point /= n;
+
+		Eigen::MatrixXd A_centered = A.rowwise() - A.colwise().mean();
+		Eigen::VectorXd b_centered = b.array() - b.mean();
+
+		Eigen::Vector3d center = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+		double radius = 0.0;
+
+		// 2. Итеративное уточнение
+		Eigen::VectorXd weights = Eigen::VectorXd::Ones(n);
+		double prev_residual = std::numeric_limits<double>::max();
+
+		for (int iter = 0; iter < max_iterations; ++iter) {
+			// 2.1. Вычисляем текущий радиус как среднее расстояние до центра
+			radius = 0.0;
+			for (const auto& p : points) {
+				radius += (p - center).norm();
+			}
+			radius /= n;
+
+			// 2.2. Вычисляем невязки и веса (исключаем выбросы)
+			Eigen::VectorXd residuals(n);
+			double total_residual = 0.0;
+
+			for (size_t i = 0; i < n; ++i) {
+				double dist = (points[i] - center).norm();
+				residuals[i] = std::abs(dist - radius);
+				total_residual += residuals[i] * residuals[i];
+			}
+
+			double rms_residual = std::sqrt(total_residual / n);
+
+			// 2.3. Проверка критерия остановки
+			if (std::abs(prev_residual - rms_residual) < tolerance) {
+				break;
+			}
+			prev_residual = rms_residual;
+
+			// 2.4. Обновляем веса (используем стандартное отклонение вместо MAD)
+			double mean = residuals.mean();
+			double stddev = std::sqrt((residuals.array() - mean).square().sum() / n);
+			double cutoff = 2.5 * stddev;  // 2.5 сигма
+
+			for (size_t i = 0; i < n; ++i)
+			{
+				if (residuals[i] < cutoff)
+				{
+					double t = residuals[i] / cutoff;
+					weights[i] = (1.0 - t * t) * (1.0 - t * t);
+				}
+				else
+				{
+					weights[i] = 0.0;
+				}
+			}
+
+			// 2.5. Решаем взвешенную систему
+			Eigen::MatrixXd WA = weights.asDiagonal() * A;
+			Eigen::VectorXd Wb = weights.asDiagonal() * b;
+			center = WA.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(Wb);
+		}
+
+		// 3. Вычисляем финальный радиус и невязку
+		radius = 0.0;
+		double final_residual = 0.0;
+		for (const auto& p : points)
+		{
+			double dist = (p - center).norm();
+			radius += dist;
+		}
+		radius /= n;
+
+		for (const auto& p : points)
+		{
+			double dist = (p - center).norm();
+			final_residual += std::abs(dist - radius);
+		}
+		final_residual /= n;
+
+
+		yz->parameters["xc"] = center[0];
+		yz->parameters["yc"] = center[1];
+		yz->parameters["zc"] = center[2];
+
+		//cout << "center = " << center[0] << " " << center[1] <<
+		//	" " << center[2] << endl;
+		//cout << "final_residual = " << final_residual << endl;
+	}
+
+	//exit(-1);
+	cout << "End Smooth_head_TS3" << endl;
 }
 
 void Setka::Find_Yzel_Sosed_for_sglag(void)
