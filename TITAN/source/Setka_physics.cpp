@@ -1639,7 +1639,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				if (rho3 < 1e-7)
 				{
-					rho3 = 0.01;
+					rho3 = 0.1;
 					Q3 = Q / rho * rho3;
 					rho_He3 = 0.0;
 					cout << "Plasma  rho < 0" << endl;
