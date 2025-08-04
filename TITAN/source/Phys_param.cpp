@@ -385,7 +385,7 @@ void Phys_param::set_parameters(void)
     this->move_BS = true;
 
     this->sglag_TS = true;              // Делаем ли сглаживание TS
-    this->velocity_TS = 0.01;            // 0.05
+    this->velocity_TS = 0.1;            // 0.05
     this->sglag_TS_k_sphere = 0.01;  //0.005 0.002    // Cглаживание в головной части
     this->sglag_TS_k = 0.001;            // Сглаживание на высоких широтах
     this->sglag_TS_k_sphere_head = 0.05; // 0.08;   // Сглаживание в головной части
@@ -394,10 +394,10 @@ void Phys_param::set_parameters(void)
 
 
     this->sglag_HP = true;
-    this->velocity_HP = 0.01;  // 0.1
+    this->velocity_HP = 0.1;  // 0.1
     this->sglag_HP_k_sphere = 0.005;  //0.005 0.002    // Cглаживание в головной части
-    this->sglag_HP_k = 0.01; // 0.01         // Сглаживание не в головной области
-    this->sglag_HP_angle = 3.8;    // 1.2 коэффициент усилинея сглаживания по углу
+    this->sglag_HP_k = 0.03; // 0.01         // Сглаживание не в головной области
+    this->sglag_HP_angle = 5.0;    // 1.2 коэффициент усилинея сглаживания по углу
     this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
     this->sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
 
