@@ -301,7 +301,10 @@ Phys_param::Phys_param()
     {
         string nii = "_H" + to_string(ii);
         this->H_name.push_back(nii);
+        this->Culc_hidrogen[nii] = true;
     }
+
+    this->Culc_hidrogen["_H6"] = false;
 
 
 

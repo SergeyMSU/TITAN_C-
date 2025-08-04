@@ -1637,8 +1637,10 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				rho3 = rho * Volume / Volume2 - time * POTOK["rho"] / Volume2;
 
+				bool rho_null = false;
 				if (rho3 < 1e-7)
 				{
+					rho_null = true;
 					rho3 = 0.1;
 					Q3 = Q / rho * rho3;
 					rho_He3 = 0.0;
@@ -1718,8 +1720,6 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					}
 				}
 
-
-
 				if (this->regim_otladki == true)
 				{
 					if (SOURSE.find("m_x") == SOURSE.end() || 
@@ -1749,21 +1749,33 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				}
 
-				u3 = (rho * vx * Volume / Volume2 - time * (POTOK["Vx"] + (bx / cpi4) * POTOK["divB"]) / Volume2
-					+ time * SOURSE["m_x"]) / rho3;
-				v3 = (rho * vy * Volume / Volume2 - time * (POTOK["Vy"] + (by / cpi4) * POTOK["divB"]) / Volume2
-					+ time * SOURSE["m_y"]) / rho3;
-				w3 = (rho * vz * Volume / Volume2 - time * (POTOK["Vz"] + (bz / cpi4) * POTOK["divB"]) / Volume2
-					+ time * SOURSE["m_z"]) / rho3;
+				if (rho_null == false)
+				{
+					u3 = (rho * vx * Volume / Volume2 - time * (POTOK["Vx"] + (bx / cpi4) * POTOK["divB"]) / Volume2
+						+ time * SOURSE["m_x"]) / rho3;
+					v3 = (rho * vy * Volume / Volume2 - time * (POTOK["Vy"] + (by / cpi4) * POTOK["divB"]) / Volume2
+						+ time * SOURSE["m_y"]) / rho3;
+					w3 = (rho * vz * Volume / Volume2 - time * (POTOK["Vz"] + (bz / cpi4) * POTOK["divB"]) / Volume2
+						+ time * SOURSE["m_z"]) / rho3;
 
-				bx3 = bx * Volume / Volume2 - time * (POTOK["Bx"] + vx * POTOK["divB"]) / Volume2;
-				by3 = by * Volume / Volume2 - time * (POTOK["By"] + vy * POTOK["divB"]) / Volume2;
-				bz3 = bz * Volume / Volume2 - time * (POTOK["Bz"] + vz * POTOK["divB"]) / Volume2;
+					bx3 = bx * Volume / Volume2 - time * (POTOK["Bx"] + vx * POTOK["divB"]) / Volume2;
+					by3 = by * Volume / Volume2 - time * (POTOK["By"] + vy * POTOK["divB"]) / Volume2;
+					bz3 = bz * Volume / Volume2 - time * (POTOK["Bz"] + vz * POTOK["divB"]) / Volume2;
 
-				p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz) + kvv(bx, by, bz) / 25.13274122871834590768) * Volume / Volume2
-					- time * (POTOK["p"] + (dsk / cpi4) * POTOK["divB"]) / Volume2 + time * SOURSE["E"]) -
-					0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
-
+					p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz) + kvv(bx, by, bz) / 25.13274122871834590768) * Volume / Volume2
+						- time * (POTOK["p"] + (dsk / cpi4) * POTOK["divB"]) / Volume2 + time * SOURSE["E"]) -
+						0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
+				}
+				else
+				{
+					u3 = vx;
+					v3 = vy;
+					w3 = vz;
+					bx3 = bx;
+					by3 = by;
+					bz3 = bz;
+					p3 = p;
+				}
 
 				if (std::isnan(rho3) || std::fpclassify(rho3) == FP_SUBNORMAL ||
 					std::isnan(Q3) || std::fpclassify(Q3) == FP_SUBNORMAL)
@@ -1845,6 +1857,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			{
 				for (auto& nam : this->phys_param->H_name)
 				{
+					if (this->phys_param->Culc_hidrogen[nam] == false) continue;
 					rho = cell->parameters[now1]["rho" + nam];
 					vx = cell->parameters[now1]["Vx" + nam];
 					vy = cell->parameters[now1]["Vy" + nam];
@@ -2031,6 +2044,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			int i = 1;
 			for (auto& nam : this->phys_param->H_name)
 			{
+				if (this->phys_param->Culc_hidrogen[nam] == false) continue;
+
 				if (nam == "_H1") continue;
 				if (nam == "_H5") continue;
 
@@ -2298,6 +2313,8 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 	{
 		for (auto& nam : this->phys_param->H_name)
 		{
+			if (this->phys_param->Culc_hidrogen[nam] == false) continue;
+
 			Option.fluid = nam;
 			qqq1[0] = par_left["rho" + nam];
 			qqq1[1] = par_left["Vx" + nam];

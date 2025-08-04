@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0032.bin");   // 23
+    S1.Download_cell_parameters("parameters_promeg_1136.bin");   // 23
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
     // 22 полностью установленное решение без Пикапов (у контакта есть артефакт нужно сглаживание по
@@ -63,7 +63,7 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 6 * 12; i++) // 6 * 2
+    for (int i = 1; i <= 3; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
