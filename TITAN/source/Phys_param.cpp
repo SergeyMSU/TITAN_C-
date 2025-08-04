@@ -385,7 +385,7 @@ void Phys_param::set_parameters(void)
     this->move_BS = true;
 
     this->sglag_TS = true;              // Делаем ли сглаживание TS
-    this->velocity_TS = 0.2;            // 0.05
+    this->velocity_TS = 0.01;            // 0.05
     this->sglag_TS_k_sphere = 0.01;  //0.005 0.002    // Cглаживание в головной части
     this->sglag_TS_k = 0.001;            // Сглаживание на высоких широтах
     this->sglag_TS_k_sphere_head = 0.05; // 0.08;   // Сглаживание в головной части
@@ -394,7 +394,7 @@ void Phys_param::set_parameters(void)
 
 
     this->sglag_HP = true;
-    this->velocity_HP = 1.0;  // 0.1
+    this->velocity_HP = 0.01;  // 0.1
     this->sglag_HP_k_sphere = 0.005;  //0.005 0.002    // Cглаживание в головной части
     this->sglag_HP_k = 0.01; // 0.01         // Сглаживание не в головной области
     this->sglag_HP_angle = 3.8;    // 1.2 коэффициент усилинея сглаживания по углу
@@ -406,7 +406,7 @@ void Phys_param::set_parameters(void)
     this->sglag_BS_k = 0.05;
 
 
-    this->null_bn_on_HP = false;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
+    this->null_bn_on_HP = true;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
     this->bn_in_p_on_HP = true;   // Для ячеек рядом с HP записываем магнитное поле в давление и решаем Годунова
     this->contact_hard = true;
     this->TS_hard = false;
