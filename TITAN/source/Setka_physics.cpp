@@ -285,12 +285,12 @@ void Setka::Init_physics(void)
 	}
 
 	// Если ввели какие-то новые переменные, их надо заполнить
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			i->parameters[0]["rho_Pui_1"] = 1e-7;
-			i->parameters[0]["p_Pui_1"] = 1e-7/2.0;
+			i->parameters[0]["rho_Pui_1"] = 1e-8;
+			i->parameters[0]["p_Pui_1"] = 1e-8/2.0;
 
 			i->parameters[0]["rho_Pui_2"] = 1e-8;
 			i->parameters[0]["p_Pui_2"] = 1e-8 / 2.0;
@@ -693,6 +693,8 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 
 	if (rho["_p"] <= 1e-8) rho["_p"] = 1e-8;
 	if (T["_p"] <= 1e-8) T["_p"] = 1e-8;
+
+	if(T["_p"] > 1e5) T["_p"] = 1e5;
 
 	//cout << "B1 " << endl;
 
@@ -1774,7 +1776,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					bx3 = bx;
 					by3 = by;
 					bz3 = bz;
-					p3 = p;
+					p3 = rho3/2.0;
 				}
 
 				if (std::isnan(rho3) || std::fpclassify(rho3) == FP_SUBNORMAL ||
