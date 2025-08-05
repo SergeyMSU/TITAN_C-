@@ -285,7 +285,7 @@ void Setka::Init_physics(void)
 	}
 
 	// Если ввели какие-то новые переменные, их надо заполнить
-	if (true)
+	if (false)
 	{
 		for (auto& i : this->All_Cell)
 		{
