@@ -701,9 +701,11 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			int nn = VVV[ii].size();
 			int mm = VVV[ii][0].size();
 
-#pragma omp parallel for private(A, B, V) schedule(dynamic)
+//#pragma omp parallel for private(A, B, V) schedule(dynamic)
 			for (size_t i = 0; i < nn; i++)
 			{
+				if (i > 3 && i < nn - 3) continue;
+
 				for (size_t j = 0; j < mm; j++)
 				{
 					auto AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];
@@ -2398,6 +2400,7 @@ void Setka::Smooth_angle_HP(void)
 		for (size_t i = 0; i < nn; i++)
 		{
 			//if (i == 1) continue;
+			if (i > 3 && i < nn - 3) continue;
 
 			short int ip = i + 1;
 			short int ipp = i + 2;
