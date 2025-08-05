@@ -2189,56 +2189,85 @@ void Setka::Find_Yzel_Sosed_for_sglag(void)
 	cout << "End: Find_Yzel_Sosed_for_sglag" << endl;
 }
 
-Eigen::Vector2d fitCircleRobust(const std::vector<Eigen::Vector2d>& points, double& radius, 
-	double& error, int max_iterations = 5) 
+Eigen::Vector2d fitCircleRobust(const std::vector<Eigen::Vector2d>& points, double& radius_, 
+	double& error_, int max_iter = 50, double tol = 1e-8)
 {
-	const size_t n = points.size();
+	const int n = points.size();
 	if (n < 3) throw std::runtime_error("Need at least 3 points");
 
-	// 2. Центрирование данных
-	Eigen::Vector2d centroid = Eigen::Vector2d::Zero();
-	for (const auto& p : points) centroid += p;
-	centroid /= n;
+	// 1. Initial guess using geometric median
+	Eigen::Vector2d center = Eigen::Vector2d::Zero();
+	for (const auto& p : points) center += p;
+	center /= n;
 
-	// 3. Итеративное уточнение
-	Eigen::Vector2d center = centroid;
-	radius = 0.0;
-	Eigen::VectorXd weights = Eigen::VectorXd::Ones(n);
+	// 2. Levenberg-Marquardt optimization
+	double radius = 0.0;
+	for (const auto& p : points) radius += (p - center).norm();
+	radius /= n;
 
-	for (int iter = 0; iter < max_iterations; ++iter) {
-		// 3.1. Вычисление текущего радиуса
-		radius = 0.0;
-		for (const auto& p : points) {
-			radius += (p - center).norm();
+	double lambda = 0.001;
+	double prev_error = std::numeric_limits<double>::max();
+	Eigen::Vector3d params;
+	params << center.x(), center.y(), radius;
+
+	for (int iter = 0; iter < max_iter; ++iter) {
+		Eigen::MatrixXd J(n, 3);
+		Eigen::VectorXd residuals(n);
+		double error = 0.0;
+
+		// Compute Jacobian and residuals
+		for (int i = 0; i < n; ++i) {
+			double dx = points[i].x() - params(0);
+			double dy = points[i].y() - params(1);
+			double dist = std::sqrt(dx * dx + dy * dy);
+
+			// Handle near-zero distance case
+			if (dist < 1e-10) {
+				residuals(i) = -params(2);
+				J.row(i) << 0, 0, -1;
+			}
+			else {
+				residuals(i) = dist - params(2);
+				J(i, 0) = -dx / dist;
+				J(i, 1) = -dy / dist;
+				J(i, 2) = -1.0;
+			}
+			error += residuals(i) * residuals(i);
 		}
-		radius /= n;
 
-		// 3.2. Вычисление весов (исключение выбросов)
-		for (size_t i = 0; i < n; ++i) {
-			double residual = std::abs((points[i] - center).norm() - radius);
-			weights[i] = 1.0 / (1.0 + residual * residual); // Tukey-like weighting
+		error = std::sqrt(error / n);
+		if (std::abs(prev_error - error) < tol) break;
+		prev_error = error;
+
+		// LM update
+		Eigen::Matrix3d H = J.transpose() * J;
+		H.diagonal() *= (1.0 + lambda);
+		Eigen::Vector3d delta = H.ldlt().solve(J.transpose() * (-residuals));
+
+		// Safeguard against invalid updates
+		if (!delta.allFinite()) {
+			lambda *= 10.0;
+			continue;
 		}
 
-		// 3.3. Решение взвешенной системы
-		Eigen::MatrixXd WA(n, 2);
-		Eigen::VectorXd Wb(n);
-		for (size_t i = 0; i < n; ++i) 
-		{
-			Eigen::Vector2d p = points[i] - centroid;
-			WA.row(i) = weights[i] * 2.0 * p;
-			Wb[i] = weights[i] * p.squaredNorm();
-		}
-
-		Eigen::Vector2d delta = WA.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(Wb);
-		center = delta + centroid;
+		params += delta;
+		lambda = (error < prev_error) ? lambda / 2.0 : lambda * 10.0;
 	}
 
-	// 4. Вычисление финальной ошибки
+	// Final parameters
+	center << params(0), params(1);
+	radius = params(2);
+
+	// Calculate final error
 	double final_error = 0.0;
 	for (const auto& p : points) {
-		final_error += std::pow((p - center).norm() - radius, 2);
+		double dist = (p - center).norm();
+		final_error += std::pow(dist - radius, 2);
 	}
 	final_error = std::sqrt(final_error / n);
+
+	error_ = final_error;
+	radius_ = radius;
 
 	return center;
 }
@@ -2291,75 +2320,108 @@ void Setka::Smooth_angle_HP(void)
 		yz->velocity[2] = 0.0;
 	}
 
-	int nn = this->D_Luch.size();
-	int mm = this->D_Luch[0].size();
+	vector<vector <vector<Luch*>>> VVV;
+	vector<int> VVV_int;
 
-//#pragma omp parallel for schedule(dynamic)
-	for (size_t i = 0; i < nn; i++)
+	VVV.push_back(this->D_Luch);
+	VVV.push_back(this->E_Luch);
+	VVV.push_back(this->B_Luch);
+	VVV_int.push_back(1);
+	VVV_int.push_back(1);
+	VVV_int.push_back(2);
+
+	for (size_t ii = 0; ii < VVV.size(); ii++)
 	{
-		#pragma omp critical 
+		int nn = VVV[ii].size();
+		int mm = VVV[ii][0].size();
+
+		#pragma omp parallel for schedule(dynamic)
+		for (size_t i = 0; i < nn; i++)
 		{
-			cout << i << endl;
-		}
-		//if (i == 1) continue;
+			//if (i == 1) continue;
 
-		short int ip = i + 1;
-		short int ipp = i + 2;
-		short int im = i - 1;
-		short int imm = i - 2;
+			short int ip = i + 1;
+			short int ipp = i + 2;
+			short int im = i - 1;
+			short int imm = i - 2;
 
-		if (ip == nn) ip = 0;
-		if (ipp == nn) ipp = 0;
-		if (ipp == nn + 1) ipp = 1;
+			if (ip == nn) ip = 0;
+			if (ipp == nn) ipp = 0;
+			if (ipp == nn + 1) ipp = 1;
 
-		if (im == -1) im = nn - 1;
-		if (imm == -1) imm = nn - 1;
-		if (imm == -2) imm = nn - 2;
+			if (im == -1) im = nn - 1;
+			if (imm == -1) imm = nn - 1;
+			if (imm == -2) imm = nn - 2;
 
-		for (size_t j = 0; j < mm; j++)
-		{
-			std::vector<Eigen::Vector2d> points;
-			auto AA = this->D_Luch[i][j]->Yzels_opor[1];
-			points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
-
-			AA = this->D_Luch[im][j]->Yzels_opor[1];
-			points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
-
-			AA = this->D_Luch[imm][j]->Yzels_opor[1];
-			points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
-
-			AA = this->D_Luch[ip][j]->Yzels_opor[1];
-			points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
-
-			AA = this->D_Luch[ipp][j]->Yzels_opor[1];
-			points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
-
-			//Eigen::Vector2d center = fitCircleCenter(points);
-			//double radius = computeRadius(points, center);
-
-			double radius, error;
-			Eigen::Vector2d center = fitCircleRobust(points,
-				radius, error, 8);
-
-			AA = this->D_Luch[i][j]->Yzels_opor[1];
-
-			Eigen::Vector2d A, B;
-			A << AA->coord[0][1], AA->coord[0][2];
-			B = A;
-
-			while ((B - center).norm() > radius)
+			for (size_t j = 0; j < mm; j++)
 			{
-				B *= 0.995;
-			}
+				std::vector<Eigen::Vector2d> points;
+				auto AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];
+				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
 
-			while ((B - center).norm() < radius)
-			{
-				B *= 1.005;
-			}
+				AA = VVV[ii][im][j]->Yzels_opor[VVV_int[ii]];
+				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
 
-			AA->velocity[0] = 0.0;
-			AA->velocity[1] = (B - A)[0];
-			AA->velocity[2] = (B - A)[1];
+				AA = VVV[ii][imm][j]->Yzels_opor[VVV_int[ii]];
+				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+
+				AA = VVV[ii][ip][j]->Yzels_opor[VVV_int[ii]];
+				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+
+				AA = VVV[ii][ipp][j]->Yzels_opor[VVV_int[ii]];
+				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+
+				//Eigen::Vector2d center = fitCircleCenter(points);
+				//double radius = computeRadius(points, center);
+
+				double radius, error;
+				Eigen::Vector2d center = fitCircleRobust(points,
+					radius, error, 8);
+
+				AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];
+
+				Eigen::Vector2d A, B;
+				A << AA->coord[0][1], AA->coord[0][2];
+				B = A;
+
+				unsigned int kl = 0;
+				while ((B - center).norm() > radius)
+				{
+					kl++;
+					B *= 0.999;
+					if (kl > 100000)
+					{
+						cout << "Error 12ertewrfwr3 " << endl;
+						cout << B[0] << " " << B[1] << endl;
+						cout << center[0] << " " << center[1] << endl;
+						cout << radius << endl;
+						cout << "Points: " << endl;
+						for (auto& ik : points)
+						{
+							cout << ik[0] << " " << ik[1] << endl;
+						}
+						exit(-1);
+					}
+				}
+
+				kl = 0;
+				while ((B - center).norm() < radius)
+				{
+					B *= 1.001;
+					if (kl > 100000)
+					{
+						cout << "Error gegy45432ty5hre" << endl;
+						cout << B[0] << " " << B[1] << endl;
+						cout << center[0] << " " << center[1] << endl;
+						cout << radius << endl;
+						exit(-1);
+					}
+				}
+
+				AA->velocity[0] = 0.0;
+				AA->velocity[1] = (B - A)[0];
+				AA->velocity[2] = (B - A)[1];
+			}
 		}
 	}
 

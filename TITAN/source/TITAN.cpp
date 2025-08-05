@@ -60,16 +60,16 @@ int main()
 
     //S1.Find_Yzel_Sosed_for_sglag();
 
-    //S1.Smooth_head_HP3();
-    //S1.Smooth_head_TS3();
+    S1.Smooth_head_HP3();
+    S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 0; i++) // 6 * 2
+    for (int i = 1; i <= 3 * 6; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 10, 1); // 400   1
-        //S1.Go(true, 100, 1); // 400   1
+        S1.Go(false, 400, 1); // 400   1
+        S1.Go(true, 100, 1); // 400   1
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
 
