@@ -394,8 +394,9 @@ void Phys_param::set_parameters(void)
 
 
     this->sglag_HP = true;
-    this->velocity_HP = 0.1;  // 0.1
+    this->velocity_HP = 0.5;  // 0.1
     this->sglag_HP_k_sphere = 0.005;  //0.005 0.002    // Cглаживание в головной части
+    this->sglag_HP_k_angle = 0.005;  //0.005 0.002    // Cглаживание в головной части
     this->sglag_HP_k = 0.01; // 0.01         // Сглаживание не в головной области
     this->sglag_HP_angle = 1.2;    // 1.2 коэффициент усилинея сглаживания по углу
     this->sglag_HP_along = 0.0;    // коэффициент усилинея сглаживания вдоль х

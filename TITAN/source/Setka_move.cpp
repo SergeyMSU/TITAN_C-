@@ -557,6 +557,16 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 	if (this->phys_param->sglag_HP == true)
 	{
+		vector<vector <vector<Luch*>>> VVV;
+		vector<int> VVV_int;
+
+		VVV.push_back(this->D_Luch);
+		VVV.push_back(this->E_Luch);
+		VVV.push_back(this->B_Luch);
+		VVV_int.push_back(1);
+		VVV_int.push_back(1);
+		VVV_int.push_back(2);
+
 		double phi_a = polar_angle(this->A_Luch[0][1]->Yzels[0]->coord[0][0], 
 			norm2(0.0, this->A_Luch[0][1]->Yzels[0]->coord[0][1], 
 				this->A_Luch[0][1]->Yzels[0]->coord[0][2]));
@@ -569,7 +579,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		if (true) // Это старый вариант сглаживания, сейчас работает другой
 		{
 			if (true)
-			{   // Лаплас в сферических новых
+			{   // Сглаживание к локальной сфере
 #pragma omp parallel for private(A, B, V, B2) schedule(dynamic)
 				for (auto& yz : this->All_Yzel)
 				{
@@ -683,6 +693,55 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			}
 
 		}
+
+
+		// Сглаживание к центру локальных сфер для HP в хвосте
+		for (size_t ii = 0; ii < VVV.size(); ii++)
+		{
+			int nn = VVV[ii].size();
+			int mm = VVV[ii][0].size();
+
+#pragma omp parallel for private(A, B, V) schedule(dynamic)
+			for (size_t i = 0; i < nn; i++)
+			{
+				for (size_t j = 0; j < mm; j++)
+				{
+					auto AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];
+
+					A << AA->coord[now][0], AA->coord[now][1], AA->coord[now][2];
+
+					Eigen::Vector3d center;
+					center[0] = A[0];
+					center[1] = AA->parameters["xcc"];
+					center[2] = AA->parameters["ycc"];
+						
+					
+					double rr = (A - center).norm();
+					double r = 0.0;
+					for (auto& j : AA->Yzel_sosed_sglag2)
+					{
+						B << A[0], j->coord[now][1], j->coord[now][2];
+						r += (center - B).norm();
+					}
+					r /= AA->Yzel_sosed_sglag2.size();
+
+					double k = (r / rr);
+					B = k * (A - center) + center;
+
+					V = this->phys_param->velocity_HP * 
+						this->phys_param->sglag_HP_k_angle * (B - A) / time;
+
+					AA->mut.lock();
+					AA->velocity[0] += V(0);
+					AA->velocity[1] += V(1);
+					AA->velocity[2] += V(2);
+					AA->num_velocity++;
+					AA->mut.unlock();
+				}
+			}
+		}
+
+
 
 		Yzel* AA, * AA1, * AA11, * AA2, * AA22, * AA3, * AA33, * AA4, * AA44;
 		// AA33  AA3  AA  AA1  AA11 - вдоль HP  направление в апвинд
@@ -2358,18 +2417,23 @@ void Setka::Smooth_angle_HP(void)
 				std::vector<Eigen::Vector2d> points;
 				auto AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];
 				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				Yzel* AA2 = AA;
 
 				AA = VVV[ii][im][j]->Yzels_opor[VVV_int[ii]];
 				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				AA2->Yzel_sosed_sglag2.insert(AA);
 
 				AA = VVV[ii][imm][j]->Yzels_opor[VVV_int[ii]];
 				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				AA2->Yzel_sosed_sglag2.insert(AA);
 
 				AA = VVV[ii][ip][j]->Yzels_opor[VVV_int[ii]];
 				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				AA2->Yzel_sosed_sglag2.insert(AA);
 
 				AA = VVV[ii][ipp][j]->Yzels_opor[VVV_int[ii]];
 				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				AA2->Yzel_sosed_sglag2.insert(AA);
 
 				//Eigen::Vector2d center = fitCircleCenter(points);
 				//double radius = computeRadius(points, center);
@@ -2378,11 +2442,20 @@ void Setka::Smooth_angle_HP(void)
 				Eigen::Vector2d center = fitCircleRobust(points,
 					radius, error, 8);
 
+				AA2->parameters["xcc"] = center[0];
+				AA2->parameters["ycc"] = center[1];
+				
+
 				AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];
 
 				Eigen::Vector2d A, B;
 				A << AA->coord[0][1], AA->coord[0][2];
 				B = A;
+
+				continue;
+
+				// Дальше алгоритм не используется, мы просто нашли центр для 
+				// сглаживания HP в программе
 
 				unsigned int kl = 0;
 				while ((B - center).norm() > radius)
