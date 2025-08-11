@@ -390,7 +390,7 @@ void Phys_param::set_parameters(void)
 
     this->sglag_TS = true;              // Делаем ли сглаживание TS
     this->velocity_TS = 0.1;            // 0.05
-    this->sglag_TS_k_sphere = 0.03;  //0.01 0.002    // Cглаживание в головной части
+    this->sglag_TS_k_sphere = 0.01;  //0.01 0.002    // Cглаживание в головной части
     this->sglag_TS_k = 0.001;            // Сглаживание на высоких широтах
     this->sglag_TS_k_sphere_head = 0.05; // 0.08;   // Сглаживание в головной части
     this->sglag_TS_k_sphere_tail = 0.005; // 0.03;   // Сглаживание в хвостовой части
@@ -399,7 +399,7 @@ void Phys_param::set_parameters(void)
 
     this->sglag_HP = true;
     this->velocity_HP = 0.1;  // 0.1
-    this->sglag_HP_k_sphere = 0.01;  //0.005     // Cглаживание в головной части
+    this->sglag_HP_k_sphere = 0.02;  //0.005     // Cглаживание в головной части
     this->sglag_HP_k = 0.03; // 0.01         // Сглаживание не в головной области
     this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
     this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
@@ -412,7 +412,7 @@ void Phys_param::set_parameters(void)
 
     this->null_bn_on_HP = false;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
     this->bn_in_p_on_HP = false;   // Для ячеек рядом с HP записываем магнитное поле в давление и решаем Годунова
-    this->contact_hard = false;
+    this->contact_hard = true;
     this->TS_hard = false;
 
     // Парметры настройки MK
@@ -692,7 +692,7 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     const std::vector<double>& konvect_right, // Дополнительные переменные конвективного переноса справа
     std::vector<double>& konvect, // Дополнительные переменные конвективного переноса ПОТОКИ
     double& dsr, double& dsc, double& dsl,
-    PrintOptions& opts, bool left_ydar)  // Дополнительные опциональные параметры
+    PrintOptions& opts, bool left_ydar, bool contact)  // Дополнительные опциональные параметры
     // n_state = 0 Лакс, // 1 HLL, // 2 HLLC,  3 HLLD
     // Конвективные переменные добавил только для HLL
 {
@@ -846,6 +846,11 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     double SM = (suR * r2 * vR(0) - ptR + ptL - suL * r1 * vL(0))
         / (suR * r2 - suL * r1);
     dsc = SM;
+
+    if (contact == true)
+    {
+        wv = SM;
+    }
 
     if (n_state == 0)
     {

@@ -213,7 +213,7 @@ public:
         const std::vector<double>& konvect_right, // Дополнительные переменные конвективного переноса справа
         std::vector<double>& konvect, // Дополнительные переменные конвективного переноса ПОТОКИ
         double& dsr, double& dsc, double& dsl,
-        PrintOptions& opts, bool left_ydar = false);
+        PrintOptions& opts, bool left_ydar = false, bool contact = false);
 
     // Блок Годунова ********
     void lev(const double& enI, const double& pI, const double& rI, const double& enII,//
