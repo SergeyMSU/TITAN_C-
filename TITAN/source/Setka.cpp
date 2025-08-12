@@ -3992,6 +3992,8 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 		}
 		this->phys_param->Plasma_components(zone, parameters, param);
 
+		if (param["rho_Th"] < 1e-8) param["rho_Th"] = 1e-8;
+
 		fout << " " << kvv(parameters["Bx"], parameters["By"], parameters["Bz"]) / (8.0 * const_pi);
 		fout << " " << param["rho_Th"];
 		fout << " " << param["T_Th"];

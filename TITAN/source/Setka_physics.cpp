@@ -1679,6 +1679,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				if (this->phys_param->is_PUI == true)
 				{
+					double rho_pui_sum = 0.0;
 					short int pui_n = -1;
 					for (const auto& nam : this->phys_param->pui_name)
 					{
@@ -1700,6 +1701,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 						if (rhorho <= 0.0) rhorho = 1e-7;
 						cell->parameters[now2]["rho" + nam] = rhorho;
+						rho_pui_sum += rhorho;
 
 						double ppp = cell->parameters[now1]["p" + nam];
 						double pppp = ppp
@@ -1720,6 +1722,23 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 							}
 						}
 					}
+
+
+					if (rho_pui_sum > (rho3 - rho_He3) * 0.997)
+					{
+						double kkl = ((rho3 - rho_He3) * 0.997) / rho_pui_sum;
+
+						pui_n = -1;
+						for (const auto& nam : this->phys_param->pui_name)
+						{
+							pui_n++;
+							if (this->phys_param->pui_in_zone(zone - 1, pui_n) == false) continue;
+
+							cell->parameters[now2]["rho" + nam] *= kkl;
+						}
+					}
+
+					
 				}
 
 				if (this->regim_otladki == true)
