@@ -34,6 +34,8 @@ int main()
     // 32 с пикапами
     // 62 включи TVD
 
+    S1.geo->R0 = 0.237455;
+
     // 23 полностью установленное решение без Пикапов (у контакта есть артефакт нужно сглаживание по
     // углу увеличить)
 
@@ -69,11 +71,11 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 0; i++) // 6 * 2
+    for (int i = 1; i <= 6 * 1; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 200, 1); // 400   1
+        S1.Go(false, 400, 1); // 400   1
         S1.Go(true, 100, 1); // 400   1
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
@@ -108,15 +110,15 @@ int main()
         return 0;
     }
 
-    //S1.Save_cell_parameters("parameters_0064.bin");
+    S1.Save_cell_parameters("parameters_0026.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();
     //S1.Culc_divergence_in_cell();
     //S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_2.bin", true);
-    Interpol SS = Interpol("For_intertpolate_2.bin");
+    S1.Save_for_interpolate("For_intertpolate_1.bin", true);
+    Interpol SS = Interpol("For_intertpolate_1.bin");
 
     
 

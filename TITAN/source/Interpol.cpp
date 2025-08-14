@@ -60,12 +60,14 @@ Interpol::Interpol(string name)
             {
                 for (const auto& i : this->param_names)
                 {
+                    if (i == "zone_geo") continue;
                     double a;
                     in.read(reinterpret_cast<char*>(&a), sizeof(a));
                     A->parameters[i + "_L"] = a;
                 }
                 for (const auto& i : this->param_names)
                 {
+                    if (i == "zone_geo") continue;
                     double a;
                     in.read(reinterpret_cast<char*>(&a), sizeof(a));
                     A->parameters[i + "_R"] = a;
@@ -97,6 +99,7 @@ Interpol::Interpol(string name)
 
         this->Cells.push_back(A);
     }
+
 
     in.close();
 
@@ -221,7 +224,11 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
                 coords[1] * this->Cells[i1]->parameters["Q"] +
                 coords[2] * this->Cells[i2]->parameters["Q"] +
                 coords[3] * this->Cells[i3]->parameters["Q"];
-            if (Q < 70.0)
+            double rho = coords[0] * this->Cells[i0]->parameters["rho"] +
+                coords[1] * this->Cells[i1]->parameters["rho"] +
+                coords[2] * this->Cells[i2]->parameters["rho"] +
+                coords[3] * this->Cells[i3]->parameters["rho"];
+            if (Q / rho < 70.0)
             {
                 this_zone = 2;
             }
@@ -256,7 +263,7 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
                 kl++;
             }
 
-            if (parameters["rho"] < 0.0)
+            if (parameters["rho"] <= 0.0)
             {
                 cout << "uiwerhfuyerg" << endl;
                 exit(-1);
@@ -312,14 +319,22 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
                 kl++;
             }
 
-            if (parameters["rho"] < 0.0)
+            if (parameters["rho"] <= 0.0)
             {
                 cout << "hbrtyh4e5t" << endl;
-                cout << this_zone << endl;
+                cout << x << " " << y << " " << z << endl;
+                cout << this_zone << "||" << endl;
                 cout << std::round(this->Cells[i0]->parameters["zone_geo"]) << endl;
                 cout << std::round(this->Cells[i1]->parameters["zone_geo"]) << endl;
                 cout << std::round(this->Cells[i2]->parameters["zone_geo"]) << endl;
-                cout << std::round(this->Cells[i3]->parameters["zone_geo"]) << endl;
+                cout << std::round(this->Cells[i3]->parameters["zone_geo"]) << "|||||" << endl;
+                cout << "|||||" << endl;
+                cout << this->Cells[i0]->parameters["rho"] << endl;
+                cout << this->Cells[i1]->parameters["rho"] << endl;
+                cout << this->Cells[i2]->parameters["rho"] << endl;
+                cout << this->Cells[i3]->parameters["rho"] << "|||||" << endl;
+                cout << this->Cells[i1]->parameters["rho_L"] << endl;
+                cout << this->Cells[i1]->parameters["rho_R"] << endl;
                 exit(-1);
             }
         }

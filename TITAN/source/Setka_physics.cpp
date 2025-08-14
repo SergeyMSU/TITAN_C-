@@ -255,28 +255,11 @@ void Setka::Init_physics(void)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			if (i->center[0][0] > 200)
+			if (i->parameters[0]["Q"]/ i->parameters[0]["rho"] > 70.0)
 			{
-				i->parameters[0]["rho"] = 1.60063; // 1.0 * (1.0 + this->phys_param->mrho_He_inf);
-				i->parameters[0]["rho_He"] = 0.6; // this->phys_param->mrho_He_inf;
-				i->parameters[0]["p"] = 1.15; // 1 + (i->parameters["rho_He"]) /
-					//(i->parameters["rho"] - i->parameters["rho_He"]);
-				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
-				i->parameters[0]["Vy"] = 0.0;
-				i->parameters[0]["Vz"] = 0.0;
-				i->parameters[0]["Bx"] = -this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
-				i->parameters[0]["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
-				i->parameters[0]["Bz"] = 0.0;
-				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
-
-				i->parameters[1] = i->parameters[0];
-			}
-			else if (i->parameters[0]["Q"]/ i->parameters[0]["rho"] > 50.0)
-			{
-				i->parameters[0]["rho_He"] = i->parameters[0]["rho_He"] * 4.0;
-				i->parameters[0]["rho"] = i->parameters[0]["rho"] * 1.394;
-				i->parameters[0]["p"] = i->parameters[0]["p"] / 1.13;
-				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
+				i->parameters[0]["Bx"] *= -1.0;
+				i->parameters[0]["By"] *= -1.0;
+				i->parameters[0]["Bz"] *= -1.0;
 
 				i->parameters[1] = i->parameters[0];
 			}
@@ -402,8 +385,8 @@ void Setka::Init_physics(void)
 				i->parameters["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters["Vy"] = 0.0;
 				i->parameters["Vz"] = 0.0;
-				i->parameters["Bx"] = -this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
-				i->parameters["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
+				i->parameters["Bx"] = this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
+				i->parameters["By"] = this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
 				i->parameters["Bz"] = 0.0;
 				i->parameters["Q"] = 100.0 * i->parameters["rho"];
 
@@ -2437,6 +2420,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		gr_b += this->Gran_TS.size() + this->Gran_HP.size() + this->Gran_BS.size();
 	}
 
+
 	// Записываем количество ячеек
 	size = this->All_Cell.size() + gr_b;
 	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
@@ -2462,7 +2446,13 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
 		}
 
+
 		double zzz = static_cast<double>(Cel->type);
+		if (zzz <= 0.0001)
+		{
+			cout << "uh8weyurfgueorfw  " << zzz << endl;
+			exit(-1);
+		}
 		out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 	}
 
@@ -2497,6 +2487,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			}
 			double zzz = static_cast<double>(A->type);
 			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
 		}
 	}
 
@@ -2537,7 +2528,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 
-			if (fabs(zzz) < 0.0001)
+
+			if (zzz < 0.0001)
 			{
 				for (const auto& i : this->phys_param->param_names)
 				{
@@ -2562,6 +2554,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
 				}
+
 			}
 		}
 
@@ -2592,10 +2585,12 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
 		}
 
+		//cout << "================  " << this->Cell_Center->parameters[0]["rho"] << endl;
+
 		double zzz = 1.0;
 		out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		//cout << "================  " << zzz << endl;
 	}
-
 
 
 	for (size_t i = 0; i < 1000; i++)
