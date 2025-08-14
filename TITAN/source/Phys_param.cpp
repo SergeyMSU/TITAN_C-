@@ -368,61 +368,173 @@ Phys_param::Phys_param()
     file.close();
 }
 
+using VarRef = std::variant<
+    double*,
+    int*,
+    bool*,
+    std::string*
+>;
+
+// Функция для парсинга значения из строки и записи в переменную
+void parseAndAssign(VarRef varRef, const std::string& valueStr) 
+{
+    try {
+        if (auto p = std::get_if<double*>(&varRef)) {
+            **p = std::stod(valueStr);
+        }
+        else if (auto p = std::get_if<int*>(&varRef)) {
+            **p = std::stoi(valueStr);
+        }
+        else if (auto p = std::get_if<bool*>(&varRef)) {
+            if (valueStr == "true") **p = true;
+            else if (valueStr == "false") **p = false;
+            else throw std::invalid_argument("Not a boolean");
+        }
+        else if (auto p = std::get_if<std::string*>(&varRef)) {
+            **p = valueStr;
+        }
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error parsing value '" << valueStr << "': " << e.what() << "\n";
+    }
+}
+
 void Phys_param::set_parameters(void)
 {
-    this->is_div_V_in_cell = false;
+    if (false) // задание параметров в ручную
+    {
+        this->is_div_V_in_cell = false;
 
-    this->is_PUI = true;       // Считаем ли пикапы?
-    this->num_pui = 2;         // Сколько сортов пикапов в ячейках
+        this->is_PUI = true;       // Считаем ли пикапы?
+        this->num_pui = 2;         // Сколько сортов пикапов в ячейках
 
-    // Настройки расчёта Плазмы
-    this->KFL = 0.8;                   // критерий Куранта
-    this->TVD = false;                  // Делаем ли ТВД?
+        // Настройки расчёта Плазмы
+        this->KFL = 0.8;                   // критерий Куранта
+        this->TVD = false;                  // Делаем ли ТВД?
 
-    this->culc_plasma = true;          // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
-    this->culc_atoms = true;           // Вычисляем ли атомы или оставляем их вмороженными
-    this->move_setka = true;
-
-
-    this->move_TS = true;               // Двигаем ли TS
-    this->move_HP = true;               // Двигаем ли HP
-    this->move_BS = true;
-
-    this->sglag_TS = true;              // Делаем ли сглаживание TS
-    this->velocity_TS = 0.1;            // 0.05
-    this->sglag_TS_k_sphere = 0.01;  //0.01 0.002    // Cглаживание в головной части
-    this->sglag_TS_k = 0.001;            // Сглаживание на высоких широтах
-    this->sglag_TS_k_sphere_head = 0.05; // 0.08;   // Сглаживание в головной части
-    this->sglag_TS_k_sphere_tail = 0.005; // 0.03;   // Сглаживание в хвостовой части
-    
+        this->culc_plasma = true;          // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
+        this->culc_atoms = true;           // Вычисляем ли атомы или оставляем их вмороженными
+        this->move_setka = true;
 
 
-    this->sglag_HP = true;
-    this->velocity_HP = 0.1;  // 0.1
-    this->sglag_HP_k_sphere = 0.01;  //0.005     // Cглаживание в головной части
-    this->sglag_HP_k = 0.03; // 0.01         // Сглаживание не в головной области
-    this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
-    this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
-    this->sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
+        this->move_TS = true;               // Двигаем ли TS
+        this->move_HP = true;               // Двигаем ли HP
+        this->move_BS = true;
+
+        this->sglag_TS = true;              // Делаем ли сглаживание TS
+        this->velocity_TS = 0.1;            // 0.05
+        this->sglag_TS_k_sphere = 0.01;  //0.01 0.002    // Cглаживание в головной части
+        this->sglag_TS_k = 0.001;            // Сглаживание на высоких широтах
+        this->sglag_TS_k_sphere_head = 0.05; // 0.08;   // Сглаживание в головной части
+        this->sglag_TS_k_sphere_tail = 0.005; // 0.03;   // Сглаживание в хвостовой части
 
 
-    this->sglag_BS = false;
-    this->sglag_BS_k = 0.05;
+
+        this->sglag_HP = true;
+        this->velocity_HP = 0.1;  // 0.1
+        this->sglag_HP_k_sphere = 0.01;  //0.005     // Cглаживание в головной части
+        this->sglag_HP_k = 0.03; // 0.01         // Сглаживание не в головной области
+        this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
+        this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
+        this->sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
 
 
-    this->null_bn_on_HP = false;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
-    this->bn_in_p_on_HP = false;   // Для ячеек рядом с HP записываем магнитное поле в давление и решаем Годунова
-    this->contact_hard = true;
-    this->TS_hard = false;
+        this->sglag_BS = false;
+        this->sglag_BS_k = 0.05;
 
-    // Парметры настройки MK
-    this->save_AMR = true;        // Нужно ли сохранять посчитанные функции распределения?
-    this->culc_AMR = true;        // Нужно ли считать функции распределения?
-    this->refine_AMR = true;      // Нужно ли мельчить посчитанные функции распределения?
-    this->N_per_gran = 40000;  // Сколько в среднем частиц вылетает с каждой грани
-    this->culc_cell_moments = true;    // Нужно ли считать моменты в ячейках?
-    this->de_refine_AMR = true;        // Нужно ли огрублять AMR сетку, если требуется?
-    this->MK_file = "parameters_MK_0002.bin";
+
+        this->null_bn_on_HP = false;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
+        this->bn_in_p_on_HP = false;   // Для ячеек рядом с HP записываем магнитное поле в давление и решаем Годунова
+        this->contact_hard = true;
+        this->TS_hard = false;
+
+        // Парметры настройки MK
+        this->save_AMR = true;        // Нужно ли сохранять посчитанные функции распределения?
+        this->culc_AMR = true;        // Нужно ли считать функции распределения?
+        this->refine_AMR = true;      // Нужно ли мельчить посчитанные функции распределения?
+        this->N_per_gran = 40000;  // Сколько в среднем частиц вылетает с каждой грани
+        this->culc_cell_moments = true;    // Нужно ли считать моменты в ячейках?
+        this->de_refine_AMR = true;        // Нужно ли огрублять AMR сетку, если требуется?
+        this->MK_file = "parameters_MK_0002.bin";
+    }
+    else
+    {
+        std::unordered_map<std::string, VarRef> varMap = {
+        {"is_div_V_in_cell", &this->is_div_V_in_cell},
+        {"is_PUI", &this->is_PUI},
+        {"num_pui", &this->num_pui},
+        {"KFL", &this->KFL},
+        {"TVD", &this->TVD},
+        {"culc_plasma", &this->culc_plasma},
+        {"culc_atoms", &this->culc_atoms},
+        {"move_setka", &this->move_setka},
+        {"move_TS", &this->move_TS},
+        {"move_HP", &this->move_HP},
+        {"move_BS", &this->move_BS},
+        {"sglag_TS", &this->sglag_TS},
+        {"velocity_TS", &this->velocity_TS},
+        {"sglag_TS_k_sphere", &this->sglag_TS_k_sphere},
+        {"sglag_TS_k", &this->sglag_TS_k},
+        {"sglag_TS_k_sphere_head", &this->sglag_TS_k_sphere_head},
+        {"sglag_TS_k_sphere_tail", &this->sglag_TS_k_sphere_tail},
+        {"sglag_HP", &this->sglag_HP},
+        {"velocity_HP", &this->velocity_HP},
+        {"sglag_HP_k_sphere", &this->sglag_HP_k_sphere},
+        {"sglag_HP_k", &this->sglag_HP_k},
+        {"sglag_HP_angle", &this->sglag_HP_angle},
+        {"sglag_HP_along", &this->sglag_HP_along},
+        {"sglag_HP_sphere", &this->sglag_HP_sphere},
+        {"sglag_BS", &this->sglag_BS},
+        {"sglag_BS_k", &this->sglag_BS_k},
+        {"null_bn_on_HP", &this->null_bn_on_HP},
+        {"bn_in_p_on_HP", &this->bn_in_p_on_HP},
+        {"contact_hard", &this->contact_hard},
+        {"TS_hard", &this->TS_hard},
+        {"save_AMR", &this->save_AMR},
+        {"culc_AMR", &this->culc_AMR},
+        {"refine_AMR", &this->refine_AMR},
+        {"N_per_gran", &this->N_per_gran},
+        {"culc_cell_moments", &this->culc_cell_moments},
+        {"de_refine_AMR", &this->de_refine_AMR},
+        {"MK_file", &this->MK_file},
+        };
+
+        // Считываем параметры с файла
+        std::ifstream file("set_parameters.txt");
+
+        if (!file.is_open()) {
+            cerr << "Error: Could not open file!   set_parameters.txt" << endl;
+            exit(-1);
+        }
+
+        std::string line;
+        while (std::getline(file, line)) {
+            // Пропускаем пустые строки
+            if (line.empty()) continue;
+
+            std::istringstream iss(line);
+            std::string varName, valueStr;
+
+            if (iss >> varName >> valueStr) {
+                if (varMap.count(varName)) {
+                    parseAndAssign(varMap[varName], valueStr);
+                }
+                else {
+                    std::cerr << "Unknown variable: " << varName << "\n";
+                }
+            }
+            else {
+                std::cerr << "Invalid line format: " << line << "\n";
+            }
+        }
+
+        file.close();
+
+        whach(this->is_div_V_in_cell);
+        whach(this->MK_file);
+        whach(this->refine_AMR);
+        whach(this->sglag_HP_angle);
+    }
 
 }
 
