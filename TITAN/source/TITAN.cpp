@@ -29,12 +29,12 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0025.bin");   // 23
+    S1.Download_cell_parameters("parameters_0027.bin");   // 23
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
     // 62 включи TVD
 
-    S1.geo->R0 = 0.237455;
+    S1.geo->R0 = 0.233017;
 
     // 23 полностью установленное решение без Пикапов (у контакта есть артефакт нужно сглаживание по
     // углу увеличить)
@@ -71,7 +71,7 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 6 * 1; i++) // 6 * 2
+    for (int i = 1; i <= 6 * 7; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -110,15 +110,15 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0026.bin");
+    S1.Save_cell_parameters("parameters_0028.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();
     //S1.Culc_divergence_in_cell();
     //S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_1.bin", true);
-    Interpol SS = Interpol("For_intertpolate_1.bin");
+    S1.Save_for_interpolate("For_intertpolate_3.bin", true);
+    Interpol SS = Interpol("For_intertpolate_3.bin");
 
     
 

@@ -267,6 +267,30 @@ void Setka::Init_physics(void)
 		}
 	}
 
+	// Интерполяция
+	if (false)
+	{
+		Interpol SS = Interpol("For_intertpolate_1.bin");
+		std::unordered_map<string, double> parameters;
+		Cell_handle next_cell;
+		Cell_handle prev_cell = Cell_handle();
+		bool fine_int;
+
+		for (auto& i : this->All_Cell)
+		{
+			if (norm2(i->center[0][0], i->center[0][1], i->center[0][2]) < 10.0)
+			{
+				fine_int = SS.Get_param(i->center[0][0], i->center[0][1], i->center[0][2], 
+					parameters, prev_cell, next_cell);
+				prev_cell = next_cell;
+
+				i->parameters[0] = parameters;
+				i->parameters[1] = i->parameters[0];
+			}
+		}
+	}
+
+
 	// Если ввели какие-то новые переменные, их надо заполнить
 	if (false)
 	{
@@ -322,7 +346,7 @@ void Setka::Init_physics(void)
 			z = i->center[0][2];
 			r = i->func_R(0);
 
-			if (r < this->geo->R0 * 10.0)
+			if (r < 2.0)
 			{
 				vec << x, y, z;
 
@@ -341,11 +365,23 @@ void Setka::Init_physics(void)
 
 				mV = this->phys_param->Get_v_0(the);
 
-				i->parameters[0]["rho"] = this->phys_param->Get_rho_0(the) * pow(this->phys_param->R_0 /r, 2);
-				i->parameters[0]["p"] = this->phys_param->p_0 * pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
-				i->parameters[0]["Vx"] = mV * vec(0);
-				i->parameters[0]["Vy"] = mV * vec(1);
-				i->parameters[0]["Vz"] = mV * vec(2);
+				double Tp = this->phys_param->Get_T_0(the); // Температура
+
+				double np = this->phys_param->Get_rho_0(the);
+
+				double rho = (this->phys_param->mep + 2.0 * this->phys_param->mrho_He_0 *
+					this->phys_param->mep +
+					1.0 + 4.0 * this->phys_param->mrho_He_0) * np;
+
+
+
+				i->parameters[0]["rho"] = rho * pow(this->phys_param->R_0 / r, 2);
+				i->parameters[0]["rho_He"] = 4.0 * this->phys_param->mrho_He_0 * np * pow(this->phys_param->R_0 / r, 2);
+				i->parameters[0]["p"] = (1.0 + 3.0 * this->phys_param->mrho_He_0 / 2.0) * np * Tp *
+					pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
+				i->parameters[0]["Vx"] = mV * vec(0)/r;
+				i->parameters[0]["Vy"] = mV * vec(1)/r;
+				i->parameters[0]["Vz"] = mV * vec(2)/r;
 				i->parameters[0]["Bx"] = cc(0);
 				i->parameters[0]["By"] = cc(1);
 				i->parameters[0]["Bz"] = cc(2);
@@ -353,7 +389,7 @@ void Setka::Init_physics(void)
 			}
 			else
 			{
-				i->parameters[0]["rho"] = 1.0;
+				/*i->parameters[0]["rho"] = 1.0;
 				i->parameters[0]["p"] = 1.0;
 				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters[0]["Vy"] = 0.0;
@@ -361,7 +397,7 @@ void Setka::Init_physics(void)
 				i->parameters[0]["Bx"] = -this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
 				i->parameters[0]["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
 				i->parameters[0]["Bz"] = 0.0;
-				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
+				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];*/
 			}
 
 			for (short unsigned int j = 1; j < i->parameters.size(); j++)
@@ -452,9 +488,9 @@ void Setka::Init_physics(void)
 				i->parameters["rho_He"] = 4.0 * this->phys_param->mrho_He_0 * np * pow(this->phys_param->R_0 / r, 2);
 				i->parameters["p"] = (1.0 + 3.0 * this->phys_param->mrho_He_0 /2.0) * np * Tp *
 					pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
-				i->parameters["Vx"] = mV * vec(0);
-				i->parameters["Vy"] = mV * vec(1);
-				i->parameters["Vz"] = mV * vec(2);
+				i->parameters["Vx"] = mV * vec(0)/r;
+				i->parameters["Vy"] = mV * vec(1)/r;
+				i->parameters["Vz"] = mV * vec(2)/r;
 				i->parameters["Bx"] = cc(0);
 				i->parameters["By"] = cc(1);
 				i->parameters["Bz"] = cc(2);
