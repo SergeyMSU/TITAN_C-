@@ -497,6 +497,7 @@ void Phys_param::set_parameters(void)
         {"culc_cell_moments", &this->culc_cell_moments},
         {"de_refine_AMR", &this->de_refine_AMR},
         {"MK_file", &this->MK_file},
+        {"sglag_HP_k_angle", &this->sglag_HP_k_angle},
         };
 
         // Считываем параметры с файла
