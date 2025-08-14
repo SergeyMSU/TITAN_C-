@@ -2401,7 +2401,7 @@ void Setka::Save_for_interpolate(string filename)
 	}
 
 	// «аписываем количество строк
-	size_t size = this->phys_param->param_names.size();
+	size_t size = this->phys_param->param_names.size() + 1;
 	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 	// «аписываем каждую строку
@@ -2410,6 +2410,15 @@ void Setka::Save_for_interpolate(string filename)
 		size_t str_size = str.size();
 		out.write(reinterpret_cast<const char*>(&str_size), sizeof(str_size));
 		// «атем саму строку
+		out.write(str.data(), str_size);
+	}
+
+	// ƒобавл€ем геометрическую зону
+	if (true)
+	{
+		string str = "zone_geo";
+		size_t str_size = str.size();
+		out.write(reinterpret_cast<const char*>(&str_size), sizeof(str_size));
 		out.write(str.data(), str_size);
 	}
 
@@ -2447,6 +2456,9 @@ void Setka::Save_for_interpolate(string filename)
 			
 			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
 		}
+
+		double zzz = static_cast<double>(Cel->type);
+		out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 	}
 
 	// «аписываем дополнительные точки (на небольшом удалении от внешней границы, чтоб 
@@ -2478,6 +2490,8 @@ void Setka::Save_for_interpolate(string filename)
 
 				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
 			}
+			double zzz = static_cast<double>(A->type);
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 		}
 	}
 
@@ -2500,7 +2514,12 @@ void Setka::Save_for_interpolate(string filename)
 			}
 			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
 		}
+
+		double zzz = 1.0;
+		out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 	}
+
+
 
 	for (size_t i = 0; i < 1000; i++)
 	{
@@ -3050,18 +3069,27 @@ void Setka::Culc_divergence_in_cell(void)
 
 			double norm = eB.norm();
 			Eigen::Vector3d D1, D2, D3;
-			double k_paral = 1.0 / norm;
-			double k_perpend = 0.05 * k_paral;
+			if (norm > 1e-10)
+			{
+				double k_paral = 1.0 / norm;
+				double k_perpend = 0.05 * k_paral;
 
-			D1 << k_perpend + (k_paral - k_perpend) * eB[0] * eB[0] / kv(norm),
-				(k_paral - k_perpend)* eB[0] * eB[1] / kv(norm),
-				(k_paral - k_perpend)* eB[0] * eB[2] / kv(norm);
-			D2 << (k_paral - k_perpend) * eB[1] * eB[0] / kv(norm),
-				k_perpend + (k_paral - k_perpend)* eB[1] * eB[1] / kv(norm),
-				(k_paral - k_perpend)* eB[1] * eB[2] / kv(norm);
-			D3 << (k_paral - k_perpend) * eB[2] * eB[0] / kv(norm),
-				(k_paral - k_perpend) * eB[2] * eB[1] / kv(norm),
-				k_perpend + (k_paral - k_perpend)* eB[2] * eB[2] / kv(norm);
+				D1 << k_perpend + (k_paral - k_perpend) * eB[0] * eB[0] / kv(norm),
+					(k_paral - k_perpend)* eB[0] * eB[1] / kv(norm),
+					(k_paral - k_perpend)* eB[0] * eB[2] / kv(norm);
+				D2 << (k_paral - k_perpend) * eB[1] * eB[0] / kv(norm),
+					k_perpend + (k_paral - k_perpend) * eB[1] * eB[1] / kv(norm),
+					(k_paral - k_perpend)* eB[1] * eB[2] / kv(norm);
+				D3 << (k_paral - k_perpend) * eB[2] * eB[0] / kv(norm),
+					(k_paral - k_perpend)* eB[2] * eB[1] / kv(norm),
+					k_perpend + (k_paral - k_perpend) * eB[2] * eB[2] / kv(norm);
+			}
+			else
+			{
+				D1 << 0.0, 0.0, 0.0;
+				D2 << 0.0, 0.0, 0.0;
+				D3 << 0.0, 0.0, 0.0;
+			}
 
 			divV += Vel.dot(normal) * gr->area[0];
 			DIVk_x += D1.dot(normal) * gr->area[0];

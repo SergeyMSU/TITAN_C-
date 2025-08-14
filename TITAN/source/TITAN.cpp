@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0062.bin");   // 23
+    S1.Download_cell_parameters("parameters_0063.bin");   // 23
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
     // 62 включи TVD
@@ -108,15 +108,15 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0063.bin");
+    S1.Save_cell_parameters("parameters_0064.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     S1.Edges_create();
     S1.Culc_divergence_in_cell();
     S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_1.bin");
-    Interpol SS = Interpol("For_intertpolate_1.bin");
+    S1.Save_for_interpolate("For_intertpolate_2.bin");
+    Interpol SS = Interpol("For_intertpolate_2.bin");
 
     
 
