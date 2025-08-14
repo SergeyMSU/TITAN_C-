@@ -17,6 +17,8 @@
 
 Phys_param::Phys_param()
 {
+    this->initVarMap();
+
     this->set_parameters();
 
     if (this->is_PUI == true)
@@ -368,15 +370,53 @@ Phys_param::Phys_param()
     file.close();
 }
 
-using VarRef = std::variant<
-    double*,
-    int*,
-    bool*,
-    std::string*
->;
+void Phys_param::initVarMap() 
+{
+    this->varMap = 
+    {
+    {"is_div_V_in_cell", VarRef(&this->is_div_V_in_cell)},
+    {"is_PUI", VarRef(&this->is_PUI)},
+    {"num_pui", VarRef(&this->num_pui)},
+    {"KFL", VarRef(&this->KFL)},
+    {"TVD", VarRef(&this->TVD)},
+    {"culc_plasma", VarRef(&this->culc_plasma)},
+    {"culc_atoms", VarRef(&this->culc_atoms)},
+    {"move_setka", VarRef(&this->move_setka)},
+    {"move_TS", VarRef(&this->move_TS)},
+    {"move_HP", VarRef(&this->move_HP)},
+    {"move_BS", VarRef(&this->move_BS)},
+    {"sglag_TS", VarRef(&this->sglag_TS)},
+    {"velocity_TS", VarRef(&this->velocity_TS)},
+    {"sglag_TS_k_sphere", VarRef(&this->sglag_TS_k_sphere)},
+    {"sglag_TS_k", VarRef(&this->sglag_TS_k)},
+    {"sglag_TS_k_sphere_head", VarRef(&this->sglag_TS_k_sphere_head)},
+    {"sglag_TS_k_sphere_tail", VarRef(&this->sglag_TS_k_sphere_tail)},
+    {"sglag_HP", VarRef(&this->sglag_HP)},
+    {"velocity_HP", VarRef(&this->velocity_HP)},
+    {"sglag_HP_k_sphere", VarRef(&this->sglag_HP_k_sphere)},
+    {"sglag_HP_k", VarRef(&this->sglag_HP_k)},
+    {"sglag_HP_angle", VarRef(&this->sglag_HP_angle)},
+    {"sglag_HP_along", VarRef(&this->sglag_HP_along)},
+    {"sglag_HP_sphere", VarRef(&this->sglag_HP_sphere)},
+    {"sglag_BS", VarRef(&this->sglag_BS)},
+    {"sglag_BS_k", VarRef(&this->sglag_BS_k)},
+    {"null_bn_on_HP", VarRef(&this->null_bn_on_HP)},
+    {"bn_in_p_on_HP", VarRef(&this->bn_in_p_on_HP)},
+    {"contact_hard", VarRef(&this->contact_hard)},
+    {"TS_hard", VarRef(&this->TS_hard)},
+    {"save_AMR", VarRef(&this->save_AMR)},
+    {"culc_AMR", VarRef(&this->culc_AMR)},
+    {"refine_AMR", VarRef(&this->refine_AMR)},
+    {"N_per_gran", VarRef(&this->N_per_gran)},
+    {"culc_cell_moments", VarRef(&this->culc_cell_moments)},
+    {"de_refine_AMR", VarRef(&this->de_refine_AMR)},
+    {"MK_file", VarRef(&this->MK_file)},
+    {"sglag_HP_k_angle", VarRef(&this->sglag_HP_k_angle)}
+    };
+}
 
 // Функция для парсинга значения из строки и записи в переменную
-void parseAndAssign(VarRef varRef, const std::string& valueStr) 
+void Phys_param::parseAndAssign(VarRef varRef, const std::string& valueStr)
 {
     try {
         if (auto p = std::get_if<double*>(&varRef)) {
@@ -384,6 +424,20 @@ void parseAndAssign(VarRef varRef, const std::string& valueStr)
         }
         else if (auto p = std::get_if<int*>(&varRef)) {
             **p = std::stoi(valueStr);
+        }
+        else if (auto p = std::get_if<unsigned int*>(&varRef)) {
+            unsigned long val = std::stoul(valueStr);
+            if (val > std::numeric_limits<unsigned int>::max()) {
+                throw std::out_of_range("Value exceeds unsigned int range");
+            }
+            **p = static_cast<unsigned int>(val);
+        }
+        else if (auto p = std::get_if<uint8_t*>(&varRef)) {
+            int temp = std::stoi(valueStr);
+            if (temp < 0 || temp > 255) {
+                throw std::out_of_range("uint8_t value out of range");
+            }
+            **p = static_cast<uint8_t>(temp);
         }
         else if (auto p = std::get_if<bool*>(&varRef)) {
             if (valueStr == "true") **p = true;
@@ -459,47 +513,6 @@ void Phys_param::set_parameters(void)
     }
     else
     {
-        std::unordered_map<std::string, VarRef> varMap = {
-        {"is_div_V_in_cell", &this->is_div_V_in_cell},
-        {"is_PUI", &this->is_PUI},
-        {"num_pui", &this->num_pui},
-        {"KFL", &this->KFL},
-        {"TVD", &this->TVD},
-        {"culc_plasma", &this->culc_plasma},
-        {"culc_atoms", &this->culc_atoms},
-        {"move_setka", &this->move_setka},
-        {"move_TS", &this->move_TS},
-        {"move_HP", &this->move_HP},
-        {"move_BS", &this->move_BS},
-        {"sglag_TS", &this->sglag_TS},
-        {"velocity_TS", &this->velocity_TS},
-        {"sglag_TS_k_sphere", &this->sglag_TS_k_sphere},
-        {"sglag_TS_k", &this->sglag_TS_k},
-        {"sglag_TS_k_sphere_head", &this->sglag_TS_k_sphere_head},
-        {"sglag_TS_k_sphere_tail", &this->sglag_TS_k_sphere_tail},
-        {"sglag_HP", &this->sglag_HP},
-        {"velocity_HP", &this->velocity_HP},
-        {"sglag_HP_k_sphere", &this->sglag_HP_k_sphere},
-        {"sglag_HP_k", &this->sglag_HP_k},
-        {"sglag_HP_angle", &this->sglag_HP_angle},
-        {"sglag_HP_along", &this->sglag_HP_along},
-        {"sglag_HP_sphere", &this->sglag_HP_sphere},
-        {"sglag_BS", &this->sglag_BS},
-        {"sglag_BS_k", &this->sglag_BS_k},
-        {"null_bn_on_HP", &this->null_bn_on_HP},
-        {"bn_in_p_on_HP", &this->bn_in_p_on_HP},
-        {"contact_hard", &this->contact_hard},
-        {"TS_hard", &this->TS_hard},
-        {"save_AMR", &this->save_AMR},
-        {"culc_AMR", &this->culc_AMR},
-        {"refine_AMR", &this->refine_AMR},
-        {"N_per_gran", &this->N_per_gran},
-        {"culc_cell_moments", &this->culc_cell_moments},
-        {"de_refine_AMR", &this->de_refine_AMR},
-        {"MK_file", &this->MK_file},
-        {"sglag_HP_k_angle", &this->sglag_HP_k_angle},
-        };
-
         // Считываем параметры с файла
         std::ifstream file("set_parameters.txt");
 
