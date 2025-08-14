@@ -54,9 +54,30 @@ Interpol::Interpol(string name)
             A->parameters[i] = a;
         }
 
+        if (A->parameters.find("zone_geo") != A->parameters.end())
+        {
+            if (A->parameters["zone_geo"] < 0.001)
+            {
+                for (const auto& i : this->param_names)
+                {
+                    double a;
+                    in.read(reinterpret_cast<char*>(&a), sizeof(a));
+                    A->parameters[i + "_L"] = a;
+                }
+                for (const auto& i : this->param_names)
+                {
+                    double a;
+                    in.read(reinterpret_cast<char*>(&a), sizeof(a));
+                    A->parameters[i + "_R"] = a;
+                }
+            }
+        }
+
+
         this->Cells.push_back(A);
     }
 
+    // Считываем центральную ячейку
     if (true)
     {
         double a, b, c;
@@ -122,7 +143,16 @@ std::array<double, 4> barycentric_coordinates(const Point& P, const Tetrahedron&
     return { lambda1, lambda2, lambda3, lambda4};
 }
 
-bool Interpol::Get_param(const double& x, const double& y, const double& z, std::unordered_map<string, double>& parameters, const Cell_handle& prev_cell, Cell_handle& next_cell)
+bool Interpol::Get_param(const double& x, const double& y, const double& z,
+    std::unordered_map<string, double>& parameters, const Cell_handle& prev_cell, Cell_handle& next_cell)
+{
+    short int this_zone;
+    return this->Get_param(x, y, z, parameters, prev_cell, next_cell, this_zone);
+}
+
+bool Interpol::Get_param(const double& x, const double& y, const double& z, 
+    std::unordered_map<string, double>& parameters, const Cell_handle& prev_cell, Cell_handle& next_cell, 
+    short int& this_zone)
 {
     Point query(x, y, z);
     Cell_handle containing_cell = this->Delone->locate(query, prev_cell);
@@ -149,13 +179,150 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z, std:
     auto coords = barycentric_coordinates(query, Tetrahedron(p0, p1, p2, p3));
 
 
-
-    for (const auto& nn : this->param_names)
+    // Определяем текущую зону
+    this_zone = 0;
+    short int zone[5];
+    if (true)
     {
-        parameters[nn] = coords[0] * this->Cells[i0]->parameters[nn] +
-            coords[1] * this->Cells[i1]->parameters[nn] +
-            coords[2] * this->Cells[i2]->parameters[nn] +
-            coords[3] * this->Cells[i3]->parameters[nn];
+        for (short int i = 0; i < 5; i++) zone[i] = 0;
+
+        short int kk = static_cast<short int>(std::round(this->Cells[i0]->parameters["zone_geo"]));
+        if (kk <= 0) kk = 0;
+        zone[kk]++;
+        kk = static_cast<short int>(std::round(this->Cells[i1]->parameters["zone_geo"]));
+        if (kk <= 0) kk = 0;
+        zone[kk]++;
+        kk = static_cast<short int>(std::round(this->Cells[i2]->parameters["zone_geo"]));
+        if (kk <= 0) kk = 0;
+        zone[kk]++;
+        kk = static_cast<short int>(std::round(this->Cells[i3]->parameters["zone_geo"]));
+        if (kk <= 0) kk = 0;
+        zone[kk]++;
+
+        kk = 0;
+        for (short int i = 1; i < 5; i++)
+        {
+            if (zone[i] > kk)
+            {
+                this_zone = i;
+                kk = zone[i];
+            }
+        }
+
+        if (this_zone == 0)
+        {
+            cout << "Error 9867540975" << endl;
+            exit(-1);
+        }
+
+        if (this_zone == 2 || this_zone == 3)
+        {
+            double Q = coords[0] * this->Cells[i0]->parameters["Q"] +
+                coords[1] * this->Cells[i1]->parameters["Q"] +
+                coords[2] * this->Cells[i2]->parameters["Q"] +
+                coords[3] * this->Cells[i3]->parameters["Q"];
+            if (Q < 70.0)
+            {
+                this_zone = 2;
+            }
+            else
+            {
+                this_zone = 3;
+            }
+        }
+    }
+
+    vector<size_t> i_n(4);
+    i_n[0] = i0;
+    i_n[1] = i1;
+    i_n[2] = i2;
+    i_n[3] = i3;
+
+    // В этом случае все вершины лежат в одной зоне
+    if (zone[0] == 0) 
+    {
+        for (const auto& nn : this->param_names)
+        {
+            /*parameters[nn] = coords[0] * this->Cells[i0]->parameters[nn] +
+                coords[1] * this->Cells[i1]->parameters[nn] +
+                coords[2] * this->Cells[i2]->parameters[nn] +
+                coords[3] * this->Cells[i3]->parameters[nn];*/
+
+            parameters[nn] = 0.0;
+            short int kl = 0;
+            for (const auto& ii : i_n)
+            {
+                parameters[nn] += coords[kl] * this->Cells[ii]->parameters[nn];
+                kl++;
+            }
+
+            if (parameters["rho"] < 0.0)
+            {
+                cout << "uiwerhfuyerg" << endl;
+                exit(-1);
+            }
+        }
+    }
+    // если есть вершины на границе
+    else
+    {
+        string lr = "";
+        for (const auto& nn : this->param_names)
+        {
+            parameters[nn] = 0.0;
+            short int kl = 0;
+            for (const auto& ii : i_n)
+            {
+                if (static_cast<short int>(std::round(this->Cells[ii]->parameters["zone_geo"])) == -1 &&
+                    this_zone == 1)
+                {
+                    lr = "_L";
+                }
+                else if (static_cast<short int>(std::round(this->Cells[ii]->parameters["zone_geo"])) == -1 &&
+                    this_zone == 2)
+                {
+                    lr = "_R";
+                }
+                else if (static_cast<short int>(std::round(this->Cells[ii]->parameters["zone_geo"])) == -2 &&
+                    this_zone == 2)
+                {
+                    lr = "_L";
+                }
+                else if (static_cast<short int>(std::round(this->Cells[ii]->parameters["zone_geo"])) == -2 &&
+                    this_zone == 3)
+                {
+                    lr = "_R";
+                }
+                else if (static_cast<short int>(std::round(this->Cells[ii]->parameters["zone_geo"])) == -3 &&
+                    this_zone == 3)
+                {
+                    lr = "_L";
+                }
+                else if (static_cast<short int>(std::round(this->Cells[ii]->parameters["zone_geo"])) == -3 &&
+                    this_zone == 4)
+                {
+                    lr = "_R";
+                }
+                else
+                {
+                    lr = "";
+                }
+
+                parameters[nn] += coords[kl] * this->Cells[ii]->parameters[nn + lr];
+                kl++;
+            }
+
+            if (parameters["rho"] < 0.0)
+            {
+                cout << "hbrtyh4e5t" << endl;
+                cout << this_zone << endl;
+                cout << std::round(this->Cells[i0]->parameters["zone_geo"]) << endl;
+                cout << std::round(this->Cells[i1]->parameters["zone_geo"]) << endl;
+                cout << std::round(this->Cells[i2]->parameters["zone_geo"]) << endl;
+                cout << std::round(this->Cells[i3]->parameters["zone_geo"]) << endl;
+                exit(-1);
+            }
+        }
     }
 
     /*cout << query[0] << " " << query[1] << " " << query[2] << endl;

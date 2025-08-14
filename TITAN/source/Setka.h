@@ -225,7 +225,7 @@ public:
 	void Download_cell_MK_parameters(string filename, short int zone_except);
 	// zone_except - какую зону исключить из считывания (чтобы не испортить новые посчитанные в ней значения)
 
-	void Save_for_interpolate(string filename);
+	void Save_for_interpolate(string filename, bool razriv = false);
 
 	// Монте карло ***********************************************************
 	void MK_prepare(short int zone_MK); // Настройка всего для Монте-Карло

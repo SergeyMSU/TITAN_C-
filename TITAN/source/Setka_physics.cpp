@@ -2392,7 +2392,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 	return loc_time;
 }
 
-void Setka::Save_for_interpolate(string filename)
+void Setka::Save_for_interpolate(string filename, bool razriv)
 {
 	std::ofstream out(filename, std::ios::binary);
 	if (!out) {
@@ -2430,6 +2430,11 @@ void Setka::Save_for_interpolate(string filename)
 		{
 			gr_b++;
 		}
+	}
+
+	if (razriv)
+	{
+		gr_b += this->Gran_TS.size() + this->Gran_HP.size() + this->Gran_BS.size();
 	}
 
 	// Записываем количество ячеек
@@ -2492,6 +2497,78 @@ void Setka::Save_for_interpolate(string filename)
 			}
 			double zzz = static_cast<double>(A->type);
 			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		}
+	}
+
+	if (razriv)
+	{
+		unordered_map<string, double> par_left, par_right;
+		unsigned int kl = 0;
+
+		for (auto& gr : this->All_Gran)
+		{
+			if (gr->type2 == Type_Gran_surf::Us) continue;
+			kl++;
+			this->Snos_on_Gran(gr, par_left, par_right, 0);
+
+			double aa = gr->center[0][0];
+			double bb = gr->center[0][1];
+			double cc = gr->center[0][2];
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = 0.0;
+
+				if (par_left.find(i) != par_left.end())
+				{
+					aa = (par_left[i] + par_right[i])/2.0;
+				}
+
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
+
+			double zzz = 0.0;
+			if (gr->type2 == Type_Gran_surf::TS) zzz = -1.0;
+			if (gr->type2 == Type_Gran_surf::HP) zzz = -2.0;
+			if (gr->type2 == Type_Gran_surf::BS) zzz = -3.0;
+
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+			if (fabs(zzz) < 0.0001)
+			{
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (par_left.find(i) != par_left.end())
+					{
+						aa = par_left[i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (par_right.find(i) != par_right.end())
+					{
+						aa = par_right[i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+			}
+		}
+
+		if (kl != this->Gran_TS.size() + this->Gran_HP.size() + this->Gran_BS.size())
+		{
+			cout << "Error 8967453423" << endl;
+			exit(-1);
 		}
 	}
 
