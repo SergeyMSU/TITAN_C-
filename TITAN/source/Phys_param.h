@@ -136,6 +136,7 @@ public:
     bool sglag_HP;
     double velocity_HP;
     double sglag_HP_k_sphere;  //0.005 0.002    // Cглаживание в головной части
+    double sglag_HP_k_angle;  //0.005 0.002    // Cглаживание в хвостовой части к локальным окружност€м
     double sglag_HP_k; // 0.001         // —глаживание не в головной области
     double sglag_HP_k_angle; // 0.001         // —глаживание не в головной области
     double sglag_HP_angle;    // 1.2 коэффициент усилени€ сглаживани€ по углу

@@ -1,4 +1,4 @@
-﻿// TITAN.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
+// TITAN.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
 //
 
 
@@ -60,7 +60,11 @@ int main()
     S1.Tecplot_print_all_gran_in_surface("HP");
     S1.Tecplot_print_all_gran_in_surface("BS");
 
+    
+
     //S1.Find_Yzel_Sosed_for_sglag();
+
+    S1.Smooth_angle_HP();
     S1.Smooth_head_HP3();
     S1.Smooth_head_TS3();
 

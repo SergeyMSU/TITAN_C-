@@ -1,4 +1,4 @@
-﻿#include "Phys_param.h"
+#include "Phys_param.h"
 
 #define ga (this->gamma)
 #define ggg (ga)

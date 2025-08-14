@@ -557,6 +557,16 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 	if (this->phys_param->sglag_HP == true)
 	{
+		vector<vector <vector<Luch*>>> VVV;
+		vector<int> VVV_int;
+
+		VVV.push_back(this->D_Luch);
+		VVV.push_back(this->E_Luch);
+		VVV.push_back(this->B_Luch);
+		VVV_int.push_back(1);
+		VVV_int.push_back(1);
+		VVV_int.push_back(2);
+
 		double phi_a = polar_angle(this->A_Luch[0][1]->Yzels[0]->coord[0][0], 
 			norm2(0.0, this->A_Luch[0][1]->Yzels[0]->coord[0][1], 
 				this->A_Luch[0][1]->Yzels[0]->coord[0][2]));
@@ -569,7 +579,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		if (true) // Это старый вариант сглаживания, сейчас работает другой
 		{
 			if (true)
-			{   // Лаплас в сферических новых
+			{   // Сглаживание к локальной сфере
 #pragma omp parallel for private(A, B, V, B2) schedule(dynamic)
 				for (auto& yz : this->All_Yzel)
 				{
@@ -683,6 +693,57 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			}
 
 		}
+
+
+		// Сглаживание к центру локальных сфер для HP в хвосте
+		for (size_t ii = 0; ii < VVV.size(); ii++)
+		{
+			int nn = VVV[ii].size();
+			int mm = VVV[ii][0].size();
+
+//#pragma omp parallel for private(A, B, V) schedule(dynamic)
+			for (size_t i = 0; i < nn; i++)
+			{
+				if (i > 3 && i < nn - 3) continue;
+
+				for (size_t j = 0; j < mm; j++)
+				{
+					auto AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];
+
+					A << AA->coord[now][0], AA->coord[now][1], AA->coord[now][2];
+
+					Eigen::Vector3d center;
+					center[0] = A[0];
+					center[1] = AA->parameters["xcc"];
+					center[2] = AA->parameters["ycc"];
+						
+					
+					double rr = (A - center).norm();
+					double r = 0.0;
+					for (auto& j : AA->Yzel_sosed_sglag2)
+					{
+						B << A[0], j->coord[now][1], j->coord[now][2];
+						r += (center - B).norm();
+					}
+					r /= AA->Yzel_sosed_sglag2.size();
+
+					double k = (r / rr);
+					B = k * (A - center) + center;
+
+					V = this->phys_param->velocity_HP * 
+						this->phys_param->sglag_HP_k_angle * (B - A) / time;
+
+					AA->mut.lock();
+					AA->velocity[0] += V(0);
+					AA->velocity[1] += V(1);
+					AA->velocity[2] += V(2);
+					AA->num_velocity++;
+					AA->mut.unlock();
+				}
+			}
+		}
+
+
 
 		Yzel* AA, * AA1, * AA11, * AA2, * AA22, * AA3, * AA33, * AA4, * AA44;
 		// AA33  AA3  AA  AA1  AA11 - вдоль HP  направление в апвинд
@@ -1079,7 +1140,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		}
 
 		// Вычисляем новую координату узла
-		if (yz->type == Type_yzel::TS)
+		if (yz->type == Type_yzel::TS && this->phys_param->move_TS == true)
 		{
 			Eigen::Vector3d A, B;
 			A << yz->coord[now][0], yz->coord[now][1], yz->coord[now][2];
@@ -2187,4 +2248,319 @@ void Setka::Find_Yzel_Sosed_for_sglag(void)
 
 
 	cout << "End: Find_Yzel_Sosed_for_sglag" << endl;
+}
+
+Eigen::Vector2d fitCircleRobust(const std::vector<Eigen::Vector2d>& points, double& radius_, 
+	double& error_, int max_iter = 50, double tol = 1e-8)
+{
+	const int n = points.size();
+	if (n < 3) throw std::runtime_error("Need at least 3 points");
+
+	// 1. Initial guess using geometric median
+	Eigen::Vector2d center = Eigen::Vector2d::Zero();
+	for (const auto& p : points) center += p;
+	center /= n;
+
+	// 2. Levenberg-Marquardt optimization
+	double radius = 0.0;
+	for (const auto& p : points) radius += (p - center).norm();
+	radius /= n;
+
+	double lambda = 0.001;
+	double prev_error = std::numeric_limits<double>::max();
+	Eigen::Vector3d params;
+	params << center.x(), center.y(), radius;
+
+	for (int iter = 0; iter < max_iter; ++iter) {
+		Eigen::MatrixXd J(n, 3);
+		Eigen::VectorXd residuals(n);
+		double error = 0.0;
+
+		// Compute Jacobian and residuals
+		for (int i = 0; i < n; ++i) {
+			double dx = points[i].x() - params(0);
+			double dy = points[i].y() - params(1);
+			double dist = std::sqrt(dx * dx + dy * dy);
+
+			// Handle near-zero distance case
+			if (dist < 1e-10) {
+				residuals(i) = -params(2);
+				J.row(i) << 0, 0, -1;
+			}
+			else {
+				residuals(i) = dist - params(2);
+				J(i, 0) = -dx / dist;
+				J(i, 1) = -dy / dist;
+				J(i, 2) = -1.0;
+			}
+			error += residuals(i) * residuals(i);
+		}
+
+		error = std::sqrt(error / n);
+		if (std::abs(prev_error - error) < tol) break;
+		prev_error = error;
+
+		// LM update
+		Eigen::Matrix3d H = J.transpose() * J;
+		H.diagonal() *= (1.0 + lambda);
+		Eigen::Vector3d delta = H.ldlt().solve(J.transpose() * (-residuals));
+
+		// Safeguard against invalid updates
+		if (!delta.allFinite()) {
+			lambda *= 10.0;
+			continue;
+		}
+
+		params += delta;
+		lambda = (error < prev_error) ? lambda / 2.0 : lambda * 10.0;
+	}
+
+	// Final parameters
+	center << params(0), params(1);
+	radius = params(2);
+
+	// Calculate final error
+	double final_error = 0.0;
+	for (const auto& p : points) {
+		double dist = (p - center).norm();
+		final_error += std::pow(dist - radius, 2);
+	}
+	final_error = std::sqrt(final_error / n);
+
+	error_ = final_error;
+	radius_ = radius;
+
+	return center;
+}
+
+Eigen::Vector2d fitCircleCenter(const std::vector<Eigen::Vector2d>& points) 
+{
+	const int n = points.size();
+	if (n < 3) throw std::runtime_error("Need at least 3 points to fit a circle");
+
+	// 1. Центрируем точки для улучшения численной устойчивости
+	Eigen::Vector2d centroid = Eigen::Vector2d::Zero();
+	for (const auto& p : points) centroid += p;
+	centroid /= n;
+
+	// 2. Строим систему уравнений для метода наименьших квадратов
+	Eigen::MatrixXd A(n, 2);
+	Eigen::VectorXd b(n);
+
+	for (int i = 0; i < n; ++i) {
+		Eigen::Vector2d p = points[i] - centroid;
+		A.row(i) = 2.0 * p;
+		b(i) = p.squaredNorm();
+	}
+
+	// 3. Решаем систему
+	Eigen::Vector2d center_offset = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+
+	// 4. Возвращаем центр в исходной системе координат
+	return center_offset + centroid;
+}
+
+// Функция для вычисления радиуса (после нахождения центра)
+double computeRadius(const std::vector<Eigen::Vector2d>& points, const Eigen::Vector2d& center) 
+{
+	double radius = 0.0;
+	for (const auto& p : points) {
+		radius += (p - center).norm();
+	}
+	return radius / points.size();
+}
+
+void Setka::Smooth_angle_HP(void)
+{
+	cout << "Start Smooth_angle_HP " << endl;
+	for (auto& yz : this->All_Yzel)
+	{
+		yz->num_velocity = 0;
+		yz->velocity[0] = 0.0;
+		yz->velocity[1] = 0.0;
+		yz->velocity[2] = 0.0;
+	}
+
+	vector<vector <vector<Luch*>>> VVV;
+	vector<int> VVV_int;
+
+	VVV.push_back(this->D_Luch);
+	VVV.push_back(this->E_Luch);
+	VVV.push_back(this->B_Luch);
+	VVV_int.push_back(1);
+	VVV_int.push_back(1);
+	VVV_int.push_back(2);
+
+	for (size_t ii = 0; ii < VVV.size(); ii++)
+	{
+		int nn = VVV[ii].size();
+		int mm = VVV[ii][0].size();
+
+		#pragma omp parallel for schedule(dynamic)
+		for (size_t i = 0; i < nn; i++)
+		{
+			//if (i == 1) continue;
+			if (i > 3 && i < nn - 3) continue;
+
+			short int ip = i + 1;
+			short int ipp = i + 2;
+			short int im = i - 1;
+			short int imm = i - 2;
+
+			if (ip == nn) ip = 0;
+			if (ipp == nn) ipp = 0;
+			if (ipp == nn + 1) ipp = 1;
+
+			if (im == -1) im = nn - 1;
+			if (imm == -1) imm = nn - 1;
+			if (imm == -2) imm = nn - 2;
+
+			for (size_t j = 0; j < mm; j++)
+			{
+				std::vector<Eigen::Vector2d> points;
+				auto AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];
+				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				Yzel* AA2 = AA;
+
+				AA = VVV[ii][im][j]->Yzels_opor[VVV_int[ii]];
+				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				AA2->Yzel_sosed_sglag2.insert(AA);
+
+				AA = VVV[ii][imm][j]->Yzels_opor[VVV_int[ii]];
+				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				AA2->Yzel_sosed_sglag2.insert(AA);
+
+				AA = VVV[ii][ip][j]->Yzels_opor[VVV_int[ii]];
+				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				AA2->Yzel_sosed_sglag2.insert(AA);
+
+				AA = VVV[ii][ipp][j]->Yzels_opor[VVV_int[ii]];
+				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				AA2->Yzel_sosed_sglag2.insert(AA);
+
+				//Eigen::Vector2d center = fitCircleCenter(points);
+				//double radius = computeRadius(points, center);
+
+				double radius, error;
+				Eigen::Vector2d center = fitCircleRobust(points,
+					radius, error, 8);
+
+				AA2->parameters["xcc"] = center[0];
+				AA2->parameters["ycc"] = center[1];
+				
+
+				AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];
+
+				Eigen::Vector2d A, B;
+				A << AA->coord[0][1], AA->coord[0][2];
+				B = A;
+
+				continue;
+
+				// Дальше алгоритм не используется, мы просто нашли центр для 
+				// сглаживания HP в программе
+
+				unsigned int kl = 0;
+				while ((B - center).norm() > radius)
+				{
+					kl++;
+					B *= 0.999;
+					if (kl > 100000)
+					{
+						cout << "Error 12ertewrfwr3 " << endl;
+						cout << B[0] << " " << B[1] << endl;
+						cout << center[0] << " " << center[1] << endl;
+						cout << radius << endl;
+						cout << "Points: " << endl;
+						for (auto& ik : points)
+						{
+							cout << ik[0] << " " << ik[1] << endl;
+						}
+						exit(-1);
+					}
+				}
+
+				kl = 0;
+				while ((B - center).norm() < radius)
+				{
+					B *= 1.001;
+					if (kl > 100000)
+					{
+						cout << "Error gegy45432ty5hre" << endl;
+						cout << B[0] << " " << B[1] << endl;
+						cout << center[0] << " " << center[1] << endl;
+						cout << radius << endl;
+						exit(-1);
+					}
+				}
+
+				AA->velocity[0] = 0.0;
+				AA->velocity[1] = (B - A)[0];
+				AA->velocity[2] = (B - A)[1];
+			}
+		}
+	}
+
+	// Вычисляем новые координаты узлов на HP
+	for (auto& yz : this->All_Yzel)
+	{
+
+		// Вычисляем новую координату узла
+		if (yz->type == Type_yzel::HP && this->phys_param->move_HP == true)
+		{
+			Eigen::Vector3d A, B;
+			A << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
+			Eigen::Vector3d V;
+			V << yz->velocity[0], yz->velocity[1], yz->velocity[2];
+			if (A(0) >= 0.0)
+			{
+				B = A;
+			}
+			else
+			{
+				B << 0.0, A(1), A(2);
+			}
+			B.normalize();
+			A = A + V.dot(B) * B;
+			yz->coord[0][0] = A[0];
+			yz->coord[0][1] = A[1];
+			yz->coord[0][2] = A[2];
+		}
+		
+	}
+
+	// Остальные узлы на HP (невыделяемой части) надо подвинуть
+	if (false)
+	{
+		short int NN = this->D_Luch[0].size() - 1;
+		for (auto& L : this->D_Luch)
+		{
+
+			double h1 = norm2(0.0, L[this->geo->N4 - 4]->Yzels_opor[1]->coord[0][1],
+				L[this->geo->N4 - 4]->Yzels_opor[1]->coord[0][2]);
+
+
+			for (short int i = this->geo->N4 - 3; i <= NN; i++)
+			{
+				//double h = h1 + (i - this->geo->N4 + 2) * (h2 - h1) / (NN - this->geo->N4 + 2);
+				double h = h1;
+				auto yz = L[i]->Yzels_opor[1];
+				double hh = norm2(0.0, yz->coord[0][1], yz->coord[0][2]);
+
+
+				yz->coord[0][1] = yz->coord[0][1] * h / hh;
+				yz->coord[0][2] = yz->coord[0][2] * h / hh;
+			}
+		}
+	}
+
+
+	// Перестраиваем сетку
+	for (int i_step = 0; i_step < this->All_Luch.size(); i_step++)
+	{
+		auto lu = this->All_Luch[i_step];
+		lu->dvigenie(0);
+	}
+	
+	cout << "End Smooth_angle_HP " << endl;
 }
