@@ -522,14 +522,23 @@ void Phys_param::set_parameters(void)
         }
 
         std::string line;
-        while (std::getline(file, line)) {
+        while (std::getline(file, line)) 
+        {
+            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
             // Пропускаем пустые строки
-            if (line.empty()) continue;
+            if (line.empty() || line.find_first_not_of(" \t") == std::string::npos) {
+                continue;
+            }
 
             std::istringstream iss(line);
             std::string varName, valueStr;
 
-            if (iss >> varName >> valueStr) {
+            // Извлекаем имя и значение (с поддержкой кавычек)
+            if ((iss >> varName >> std::ws) && std::getline(iss >> std::ws, valueStr)) {
+                // Удаляем пробелы в начале/конце значения
+                valueStr.erase(0, valueStr.find_first_not_of(" \t"));
+                valueStr.erase(valueStr.find_last_not_of(" \t") + 1);
+
                 if (varMap.count(varName)) {
                     parseAndAssign(varMap[varName], valueStr);
                 }
@@ -544,10 +553,10 @@ void Phys_param::set_parameters(void)
 
         file.close();
 
-        whach(this->is_div_V_in_cell);
+        /*whach(this->is_div_V_in_cell);
         whach(this->MK_file);
         whach(this->refine_AMR);
-        whach(this->sglag_HP_angle);
+        whach(this->sglag_HP_angle);*/
     }
 
 }
