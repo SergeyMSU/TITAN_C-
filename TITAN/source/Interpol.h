@@ -13,6 +13,7 @@ public:
 	Delaunay* Delone;
 	vector<string> param_names;  // Названия всех хранящихся переменных
 
+	unordered_map<string, double> stepen;   // Стемени радиуса в интерполяции
 
 	Interpol(string name);
 	~Interpol();

@@ -268,7 +268,7 @@ void Setka::Init_physics(void)
 	}
 
 	// Интерполяция
-	if (false)
+	if (true)
 	{
 		Interpol SS = Interpol("For_intertpolate_1.bin");
 		std::unordered_map<string, double> parameters;
@@ -284,7 +284,13 @@ void Setka::Init_physics(void)
 					parameters, prev_cell, next_cell);
 				prev_cell = next_cell;
 
-				i->parameters[0] = parameters;
+				i->parameters[0]["rho_H1"] = parameters["rho_H1"];
+				i->parameters[0]["Vx_H1"] = parameters["Vx_H1"];
+				i->parameters[0]["Vy_H1"] = parameters["Vy_H1"];
+				i->parameters[0]["Vz_H1"] = parameters["Vz_H1"];
+				i->parameters[0]["p_H1"] = parameters["p_H1"];
+
+
 				i->parameters[1] = i->parameters[0];
 			}
 		}
@@ -337,7 +343,7 @@ void Setka::Init_physics(void)
 	}
 
 	// Задаём начальные условия на сетке
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -375,7 +381,7 @@ void Setka::Init_physics(void)
 
 
 
-				i->parameters[0]["rho"] = rho * pow(this->phys_param->R_0 / r, 2);
+				/*i->parameters[0]["rho"] = rho * pow(this->phys_param->R_0 / r, 2);
 				i->parameters[0]["rho_He"] = 4.0 * this->phys_param->mrho_He_0 * np * pow(this->phys_param->R_0 / r, 2);
 				i->parameters[0]["p"] = (1.0 + 3.0 * this->phys_param->mrho_He_0 / 2.0) * np * Tp *
 					pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
@@ -385,7 +391,13 @@ void Setka::Init_physics(void)
 				i->parameters[0]["Bx"] = cc(0);
 				i->parameters[0]["By"] = cc(1);
 				i->parameters[0]["Bz"] = cc(2);
-				i->parameters[0]["Q"] = i->parameters[0]["rho"];
+				i->parameters[0]["Q"] = i->parameters[0]["rho"];*/
+
+				i->parameters[0]["rho_H1"] = 0.00001;
+				i->parameters[0]["Vx_H1"] = mV * vec(0) / r;
+				i->parameters[0]["Vy_H1"] = mV * vec(1) / r;
+				i->parameters[0]["Vz_H1"] = mV * vec(2) / r;
+				i->parameters[0]["p_H1"] = 0.00001;
 			}
 			else
 			{
@@ -497,17 +509,17 @@ void Setka::Init_physics(void)
 				i->parameters["Q"] = i->parameters["rho"];
 
 				i->parameters["rho_H1"] = 0.00001;
-				i->parameters["Vx_H1"] = mV * vec(0);
-				i->parameters["Vy_H1"] = mV * vec(1);
-				i->parameters["Vz_H1"] = mV * vec(2);
+				i->parameters["Vx_H1"] = mV * vec(0) / r;
+				i->parameters["Vy_H1"] = mV * vec(1) / r;
+				i->parameters["Vz_H1"] = mV * vec(2) / r;
 				i->parameters["p_H1"] = 0.00001;
 
 				if (this->phys_param->num_H >= 5)
 				{
 					i->parameters["rho_H5"] = 0.00001;
-					i->parameters["Vx_H5"] = mV * vec(0);
-					i->parameters["Vy_H5"] = mV * vec(1);
-					i->parameters["Vz_H5"] = mV * vec(2);
+					i->parameters["Vx_H5"] = mV * vec(0) / r;
+					i->parameters["Vy_H5"] = mV * vec(1) / r;
+					i->parameters["Vz_H5"] = mV * vec(2) / r;
 					i->parameters["p_H5"] = 0.00001;
 				}
 
