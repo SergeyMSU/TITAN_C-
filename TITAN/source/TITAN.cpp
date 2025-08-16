@@ -71,12 +71,12 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 6 * 14; i++) // 6 * 2
+    for (int i = 1; i <= 3 * 8; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 300, 1); // 400   1
-        S1.Go(true, 300, 1); // 400   1
+        S1.Go(false, 100, 1); // 400   1
+        S1.Go(true, 1000, 1); // 400   1
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
 
@@ -120,7 +120,16 @@ int main()
     S1.Save_for_interpolate("For_intertpolate_3.bin", true);
     Interpol SS = Interpol("For_intertpolate_3.bin");
 
-    
+    if (true) // Проверка интерполятора
+    {
+        std::unordered_map<string, double> param;
+        SS.Get_TS(1.0, 0.0, 0.0, param);
+        for (const auto& [key, value] : param) {
+            std::cout << key << ":  " << value << '\n';
+        }
+        cout << endl;
+    }
+
 
     S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
         Eigen::Vector3d(1.0, 0.0, 0.0), "_(1, 0, 0)_", 500.0);

@@ -22,6 +22,8 @@ Interpol::Interpol(string name)
 	// Сначала список строк с названиями переменных
 	// Потом все ячейки в формате: три координаты и значения этих переменных
 
+    in.read(reinterpret_cast<char*>(&this->L6), sizeof(this->L6));
+
      // Читаем количество строк
     size_t size;
     in.read(reinterpret_cast<char*>(&size), sizeof(size));
@@ -63,30 +65,9 @@ Interpol::Interpol(string name)
             A->parameters[i] = a;
         }
 
-        if (A->parameters.find("zone_geo") != A->parameters.end())
-        {
-            if (A->parameters["zone_geo"] < 0.001)
-            {
-                for (const auto& i : this->param_names)
-                {
-                    if (i == "zone_geo") continue;
-                    double a;
-                    in.read(reinterpret_cast<char*>(&a), sizeof(a));
-                    A->parameters[i + "_L"] = a;
-                }
-                for (const auto& i : this->param_names)
-                {
-                    if (i == "zone_geo") continue;
-                    double a;
-                    in.read(reinterpret_cast<char*>(&a), sizeof(a));
-                    A->parameters[i + "_R"] = a;
-                }
-            }
-        }
-
-
         this->Cells.push_back(A);
     }
+
 
     // Считываем центральную ячейку
     if (true)
@@ -109,12 +90,39 @@ Interpol::Interpol(string name)
         this->Cells.push_back(A);
     }
 
+    // Считываем TS
+    in.read(reinterpret_cast<char*>(&size), sizeof(size));
+    for (size_t i = 0; i < size; ++i)
+    {
+        double a, b, c;
+        in.read(reinterpret_cast<char*>(&a), sizeof(a));
+        in.read(reinterpret_cast<char*>(&b), sizeof(b));
+        in.read(reinterpret_cast<char*>(&c), sizeof(c));
+        auto A = new Int_point(a, b, 0.0);
+        A->parameters["r"] = c;
+
+        this->point_TS.push_back({ {a, b}, i });
+
+        in.read(reinterpret_cast<char*>(&a), sizeof(a));
+        in.read(reinterpret_cast<char*>(&b), sizeof(b));
+        in.read(reinterpret_cast<char*>(&c), sizeof(c));
+        A->parameters["nx"] = a;
+        A->parameters["ny"] = b;
+        A->parameters["nz"] = c;
+        in.read(reinterpret_cast<char*>(&a), sizeof(a));
+        in.read(reinterpret_cast<char*>(&b), sizeof(b));
+
+        A->parameters["rho_L"] = a;
+        A->parameters["rho_R"] = b;
+
+        this->Cells_TS.push_back(A);
+    }
 
     in.close();
 
     // Делаем триангуляцию
     this->Delone = new Delaunay(this->points.begin(), this->points.end());
-
+    this->Delone_TS = new Delaunay2(this->point_TS.begin(), this->point_TS.end());
 
     cout << "END: Interpol" << endl;
 }
@@ -281,81 +289,25 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
     }
 
     // В этом случае все вершины лежат в одной зоне
-    if (zone[0] == 0) 
+
+    for (const auto& nn : this->param_names)
     {
-        for (const auto& nn : this->param_names)
+        /*parameters[nn] = coords[0] * this->Cells[i0]->parameters[nn] +
+            coords[1] * this->Cells[i1]->parameters[nn] +
+            coords[2] * this->Cells[i2]->parameters[nn] +
+            coords[3] * this->Cells[i3]->parameters[nn];*/
+
+        parameters[nn] = 0.0;
+        short int kl = 0;
+        for (const auto& ii : i_n)
         {
-            /*parameters[nn] = coords[0] * this->Cells[i0]->parameters[nn] +
-                coords[1] * this->Cells[i1]->parameters[nn] +
-                coords[2] * this->Cells[i2]->parameters[nn] +
-                coords[3] * this->Cells[i3]->parameters[nn];*/
-
-            parameters[nn] = 0.0;
-            short int kl = 0;
-            for (const auto& ii : i_n)
-            {
-                parameters[nn] += coords[kl] * this->Cells[ii]->parameters[nn] * pow(r[kl], this->stepen[nn]);
-                kl++;
-            }
-
-            parameters[nn] /= pow(r[4], this->stepen[nn]);
+            parameters[nn] += coords[kl] * this->Cells[ii]->parameters[nn] * pow(r[kl], this->stepen[nn]);
+            kl++;
         }
-    }
-    // если есть вершины на границе
-    else
-    {
-        string lr = "";
-        for (const auto& nn : this->param_names)
-        {
-            parameters[nn] = 0.0;
-            short int kl = 0;
-            for (const auto& ii : i_n)
-            {
-                if (true)
-                {
-                    if (static_cast<short int>(std::round(this->Cells[ii]->parameters["zone_geo"])) == -1 &&
-                        this_zone == 1)
-                    {
-                        lr = "_L";
-                    }
-                    else if (static_cast<short int>(std::round(this->Cells[ii]->parameters["zone_geo"])) == -1 &&
-                        this_zone == 2)
-                    {
-                        lr = "_R";
-                    }
-                    else if (static_cast<short int>(std::round(this->Cells[ii]->parameters["zone_geo"])) == -2 &&
-                        this_zone == 2)
-                    {
-                        lr = "_L";
-                    }
-                    else if (static_cast<short int>(std::round(this->Cells[ii]->parameters["zone_geo"])) == -2 &&
-                        this_zone == 3)
-                    {
-                        lr = "_R";
-                    }
-                    else if (static_cast<short int>(std::round(this->Cells[ii]->parameters["zone_geo"])) == -3 &&
-                        this_zone == 3)
-                    {
-                        lr = "_L";
-                    }
-                    else if (static_cast<short int>(std::round(this->Cells[ii]->parameters["zone_geo"])) == -3 &&
-                        this_zone == 4)
-                    {
-                        lr = "_R";
-                    }
-                    else
-                    {
-                        lr = "";
-                    }
-                }
 
-                parameters[nn] += coords[kl] * this->Cells[ii]->parameters[nn + lr] * pow(r[kl], this->stepen[nn]);;
-                kl++;
-            }
-            parameters[nn] /= pow(r[4], this->stepen[nn]);
-
-        }
+        parameters[nn] /= pow(r[4], this->stepen[nn]);
     }
+    
 
     /*cout << query[0] << " " << query[1] << " " << query[2] << endl;
     cout << p0[0] << " " << p0[1] << " " << p0[2] << endl;
@@ -369,6 +321,59 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
     cout << this->Cells[i3]->parameters["rho"] << endl;
 
     exit(-1);*/
+
+    return true;
+}
+
+// Функция для вычисления барицентрических координат
+void compute_barycentric(const Point2& a, const Point2& b, const Point2& c,
+    const Point2& p, FT& alpha, FT& beta, FT& gamma)
+{
+    FT denom = (b.y() - c.y()) * (a.x() - c.x()) + (c.x() - b.x()) * (a.y() - c.y());
+    alpha = ((b.y() - c.y()) * (p.x() - c.x()) + (c.x() - b.x()) * (p.y() - c.y())) / denom;
+    beta = ((c.y() - a.y()) * (p.x() - c.x()) + (a.x() - c.x()) * (p.y() - c.y())) / denom;
+    gamma = FT(1) - alpha - beta;
+}
+
+
+bool Interpol::Get_TS(const double& x, const double& y, const double& z,
+    std::unordered_map<string, double>& parameters)
+{
+    double r_1, the_1, phi_1;
+
+    r_1 = sqrt(x * x + y * y + z * z);
+    the_1 = acos(z / r_1);
+    phi_1 = polar_angle(x, y);
+
+    Point2 query(the_1, phi_1);
+    Face_handle face = this->Delone_TS->locate(query);
+    if (this->Delone_TS->is_infinite(face)) {
+        return false; // Точка вне выпуклой оболочки
+    }
+
+    // Получаем вершины треугольника
+    Point2 p0 = face->vertex(0)->point();
+    Point2 p1 = face->vertex(1)->point();
+    Point2 p2 = face->vertex(2)->point();
+
+    FT alpha, beta, gamma;
+    compute_barycentric(p0, p1, p2, query, alpha, beta, gamma);
+
+    size_t idx0 = face->vertex(0)->info(); // Номер точки p0
+    size_t idx1 = face->vertex(1)->info(); // Номер точки p1
+    size_t idx2 = face->vertex(2)->info(); // Номер точки p2
+
+    // Интерполяция параметров
+    for (auto& [key, _] : this->Cells_TS[idx0]->parameters) {
+        double f0 = this->Cells_TS[idx0]->parameters[key];
+        double f1 = this->Cells_TS[idx1]->parameters[key];
+        double f2 = this->Cells_TS[idx2]->parameters[key];
+
+        // Преобразуем CGAL::FT в double
+        parameters[key] = CGAL::to_double(alpha) * f0 +
+            CGAL::to_double(beta) * f1 +
+            CGAL::to_double(gamma) * f2;
+    }
 
     return true;
 }

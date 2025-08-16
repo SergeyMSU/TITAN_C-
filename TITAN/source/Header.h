@@ -62,15 +62,23 @@ class MK_particle;
 
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Delaunay_triangulation_3.h>
+#include <CGAL/Delaunay_triangulation_2.h>
+#include <CGAL/interpolation_functions.h>
 #include <CGAL/Triangulation_vertex_base_with_info_3.h>
+#include <CGAL/Triangulation_vertex_base_with_info_2.h>
+#include <CGAL/barycenter.h>
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel KKexact;
 typedef CGAL::Triangulation_vertex_base_with_info_3<size_t, KKexact> Vb;
+typedef CGAL::Triangulation_vertex_base_with_info_2<size_t, KKexact> Vb2;
 typedef CGAL::Triangulation_data_structure_3<Vb> Tds;
+typedef CGAL::Triangulation_data_structure_2<Vb2> Tds2;
 typedef CGAL::Delaunay_triangulation_3<KKexact, Tds> Delaunay;
+typedef CGAL::Delaunay_triangulation_2<KKexact, Tds2> Delaunay2;
 typedef Delaunay::Cell_handle Cell_handle;
 typedef Delaunay::Vertex_handle Vertex_handle;
-
+typedef Delaunay2::Face_handle Face_handle;  // Правильный тип для 2D!
+typedef KKexact::FT FT;
 
 
 #define sqrtpi_ 1.77245385

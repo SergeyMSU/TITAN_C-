@@ -251,7 +251,7 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// Редактирование каких-то переменных
-	if (true)
+	if (false)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -1450,7 +1450,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	for (unsigned int step = 1; step <= steps; step++)
 	{
-		if (step % 50 == 0)
+		if (step % 100 == 0)
 		{
 			cout << "Global step = " << step << endl;
 			whach(time);
@@ -1458,6 +1458,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			whach(yc_min);
 			whach(zc_min);
 			whach(name_min_time);
+			whach(this->Cell_Center->parameters[now1]["Vx_H4"]);
 			cout << "__________________" << endl;
 		}
 
@@ -1533,6 +1534,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			double Volume = cell->volume[now1];
 			double Volume2 = cell->volume[now2];
 			int zone;
+			double radius = norm2(cell->center[now1][0], cell->center[now1][1], cell->center[now1][2]);
 
 			unordered_map<string, double> POTOK;
 
@@ -1902,7 +1904,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 					}
 
-					if (rho < 1e-7)  // Отключаем источники, так как этой жидкости фактически нет
+					if (rho < 1e-7 || radius <= 1.0)  // Отключаем источники, так как этой жидкости фактически нет
 					{
 						SOURSE["rho" + nam] = 0.0;
 						SOURSE["m_x" + nam] = 0.0;
@@ -2395,6 +2397,9 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		exit(-1);
 	}
 
+	// Записываем до какого расстояния слева выделяется HP
+	out.write(reinterpret_cast<const char*>(&this->geo->L6), sizeof(double));
+
 	// Записываем количество строк
 	size_t size = this->phys_param->param_names.size() + 1;
 	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
@@ -2427,11 +2432,6 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		}
 	}
 
-	if (razriv)
-	{
-		gr_b += this->Gran_TS.size() + this->Gran_HP.size() + this->Gran_BS.size();
-	}
-
 
 	// Записываем количество ячеек
 	size = this->All_Cell.size() + gr_b;
@@ -2460,11 +2460,6 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 
 		double zzz = static_cast<double>(Cel->type);
-		if (zzz <= 0.0001)
-		{
-			cout << "uh8weyurfgueorfw  " << zzz << endl;
-			exit(-1);
-		}
 		out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 	}
 
@@ -2503,80 +2498,6 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		}
 	}
 
-	if (razriv)
-	{
-		unordered_map<string, double> par_left, par_right;
-		unsigned int kl = 0;
-
-		for (auto& gr : this->All_Gran)
-		{
-			if (gr->type2 == Type_Gran_surf::Us) continue;
-			kl++;
-			this->Snos_on_Gran(gr, par_left, par_right, 0);
-
-			double aa = gr->center[0][0];
-			double bb = gr->center[0][1];
-			double cc = gr->center[0][2];
-			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = 0.0;
-
-				if (par_left.find(i) != par_left.end())
-				{
-					aa = (par_left[i] + par_right[i])/2.0;
-				}
-
-				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			}
-
-			double zzz = 0.0;
-			if (gr->type2 == Type_Gran_surf::TS) zzz = -1.0;
-			if (gr->type2 == Type_Gran_surf::HP) zzz = -2.0;
-			if (gr->type2 == Type_Gran_surf::BS) zzz = -3.0;
-
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-
-
-			if (zzz < 0.0001)
-			{
-				for (const auto& i : this->phys_param->param_names)
-				{
-					aa = 0.0;
-
-					if (par_left.find(i) != par_left.end())
-					{
-						aa = par_left[i];
-					}
-
-					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-				}
-
-				for (const auto& i : this->phys_param->param_names)
-				{
-					aa = 0.0;
-
-					if (par_right.find(i) != par_right.end())
-					{
-						aa = par_right[i];
-					}
-
-					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-				}
-
-			}
-		}
-
-		if (kl != this->Gran_TS.size() + this->Gran_HP.size() + this->Gran_BS.size())
-		{
-			cout << "Error 8967453423" << endl;
-			exit(-1);
-		}
-	}
-
 	// Записываем центральную точку
 	if (true)
 	{
@@ -2605,9 +2526,37 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	}
 
 
+	unordered_map<string, double> par_left, par_right;
 	// Запишем координаты поверхностей (на самом деле центров граней)
-	bool aa = true;
-	out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+
+	// TS
+	size = this->Gran_TS.size();
+	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+	for (const auto& gr : this->Gran_TS)
+	{
+		double aa = gr->center[0][0];
+		double bb = gr->center[0][1];
+		double cc = gr->center[0][2];
+
+		double r_1, the_1, phi_1;
+
+		r_1 = sqrt(aa * aa + bb * bb + cc * cc);
+		the_1 = acos(aa / r_1);
+		phi_1 = polar_angle(bb, cc);
+
+		out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+		out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+		out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+
+		out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+		out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+		out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+		this->Snos_on_Gran(gr, par_left, par_right, 0);
+		out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+		out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+	}
 
 
 
