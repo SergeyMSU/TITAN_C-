@@ -4,7 +4,11 @@ Interpol::Interpol(string name)
 {
     // Степени r в интераоляции
     this->stepen["rho"] = 2.0;
-    this->stepen["p"] = 2.0 * 5.0/3.0;
+    this->stepen["p"] = 2.0 * (5.0 / 3.0);
+    this->stepen["divV"] = 1.0;
+    this->stepen["Bx"] = 1.0;
+    this->stepen["By"] = 1.0;
+    this->stepen["Bz"] = 1.0;
 
 
     cout << "Start: Interpol" << endl;
@@ -258,6 +262,14 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
         r[2] = norm2(p2[0], p2[1], p2[2]);
         r[3] = norm2(p3[0], p3[1], p3[2]);
         r[4] = norm2(x, y, z);
+        if (r[4] < 0.01)
+        {
+            r[0] = 1.0;
+            r[1] = 1.0;
+            r[2] = 1.0;
+            r[3] = 1.0;
+            r[4] = 1.0;
+        }
     }
     else
     {

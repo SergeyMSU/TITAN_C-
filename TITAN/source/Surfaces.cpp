@@ -448,7 +448,6 @@ double Surfaces::Get_BS(const double& phi, const double& the)
 	return 0.0;
 }
 
-
 void Surfaces::Print_TS()
 {
 	ofstream fout;
@@ -505,7 +504,6 @@ void Surfaces::Print_TS()
 	fout.close();
 }
 
-
 void Surfaces::Print_BS()
 {
 	ofstream fout;
@@ -549,9 +547,6 @@ void Surfaces::Print_BS()
 
 	fout.close();
 }
-
-
-
 
 void Surfaces::Print_HP()
 {

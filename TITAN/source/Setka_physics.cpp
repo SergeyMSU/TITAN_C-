@@ -251,15 +251,17 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// Редактирование каких-то переменных
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			if (i->parameters[0]["Q"]/ i->parameters[0]["rho"] > 70.0)
+			if (norm2(i->center[0][0], i->center[0][1], i->center[0][2]) < 2.0)
 			{
-				i->parameters[0]["Bx"] *= -1.0;
-				i->parameters[0]["By"] *= -1.0;
-				i->parameters[0]["Bz"] *= -1.0;
+				i->parameters[0]["rho_H4"] = 0.16;
+				i->parameters[0]["p_H4"] = 0.13;
+				i->parameters[0]["Vx_H4"] = -2.5;
+				i->parameters[0]["Vy_H4"] = 0.0;
+				i->parameters[0]["Vz_H4"] = 0.0;
 
 				i->parameters[1] = i->parameters[0];
 			}
@@ -268,7 +270,7 @@ void Setka::Init_physics(void)
 	}
 
 	// Интерполяция
-	if (true)
+	if (false)
 	{
 		Interpol SS = Interpol("For_intertpolate_1.bin");
 		std::unordered_map<string, double> parameters;
@@ -343,7 +345,7 @@ void Setka::Init_physics(void)
 	}
 
 	// Задаём начальные условия на сетке
-	if (true)
+	if (false)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -1468,44 +1470,6 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		
 
 		//omp_set_num_threads(1); // 32
-
-
-		// Здесь задаётся выходящее условие для водорода 1-3 на Type_Gran::Outer_Hard
-		if (false)
-		{
-			for (auto& gran : this->All_boundary_Gran)
-			{
-				if (gran->type == Type_Gran::Outer_Hard)
-				{
-					double u1, v1, w1;
-					for (auto& nam : this->phys_param->H_name)
-					{
-						if (nam == "_H4") continue;
-
-						u1 = gran->cells[0]->parameters[now1]["Vx" + nam];
-						v1 = gran->cells[0]->parameters[now1]["Vy" + nam];
-						w1 = gran->cells[0]->parameters[now1]["Vz" + nam];
-						if (u1 * gran->normal[now1][0] + v1 * gran->normal[now1][1] +
-							w1 * gran->normal[now1][2] > 0.0)
-						{
-							gran->parameters["rho" + nam] = gran->cells[0]->parameters[now1]["rho" + nam];
-							gran->parameters["p" + nam] = gran->cells[0]->parameters[now1]["p" + nam];
-							gran->parameters["Vx" + nam] = u1;
-							gran->parameters["Vy" + nam] = v1;
-							gran->parameters["Vz" + nam] = w1;
-						}
-						else
-						{
-							gran->parameters["rho" + nam] = gran->cells[0]->parameters[now1]["rho" + nam];
-							gran->parameters["p" + nam] = gran->cells[0]->parameters[now1]["p" + nam];
-							gran->parameters["Vx" + nam] = 0.1 * gran->normal[now1][0];
-							gran->parameters["Vy" + nam] = 0.1 * gran->normal[now1][1];
-							gran->parameters["Vz" + nam] = 0.1 * gran->normal[now1][2];
-						}
-					}
-				}
-			}
-		}
 		
 
 		// Считаем скорости граней и сразу передвигаем опорные узлы
@@ -2641,7 +2605,14 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	}
 
 
-	for (size_t i = 0; i < 1000; i++)
+	// Запишем координаты поверхностей (на самом деле центров граней)
+	bool aa = true;
+	out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+
+
+
+
+	for (size_t i = 0; i < 999; i++)
 	{
 		bool aa = false;
 		out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
