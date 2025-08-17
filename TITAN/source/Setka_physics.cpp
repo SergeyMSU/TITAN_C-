@@ -510,19 +510,19 @@ void Setka::Init_physics(void)
 				i->parameters["Bz"] = cc(2);
 				i->parameters["Q"] = i->parameters["rho"];
 
-				i->parameters["rho_H1"] = 0.00001;
+				i->parameters["rho_H1"] = 0.0001;
 				i->parameters["Vx_H1"] = mV * vec(0) / r;
 				i->parameters["Vy_H1"] = mV * vec(1) / r;
 				i->parameters["Vz_H1"] = mV * vec(2) / r;
-				i->parameters["p_H1"] = 0.00001;
+				i->parameters["p_H1"] = 0.0001;
 
 				if (this->phys_param->num_H >= 5)
 				{
-					i->parameters["rho_H5"] = 0.00001;
+					i->parameters["rho_H5"] = 0.0001;
 					i->parameters["Vx_H5"] = mV * vec(0) / r;
 					i->parameters["Vy_H5"] = mV * vec(1) / r;
 					i->parameters["Vz_H5"] = mV * vec(2) / r;
-					i->parameters["p_H5"] = 0.00001;
+					i->parameters["p_H5"] = 0.0001;
 				}
 
 				if (this->phys_param->is_PUI == true)
@@ -2558,7 +2558,243 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 	}
 
+	// Записываем ячейки вблизи TS-
+	if (true)
+	{
+		for (const auto& Cel : this->All_Cell)
+		{
+			Cel->is_need = false;
+		}
 
+		// Находим нужные ячейки
+		for (const auto& gr : this->Gran_TS)
+		{
+			gr->cells[0]->is_need = true;
+			for (const auto& gr2 : gr->cells[0]->grans)
+			{
+				auto Cell = gr->cells[0]->Get_Sosed(gr2);
+				if (Cell->type == Type_cell::Zone_1)
+				{
+					Cell->is_need = true;
+					for (const auto& gr3 : Cell->grans)
+					{
+						auto Cell2 = Cell->Get_Sosed(gr3);
+						if (Cell2->type == Type_cell::Zone_1)
+						{
+							Cell2->is_need = true;
+						}
+					}
+				}
+			}
+		}
+		unsigned int kl1 = 0;
+		for (const auto& Cel : this->All_Cell)
+		{
+			if (Cel->is_need == false) continue;
+			kl1++;
+		}
+		kl1 += 2 * this->Gran_TS.size();
+
+		size = kl1;
+		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+		for (const auto& Cel : this->All_Cell)
+		{
+			if (Cel->is_need == false) continue;
+			double aa = Cel->center[0][0];
+			double bb = Cel->center[0][1];
+			double cc = Cel->center[0][2];
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = 0.0;
+
+				if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+				{
+					aa = Cel->parameters[0][i];
+				}
+
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
+
+
+			double zzz = static_cast<double>(Cel->type);
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		}
+
+		unordered_map<string, double> par_left, par_right;
+		for (const auto& gr : this->Gran_TS)
+		{
+			auto C1 = gr->cells[0];
+			auto C2 = gr->cells[1];
+			this->Snos_on_Gran(gr, par_left, par_right, 0);
+
+			Eigen::Vector3d A1, A2, A3;
+			A1 << C1->center[0][0], C1->center[0][1], C1->center[0][2];
+
+			double aa = gr->center[0][0];
+			double bb = gr->center[0][1];
+			double cc = gr->center[0][2];
+			A2 << aa, bb, cc;
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = 0.0;
+
+				if (par_left.find(i) != par_left.end())
+				{
+					aa = par_left[i];
+				}
+
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
+
+			double zzz = 1.0;
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+			A3 = A2 + (A2 - A1);
+			out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = par_left[i];
+				bb = C1->parameters[0][i];
+				cc = aa + (aa - bb);
+
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+			}
+
+			zzz = 1.0;
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		}
+	}
+
+	// Записываем ячейки вблизи TS+
+	if (true)
+	{
+		for (const auto& Cel : this->All_Cell)
+		{
+			Cel->is_need = false;
+		}
+
+		// Находим нужные ячейки
+		for (const auto& gr : this->Gran_TS)
+		{
+			gr->cells[1]->is_need = true;
+			for (const auto& gr2 : gr->cells[1]->grans)
+			{
+				auto Cell = gr->cells[1]->Get_Sosed(gr2);
+				if (Cell->type == Type_cell::Zone_2)
+				{
+					Cell->is_need = true;
+					for (const auto& gr3 : Cell->grans)
+					{
+						auto Cell2 = Cell->Get_Sosed(gr3);
+						if (Cell2->type == Type_cell::Zone_2)
+						{
+							Cell2->is_need = true;
+						}
+					}
+				}
+			}
+		}
+		unsigned int kl1 = 0;
+		for (const auto& Cel : this->All_Cell)
+		{
+			if (Cel->is_need == false) continue;
+			kl1++;
+		}
+		kl1 += 2 * this->Gran_TS.size();
+
+		size = kl1;
+		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+		for (const auto& Cel : this->All_Cell)
+		{
+			if (Cel->is_need == false) continue;
+			double aa = Cel->center[0][0];
+			double bb = Cel->center[0][1];
+			double cc = Cel->center[0][2];
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = 0.0;
+
+				if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+				{
+					aa = Cel->parameters[0][i];
+				}
+
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
+
+
+			double zzz = static_cast<double>(Cel->type);
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		}
+
+		unordered_map<string, double> par_left, par_right;
+		for (const auto& gr : this->Gran_TS)
+		{
+			auto C1 = gr->cells[0];
+			auto C2 = gr->cells[1];
+			this->Snos_on_Gran(gr, par_left, par_right, 0);
+
+			Eigen::Vector3d A1, A2, A3;
+			A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
+
+			double aa = gr->center[0][0];
+			double bb = gr->center[0][1];
+			double cc = gr->center[0][2];
+			A2 << aa, bb, cc;
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = 0.0;
+
+				if (par_right.find(i) != par_right.end())
+				{
+					aa = par_right[i];
+				}
+
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
+
+			double zzz = 1.0;
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+			A3 = A2 + (A2 - A1);
+			out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = par_right[i];
+				bb = C2->parameters[0][i];
+				cc = aa + (aa - bb);
+
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+			}
+
+			zzz = 1.0;
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		}
+	}
 
 
 	for (size_t i = 0; i < 999; i++)

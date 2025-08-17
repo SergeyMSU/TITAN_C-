@@ -77,7 +77,8 @@ typedef CGAL::Delaunay_triangulation_3<KKexact, Tds> Delaunay;
 typedef CGAL::Delaunay_triangulation_2<KKexact, Tds2> Delaunay2;
 typedef Delaunay::Cell_handle Cell_handle;
 typedef Delaunay::Vertex_handle Vertex_handle;
-typedef Delaunay2::Face_handle Face_handle;  // Правильный тип для 2D!
+typedef Delaunay2::Vertex_handle Vertex_handle2;
+typedef Delaunay2::Face_handle Face_handle;
 typedef KKexact::FT FT;
 
 

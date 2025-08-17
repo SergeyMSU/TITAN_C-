@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0034.bin");   // 23
+    S1.Download_cell_parameters("parameters_0036.bin");   // 23
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
     // 62 включи TVD
@@ -71,12 +71,12 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 3 * 8; i++) // 6 * 2
+    for (int i = 1; i <= 30; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 100, 1); // 400   1
-        S1.Go(true, 1000, 1); // 400   1
+        S1.Go(false, 10, 1); // 400   1
+        S1.Go(true, 200, 1); // 400   1
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
 
@@ -110,12 +110,12 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0035.bin");
+    S1.Save_cell_parameters("parameters_0037.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
-    S1.Edges_create();
-    S1.Culc_divergence_in_cell();
-    S1.Culc_rotors_in_cell();
+    //S1.Edges_create();
+    //S1.Culc_divergence_in_cell();
+    //S1.Culc_rotors_in_cell();
 
     S1.Save_for_interpolate("For_intertpolate_3.bin", true);
     Interpol SS = Interpol("For_intertpolate_3.bin");
@@ -123,7 +123,7 @@ int main()
     if (true) // Проверка интерполятора
     {
         std::unordered_map<string, double> param;
-        SS.Get_TS(1.0, 0.0, 0.0, param);
+        SS.Get_TS(1.0, 1.0, 1.0, param);
         for (const auto& [key, value] : param) {
             std::cout << key << ":  " << value << '\n';
         }

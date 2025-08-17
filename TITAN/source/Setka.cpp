@@ -3921,6 +3921,7 @@ void Setka::Tecplot_print_gran_with_condition(short int iii)
 void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin, 
 	const Eigen::Vector3d& vec, string name, const double& leng)
 {
+	cout << "Start: Tecplot_Tecplot_print_1D" + name + ".txt" << endl;
 	ofstream fout;
 	string name_f = "Tecplot_Tecplot_print_1D" + name + ".txt";
 
@@ -3952,7 +3953,10 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 	for (size_t i = 0; i < N; i++)
 	{
 		C = Origin + i * vec / N * leng;
+
+		//cout << "Int1->Get_param A" << endl;
 		fine_int = Int1->Get_param(C(0), C(1), C(2), parameters, prev_cell, next_cell);
+		//cout << "Int1->Get_param B" << endl;
 		if (fine_int == false) continue;
 		prev_cell = next_cell;
 
