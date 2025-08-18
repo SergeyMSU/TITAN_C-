@@ -71,7 +71,7 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 0; i++) // 6 * 2
+    for (int i = 1; i <= 6 * 6; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -110,7 +110,7 @@ int main()
         return 0;
     }
 
-    //S1.Save_cell_parameters("parameters_0039.bin");
+    S1.Save_cell_parameters("parameters_0040.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();

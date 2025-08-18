@@ -2582,7 +2582,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			}
 
 
-			double zzz = 2.0;
+			double zzz = static_cast<short int>(Cel->type);
 			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 		}
 

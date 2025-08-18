@@ -120,8 +120,6 @@ Interpol::Interpol(string name)
         this->Cells_TS.push_back(A);
     }
 
-
-
     in.close();
 
     // Делаем триангуляцию
@@ -181,6 +179,15 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
     short int& this_zone)
 {
     //cout << "A0" << endl;
+
+    if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) {
+        std::cerr << "Ошибка: недопустимые координаты (" << x << ", " << y << ", " << z << ")" << std::endl;
+        exit(-1);
+    }
+    double radius = norm2(x, y, z);
+
+    if (radius < 0.1) return false;
+
     std::unordered_map<string, double> param;
     bool aa1 = this->Get_TS(x, y, z, param);
     if (aa1 == false)
@@ -188,7 +195,8 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
         cout << "Error 9857686573jgh" << endl;
         exit(-1);
     }
-    double radius = norm2(x, y, z);
+
+    //cout << "A01" << endl;
 
     this_zone = 0;
     if (param["r"] >= radius)
@@ -199,7 +207,7 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
     Point query(x, y, z);
     Cell_handle containing_cell;
     std::vector <Int_point*>* CCC;
-        
+    //cout << "A02" << endl;
     if (this_zone == 1)
     {
         CCC = &this->Cells_1;
@@ -218,7 +226,7 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
             return false;
         }
     }
-
+    //cout << "A1" << endl;
     next_cell = containing_cell;
 
     //cout << "A2" << endl;
@@ -232,10 +240,11 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
     size_t i1 = containing_cell->vertex(1)->info();
     size_t i2 = containing_cell->vertex(2)->info();
     size_t i3 = containing_cell->vertex(3)->info();
-    //cout << "A3" << endl;
+
     // Вычисляем барицентрические координаты 
     auto coords = barycentric_coordinates(query, Tetrahedron(p0, p1, p2, p3));
-    //cout << "A4" << endl;
+
+    //cout << "A2" << endl;
 
     if (this_zone == 0)
     {
@@ -261,9 +270,48 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
             if (kk <= 0) kk = 0;
             if (kk == 1) kk = 2;
             zone[kk]++;
+
+            kk = 0;
+            for (short int i = 1; i < 5; i++)
+            {
+                if (zone[i] > kk)
+                {
+                    this_zone = i;
+                    kk = zone[i];
+                }
+            }
+
+            if (this_zone <= 1)
+            {
+                cout << "Error 9867540975" << endl;
+                exit(-1);
+            }
+
+            if (this_zone == 2 || this_zone == 3)
+            {
+                double Q = coords[0] * this->Cells_2[i0]->parameters["Q"] +
+                    coords[1] * this->Cells_2[i1]->parameters["Q"] +
+                    coords[2] * this->Cells_2[i2]->parameters["Q"] +
+                    coords[3] * this->Cells_2[i3]->parameters["Q"];
+                double rho = coords[0] * this->Cells_2[i0]->parameters["rho"] +
+                    coords[1] * this->Cells_2[i1]->parameters["rho"] +
+                    coords[2] * this->Cells_2[i2]->parameters["rho"] +
+                    coords[3] * this->Cells_2[i3]->parameters["rho"];
+                if (Q / rho < 70.0)
+                {
+                    this_zone = 2;
+                }
+                else
+                {
+                    this_zone = 3;
+                }
+            }
+
+
         }
     }
 
+    //cout << "A3" << endl;
     vector<size_t> i_n(4);
     i_n[0] = i0;
     i_n[1] = i1;
@@ -296,7 +344,7 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
         r[4] = 1.0;
     }
 
-
+    //cout << "A4" << endl;
     for (const auto& nn : this->param_names)
     {
         /*parameters[nn] = coords[0] * this->Cells[i0]->parameters[nn] +
@@ -315,7 +363,7 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
         parameters[nn] /= pow(r[4], this->stepen[nn]);
     }
     
-
+    //cout << "A5" << endl;
     return true;
 }
 
@@ -333,14 +381,20 @@ void compute_barycentric(const Point2& a, const Point2& b, const Point2& c,
 bool Interpol::Get_TS(const double& x, const double& y, const double& z,
     std::unordered_map<string, double>& parameters)
 {
-    //cout << "A" << endl;
+    //cout << "S1 " << endl;
     double r_1, the_1, phi_1;
 
     r_1 = sqrt(x * x + y * y + z * z);
     the_1 = acos(x / r_1);
     phi_1 = polar_angle(y, z);
 
+    //cout << "S2  " << the_1 << "    "
+     //    << phi_1 << endl;
+
     Point2 query(the_1, phi_1);
+
+    //cout << "S3 " << endl;
+
     Face_handle face = this->Delone_TS->locate(query);
     if (this->Delone_TS->is_infinite(face)) 
     {
