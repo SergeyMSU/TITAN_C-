@@ -9,21 +9,18 @@ typedef KKexact::Point_2 Point2;
 class Interpol
 {
 public:
-	std::vector<std::pair<Point, size_t>> points;  // Точки и их номера для триангуляции
-	std::vector<std::pair<Point, size_t>> points_TS_1;  // Точки и их номера для триангуляции
-	std::vector<std::pair<Point, size_t>> points_TS_2;  // Точки и их номера для триангуляции
+	std::vector<std::pair<Point, size_t>> points_1;  // Точки и их номера для триангуляции
+	std::vector<std::pair<Point, size_t>> points_2;  // Точки и их номера для триангуляции
 
 	std::vector<std::pair<Point2, size_t>> point_TS;  // Точки и их номера для триангуляции
 
-	std::vector <Int_point*> Cells;     // Точки в которых хранятся параметры
-	std::vector <Int_point*> Cells_TS_1;     // Точки в которых хранятся параметры
-	std::vector <Int_point*> Cells_TS_2;     // Точки в которых хранятся параметры
+	std::vector <Int_point*> Cells_1;     // Точки в которых хранятся параметры
+	std::vector <Int_point*> Cells_2;     // Точки в которых хранятся параметры
 
 	std::vector <Int_point*> Cells_TS;     // Точки в которых хранятся параметры
 
-	Delaunay* Delone;
-	Delaunay* Delone_TS_1;
-	Delaunay* Delone_TS_2;
+	Delaunay* Delone_1;
+	Delaunay* Delone_2;
 
 	Delaunay2* Delone_TS;
 

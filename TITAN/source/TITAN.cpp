@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0036.bin");   // 23
+    S1.Download_cell_parameters("parameters_0039.bin");   // 23
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
     // 62 включи TVD
@@ -71,12 +71,12 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 30; i++) // 6 * 2
+    for (int i = 1; i <= 0; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 10, 1); // 400   1
-        S1.Go(true, 200, 1); // 400   1
+        S1.Go(false, 400, 1); // 400   1
+        S1.Go(true, 100, 1); // 400   1
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
 
@@ -110,7 +110,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0037.bin");
+    //S1.Save_cell_parameters("parameters_0039.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();
@@ -120,14 +120,79 @@ int main()
     S1.Save_for_interpolate("For_intertpolate_3.bin", true);
     Interpol SS = Interpol("For_intertpolate_3.bin");
 
-    if (true) // Проверка интерполятора
+    if (false) // Проверка интерполятора
     {
+        std::unordered_map<string, double> parameters;
+        Cell_handle next_cell;
+        Cell_handle prev_cell = Cell_handle();
+
+        // Открываем файл для записи
+        std::ofstream outfile("angles.txt");
+        if (!outfile.is_open()) {
+            return 1;
+        }
+
+        const int N = 100;         // Количество шагов
+        const double step = const_pi / N;  // Размер шага
+
+        // Основной цикл
+        for (double angle = 0.0; angle <= const_pi + 1e-6; angle += step) 
+        {
+            for (double r = 10.0; r < 100.0; r += 0.01)
+            {
+                double x = r * cos(angle);
+                double y = r * sin(angle);
+                double z = 0.0;
+                short int zoon = 0;
+                // Записываем в файл
+                SS.Get_param(x, y, z, parameters, prev_cell, next_cell, zoon);
+                if (zoon == 2)
+                {
+                    outfile << x << " " << y << std::endl;
+                    break;
+                }
+            }
+        }
+
+        // Закрываем файл
+        outfile.close();
+
+        // Открываем файл для записи
+        outfile = std::ofstream("angles2.txt");
+        if (!outfile.is_open()) {
+            return 1;
+        }
+
+        // Основной цикл
+        for (double angle = 0.0; angle <= const_pi + 1e-6; angle += step)
+        {
+            double x = cos(angle);
+            double y = sin(angle);
+            double z = 0.0;
+            short int zoon = 0;
+            // Записываем в файл
+            SS.Get_TS(x, y, z, parameters);
+            double r = parameters["r"];
+            outfile << r * cos(angle) << " " << r * sin(angle) << std::endl;
+        }
+
+        // Закрываем файл
+        outfile.close();
+
         std::unordered_map<string, double> param;
-        SS.Get_TS(1.0, 1.0, 1.0, param);
+        SS.Get_TS(13.94, 0.0, 0.0, param);
         for (const auto& [key, value] : param) {
             std::cout << key << ":  " << value << '\n';
         }
-        cout << endl;
+        cout << "A " << endl;
+
+
+        SS.Get_param(13.94, 0.0, 0.0, parameters, prev_cell, next_cell);
+        for (const auto& [key, value] : parameters) {
+            std::cout << key << ":  " << value << '\n';
+        }
+        cout << "B " << endl;
+        exit(-1);
     }
 
 
