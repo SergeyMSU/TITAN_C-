@@ -145,6 +145,7 @@ public:
 
     bool sglag_BS;
     double sglag_BS_k;
+    double velocity_BS;
 
 
     bool null_bn_on_HP;   // ƒл€ €чеек р€дом с HP обнул€ем нормальную компоненту магнитного пол€

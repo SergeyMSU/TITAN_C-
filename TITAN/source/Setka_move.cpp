@@ -112,8 +112,6 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 {
 	double dsr, dsc, dsl;
 
-
-	
 	int now2 = (now + 1) % 2;
 
 	for (auto& yz : this->All_Yzel)
@@ -438,9 +436,9 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			for (auto& yz : gr->yzels)
 			{
 				yz->mut.lock();
-				yz->velocity[0] += 0.1 * dsr * gr->normal[now][0];
-				yz->velocity[1] += 0.1 * dsr * gr->normal[now][1];
-				yz->velocity[2] += 0.1 * dsr * gr->normal[now][2];
+				yz->velocity[0] += this->phys_param->velocity_BS * dsr * gr->normal[now][0];
+				yz->velocity[1] += this->phys_param->velocity_BS * dsr * gr->normal[now][1];
+				yz->velocity[2] += this->phys_param->velocity_BS * dsr * gr->normal[now][2];
 				yz->num_velocity++;
 				yz->mut.unlock();
 			}
@@ -1128,6 +1126,47 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 	}
 
+
+	if (this->phys_param->sglag_BS == true)
+	{
+		Eigen::Vector3d A, B, V;
+
+		if (true)
+		{
+			// Лаплас в декартовых
+#pragma omp parallel for private(A, B, V)
+			for (int i_step = 0; i_step < this->Gran_BS.size(); i_step++)
+			{
+				auto gr = this->Gran_HP[i_step];
+				A << gr->center[now][0], gr->center[now][1], gr->center[now][2];
+
+				double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+
+				B = 2 * A;
+
+				for (auto& j : gr->grans_surf)
+				{
+					B[0] += j->center[now][0];
+					B[1] += j->center[now][1];
+					B[2] += j->center[now][2];
+				}
+				B /= (gr->grans_surf.size() + 2.0);
+
+
+				V = this->phys_param->velocity_BS * this->phys_param->sglag_BS_k * (B - A) / time;
+
+				for (auto& yz : gr->yzels)
+				{
+					yz->mut.lock();
+					yz->velocity[0] += V(0);
+					yz->velocity[1] += V(1);
+					yz->velocity[2] += V(2);
+					yz->num_velocity++;
+					yz->mut.unlock();
+				}
+			}
+		}
+	}
 
 	// Вычисляем новые координаты узлов на поверхности
 	for (auto& yz : this->All_Yzel)

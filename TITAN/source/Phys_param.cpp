@@ -411,6 +411,7 @@ void Phys_param::initVarMap()
     {"culc_cell_moments", VarRef(&this->culc_cell_moments)},
     {"de_refine_AMR", VarRef(&this->de_refine_AMR)},
     {"MK_file", VarRef(&this->MK_file)},
+    {"velocity_BS", VarRef(&this->velocity_BS)},
     {"sglag_HP_k_angle", VarRef(&this->sglag_HP_k_angle)}
     };
 }
@@ -496,6 +497,7 @@ void Phys_param::set_parameters(void)
 
         this->sglag_BS = false;
         this->sglag_BS_k = 0.05;
+        this->velocity_BS = 0.3;  // 0.1
 
 
         this->null_bn_on_HP = false;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
