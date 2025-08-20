@@ -412,7 +412,10 @@ void Phys_param::initVarMap()
     {"de_refine_AMR", VarRef(&this->de_refine_AMR)},
     {"MK_file", VarRef(&this->MK_file)},
     {"velocity_BS", VarRef(&this->velocity_BS)},
-    {"sglag_HP_k_angle", VarRef(&this->sglag_HP_k_angle)}
+    {"sglag_HP_k_angle", VarRef(&this->sglag_HP_k_angle)},
+    {"pui_nW", VarRef(&this->pui_nW)},
+    {"pui_wR", VarRef(&this->pui_wR)},
+    {"MK_source_S", VarRef(&this->MK_source_S)}
     };
 }
 
@@ -456,6 +459,7 @@ void Phys_param::parseAndAssign(VarRef varRef, const std::string& valueStr)
 
 void Phys_param::set_parameters(void)
 {
+    // Старый вариант задания параметров (есть не все, он не актуален)
     if (false) // задание параметров в ручную
     {
         this->is_div_V_in_cell = false;

@@ -444,7 +444,57 @@ void Cell::MK_Add_particle(MK_particle& P, const double& time)
 		this->mut.unlock();
 }
 
-void Cell::MK_normir_Moments()
+void Cell::MK_Add_pui_source(const double& wr, const double& nu_ex, const double& mu, 
+	const double& time, Phys_param* phys_param)
+{
+	int index = static_cast<int>(wr / phys_param->pui_wR * phys_param->pui_nW);
+	if (index < 0)  index = 0;
+	if (index >= phys_param->pui_nW)  index = phys_param->pui_nW - 1;
+	
+	this->mut.lock();
+
+	this->pui_Sm[index] += mu * time;
+	this->pui_Sp[index] +=  mu * time * nu_ex;
+
+	this->mut.unlock();
+}
+
+void Cell::MK_calc_Sm(Phys_param* phys_param)
+{
+	vector<double> pui_Sm2(phys_param->pui_nW);
+	for (auto& i : pui_Sm2) i = 0.0;
+	double dthe = const_pi / 40.0;
+	double Vh, ff, the, d;
+
+	for (size_t ij = 0; ij < phys_param->pui_nW; ij++)
+	{
+		double w = ((ij + 0.5) * phys_param->pui_wR / phys_param->pui_nW);
+		for (size_t j = 0; j < phys_param->pui_nW; j++)
+		{
+			Vh = ((j + 0.5) * phys_param->pui_wR / phys_param->pui_nW);
+			ff = this->pui_Sm[j];
+			if (ff <= 0.0) continue;
+			for (size_t k = 1; k <= 40; k++)
+			{
+				the = dthe * k;
+				d = sqrt(kv(Vh) + kv(2) - 2.0 * w * Vh * cos(the));
+				if (d > 0.000000001)
+				{
+					pui_Sm2[ij] += ff * d * sigma(d) * sin(the) * dthe * 2.0 * const_pi;
+				}
+			}
+		}
+		pui_Sm2[ij] = pui_Sm2[ij] / (4.0 * const_pi);
+	}
+
+	for (size_t ij = 0; ij < phys_param->pui_nW; ij++)
+	{
+		this->pui_Sm[ij] = pui_Sm2[ij] / phys_param->par_Kn;
+	}
+
+}
+
+void Cell::MK_normir_Moments(Phys_param* phys_param)
 {
 	if (this->parameters[0].find("MK_n_H") != this->parameters[0].end())
 	{
@@ -469,5 +519,16 @@ void Cell::MK_normir_Moments()
 	if (this->parameters[0].find("MK_n_H4") != this->parameters[0].end())
 	{
 		this->parameters[0]["MK_n_H4"] /= this->volume[0];
+	}
+
+	if (phys_param->MK_source_S == true)
+	{
+		for (size_t ij = 0; ij < phys_param->pui_nW; ij++)
+		{
+			double pui_w1 = ij * phys_param->pui_wR / phys_param->pui_nW;
+			double pui_w2 = (ij + 1) * phys_param->pui_wR / phys_param->pui_nW;
+			this->pui_Sm[ij] /= (this->volume[0]);
+			this->pui_Sp[ij] /= (this->volume[0] * 4.0 * const_pi * (1.0 / 3.0) * (pow3(pui_w2) - pow3(pui_w1)));
+		}
 	}
 }

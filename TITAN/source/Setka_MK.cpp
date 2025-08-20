@@ -1,8 +1,5 @@
 #include "Setka.h"
 
-#define a_2 0.1307345665  
-#define sigma(x) (kv(1.0 - a_2 * log(x)))               // Дифференциальное сечение перезарядки
-#define sigma2(x, y) (kv(1.0 - a_2 * log((x) * (y))))  // Для другого обезразмеривания скорости на cp
 
 bool findSphereIntersectionTime(
 	const Eigen::Vector3d& X,  // Положение частицы
@@ -1058,7 +1055,6 @@ void Setka::MK_delete(short int zone_MK)
 	cout << "END MK_delete" << endl;
 }
 
-
 void Setka::MK_go(short int zone_MK)
 {
 	auto start = std::chrono::high_resolution_clock::now();
@@ -1356,12 +1352,26 @@ void Setka::MK_go(short int zone_MK)
 	}
 
 	// Нормировка Моментов в ячейках
-	for (auto& cell : this->All_Cell)
+	k1 = 0;
+	cout << "Start: Normir moment in cells" << endl;
+#pragma omp parallel for schedule(dynamic)
+	for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
 	{
+		auto cell = this->All_Cell[idx];
 		if (cell->MK_zone != zone_MK) continue;
+		#pragma omp critical (first) 
+		{
+			k1++;
+			if (k1 % 10000 == 0)
+			{
+				cout << "Cells = " << k1 << endl;
+			}
+		}
 
-		cell->MK_normir_Moments();
+		cell->MK_normir_Moments(this->phys_param);
+		cell->MK_calc_Sm(this->phys_param);  // Нужно параллелить, так как эта функция долго обрабатывается
 	}
+	cout << "End: Normir moment in cells" << endl;
 
 	// Выведем одну функцию посмотреть что получилось)
 	if (true)
@@ -1409,7 +1419,6 @@ void Setka::MK_go(short int zone_MK)
 	std::cout << "MK all time: " << duration.count() / 1000.0 / 60.0 << " minutes" << std::endl;
 }
 
-
 void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 {
 	/*cout << "______Start_MK_fly_immit___________" << endl;
@@ -1420,8 +1429,6 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 	//cout << "Start " << endl;
 	//cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 
-	// Главный цикл по ячейкам
-	// Выйти из него можно только если частица достигнет конца области
 
 	Eigen::Vector3d coord_init;
 	Eigen::Vector3d Vel_init;
@@ -1434,6 +1441,8 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 	bool vtoroy_shans = false;
 	bool vtoroy_shans2 = false;
 
+	// Главный цикл по ячейкам
+	// Выйти из него можно только если частица достигнет конца области
 	while (true)
 	{
 		Eigen::Vector3d coord_do;
@@ -1627,11 +1636,6 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		ro = rho_Th;
 		cp = sqrt(2.0 * p_Th / rho_Th);
 
-		/*double ro = 1.0;
-		double cp = 1.0;
-		double vx = this->phys_param->Velosity_inf;
-		double vy = 0.0;
-		double vz = 0.0;*/
 		// ---------------------------------------------------------------
 
 		// Найдём время до перезарядки
@@ -1646,12 +1650,10 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		double Vel_norm = sqrt(kvv(P.Vel[0], P.Vel[1], P.Vel[2]));
 
 		double uz = Velosity_1(u, cp);
-		double sig = Vel_norm /
-			((1.0 / this->phys_param->par_Kn) *
-				ro * uz * sigma(uz));
+		double nu_ex = ro * uz * sigma(uz) / this->phys_param->par_Kn;
+		double sig = Vel_norm / nu_ex;
 		I += l / sig;
-		//cout << "C " << endl;
-		//if (true)
+
 
 		if (P.cel->MK_zone != zone_MK)
 		{
@@ -1670,6 +1672,11 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				if (this->phys_param->culc_cell_moments == true)
 				{
 					P.cel->MK_Add_particle(P, time);
+				}
+
+				if (this->phys_param->MK_source_S == true)
+				{
+					P.cel->MK_Add_pui_source(u, nu_ex, P.mu, time, this->phys_param);
 				}
 				// -------------------------------------------------------------------
 			}
@@ -1741,8 +1748,6 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 					}
 				}
 
-
-
 				double uz_M = Velosity_2(u, cp) / (uz * kv(cp) * cp * const_pi * sqrtpi_);
 				double uz_E = Velosity_3(u, cp);
 
@@ -1750,6 +1755,11 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				if (this->phys_param->culc_cell_moments == true)
 				{
 					P.cel->MK_Add_particle(P, t_ex);
+				}
+
+				if (this->phys_param->MK_source_S == true)
+				{
+					P.cel->MK_Add_pui_source(u, nu_ex, P.mu, t_ex, this->phys_param);
 				}
 				// -------------------------------------------------------------------
 

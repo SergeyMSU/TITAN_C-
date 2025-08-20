@@ -41,6 +41,10 @@ public:
 
 	unordered_map<string, Eigen::VectorXd> interpolate_alpha;
 
+	// Источники рождения пикапов
+	vector<double> pui_Sm;
+	vector<double> pui_Sp;
+
 
 	void Get_RBF_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par);
 	void Get_IDW_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par, Phys_param* phys_param);
@@ -71,7 +75,11 @@ public:
 	void Tecplot_print_cell(void);
 
 	void MK_Add_particle(MK_particle& P, const double& time);
-	void MK_normir_Moments();
+	void MK_Add_pui_source(const double& wr, const double& nu_ex, const double& mu,
+		const double& time, Phys_param* phys_param);
+
+	void MK_calc_Sm(Phys_param* phys_param);
+	void MK_normir_Moments(Phys_param* phys_param);
 
 };
 

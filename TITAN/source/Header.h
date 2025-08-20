@@ -19,6 +19,7 @@ class MK_particle;
 
 
 #define kv(x) ((x) * (x))
+#define pow3(x) ((x) * (x) * (x))
 #define kvg(x) (pow(x, 2.0 * this->phys_param->gamma))
 #define kyb(x) ((x) * (x) * (x))
 #define kvv(x, y, z) ((x) * (x) + (y) * (y) + (z) * (z))
@@ -26,6 +27,7 @@ class MK_particle;
 #define whach(x) cout << #x <<": " << (x) << endl
 #define max3(a, b, c) (max(max( (a) , (b) ), (c) ))
 #define min3(a, b, c) (min(min( (a) , (b) ), (c) ))
+
 
 #include <filesystem>
 #include <string>
@@ -52,6 +54,18 @@ class MK_particle;
 #include <omp.h>
 #include <chrono>
 #include <random>
+
+#define a_2 (0.1307345665) 
+
+inline double sigma(double x)
+{
+    return kv(1.0 - a_2 * log(x));
+}
+
+inline double sigma2(double x, double y)
+{
+    return kv(1.0 - a_2 * log((x) * (y)));
+}
 
 
 // Boost библиотека (надо подключать к компилятору отдельно)
