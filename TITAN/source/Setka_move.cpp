@@ -1137,12 +1137,12 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 #pragma omp parallel for private(A, B, V)
 			for (int i_step = 0; i_step < this->Gran_BS.size(); i_step++)
 			{
-				auto gr = this->Gran_HP[i_step];
+				auto gr = this->Gran_BS[i_step];
 				A << gr->center[now][0], gr->center[now][1], gr->center[now][2];
 
-				double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
-
 				B = 2 * A;
+
+				if (gr->grans_surf.size() < 4) continue;    // TODO!
 
 				for (auto& j : gr->grans_surf)
 				{
