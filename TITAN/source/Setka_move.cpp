@@ -699,7 +699,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			int nn = VVV[ii].size();
 			int mm = VVV[ii][0].size();
 
-//#pragma omp parallel for private(A, B, V) schedule(dynamic)
+#pragma omp parallel for private(A, B, V) schedule(dynamic)
 			for (size_t i = 0; i < nn; i++)
 			{
 				if (i > 3 && i < nn - 3) continue;
@@ -1131,7 +1131,8 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 	{
 		Eigen::Vector3d A, B, V;
 
-		if (true)
+		// —глаживание по серединам граней
+		if (false)
 		{
 			// Ћаплас в декартовых
 #pragma omp parallel for private(A, B, V)
@@ -1140,7 +1141,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				auto gr = this->Gran_BS[i_step];
 				A << gr->center[now][0], gr->center[now][1], gr->center[now][2];
 
-				B = 2 * A;
+				B = A;
 
 				if (gr->grans_surf.size() < 4) continue;    // TODO!
 
@@ -1150,7 +1151,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 					B[1] += j->center[now][1];
 					B[2] += j->center[now][2];
 				}
-				B /= (gr->grans_surf.size() + 2.0);
+				B /= (gr->grans_surf.size() + 1.0);
 
 
 				V = this->phys_param->velocity_BS * this->phys_param->sglag_BS_k * (B - A) / time;
@@ -1165,6 +1166,41 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 					yz->mut.unlock();
 				}
 			}
+		}
+
+		// —глаживание по узлам
+		if (true)
+		{
+#pragma omp parallel for private(A, B, V) schedule(dynamic)
+			for (auto& yz : this->All_Yzel)
+			{
+				if (yz->type != Type_yzel::BS) continue;
+
+				A << yz->coord[now][0], yz->coord[now][1], yz->coord[now][2];
+
+				B = A;
+
+				if (yz->Yzel_sosed_sglag2.size() <= 5) continue;    // TODO!
+
+				for (auto& j : yz->Yzel_sosed_sglag2)
+				{
+					B[0] += j->coord[now][0];
+					B[1] += j->coord[now][1];
+					B[2] += j->coord[now][2];
+				}
+				B /= (yz->Yzel_sosed_sglag2.size() + 1.0);
+
+
+				V = this->phys_param->velocity_BS * this->phys_param->sglag_BS_k * (B - A) / time;
+
+				yz->mut.lock();
+				yz->velocity[0] += V(0);
+				yz->velocity[1] += V(1);
+				yz->velocity[2] += V(2);
+				yz->num_velocity++;
+				yz->mut.unlock();
+			}
+
 		}
 	}
 
@@ -2143,6 +2179,41 @@ void Setka::Smooth_head_TS3(void)
 	//exit(-1);
 	cout << "End Smooth_head_TS3" << endl;
 }
+
+
+void Setka::Find_Yzel_Sosed_for_BS(void)
+{
+	for (auto& yz : this->All_Yzel)
+	{
+		if (yz->type != Type_yzel::BS) continue;
+
+		std::unordered_set<Yzel*> Yzels;
+		Yzels.insert(yz);
+		for (auto& gr : yz->grans)
+		{
+			if (gr->type2 != Type_Gran_surf::BS) continue;
+			for (auto& yz2 : gr->yzels)
+			{
+				Yzels.insert(yz2);
+			}
+		}
+
+		int n = Yzels.size();
+
+		if (n < 3)
+		{
+			continue;
+		}
+
+		yz->Yzel_sosed_sglag2.clear();
+		for (auto& i : Yzels)
+		{
+			if (i == yz) continue;
+			yz->Yzel_sosed_sglag2.insert(i);
+		}
+	}
+}
+
 
 void Setka::Find_Yzel_Sosed_for_sglag(void)
 {
