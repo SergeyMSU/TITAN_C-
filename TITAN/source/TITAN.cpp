@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0048.bin");   // 23
+    S1.Download_cell_parameters("parameters_0049.bin");   // 23
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
     // 62 включи TVD
@@ -71,11 +71,11 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 6 * 10; i++) // 6 * 2
+    for (int i = 1; i <= 0; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 500, 1); // 400   1
+        S1.Go(false, 400, 1); // 400   1
         S1.Go(true, 100, 1); // 400   1
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
@@ -110,52 +110,53 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0049.bin");
+    //S1.Save_cell_parameters("parameters_0001.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();
     //S1.Culc_divergence_in_cell();
     //S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_3.bin", true);
-    Interpol SS = Interpol("For_intertpolate_3.bin");
+    S1.Save_for_interpolate("For_intertpolate_1.bin", true);
+    Interpol SS = Interpol("For_intertpolate_1.bin");
 
-    if (false) // Проверка интерполятора
+    if (true) // Проверка интерполятора
     {
         std::unordered_map<string, double> parameters;
         Cell_handle next_cell;
         Cell_handle prev_cell = Cell_handle();
-
         // Открываем файл для записи
         std::ofstream outfile("angles.txt");
         if (!outfile.is_open()) {
             return 1;
         }
-
         const int N = 100;         // Количество шагов
         const double step = const_pi / N;  // Размер шага
 
-        // Основной цикл
-        for (double angle = 0.0; angle <= const_pi + 1e-6; angle += step) 
+        if (false)
         {
-            for (double r = 10.0; r < 100.0; r += 0.01)
+            // Основной цикл
+            for (double angle = 0.0; angle <= const_pi / 2.0 + 1e-6; angle += step)
             {
-                double x = r * cos(angle);
-                double y = r * sin(angle);
-                double z = 0.0;
-                short int zoon = 0;
-                // Записываем в файл
-                SS.Get_param(x, y, z, parameters, prev_cell, next_cell, zoon);
-                if (zoon == 2)
+                for (double r = 30.0; r < 300.0; r += 0.01)
                 {
-                    outfile << x << " " << y << std::endl;
-                    break;
+                    double x = r * cos(angle);
+                    double y = r * sin(angle);
+                    double z = 0.0;
+                    short int zoon = 0;
+                    // Записываем в файл
+                    SS.Get_param(x, y, z, parameters, prev_cell, next_cell, zoon);
+                    if (zoon == 2)
+                    {
+                        outfile << x << " " << y << std::endl;
+                        break;
+                    }
                 }
             }
-        }
 
-        // Закрываем файл
-        outfile.close();
+            // Закрываем файл
+            outfile.close();
+        }
 
         // Открываем файл для записи
         outfile = std::ofstream("angles2.txt");
@@ -164,17 +165,29 @@ int main()
         }
 
         // Основной цикл
-        for (double angle = 0.0; angle <= const_pi + 1e-6; angle += step)
+        cout << "AA1" << endl;
+        for (double angle = 0.0; angle <= const_pi/2; angle += step)
         {
+            //cout << "angle = " << angle << endl;
             double x = cos(angle);
             double y = sin(angle);
             double z = 0.0;
             short int zoon = 0;
             // Записываем в файл
-            SS.Get_TS(x, y, z, parameters);
+            SS.Get_HP(x, y, z, parameters);
             double r = parameters["r"];
             outfile << r * cos(angle) << " " << r * sin(angle) << std::endl;
         }
+        cout << "AA2" << endl;
+        for (double x = 0.0; x >= SS.L6; x = x - 0.01)
+        {
+            double y = 1.0;
+            double z = 0.0;
+            SS.Get_HP(x, y, z, parameters);
+            double r = parameters["r"];
+            outfile << x << " " << r << std::endl;
+        }
+        cout << "AA3" << endl;
 
         // Закрываем файл
         outfile.close();

@@ -300,12 +300,12 @@ void Setka::Init_physics(void)
 
 
 	// Если ввели какие-то новые переменные, их надо заполнить
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
 			i->parameters[0]["rho_Pui_1"] = 1e-8;
-			i->parameters[0]["p_Pui_1"] = 1e-8/2.0;
+			i->parameters[0]["p_Pui_1"] = 1e-8 / 2.0;
 
 			i->parameters[0]["rho_Pui_2"] = 1e-8;
 			i->parameters[0]["p_Pui_2"] = 1e-8 / 2.0;
@@ -1491,7 +1491,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		// Расчитываем потоки через грани
 		// в private не добавляются нормально vectora, надо либо обычные массивы делать, либо 
 		// создавать их внутри в каждом потоке
-		#pragma omp parallel for reduction(min:loc_time)
+		#pragma omp parallel for reduction(min:loc_time) schedule(dynamic)
 		for(int i_step = 0; i_step < gran_list->size(); i_step++)
 		{
 			//whach(GG->parameters["rho_H4"]);
@@ -1527,7 +1527,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		bool print_p_less_0 = false;
 
 		// Расчитываем законы сохранения в ячейках
-		#pragma omp parallel for
+		#pragma omp parallel for schedule(dynamic)
 		for (size_t i_step = 0; i_step < cell_list->size(); i_step++)
 		{
 			auto& cell = (*cell_list)[i_step];
@@ -2682,118 +2682,17 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	// Запишем координаты поверхностей (на самом деле центров граней)
 
 	// TS
-	size = this->Gran_TS.size() * 5;
-	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
-	std::ofstream outfile("TS_interpol.txt");
-
-	for (const auto& gr : this->Gran_TS)
+	if (true)
 	{
-		double aa = gr->center[0][0];
-		double bb = gr->center[0][1];
-		double cc = gr->center[0][2];
-
-		double r_1, the_1, phi_1;
-
-		r_1 = sqrt(aa * aa + bb * bb + cc * cc);
-		the_1 = acos(aa / r_1);
-		phi_1 = polar_angle(bb, cc);
-
-		outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
-
-		out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
-		out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
-
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
-
-		this->Snos_on_Gran(gr, par_left, par_right, 0);
-		out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
-
-		// Симметрия phi
-		phi_1 = phi_1 + 2 * const_pi;
-		out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
-		out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
-		outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
-
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
-
-		out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
-
-		// Симметрия phi
-		phi_1 = phi_1 - 2 * const_pi;
-		phi_1 = phi_1 - 2 * const_pi;
-		out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
-		out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
-		outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
-
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
-
-		out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
-
-		// Симметрия - theta
-		phi_1 = phi_1 + 2 * const_pi;
-		the_1 = -the_1;
-		out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
-		out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
-		outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
-
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
-
-		out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
-
-		// Симметрия - theta
-		the_1 = -the_1;
-		the_1 = 2 * const_pi - the_1;
-		out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
-		out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
-		outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
-
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
-
-		out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
-		out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
-	}
-
-	outfile.close();
-
-	// HP
-	if (false)
-	{
-		size = 0;
-		for (const auto& gr : this->Gran_HP)
-		{
-			double aa = gr->center[0][0];
-			if (aa > 0) size++;
-		}
-		size = size * 4;
+		size = this->Gran_TS.size() * 5;
 		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
-		std::ofstream outfile("HP_interpol.txt");
+		std::ofstream outfile("TS_interpol.txt");
 
-		for (const auto& gr : this->Gran_HP)
+		for (const auto& gr : this->Gran_TS)
 		{
 			double aa = gr->center[0][0];
 			double bb = gr->center[0][1];
 			double cc = gr->center[0][2];
-
-			if (aa < 0) continue;
 
 			double r_1, the_1, phi_1;
 
@@ -2858,8 +2757,230 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия - theta
+			the_1 = -the_1;
+			the_1 = 2 * const_pi - the_1;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+		}
+
+		outfile.close();
+	}
+
+	// HP
+	if (true)
+	{
+		// сначала радиальная запись HP
+		size = 0;
+		for (const auto& gr : this->Gran_HP)
+		{
+			double aa = gr->center[0][0];
+			if (aa >= -5.0) size++;
+		}
+		size = size * 5;
+		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+		std::ofstream outfile("HP_interpol.txt");
+
+		for (const auto& gr : this->Gran_HP)
+		{
+			double aa = gr->center[0][0];
+			double bb = gr->center[0][1];
+			double cc = gr->center[0][2];
+
+			if (aa < -5.0) continue;
+
+			double r_1, the_1, phi_1;
+
+			r_1 = sqrt(aa * aa + bb * bb + cc * cc);
+			the_1 = acos(aa / r_1);
+			phi_1 = polar_angle(bb, cc);
+
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			this->Snos_on_Gran(gr, par_left, par_right, 0);
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия phi
+			phi_1 = phi_1 + 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия phi
+			phi_1 = phi_1 - 2 * const_pi;
+			phi_1 = phi_1 - 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия - theta
+			phi_1 = phi_1 + 2 * const_pi;
+			the_1 = -the_1;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия + theta
+			the_1 = -the_1;
+			the_1 = (const_pi - the_1);
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 		}
 	
+		outfile.close();
+
+		// Теперь цилиндрическая запись HP
+
+		size = 0;
+		for (const auto& gr : this->Gran_HP)
+		{
+			double aa = gr->center[0][0];
+			if (aa <= 5.0) size++;
+		}
+		size = size * 5;
+		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+		outfile.open("HP_2_interpol.txt");
+
+		for (const auto& gr : this->Gran_HP)
+		{
+			double aa = gr->center[0][0];
+			double bb = gr->center[0][1];
+			double cc = gr->center[0][2];
+
+			if (aa > 5.0) continue;
+
+			double r_1, x_1, phi_1;
+
+			r_1 = sqrt(bb * bb + cc * cc);
+			x_1 = aa;
+			phi_1 = polar_angle(bb, cc);
+
+			outfile << x_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&x_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			this->Snos_on_Gran(gr, par_left, par_right, 0);
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия phi
+			phi_1 = phi_1 + 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&x_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << x_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия phi
+			phi_1 = phi_1 - 2 * const_pi;
+			phi_1 = phi_1 - 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&x_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << x_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия - theta
+			phi_1 = phi_1 + 2 * const_pi;
+			x_1 = -x_1;
+			out.write(reinterpret_cast<const char*>(&x_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << x_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия + theta
+			x_1 = -x_1;
+			x_1 = (2 * this->geo->L6 - x_1);
+			out.write(reinterpret_cast<const char*>(&x_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << x_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+		}
+
 		outfile.close();
 	}
 

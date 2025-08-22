@@ -93,32 +93,96 @@ Interpol::Interpol(string name)
 
 
     // Считываем TS
-    in.read(reinterpret_cast<char*>(&size), sizeof(size));
-    for (size_t i = 0; i < size; ++i)
+    if (true)
     {
-        double a, b, c;
-        in.read(reinterpret_cast<char*>(&a), sizeof(a));
-        in.read(reinterpret_cast<char*>(&b), sizeof(b));
-        in.read(reinterpret_cast<char*>(&c), sizeof(c));
-        auto A = new Int_point(a, b, 0.0);
-        A->parameters["r"] = c;
+        in.read(reinterpret_cast<char*>(&size), sizeof(size));
+        for (size_t i = 0; i < size; ++i)
+        {
+            double a, b, c;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            auto A = new Int_point(a, b, 0.0);
+            A->parameters["r"] = c;
 
-        this->point_TS.push_back({ {a, b}, i });
+            this->point_TS.push_back({ {a, b}, i });
 
-        in.read(reinterpret_cast<char*>(&a), sizeof(a));
-        in.read(reinterpret_cast<char*>(&b), sizeof(b));
-        in.read(reinterpret_cast<char*>(&c), sizeof(c));
-        A->parameters["nx"] = a;
-        A->parameters["ny"] = b;
-        A->parameters["nz"] = c;
-        in.read(reinterpret_cast<char*>(&a), sizeof(a));
-        in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            A->parameters["nx"] = a;
+            A->parameters["ny"] = b;
+            A->parameters["nz"] = c;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
 
-        A->parameters["rho_L"] = a;
-        A->parameters["rho_R"] = b;
+            A->parameters["rho_L"] = a;
+            A->parameters["rho_R"] = b;
 
-        this->Cells_TS.push_back(A);
+            this->Cells_TS.push_back(A);
+        }
     }
+
+    // Считываем HP
+    if (true)
+    {
+        in.read(reinterpret_cast<char*>(&size), sizeof(size));
+        for (size_t i = 0; i < size; ++i)
+        {
+            double a, b, c;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            auto A = new Int_point(a, b, 0.0);
+            A->parameters["r"] = c;
+
+            this->point_HP_1.push_back({ {a, b}, i });
+
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            A->parameters["nx"] = a;
+            A->parameters["ny"] = b;
+            A->parameters["nz"] = c;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+
+            A->parameters["rho_L"] = a;
+            A->parameters["rho_R"] = b;
+
+            this->Cells_HP_1.push_back(A);
+        }
+
+        in.read(reinterpret_cast<char*>(&size), sizeof(size));
+        for (size_t i = 0; i < size; ++i)
+        {
+            double a, b, c;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            auto A = new Int_point(a, b, 0.0);
+            A->parameters["r"] = c;
+
+            this->point_HP_2.push_back({ {a, b}, i });
+
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            A->parameters["nx"] = a;
+            A->parameters["ny"] = b;
+            A->parameters["nz"] = c;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+
+            A->parameters["rho_L"] = a;
+            A->parameters["rho_R"] = b;
+
+            this->Cells_HP_2.push_back(A);
+        }
+    }
+
+
+
 
     in.close();
 
@@ -127,6 +191,7 @@ Interpol::Interpol(string name)
     this->Delone_2 = new Delaunay(this->points_2.begin(), this->points_2.end());
 
     this->Delone_TS = new Delaunay2(this->point_TS.begin(), this->point_TS.end());
+    this->Delone_HP_1 = new Delaunay2(this->point_HP_1.begin(), this->point_HP_1.end());
 
     cout << "END: Interpol" << endl;
 }
@@ -429,4 +494,244 @@ bool Interpol::Get_TS(const double& x, const double& y, const double& z,
     }
     //cout << "F" << endl;
     return true;
+}
+
+
+// Функция для решения системы линейных уравнений 2x2
+bool solveLinearSystem2x2(double a11, double a12, double a21, double a22,
+    double b1, double b2, double& x, double& y) {
+    double det = a11 * a22 - a12 * a21;
+
+    if (std::abs(det) < 1e-12) {
+        return false; // Вырожденная система
+    }
+
+    x = (b1 * a22 - b2 * a12) / det;
+    y = (a11 * b2 - a21 * b1) / det;
+
+    return true;
+}
+
+// Билинейная интерполяция в произвольном четырёхугольнике
+double bilinearInterpolationInQuadrilateral(
+    const Point2& p1, double f1,  // (x1, y1), f1
+    const Point2& p2, double f2,  // (x2, y2), f2  
+    const Point2& p3, double f3,  // (x3, y3), f3
+    const Point2& p4, double f4,  // (x4, y4), f4
+    const Point2& p0) {           // (x0, y0) - целевая точка
+
+    // Преобразуем в декартовы координаты
+    double x1 = CGAL::to_double(p1.x()), y1 = CGAL::to_double(p1.y());
+    double x2 = CGAL::to_double(p2.x()), y2 = CGAL::to_double(p2.y());
+    double x3 = CGAL::to_double(p3.x()), y3 = CGAL::to_double(p3.y());
+    double x4 = CGAL::to_double(p4.x()), y4 = CGAL::to_double(p4.y());
+    double x0 = CGAL::to_double(p0.x()), y0 = CGAL::to_double(p0.y());
+
+    // Параметрическое представление четырёхугольника
+    // p(u,v) = (1-u)(1-v)*p1 + u(1-v)*p2 + uv*p3 + (1-u)v*p4
+
+    // Находим параметры u, v такие что:
+    // x0 = (1-u)(1-v)*x1 + u(1-v)*x2 + u*v*x3 + (1-u)*v*x4
+    // y0 = (1-u)(1-v)*y1 + u(1-v)*y2 + u*v*y3 + (1-u)*v*y4
+
+    // Перепишем в виде системы уравнений:
+    // A*u + B*v + C*u*v = D
+    // E*u + F*v + G*u*v = H
+
+    double A = x2 - x1;
+    double B = x4 - x1;
+    double C = x1 - x2 - x4 + x3;
+    double D = x0 - x1;
+
+    double E = y2 - y1;
+    double F = y4 - y1;
+    double G = y1 - y2 - y4 + y3;
+    double H = y0 - y1;
+
+    // Решаем систему методом Ньютона
+    double u = 0.5, v = 0.5; // Начальное приближение
+    const int max_iterations = 50;
+    const double tolerance = 1e-8;
+
+    for (int iter = 0; iter < max_iterations; ++iter) {
+        double fu = A * u + B * v + C * u * v - D;
+        double fv = E * u + F * v + G * u * v - H;
+
+        if (std::abs(fu) < tolerance && std::abs(fv) < tolerance) {
+            break;
+        }
+
+        // Матрица Якоби
+        double J11 = A + C * v;
+        double J12 = B + C * u;
+        double J21 = E + G * v;
+        double J22 = F + G * u;
+
+        double detJ = J11 * J22 - J12 * J21;
+
+        if (std::abs(detJ) < 1e-12) {
+            // Вырожденная матрица Якоби, используем запасной метод
+            u = (x0 - x1) / (x2 - x1); // Простая линейная аппроксимация
+            v = (y0 - y1) / (y4 - y1);
+            break;
+        }
+
+        // Коррекция Ньютона
+        double du = (-fu * J22 + fv * J12) / detJ;
+        double dv = (fu * J21 - fv * J11) / detJ;
+
+        u += du;
+        v += dv;
+
+        // Ограничиваем параметры [0,1]
+        u = std::max(0.0, std::min(1.0, u));
+        v = std::max(0.0, std::min(1.0, v));
+    }
+
+    // Интерполируем значение
+    double result = (1 - u) * (1 - v) * f1 + u * (1 - v) * f2 + u * v * f3 + (1 - u) * v * f4;
+
+    return result;
+}
+
+
+bool Interpol::Get_HP(const double& x, const double& y, const double& z,
+    std::unordered_map<string, double>& parameters)
+{
+    // ОБРАТИТЕ ВНИМАНИЕ, что для x > 0 и для x < 0 используются различные виды интерполяции
+    if (x >= 0.0)
+    {
+        double r_1, the_1, phi_1;
+
+        r_1 = sqrt(x * x + y * y + z * z);
+        the_1 = acos(x / r_1);
+        phi_1 = polar_angle(y, z);
+
+        Point2 query(the_1, phi_1);
+
+        //cout << "S1 " << endl;
+
+        Face_handle face = this->Delone_HP_1->locate(query);
+        if (this->Delone_HP_1->is_infinite(face))
+        {
+            // Находим ближайшую вершину
+            Vertex_handle2 nearest_vertex = this->Delone_HP_1->nearest_vertex(query);
+            face = nearest_vertex->face();  // Берём любой смежный треугольник
+        }
+        //cout << "S2" << endl;
+        // Получаем вершины треугольника
+        Point2 p0 = face->vertex(0)->point();
+        Point2 p1 = face->vertex(1)->point();
+        Point2 p2 = face->vertex(2)->point();
+        //cout << "C" << endl;
+        FT alpha, beta, gamma;
+        compute_barycentric(p0, p1, p2, query, alpha, beta, gamma);
+        //cout << "D" << endl;
+        size_t idx0 = face->vertex(0)->info(); // Номер точки p0
+        size_t idx1 = face->vertex(1)->info(); // Номер точки p1
+        size_t idx2 = face->vertex(2)->info(); // Номер точки p2
+        //cout << "S3" << endl;
+        // Интерполяция параметров
+        for (auto& [key, _] : this->Cells_HP_1[idx0]->parameters)
+        {
+            double f0 = this->Cells_HP_1[idx0]->parameters[key];
+            double f1 = this->Cells_HP_1[idx1]->parameters[key];
+            double f2 = this->Cells_HP_1[idx2]->parameters[key];
+
+            // Преобразуем CGAL::FT в double
+            parameters[key] = CGAL::to_double(alpha) * f0 +
+                CGAL::to_double(beta) * f1 +
+                CGAL::to_double(gamma) * f2;
+        }
+        //cout << "S4" << endl;
+        //cout << "F" << endl;
+        return true;
+    }
+    else
+    {
+        cout << "SS00" << endl;
+        if (x < this->L6)
+        {
+            cout << "HP net pri x < " << this->L6 << endl;
+            return false;
+        }
+
+        double r_1, x_1, phi_1;
+
+        r_1 = sqrt(y * y + z * z);
+        x_1 = x;
+        phi_1 = polar_angle(y, z);
+
+        Point2 query(x_1, phi_1);
+        double x0 = x_1;
+        double y0 = phi_1;
+
+        size_t l00, l10, l11, l01;
+        double x00 = -10000.0, y00 = -100000.0;
+        double x10 = 10000.0, y10 = -100000.0;
+        double x11 = 10000.0, y11 = 100000.0;
+        double x01 = -10000.0, y01 = 100000.0;
+        Point2 p00, p10, p11, p01;
+        // Инициализируем переменные для поиска ближайших точек в каждом квадранте
+        
+        cout << "SS0" << endl;
+        for (const auto& point_pair : this->point_HP_2) 
+        {
+            Point2 p = point_pair.first;
+
+            // 1. Левая нижняя точка: x <= x0, y <= y0
+            if (p.x() <= x0 && p.y() <= y0 && y00 > y0)
+            {
+                x00 = norm2(0.0, x0 - p.x(), y0 - p.y());
+                l00 = point_pair.second;
+                p00 = p;
+            }
+
+
+            // 2. Правая нижняя точка: x >= x0, y <= y0
+            if (p.x() >= x0 && p.y() <= y0 && norm2(0.0, x0 - p.x(), y0 - p.y()) < x10)
+            {
+                x10 = norm2(0.0, x0 - p.x(), y0 - p.y());
+                l10 = point_pair.second;
+                p10 = p;
+            }
+
+            // 3. Правая верхняя точка: x >= x0, y >= y0
+            if (p.x() >= x0 && p.y() >= y0 && norm2(0.0, x0 - p.x(), y0 - p.y()) < x11)
+            {
+                x11 = norm2(0.0, x0 - p.x(), y0 - p.y());
+                l11 = point_pair.second;
+                p11 = p;
+            }
+
+            // 4. Левая верхняя точка: x <= x0, y >= y0
+            if (p.x() <= x0 && p.y() >= y0 && norm2(0.0, x0 - p.x(), y0 - p.y()) < x01)
+            {
+                x01 = norm2(0.0, x0 - p.x(), y0 - p.y());
+                l01 = point_pair.second;
+                p01 = p;
+            }
+        }
+
+        cout << p00.x() << " " << p00.y() << endl;
+        cout << p10.x() << " " << p10.y() << endl;
+        cout << p11.x() << " " << p11.y() << endl;
+        cout << p01.x() << " " << p01.y() << endl;
+        cout << query.x() << " " << query.y() << endl << endl;
+
+        cout << "SS1" << endl;
+        for (auto& [key, _] : this->Cells_HP_1[l00]->parameters)
+        {
+            double f00 = this->Cells_HP_1[l00]->parameters[key];
+            double f10 = this->Cells_HP_1[l10]->parameters[key];
+            double f11 = this->Cells_HP_1[l11]->parameters[key];
+            double f01 = this->Cells_HP_1[l01]->parameters[key];
+
+            parameters[key] = bilinearInterpolationInQuadrilateral(p00, f00, p10, f10,
+                p11, f11, p01, f01, query);
+            //cout << f00 << " " << f10 << " " << f11 << " " << f01 << "  = " << parameters[key] << endl;
+        }
+        cout << "SS2" << endl;
+        return true;
+    }
 }
