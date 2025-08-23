@@ -15,12 +15,14 @@ public:
 	std::vector<std::pair<Point, size_t>> points_2;  // Точки и их номера для триангуляции
 
 	std::vector<std::pair<Point2, size_t>> point_TS;  // Точки и их номера для триангуляции
+	std::vector<std::pair<Point2, size_t>> point_BS;  // Точки и их номера для триангуляции
 	std::vector<std::pair<Point2, size_t>> point_HP_1;  // Точки и их номера для триангуляции
 
 	std::vector <Int_point*> Cells_1;     // Точки в которых хранятся параметры
 	std::vector <Int_point*> Cells_2;     // Точки в которых хранятся параметры
 
 	std::vector <Int_point*> Cells_TS;     // Точки в которых хранятся параметры
+	std::vector <Int_point*> Cells_BS;     // Точки в которых хранятся параметры
 	std::vector <Int_point*> Cells_HP_1;     // Точки в которых хранятся параметры
 	boost::multi_array<Int_point*, 2> Cells_HP_2;
 
@@ -29,6 +31,7 @@ public:
 	Delaunay* Delone_2;
 
 	Delaunay2* Delone_TS;
+	Delaunay2* Delone_BS;
 	Delaunay2* Delone_HP_1;
 
 	vector<string> param_names;  // Названия всех хранящихся переменных
@@ -51,6 +54,8 @@ public:
 	bool Get_TS(const double& x, const double& y, const double& z,
 		std::unordered_map<string, double>& parameters);
 	bool Get_HP(const double& x, const double& y, const double& z,
+		std::unordered_map<string, double>& parameters);
+	bool Get_BS(const double& x, const double& y, const double& z,
 		std::unordered_map<string, double>& parameters);
 };
 

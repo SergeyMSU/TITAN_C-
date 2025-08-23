@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0002.bin");   // 23
+    S1.Download_cell_parameters("parameters_0003.bin");   // 23
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
     // 62 включи TVD
@@ -75,8 +75,8 @@ int main()
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 400, 1); // 400   1
-        S1.Go(true, 100, 1); // 400   1
+        //S1.Go(false, 400, 1); // 400   1
+        S1.Go(true, 600, 1); // 400   1
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
 
@@ -110,7 +110,7 @@ int main()
         return 0;
     }
 
-    //S1.Save_cell_parameters("parameters_0003.bin");
+    //S1.Save_cell_parameters("parameters_0004.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();
@@ -130,7 +130,7 @@ int main()
         if (!outfile.is_open()) {
             return 1;
         }
-        const int N = 100;         // Количество шагов
+        const int N = 500;         // Количество шагов
         const double step = const_pi / N;  // Размер шага
 
         if (false)
@@ -174,18 +174,9 @@ int main()
             double z = 0.0;
             short int zoon = 0;
             // Записываем в файл
-            SS.Get_HP(x, y, z, parameters);
+            SS.Get_BS(x, y, z, parameters);
             double r = parameters["r"];
             outfile << r * cos(angle) << " " << r * sin(angle) << std::endl;
-        }
-        cout << "AA2" << endl;
-        for (double x = 0.0; x >= SS.L6; x = x - 0.01)
-        {
-            double y = 1.0;
-            double z = 0.0;
-            SS.Get_HP(x, y, z, parameters);
-            double r = parameters["r"];
-            outfile << x << " " << r << std::endl;
         }
         cout << "AA3" << endl;
 

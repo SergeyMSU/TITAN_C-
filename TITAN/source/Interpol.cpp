@@ -188,6 +188,36 @@ Interpol::Interpol(string name)
         }
     }
 
+    // Считываем BS
+    if (true)
+    {
+        in.read(reinterpret_cast<char*>(&size), sizeof(size));
+        for (size_t i = 0; i < size; ++i)
+        {
+            double a, b, c;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            auto A = new Int_point(a, b, 0.0);
+            A->parameters["r"] = c;
+
+            this->point_BS.push_back({ {a, b}, i });
+
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            A->parameters["nx"] = a;
+            A->parameters["ny"] = b;
+            A->parameters["nz"] = c;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+
+            A->parameters["rho_L"] = a;
+            A->parameters["rho_R"] = b;
+
+            this->Cells_BS.push_back(A);
+        }
+    }
 
 
 
@@ -198,6 +228,7 @@ Interpol::Interpol(string name)
     this->Delone_2 = new Delaunay(this->points_2.begin(), this->points_2.end());
 
     this->Delone_TS = new Delaunay2(this->point_TS.begin(), this->point_TS.end());
+    this->Delone_BS = new Delaunay2(this->point_BS.begin(), this->point_BS.end());
     this->Delone_HP_1 = new Delaunay2(this->point_HP_1.begin(), this->point_HP_1.end());
 
     cout << "END: Interpol" << endl;
@@ -662,6 +693,65 @@ bool Interpol::Get_HP(const double& x, const double& y, const double& z,
         }
 
 
+        return true;
+    }
+}
+
+bool Interpol::Get_BS(const double& x, const double& y, const double& z,
+    std::unordered_map<string, double>& parameters)
+{
+    if (x < 0.0)
+    {
+        cout << "BS net pri x < " << 0.0 << endl;
+        return false;
+    }
+
+    if (true)
+    {
+        double r_1, the_1, phi_1;
+
+        r_1 = sqrt(x * x + y * y + z * z);
+        the_1 = acos(x / r_1);
+        phi_1 = polar_angle(y, z);
+
+        Point2 query(the_1, phi_1);
+
+        //cout << "S1 " << endl;
+
+        Face_handle face = this->Delone_BS->locate(query);
+        if (this->Delone_BS->is_infinite(face))
+        {
+            // Находим ближайшую вершину
+            Vertex_handle2 nearest_vertex = this->Delone_BS->nearest_vertex(query);
+            face = nearest_vertex->face();  // Берём любой смежный треугольник
+        }
+        //cout << "S2" << endl;
+        // Получаем вершины треугольника
+        Point2 p0 = face->vertex(0)->point();
+        Point2 p1 = face->vertex(1)->point();
+        Point2 p2 = face->vertex(2)->point();
+        //cout << "C" << endl;
+        FT alpha, beta, gamma;
+        compute_barycentric(p0, p1, p2, query, alpha, beta, gamma);
+        //cout << "D" << endl;
+        size_t idx0 = face->vertex(0)->info(); // Номер точки p0
+        size_t idx1 = face->vertex(1)->info(); // Номер точки p1
+        size_t idx2 = face->vertex(2)->info(); // Номер точки p2
+        //cout << "S3" << endl;
+        // Интерполяция параметров
+        for (auto& [key, _] : this->Cells_BS[idx0]->parameters)
+        {
+            double f0 = this->Cells_BS[idx0]->parameters[key];
+            double f1 = this->Cells_BS[idx1]->parameters[key];
+            double f2 = this->Cells_BS[idx2]->parameters[key];
+
+            // Преобразуем CGAL::FT в double
+            parameters[key] = CGAL::to_double(alpha) * f0 +
+                CGAL::to_double(beta) * f1 +
+                CGAL::to_double(gamma) * f2;
+        }
+        //cout << "S4" << endl;
+        //cout << "F" << endl;
         return true;
     }
 }
