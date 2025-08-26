@@ -568,6 +568,45 @@ void Setka::Init_physics(void)
 
 		this->Cell_Center->parameters[1] = this->Cell_Center->parameters[0];
 	}
+
+	// ƒл€ первых €чеек задаЄм магнитное поле
+	if (true)
+	{
+		for (auto& i : this->All_Cell)
+		{
+			if (i->is_TVD == true) continue;
+
+			x = i->center[0][0];
+			y = i->center[0][1];
+			z = i->center[0][2];
+			r = norm2(x, y, z);
+
+			vec << x, y, z;
+
+			cc = this->phys_param->Matr2 * vec;
+			the = acos(cc(2) / r);
+
+			BR = -this->phys_param->B_0 * kv(this->phys_param->R_0 / r);
+			BPHI = -BR * sin(the) * (r / this->phys_param->R_0);
+
+			dekard_skorost(cc(2), cc(0), cc(1), BR, BPHI, 0.0, V3, V1, V2);
+
+			vv << V1, V2, V3;
+
+			cc = this->phys_param->Matr * vv;
+
+			i->parameters[0]["Bx"] = cc(0);
+			i->parameters[0]["By"] = cc(1);
+			i->parameters[0]["Bz"] = cc(2);
+			
+
+			for (short unsigned int j = 1; j < i->parameters.size(); j++)
+			{
+				i->parameters[j] = i->parameters[0];
+			}
+		}
+	}
+
 }
 
 void Setka::Init_TVD(void)
@@ -1864,9 +1903,12 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				cell->parameters[now2]["Vx"] = u3;
 				cell->parameters[now2]["Vy"] = v3;
 				cell->parameters[now2]["Vz"] = w3;
-				cell->parameters[now2]["Bx"] = bx3;
-				cell->parameters[now2]["By"] = by3;
-				cell->parameters[now2]["Bz"] = bz3;
+				if (cell->is_TVD == true)
+				{
+					cell->parameters[now2]["Bx"] = bx3;
+					cell->parameters[now2]["By"] = by3;
+					cell->parameters[now2]["Bz"] = bz3;
+				}
 				cell->parameters[now2]["p"] = p3;
 			}
 
