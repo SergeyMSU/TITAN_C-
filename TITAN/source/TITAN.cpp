@@ -29,12 +29,12 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0003.bin");   // 23
+    S1.Download_cell_parameters("parameters_0070.bin");   // 23
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
     // 62 включи TVD
 
-    S1.geo->R0 = 0.233017;
+    S1.geo->R0 = 0.237455;
 
     // 23 полностью установленное решение без Пикапов (у контакта есть артефакт нужно сглаживание по
     // углу увеличить)
@@ -71,12 +71,12 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 0; i++) // 6 * 2
+    for (int i = 1; i <= 3 * 3; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        //S1.Go(false, 400, 1); // 400   1
-        S1.Go(true, 600, 1); // 400   1
+        S1.Go(false, 400, 1); // 400   1
+        S1.Go(true, 100, 1); // 400   1
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
 
@@ -110,17 +110,17 @@ int main()
         return 0;
     }
 
-    //S1.Save_cell_parameters("parameters_0004.bin");
+    S1.Save_cell_parameters("parameters_0071.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();
     //S1.Culc_divergence_in_cell();
     //S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_1.bin", true);
-    Interpol SS = Interpol("For_intertpolate_1.bin");
+    S1.Save_for_interpolate("For_intertpolate_71.bin", true);
+    Interpol SS = Interpol("For_intertpolate_71.bin");
 
-    if (true) // Проверка интерполятора
+    if (false) // Проверка интерполятора
     {
         std::unordered_map<string, double> parameters;
         Cell_handle next_cell;
@@ -138,7 +138,7 @@ int main()
             // Основной цикл
             for (double angle = 0.0; angle <= const_pi / 2.0 + 1e-6; angle += step)
             {
-                for (double r = 30.0; r < 300.0; r += 0.01)
+                for (double r = 10.0; r < 300.0; r += 0.01)
                 {
                     double x = r * cos(angle);
                     double y = r * sin(angle);
@@ -146,7 +146,7 @@ int main()
                     short int zoon = 0;
                     // Записываем в файл
                     SS.Get_param(x, y, z, parameters, prev_cell, next_cell, zoon);
-                    if (zoon == 2)
+                    if (zoon == 3)
                     {
                         outfile << x << " " << y << std::endl;
                         break;
@@ -174,7 +174,7 @@ int main()
             double z = 0.0;
             short int zoon = 0;
             // Записываем в файл
-            SS.Get_BS(x, y, z, parameters);
+            SS.Get_HP(x, y, z, parameters);
             double r = parameters["r"];
             outfile << r * cos(angle) << " " << r * sin(angle) << std::endl;
         }
@@ -191,11 +191,31 @@ int main()
         cout << "A " << endl;
 
 
-        SS.Get_param(13.94, 0.0, 0.0, parameters, prev_cell, next_cell);
+        outfile = std::ofstream("2D.txt");
+
+        for (double x = -200.0; x < 400.0; x = x + 0.4)
+        {
+            for (double y = -400.0; y < 400.0; y = y + 0.3)
+            {
+                bool vv = SS.Get_param(x, y, 0.0, parameters, prev_cell, next_cell);
+                if (vv == false) continue;
+                outfile << x << " " << y << " " << parameters["rho"] << std::endl;
+            }
+        }
+
+        outfile.close();
+
+        SS.Get_param(0.00001, -350, 0.0, parameters, prev_cell, next_cell);
         for (const auto& [key, value] : parameters) {
             std::cout << key << ":  " << value << '\n';
         }
-        cout << "B " << endl;
+        cout << "B1 " << endl;
+
+        SS.Get_param(-0.00001, -350, 0.0, parameters, prev_cell, next_cell);
+        for (const auto& [key, value] : parameters) {
+            std::cout << key << ":  " << value << '\n';
+        }
+        cout << "B2 " << endl;
         exit(-1);
     }
 

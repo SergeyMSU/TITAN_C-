@@ -465,8 +465,9 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			if (true)
 			{   // Ћаплас в сферических новых
 #pragma omp parallel for private(A, B, V, B2) schedule(dynamic)
-				for (auto& yz : this->All_Yzel)
+				for(size_t ili = 0; ili < this->All_Yzel.size(); ili++)
 				{
+					auto yz = this->All_Yzel[ili];
 					if (yz->type != Type_yzel::TS) continue;
 					A << yz->coord[now][0], yz->coord[now][1], yz->coord[now][2];
 
@@ -579,8 +580,9 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			if (true)
 			{   // —глаживание к локальной сфере
 #pragma omp parallel for private(A, B, V, B2) schedule(dynamic)
-				for (auto& yz : this->All_Yzel)
+				for (size_t ili = 0; ili < this->All_Yzel.size(); ili++)
 				{
+					auto yz = this->All_Yzel[ili];
 					if (yz->type != Type_yzel::HP) continue;
 					A << yz->coord[now][0], yz->coord[now][1], yz->coord[now][2];
 					
@@ -1172,8 +1174,9 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		if (true)
 		{
 #pragma omp parallel for private(A, B, V) schedule(dynamic)
-			for (auto& yz : this->All_Yzel)
+			for (size_t ili = 0; ili < this->All_Yzel.size(); ili++)
 			{
+				auto yz = this->All_Yzel[ili];
 				if (yz->type != Type_yzel::BS) continue;
 
 				A << yz->coord[now][0], yz->coord[now][1], yz->coord[now][2];

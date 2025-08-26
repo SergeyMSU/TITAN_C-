@@ -92,6 +92,96 @@ Interpol::Interpol(string name)
     }
 
 
+    // Считываем третью зону
+    in.read(reinterpret_cast<char*>(&size), sizeof(size));
+    for (size_t i = 0; i < size; ++i)
+    {
+        double a, b, c;
+        in.read(reinterpret_cast<char*>(&a), sizeof(a));
+        in.read(reinterpret_cast<char*>(&b), sizeof(b));
+        in.read(reinterpret_cast<char*>(&c), sizeof(c));
+        auto A = new Int_point(a, b, c);
+
+        this->points_3.push_back({ {a, b, c}, i });
+
+        for (const auto& i : this->param_names)
+        {
+            double a;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            A->parameters[i] = a;
+        }
+
+        this->Cells_3.push_back(A);
+    }
+
+
+    // Считываем четвёртую зону
+    in.read(reinterpret_cast<char*>(&size), sizeof(size));
+    for (size_t i = 0; i < size; ++i)
+    {
+        double a, b, c;
+        in.read(reinterpret_cast<char*>(&a), sizeof(a));
+        in.read(reinterpret_cast<char*>(&b), sizeof(b));
+        in.read(reinterpret_cast<char*>(&c), sizeof(c));
+        auto A = new Int_point(a, b, c);
+
+        this->points_4.push_back({ {a, b, c}, i });
+
+        for (const auto& i : this->param_names)
+        {
+            double a;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            A->parameters[i] = a;
+        }
+
+        this->Cells_4.push_back(A);
+    }
+
+    // Считываем пятую зону
+    in.read(reinterpret_cast<char*>(&size), sizeof(size));
+    for (size_t i = 0; i < size; ++i)
+    {
+        double a, b, c;
+        in.read(reinterpret_cast<char*>(&a), sizeof(a));
+        in.read(reinterpret_cast<char*>(&b), sizeof(b));
+        in.read(reinterpret_cast<char*>(&c), sizeof(c));
+        auto A = new Int_point(a, b, c);
+
+        this->points_5.push_back({ {a, b, c}, i });
+
+        for (const auto& i : this->param_names)
+        {
+            double a;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            A->parameters[i] = a;
+        }
+
+        this->Cells_5.push_back(A);
+    }
+
+    // Считываем шестую зону
+    in.read(reinterpret_cast<char*>(&size), sizeof(size));
+    for (size_t i = 0; i < size; ++i)
+    {
+        double a, b, c;
+        in.read(reinterpret_cast<char*>(&a), sizeof(a));
+        in.read(reinterpret_cast<char*>(&b), sizeof(b));
+        in.read(reinterpret_cast<char*>(&c), sizeof(c));
+        auto A = new Int_point(a, b, c);
+
+        this->points_6.push_back({ {a, b, c}, i });
+
+        for (const auto& i : this->param_names)
+        {
+            double a;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            A->parameters[i] = a;
+        }
+
+        this->Cells_6.push_back(A);
+    }
+
+
     // Считываем TS
     if (true)
     {
@@ -226,6 +316,10 @@ Interpol::Interpol(string name)
     // Делаем триангуляцию
     this->Delone_1 = new Delaunay(this->points_1.begin(), this->points_1.end());
     this->Delone_2 = new Delaunay(this->points_2.begin(), this->points_2.end());
+    this->Delone_3 = new Delaunay(this->points_3.begin(), this->points_3.end());
+    this->Delone_4 = new Delaunay(this->points_4.begin(), this->points_4.end());
+    this->Delone_5 = new Delaunay(this->points_5.begin(), this->points_5.end());
+    this->Delone_6 = new Delaunay(this->points_6.begin(), this->points_6.end());
 
     this->Delone_TS = new Delaunay2(this->point_TS.begin(), this->point_TS.end());
     this->Delone_BS = new Delaunay2(this->point_BS.begin(), this->point_BS.end());
@@ -282,36 +376,103 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
     short int& this_zone)
 {
     //cout << "A0" << endl;
+    short int my_zone = 0;   // В какой зоне интерполяции находится точка
+    this_zone = 0;
+    std::unordered_map<string, double> param;
+    double R_TS, R_HP, R_BS;
+    bool aa1;
 
-    if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) {
-        std::cerr << "Ошибка: недопустимые координаты (" << x << ", " << y << ", " << z << ")" << std::endl;
+    if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) 
+    {
+        std::cerr << "Error 87695476hturtguhge584   " << x << ", " << y << ", " << z << ")" << std::endl;
         exit(-1);
     }
-    double radius = norm2(x, y, z);
 
+    double radius = norm2(x, y, z);
+    double radius2 = norm2(0.0, y, z);
     if (radius < 0.1) return false;
 
-    std::unordered_map<string, double> param;
-    bool aa1 = this->Get_TS(x, y, z, param);
+    // Далее определяем интерполяционную зону
+
+    if (x < this->L6)
+    {
+        this_zone = 0;
+        my_zone = 6;
+        goto know_zone;
+    }
+    //cout << "A1" << endl; 
+    aa1 = this->Get_TS(x, y, z, param);
     if (aa1 == false)
     {
         cout << "Error 9857686573jgh" << endl;
         exit(-1);
     }
-
-    //cout << "A01" << endl;
-
-    this_zone = 0;
-    if (param["r"] >= radius)
+    R_TS = param["r"];
+    if (R_TS >= radius)
     {
         this_zone = 1;
+        my_zone = 1;
+        goto know_zone;
+    }
+    //cout << "A2" << endl;
+    aa1 = this->Get_HP(x, y, z, param);
+    if (aa1 == false)
+    {
+        cout << "Error hjtyj56y745ytgt" << endl;
+        exit(-1);
+    }
+    R_HP = param["r"];
+
+    if (x >= 0.0 && radius <= R_HP)
+    {
+        this_zone = 2;
+        my_zone = 2;
+        goto know_zone;
     }
 
+    if (x < 0.0 && radius2 <= R_HP)
+    {
+        this_zone = 2;
+        my_zone = 2;
+        goto know_zone;
+    }
+
+    if (x <= 0.0)
+    {
+        this_zone = 3;
+        my_zone = 5;
+        goto know_zone;
+    }
+    //cout << "A3" << endl;
+    aa1 = this->Get_BS(x, y, z, param);
+    if (aa1 == false)
+    {
+        cout << "Error 9857686573jgh" << endl;
+        exit(-1);
+    }
+    R_BS = param["r"];
+
+    if (radius <= R_BS)
+    {
+        this_zone = 3;
+        my_zone = 3;
+        goto know_zone;
+    }
+    else
+    {
+        this_zone = 4;
+        my_zone = 4;
+        goto know_zone;
+    }
+
+    // Определили интерполяционную зону, теперт делаем интерполяцию
+know_zone:
+    //cout << "A4" << endl;
     Point query(x, y, z);
     Cell_handle containing_cell;
-    std::vector <Int_point*>* CCC;
+    std::vector <Int_point*>* CCC = nullptr;
     //cout << "A02" << endl;
-    if (this_zone == 1)
+    if (my_zone == 1)
     {
         CCC = &this->Cells_1;
         containing_cell = this->Delone_1->locate(query);
@@ -320,7 +481,7 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
             return false;
         }
     }
-    else
+    else if((my_zone == 2))
     {
         CCC = &this->Cells_2;
         containing_cell = this->Delone_2->locate(query);
@@ -329,7 +490,43 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
             return false;
         }
     }
-    //cout << "A1" << endl;
+    else if ((my_zone == 3))
+    {
+        CCC = &this->Cells_3;
+        containing_cell = this->Delone_3->locate(query);
+        if (this->Delone_3->is_infinite(containing_cell))
+        {
+            return false;
+        }
+    }
+    else if ((my_zone == 4))
+    {
+        CCC = &this->Cells_4;
+        containing_cell = this->Delone_4->locate(query);
+        if (this->Delone_4->is_infinite(containing_cell))
+        {
+            return false;
+        }
+    }
+    else if ((my_zone == 5))
+    {
+        CCC = &this->Cells_5;
+        containing_cell = this->Delone_5->locate(query);
+        if (this->Delone_5->is_infinite(containing_cell))
+        {
+            return false;
+        }
+    }
+    else if ((my_zone == 6))
+    {
+        CCC = &this->Cells_6;
+        containing_cell = this->Delone_6->locate(query);
+        if (this->Delone_6->is_infinite(containing_cell))
+        {
+            return false;
+        }
+    }
+    //cout << "A5" << endl;
     next_cell = containing_cell;
 
     //cout << "A2" << endl;
@@ -348,72 +545,69 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
     auto coords = barycentric_coordinates(query, Tetrahedron(p0, p1, p2, p3));
 
     //cout << "A2" << endl;
-
-    if (this_zone == 0)
+   //cout << "A6" << endl;
+    // Определяем зону в общих областях интерполяции
+    if (my_zone == 6 || my_zone == 5)
     {
         // Определяем текущую зону
         short int zone[5];
-        if (true)
+        for (short int i = 0; i < 5; i++) zone[i] = 0;
+
+        short int kk = static_cast<short int>(std::round((*CCC)[i0]->parameters["zone_geo"]));
+        if (kk <= 0) kk = 0;
+        if (kk == 1) kk = 2;
+        zone[kk]++;
+        kk = static_cast<short int>(std::round((*CCC)[i1]->parameters["zone_geo"]));
+        if (kk <= 0) kk = 0;
+        if (kk == 1) kk = 2;
+        zone[kk]++;
+        kk = static_cast<short int>(std::round((*CCC)[i2]->parameters["zone_geo"]));
+        if (kk <= 0) kk = 0;
+        if (kk == 1) kk = 2;
+        zone[kk]++;
+        kk = static_cast<short int>(std::round((*CCC)[i3]->parameters["zone_geo"]));
+        if (kk <= 0) kk = 0;
+        if (kk == 1) kk = 2;
+        zone[kk]++;
+
+        kk = 0;
+        for (short int i = 1; i < 5; i++)
         {
-            for (short int i = 0; i < 5; i++) zone[i] = 0;
-
-            short int kk = static_cast<short int>(std::round(this->Cells_2[i0]->parameters["zone_geo"]));
-            if (kk <= 0) kk = 0;
-            if (kk == 1) kk = 2;
-            zone[kk]++;
-            kk = static_cast<short int>(std::round(this->Cells_2[i1]->parameters["zone_geo"]));
-            if (kk <= 0) kk = 0;
-            if (kk == 1) kk = 2;
-            zone[kk]++;
-            kk = static_cast<short int>(std::round(this->Cells_2[i2]->parameters["zone_geo"]));
-            if (kk <= 0) kk = 0;
-            if (kk == 1) kk = 2;
-            zone[kk]++;
-            kk = static_cast<short int>(std::round(this->Cells_2[i3]->parameters["zone_geo"]));
-            if (kk <= 0) kk = 0;
-            if (kk == 1) kk = 2;
-            zone[kk]++;
-
-            kk = 0;
-            for (short int i = 1; i < 5; i++)
+            if (zone[i] > kk)
             {
-                if (zone[i] > kk)
-                {
-                    this_zone = i;
-                    kk = zone[i];
-                }
+                this_zone = i;
+                kk = zone[i];
             }
-
-            if (this_zone <= 1)
-            {
-                cout << "Error 9867540975" << endl;
-                exit(-1);
-            }
-
-            if (this_zone == 2 || this_zone == 3)
-            {
-                double Q = coords[0] * this->Cells_2[i0]->parameters["Q"] +
-                    coords[1] * this->Cells_2[i1]->parameters["Q"] +
-                    coords[2] * this->Cells_2[i2]->parameters["Q"] +
-                    coords[3] * this->Cells_2[i3]->parameters["Q"];
-                double rho = coords[0] * this->Cells_2[i0]->parameters["rho"] +
-                    coords[1] * this->Cells_2[i1]->parameters["rho"] +
-                    coords[2] * this->Cells_2[i2]->parameters["rho"] +
-                    coords[3] * this->Cells_2[i3]->parameters["rho"];
-                if (Q / rho < 70.0)
-                {
-                    this_zone = 2;
-                }
-                else
-                {
-                    this_zone = 3;
-                }
-            }
-
-
         }
-    }
 
+        if (this_zone <= 1)
+        {
+            cout << "Error 9867540975" << endl;
+            exit(-1);
+        }
+
+        if (this_zone == 2 || this_zone == 3)
+        {
+            double Q = coords[0] * (*CCC)[i0]->parameters["Q"] +
+                coords[1] * (*CCC)[i1]->parameters["Q"] +
+                coords[2] * (*CCC)[i2]->parameters["Q"] +
+                coords[3] * (*CCC)[i3]->parameters["Q"];
+            double rho = coords[0] * (*CCC)[i0]->parameters["rho"] +
+                coords[1] * (*CCC)[i1]->parameters["rho"] +
+                coords[2] * (*CCC)[i2]->parameters["rho"] +
+                coords[3] * (*CCC)[i3]->parameters["rho"];
+            if (Q / rho < 70.0)
+            {
+                this_zone = 2;
+            }
+            else
+            {
+                this_zone = 3;
+            }
+        }
+        
+    }
+    //cout << "A7" << endl;
     //cout << "A3" << endl;
     vector<size_t> i_n(4);
     i_n[0] = i0;
@@ -447,14 +641,9 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
         r[4] = 1.0;
     }
 
-    //cout << "A4" << endl;
+   // cout << "A8" << endl;
     for (const auto& nn : this->param_names)
     {
-        /*parameters[nn] = coords[0] * this->Cells[i0]->parameters[nn] +
-            coords[1] * this->Cells[i1]->parameters[nn] +
-            coords[2] * this->Cells[i2]->parameters[nn] +
-            coords[3] * this->Cells[i3]->parameters[nn];*/
-
         parameters[nn] = 0.0;
         short int kl = 0;
         for (const auto& ii : i_n)
@@ -466,7 +655,7 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
         parameters[nn] /= pow(r[4], this->stepen[nn]);
     }
     
-    //cout << "A5" << endl;
+    //cout << "A9" << endl;
     return true;
 }
 
@@ -624,18 +813,21 @@ bool Interpol::Get_HP(const double& x, const double& y, const double& z,
             return false;
         }
 
+        //cout << "C1" << endl;
         double r_1, x_1, phi_1;
 
         r_1 = sqrt(y * y + z * z);
         x_1 = x;
         phi_1 = polar_angle(y, z);
 
+        if (r_1 < 0.001) phi_1 = 0.0;
+
         Point2 query(x_1, phi_1);
         double x0 = x_1;
         double y0 = phi_1;
 
-        size_t i1, j1;
-        size_t i2, j2;
+        short int i1, j1;
+        short int i2, j2;
 
         // Количество строк (первое измерение)
         size_t rows = this->Cells_HP_2.shape()[0];
@@ -645,6 +837,8 @@ bool Interpol::Get_HP(const double& x, const double& y, const double& z,
 
         i1 = rows - 1;
         j1 = cols - 1;
+
+        //cout << "C2 " << rows << " " << cols << " " << i1 << " " << j1 << endl;
 
         while (this->Cells_HP_2[i1][j1]->center[0] > x0)
         {
@@ -656,6 +850,8 @@ bool Interpol::Get_HP(const double& x, const double& y, const double& z,
             }
         }
 
+        //cout << "C3 " << rows << " " << cols << " " << i1 << " " << j1 << endl;
+
         while (this->Cells_HP_2[i1][j1]->center[1] > y0)
         {
             j1--;
@@ -666,10 +862,14 @@ bool Interpol::Get_HP(const double& x, const double& y, const double& z,
             }
         }
 
+        //cout << "C4 " << rows << " " << cols << " " << i1 << " " << j1 << endl;
+
         i2 = i1 + 1;
         j2 = j1 + 1;
         if (i2 >= rows) i2 = rows - 1;
         if (j2 >= cols) j2 = cols - 1;
+
+        //cout << "C5 " << rows << " " << cols << " " << i1 << " " << j1 << endl;
 
         double x1 = this->Cells_HP_2[i1][j1]->center[0];
         double x2 = this->Cells_HP_2[i2][j1]->center[0];
@@ -708,10 +908,13 @@ bool Interpol::Get_BS(const double& x, const double& y, const double& z,
 
     if (true)
     {
+        double x_ = x;
+        if (x_ < 0.0001) x_ = 0.0001;
+
         double r_1, the_1, phi_1;
 
-        r_1 = sqrt(x * x + y * y + z * z);
-        the_1 = acos(x / r_1);
+        r_1 = sqrt(x_ * x_ + y * y + z * z);
+        the_1 = acos(x_ / r_1);
         phi_1 = polar_angle(y, z);
 
         Point2 query(the_1, phi_1);
@@ -724,6 +927,15 @@ bool Interpol::Get_BS(const double& x, const double& y, const double& z,
             // Находим ближайшую вершину
             Vertex_handle2 nearest_vertex = this->Delone_BS->nearest_vertex(query);
             face = nearest_vertex->face();  // Берём любой смежный треугольник
+            Point2 p0 = face->vertex(0)->point();
+            size_t idx0 = face->vertex(0)->info();
+
+            for (auto& [key, _] : this->Cells_BS[idx0]->parameters)
+            {
+                double f0 = this->Cells_BS[idx0]->parameters[key];
+                parameters[key] = f0;
+            }
+            return true;
         }
         //cout << "S2" << endl;
         // Получаем вершины треугольника

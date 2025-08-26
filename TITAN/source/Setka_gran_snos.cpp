@@ -244,11 +244,32 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 							BB->parameters[now][V3[ik]], BB->parameters[now][V1[ik]],
 							BB->parameters[now][V2[ik]], VBB[0], VBB[1], VBB[2]);
 
+
 						// Интерполируем скорости (в сферической с.к.)
 						for (short int i = 0; i < 3; i++)
 						{
-							Vleft[i] = linear(-dd1 - d1, VAA[i], -d1, VA[i], d2, VB[i], 0.0);
-							Vright[i] = linear(-d1, VA[i], d2, VB[i], d2 + dd2, VBB[i], 0.0);
+							if (V1[ik] == "Bx")
+							{
+								if (i == 0)
+								{
+									Vleft[i] = linear(-dd1 - d1, VAA[i] * kv(r3), -d1, VA[i] * kv(r1),
+										d2, VB[i] * kv(r2), 0.0) / kv(rr);
+									Vright[i] = linear(-d1, VA[i] * kv(r1), d2, VB[i] * kv(r2),
+										d2 + dd2, VBB[i] * kv(r4), 0.0) / kv(rr);
+								}
+								else
+								{
+									Vleft[i] = linear(-dd1 - d1, VAA[i] * (r3), -d1, VA[i] * (r1),
+										d2, VB[i] * (r2), 0.0) / (rr);
+									Vright[i] = linear(-d1, VA[i] * (r1), d2, VB[i] * (r2),
+										d2 + dd2, VBB[i] * (r4), 0.0) / (rr);
+								}
+							}
+							else
+							{
+								Vleft[i] = linear(-dd1 - d1, VAA[i], -d1, VA[i], d2, VB[i], 0.0);
+								Vright[i] = linear(-d1, VA[i], d2, VB[i], d2 + dd2, VBB[i], 0.0);
+							}
 						}
 
 						dekard_skorost(G[2], G[0], G[1],
@@ -659,6 +680,13 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 							A->parameters[now][V3[ik]], A->parameters[now][V1[ik]],
 							A->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
 
+						if (V1[ik] == "Bx")
+						{
+							VA[0] *= kv(r1) / kv(rr);
+							VA[1] *= (r1) / (rr);
+							VA[2] *= (r1) / (rr);
+						}
+
 						dekard_skorost(G[2], G[0], G[1],
 							VA[0], VA[1], VA[2],
 							par_left[V3[ik]], par_left[V1[ik]], par_left[V2[ik]]);
@@ -756,6 +784,13 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						spherical_skorost(Ac[2], Ac[0], Ac[1],
 							B->parameters[now][V3[ik]], B->parameters[now][V1[ik]],
 							B->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
+
+						if (V1[ik] == "Bx")
+						{
+							VA[0] *= kv(r1) / kv(rr);
+							VA[1] *= (r1) / (rr);
+							VA[2] *= (r1) / (rr);
+						}
 
 						dekard_skorost(G[2], G[0], G[1],
 							VA[0], VA[1], VA[2],

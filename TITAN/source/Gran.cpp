@@ -8,8 +8,9 @@ short int Gran::Get_method()
 	// 3 - HLLD
 
 	if (this->type2 != Type_Gran_surf::Us) return 3;
-
 	return 0;
+
+	//return 3;
 }
 
 void Gran::Read_AMR(short int ni, short int nH, bool need_refine)

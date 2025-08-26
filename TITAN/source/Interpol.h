@@ -13,6 +13,10 @@ class Interpol
 public:
 	std::vector<std::pair<Point, size_t>> points_1;  // Точки и их номера для триангуляции
 	std::vector<std::pair<Point, size_t>> points_2;  // Точки и их номера для триангуляции
+	std::vector<std::pair<Point, size_t>> points_3;  // Точки и их номера для триангуляции
+	std::vector<std::pair<Point, size_t>> points_4;  // Точки и их номера для триангуляции
+	std::vector<std::pair<Point, size_t>> points_5;  // Точки и их номера для триангуляции
+	std::vector<std::pair<Point, size_t>> points_6;  // Точки и их номера для триангуляции
 
 	std::vector<std::pair<Point2, size_t>> point_TS;  // Точки и их номера для триангуляции
 	std::vector<std::pair<Point2, size_t>> point_BS;  // Точки и их номера для триангуляции
@@ -20,6 +24,10 @@ public:
 
 	std::vector <Int_point*> Cells_1;     // Точки в которых хранятся параметры
 	std::vector <Int_point*> Cells_2;     // Точки в которых хранятся параметры
+	std::vector <Int_point*> Cells_3;     // Точки в которых хранятся параметры
+	std::vector <Int_point*> Cells_4;     // Точки в которых хранятся параметры
+	std::vector <Int_point*> Cells_5;     // Точки в которых хранятся параметры
+	std::vector <Int_point*> Cells_6;     // Точки в которых хранятся параметры
 
 	std::vector <Int_point*> Cells_TS;     // Точки в которых хранятся параметры
 	std::vector <Int_point*> Cells_BS;     // Точки в которых хранятся параметры
@@ -29,6 +37,10 @@ public:
 
 	Delaunay* Delone_1;
 	Delaunay* Delone_2;
+	Delaunay* Delone_3;
+	Delaunay* Delone_4;
+	Delaunay* Delone_5;
+	Delaunay* Delone_6;
 
 	Delaunay2* Delone_TS;
 	Delaunay2* Delone_BS;

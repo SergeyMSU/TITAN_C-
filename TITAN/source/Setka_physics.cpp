@@ -251,11 +251,13 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// –едактирование каких-то переменных
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			if (norm2(i->center[0][0], i->center[0][1], i->center[0][2]) < 2.0)
+			i->parameters[1] = i->parameters[0];
+
+			if (false)//(norm2(i->center[0][0], i->center[0][1], i->center[0][2]) < 2.0)
 			{
 				i->parameters[0]["rho_H4"] = 0.16;
 				i->parameters[0]["p_H4"] = 0.13;
@@ -297,7 +299,6 @@ void Setka::Init_physics(void)
 			}
 		}
 	}
-
 
 	// ≈сли ввели какие-то новые переменные, их надо заполнить
 	if (false)
@@ -739,6 +740,8 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 
 		rho[nam1] = C->parameters[now]["rho" + nam1];
 		T[nam1] = 2.0 * C->parameters[now]["p" + nam1] / rho[nam1];
+		if (rho[nam1] <= 1e-8) rho[nam1] = 1e-8;
+		if (T[nam1] <= 1e-8) T[nam1] = 1e-8;
 	}
 	//cout << "B2 " << endl;
 	for (const auto& nam2 : this->phys_param->H_name)
@@ -1039,8 +1042,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 
 				if (this->regim_otladki == true)
 				{
-					if (Hm[nam2 + nam1][0] > 1e7 || Hm[nam2 + nam1][1] > 1e7 || Hm[nam2 + nam1][2] > 1e7 ||
-						std::isnan(Hrho[nam2 + nam1]) || std::fpclassify(Hrho[nam2 + nam1]) == FP_SUBNORMAL ||
+					if (std::isnan(Hrho[nam2 + nam1]) || std::fpclassify(Hrho[nam2 + nam1]) == FP_SUBNORMAL ||
 						std::isnan(Hm[nam2 + nam1][1]) || std::fpclassify(Hm[nam2 + nam1][1]) == FP_SUBNORMAL ||
 						std::isnan(HE[nam2 + nam1]) || std::fpclassify(HE[nam2 + nam1]) == FP_SUBNORMAL)
 					{
@@ -1488,6 +1490,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			this->Calculating_measure(now2);
 		}
 
+
+		//cout << "A" << endl;
 		// –асчитываем потоки через грани
 		// в private не добавл€ютс€ нормально vectora, надо либо обычные массивы делать, либо 
 		// создавать их внутри в каждом потоке
@@ -1523,6 +1527,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 		#pragma omp barrier
 		//cout << "barrier" << endl;
+		//cout << "B" << endl;
 
 		bool print_p_less_0 = false;
 
@@ -1565,6 +1570,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				for (const auto& names : this->phys_param->param_names)
 				{
+					if (gran->parameters.find("P" + names) == gran->parameters.end()) continue; // TODO!
 					POTOK[names] += sign_potok * gran->parameters["P" + names];
 				}
 
@@ -1595,7 +1601,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			zone = this->determ_zone(cell, now1);
 			//this->Calc_sourse_MF(cell, SOURSE, now1, zone);
 			//cout << "A1" << endl;
+			//cout << "B1" << endl;
 			this->Calc_sourse_MF_Bera(cell, SOURSE, now1, zone);
+			//cout << "B2" << endl;
 			//cout << "A2" << endl;
 
 			double rho3, u3, v3, w3, bx3, by3, bz3, p3, Q3, rho_He3, rho_He;
@@ -1860,6 +1868,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				cell->parameters[now2]["p"] = p3;
 			}
 
+			//cout << "B3" << endl;
 			/*if (norm2(cell->center[now1][0], cell->center[now1][1], cell->center[now1][2]) < 3.0)
 			{
 				SOURSE[2][0] = 0.0;
@@ -2005,6 +2014,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		}
 
 		#pragma omp barrier
+
+		//cout << "C" << endl;
 
 		// ”величим давление PUI за ударной волной
 		if (is_inner_area == false && this->phys_param->is_PUI == true)
@@ -2336,7 +2347,10 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 	{
 		for (auto& nam : this->phys_param->H_name)
 		{
-			if (this->phys_param->Culc_hidrogen[nam] == false) continue;
+			if (this->phys_param->Culc_hidrogen[nam] == false) 
+			{
+				continue;
+			}
 
 			Option.fluid = nam;
 			qqq1[0] = par_left["rho" + nam];
@@ -2544,7 +2558,6 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		}
 	}
 
-
 	// «аписываем вторую зону
 	if (true)
 	{
@@ -2552,16 +2565,16 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		for (const auto& Cel : this->All_Cell)
 		{
 			Cel->is_need = static_cast<short int>(Cel->type);
-			if (Cel->is_need != 1) gr_b++;
+			if ( (Cel->is_need == 2 || Cel->is_need == 3) && Cel->center[0][0] >= this->geo->L6 - 50.0) gr_b++;
 		}
 
 		// «аписываем количество €чеек
-		size = gr_b + 2 * this->Gran_TS.size(); //доп точки на TS 
+		size = gr_b + 2 * this->Gran_TS.size() + 0 * this->Gran_HP.size(); //доп точки на TS и HP
 		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 		for (const auto& Cel : this->All_Cell)
 		{
-			if (Cel->is_need == 1) continue;
+			if ( Cel->is_need == 1 || Cel->is_need == 4 || Cel->center[0][0] < this->geo->L6 - 50.0) continue;
 			double aa = Cel->center[0][0];
 			double bb = Cel->center[0][1];
 			double cc = Cel->center[0][2];
@@ -2636,6 +2649,470 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			zzz = 2.0;
 			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 		}
+
+		if (false)
+		{
+			for (const auto& gr : this->Gran_HP)
+			{
+				auto C1 = gr->cells[0];
+				auto C2 = gr->cells[1];
+				this->Snos_on_Gran(gr, par_left, par_right, 0);
+
+				Eigen::Vector3d A1, A2, A3, nn;
+				A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
+
+				double aa = gr->center[0][0];
+				double bb = gr->center[0][1];
+				double cc = gr->center[0][2];
+				A2 << aa, bb, cc;
+				nn << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
+				double zzz;
+
+				/*out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (par_left.find(i) != par_left.end())
+					{
+						aa = par_left[i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+				zzz = 2.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));*/
+
+				for (short int io = 1; io <= 1; io++)
+				{
+
+					A3 = A1;
+
+					out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(double));
+					out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(double));
+					out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(double));
+
+					for (const auto& i : this->phys_param->param_names)
+					{
+						aa = par_left[i];
+						bb = C1->parameters[0][i];
+						cc = bb; //bb + io * (aa - bb);
+
+						out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+					}
+
+					zzz = 2.0;
+					out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+				}
+			}
+		}
+	}
+
+	// «аписываем третью зону
+	if (true)
+	{
+		gr_b = 0;
+		for (const auto& Cel : this->All_Cell)
+		{
+			Cel->is_need = static_cast<short int>(Cel->type);
+			if (Cel->is_need >= 2 && Cel->center[0][0] >= -20.0) gr_b++;
+		}
+
+		// «аписываем количество €чеек
+		size = gr_b + 0 * this->Gran_HP.size() + 2 * this->Gran_BS.size(); //доп точки на TS и HP
+		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+		for (const auto& Cel : this->All_Cell)
+		{
+			if (Cel->is_need < 2 || Cel->center[0][0] < -20.0) continue;
+			double aa = Cel->center[0][0];
+			double bb = Cel->center[0][1];
+			double cc = Cel->center[0][2];
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = 0.0;
+
+				if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+				{
+					aa = Cel->parameters[0][i];
+				}
+
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
+
+
+			double zzz = static_cast<short int>(Cel->type);
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		}
+
+		unordered_map<string, double> par_left, par_right;
+
+		if (false)
+		{
+			for (const auto& gr : this->Gran_HP)
+			{
+				auto C1 = gr->cells[0];
+				auto C2 = gr->cells[1];
+				this->Snos_on_Gran(gr, par_left, par_right, 0);
+
+				Eigen::Vector3d A1, A2, A3;
+				A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
+
+				double aa = gr->center[0][0];
+				double bb = gr->center[0][1];
+				double cc = gr->center[0][2];
+				A2 << aa, bb, cc;
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (par_right.find(i) != par_right.end())
+					{
+						aa = par_right[i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+				double zzz = 3.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+				for (short int io = 1; io <= 5; io++)
+				{
+					A3 = A2 + io * (A2 - A1);
+					out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+					out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+					out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+					for (const auto& i : this->phys_param->param_names)
+					{
+						aa = par_right[i];
+						bb = C2->parameters[0][i];
+						cc = aa;// + io * (aa - bb);
+
+						out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+					}
+
+					zzz = 3.0;
+					out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+				}
+			}
+		}
+
+		for (const auto& gr : this->Gran_BS)
+		{
+			auto C1 = gr->cells[0];
+			auto C2 = gr->cells[1];
+			this->Snos_on_Gran(gr, par_left, par_right, 0);
+
+			Eigen::Vector3d A1, A2, A3;
+			A1 << C1->center[0][0], C1->center[0][1], C1->center[0][2];
+
+			double aa = gr->center[0][0];
+			double bb = gr->center[0][1];
+			double cc = gr->center[0][2];
+			A2 << aa, bb, cc;
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = 0.0;
+
+				if (par_left.find(i) != par_left.end())
+				{
+					aa = par_left[i];
+				}
+
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
+
+			double zzz = 3.0;
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+			A3 = A2 + (A2 - A1);
+			out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = par_left[i];
+				bb = C1->parameters[0][i];
+				cc = aa + (aa - bb);
+
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+			}
+
+			zzz = 3.0;
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		}
+
+	}
+
+	// «аписываем четвЄртую зону
+	if (true)
+	{
+		gr_b = 0;
+		for (const auto& Cel : this->All_Cell)
+		{
+			Cel->is_need = static_cast<short int>(Cel->type);
+			if ( (Cel->is_need == 4 || Cel->is_need == 3) && Cel->center[0][0] >= -100.0) gr_b++;
+		}
+
+		// «аписываем количество €чеек
+		size = gr_b + 3 * this->Gran_BS.size(); //доп точки на TS и HP
+		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+		for (const auto& Cel : this->All_Cell)
+		{
+			if ( (Cel->is_need != 4 && Cel->is_need != 3) || Cel->center[0][0] < -100.0) continue;
+			double aa = Cel->center[0][0];
+			double bb = Cel->center[0][1];
+			double cc = Cel->center[0][2];
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = 0.0;
+
+				if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+				{
+					aa = Cel->parameters[0][i];
+				}
+
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
+
+
+			double zzz = static_cast<short int>(Cel->type);
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		}
+
+		unordered_map<string, double> par_left, par_right;
+		for (const auto& gr : this->Gran_BS)
+		{
+			auto C1 = gr->cells[0];
+			auto C2 = gr->cells[1];
+			this->Snos_on_Gran(gr, par_left, par_right, 0);
+
+			Eigen::Vector3d A1, A2, A3;
+			A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
+
+			double aa = gr->center[0][0];
+			double bb = gr->center[0][1];
+			double cc = gr->center[0][2];
+			A2 << aa, bb, cc;
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = 0.0;
+
+				if (par_right.find(i) != par_right.end())
+				{
+					aa = par_right[i];
+				}
+
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
+
+			double zzz = 4.0;
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+			A3 = A2 + (A2 - A1);
+			out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = par_right[i];
+				bb = C2->parameters[0][i];
+				cc = aa + (aa - bb);
+
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+			}
+
+			zzz = 4.0;
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+			A3 = A2 + 2 * (A2 - A1);
+			out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = par_right[i];
+				bb = C2->parameters[0][i];
+				cc = aa + 2 * (aa - bb);
+
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+			}
+
+			zzz = 4.0;
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		}
+
+	}
+
+	// «аписываем п€тую зону
+	if (true)
+	{
+		gr_b = 0;
+		for (const auto& Cel : this->All_Cell)
+		{
+			Cel->is_need = static_cast<short int>(Cel->type);
+			if ( (Cel->is_need >= 2) && Cel->center[0][0] >= this->geo->L6 - 50.0
+				&& Cel->center[0][0] <= 60.0) gr_b++;
+		}
+
+		// «аписываем количество €чеек
+		size = gr_b + 2 * this->Gran_HP.size(); //доп точки на TS и HP
+		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+		for (const auto& Cel : this->All_Cell)
+		{
+			if ( (Cel->is_need == 1) || Cel->center[0][0] < this->geo->L6 - 50.0
+				|| Cel->center[0][0] > 60.0) continue;
+			double aa = Cel->center[0][0];
+			double bb = Cel->center[0][1];
+			double cc = Cel->center[0][2];
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = 0.0;
+
+				if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+				{
+					aa = Cel->parameters[0][i];
+				}
+
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
+
+
+			double zzz = static_cast<short int>(Cel->type);
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		}
+
+		unordered_map<string, double> par_left, par_right;
+		for (const auto& gr : this->Gran_HP)
+		{
+			auto C1 = gr->cells[0];
+			auto C2 = gr->cells[1];
+			this->Snos_on_Gran(gr, par_left, par_right, 0);
+
+			Eigen::Vector3d A1, A2, A3;
+			A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
+
+			double aa = gr->center[0][0];
+			double bb = gr->center[0][1];
+			double cc = gr->center[0][2];
+			A2 << aa, bb, cc;
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = 0.0;
+
+				if (par_right.find(i) != par_right.end())
+				{
+					aa = par_right[i];
+				}
+
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
+
+			double zzz = 3.0;
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+			A3 = A2 + (A2 - A1);
+			out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = par_right[i];
+				bb = C2->parameters[0][i];
+				cc = aa + (aa - bb);
+
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+			}
+
+			zzz = 3.0;
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		}
+
+		
+
+	}
+
+	// «аписываем шестую зону
+	if (true)
+	{
+		gr_b = 0;
+		for (const auto& Cel : this->All_Cell)
+		{
+			Cel->is_need = static_cast<short int>(Cel->type);
+			if (Cel->center[0][0] <= this->geo->L6 + 50.0) gr_b++;
+		}
+
+		// «аписываем количество €чеек
+		size = gr_b; //доп точки на TS и HP
+		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+		for (const auto& Cel : this->All_Cell)
+		{
+			if (Cel->center[0][0] > this->geo->L6 + 50.0) continue;
+			double aa = Cel->center[0][0];
+			double bb = Cel->center[0][1];
+			double cc = Cel->center[0][2];
+			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+			for (const auto& i : this->phys_param->param_names)
+			{
+				aa = 0.0;
+
+				if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+				{
+					aa = Cel->parameters[0][i];
+				}
+
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+			}
+
+
+			double zzz = static_cast<short int>(Cel->type);
+			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+		}
+
 	}
 
 

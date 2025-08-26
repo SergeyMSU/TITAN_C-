@@ -221,9 +221,6 @@ Phys_param::Phys_param()
     }
 
 
-   
-
-
     this->param_names.push_back("rho");  this->plasma_name.push_back("rho");
     this->param_names.push_back("p"); this->plasma_name.push_back("p");
     this->param_names.push_back("Vx"); this->plasma_name.push_back("Vx");
@@ -306,6 +303,7 @@ Phys_param::Phys_param()
         this->Culc_hidrogen[nii] = true;
     }
 
+    // TODO!
     //this->Culc_hidrogen["_H6"] = false;
     //this->Culc_hidrogen["_H5"] = false;
 

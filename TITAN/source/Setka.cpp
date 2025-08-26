@@ -4406,8 +4406,11 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			double krho = 1.0;
 			if (razmer == true) krho = this->phys_param->Get_razmer("rho");
 
-			fout << " " << sqrt(parameters["rho"]) * norm2(parameters["Vx"], parameters["Vy"], parameters["Vz"])/
-				sqrt(this->phys_param->gamma * parameters["p"]) << " " 
+			double Mach = sqrt(parameters["rho"]) * norm2(parameters["Vx"], parameters["Vy"], parameters["Vz"]) /
+				sqrt(this->phys_param->gamma * parameters["p"]);
+			if (parameters["rho"] <= 0.0) Mach = 0.0;
+
+			fout << " " << Mach << " "
 				<< norm2(parameters["Bx"], parameters["By"], parameters["Bz"]) / (8.0 * const_pi) << 
 				" " << rho_Th * krho  << " " << p_Th * kp << " " << T_Th * kT;
 
@@ -4439,7 +4442,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 	for (short int ik = 0; ik < 3; ik++)
 	{
 		std::vector< std::array<double, 3> > all_point_surf;
-		vector<Gran*>* AA;
+		vector<Gran*>* AA = nullptr;
 		if (ik == 0) AA = &this->Gran_HP;
 		if (ik == 1) AA = &this->Gran_TS;
 		if (ik == 2) AA = &this->Gran_BS;
