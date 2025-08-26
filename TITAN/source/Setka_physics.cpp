@@ -551,6 +551,8 @@ void Setka::Init_physics(void)
 		{
 			if (i->type != Type_Gran::Inner_Hard) continue;
 
+			i->cells[0]->is_TVD = false;
+
 			nk++;
 			for (auto& num : this->phys_param->param_names)
 			{

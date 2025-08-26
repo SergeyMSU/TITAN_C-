@@ -165,13 +165,14 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 	}
 	else
 	{
+		auto A = gr->cells[0];
+		auto B = gr->cells[1];
+
 		// Делаем ли ТВД?
-		if (this->phys_param->TVD == true)
+		if (this->phys_param->TVD == true && A->is_TVD == true && B->is_TVD == true)
 		{
 			// AA  -  A  -|-  B  -  BB
 			Eigen::Vector3d Ac, Bc, AAc, BBc, G, vec;
-			auto A = gr->cells[0];
-			auto B = gr->cells[1];
 			auto AA = gr->cells_TVD[0];
 			auto BB = gr->cells_TVD[1];
 			if (AA == nullptr || BB == nullptr) goto a1; // Для таких не надо делать TVD
@@ -621,8 +622,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 		else
 		{
 			a1:
-			auto A = gr->cells[0];
-			auto B = gr->cells[1];
 
 			if (regim_otladki == true)
 			{
@@ -676,15 +675,19 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					for (short int ik = 0; ik < 3; ik++)
 					{
 						// Переводим скорости в сферическую с.к.
+						VA << 0.0, 0.0, 0.0;
+
 						spherical_skorost(Ac[2], Ac[0], Ac[1],
 							A->parameters[now][V3[ik]], A->parameters[now][V1[ik]],
 							A->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
 
-						if (V1[ik] == "Bx")
+						if(V1[ik] == "Bx")
 						{
-							VA[0] *= kv(r1) / kv(rr);
-							VA[1] *= (r1) / (rr);
-							VA[2] *= (r1) / (rr);
+							//cout << "B = " << VA[0] << " " << VA[1] << " " << VA[2] << endl;
+							VA[0] = VA[0] * (kv(r1 / rr));
+							VA[1] = VA[1] * ((r1) / (rr));
+							VA[2] = VA[2] * ((r1) / (rr));
+							//cout << VA[0] << " " << VA[1] << " " << VA[2] << endl << endl;
 						}
 
 						dekard_skorost(G[2], G[0], G[1],
@@ -787,9 +790,11 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 						if (V1[ik] == "Bx")
 						{
-							VA[0] *= kv(r1) / kv(rr);
-							VA[1] *= (r1) / (rr);
-							VA[2] *= (r1) / (rr);
+							//cout << "A = " << VA[0] << " " << VA[1] << " " << VA[2] << endl;
+							VA[0] = VA[0] * (kv(r1 / rr));
+							VA[1] = VA[1] * ((r1) / (rr));
+							VA[2] = VA[2] * ((r1) / (rr));
+							//cout << VA[0] << " " << VA[1] << " " << VA[2] << endl << endl;;
 						}
 
 						dekard_skorost(G[2], G[0], G[1],
