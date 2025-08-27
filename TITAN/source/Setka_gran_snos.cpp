@@ -528,15 +528,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					(AA->type == Type_cell::Zone_3 && A->type == Type_cell::Zone_3 &&
 					B->type == Type_cell::Zone_4 && BB->type == Type_cell::Zone_4))
 			{
-				for (auto& nam : this->phys_param->plasma_pui_name)
-				{
-					par_left[nam] = linear2(-dd1 - d1, AA->parameters[now][nam],
-						-d1, A->parameters[now][nam], 0.0);
-					par_right[nam] = linear2(d2, B->parameters[now][nam],
-						d2 + dd2, BB->parameters[now][nam], 0.0);
-				}
-
-				for (auto& nam : this->phys_param->H_param_names)
+				for (auto& nam : this->phys_param->param_names)
 				{
 					par_left[nam] = linear2(-dd1 - d1, AA->parameters[now][nam],
 						-d1, A->parameters[now][nam], 0.0);

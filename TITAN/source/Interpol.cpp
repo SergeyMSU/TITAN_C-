@@ -6,9 +6,9 @@ Interpol::Interpol(string name)
     this->stepen["rho"] = 2.0;
     this->stepen["p"] = 2.0 * (5.0 / 3.0);
     this->stepen["divV"] = 1.0;
-    this->stepen["Bx"] = 1.0;
-    this->stepen["By"] = 1.0;
-    this->stepen["Bz"] = 1.0;
+    this->stepen["Bx"] = 2.0;
+    this->stepen["By"] = 2.0;
+    this->stepen["Bz"] = 2.0;
 
 
     cout << "Start: Interpol" << endl;

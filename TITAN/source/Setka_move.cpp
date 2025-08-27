@@ -1607,134 +1607,169 @@ void Setka::Smooth_head_TS2(void)
 void Setka::Smooth_head_HP2(void)
 {
 	cout << "Start Smooth_head_HP2" << endl;
+	// Функция ручного сглаживания HP
+	int now = 0;
+	int now2 = 1;
+	int M = this->A_Luch.size() - 1;
+	int M1 = 0;
+	int M2 = M - 1;
 
-	vector<unsigned int> nomera;
-	vector<double> RRR;
-
-	this->Renumerate();
-
-	Eigen::Vector3d A, B, V;
-
-	for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
+	for (auto& yz : this->All_Yzel)
 	{
-		auto gr = this->Gran_HP[i_step];
-		A << gr->center[0][0], gr->center[0][1], gr->center[0][2];
-		double rr = A.norm();
+		yz->num_velocity = 0;
+		yz->velocity[0] = 0.0;
+		yz->velocity[1] = 0.0;
+		yz->velocity[2] = 0.0;
+	}
 
-		double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
-		if (phi < this->geo->tetta0 + 0.17)
+	int N = this->A_Luch[0].size() - 1;
+	for (int i_step = 0; i_step < this->A_Luch[0].size(); i_step++)
+	{
+		auto A = this->A_Luch[M][i_step]->Yzels_opor[2];
+		auto B = this->A_Luch[M1][i_step]->Yzels_opor[2];
+		auto C = this->A_Luch[M2][i_step]->Yzels_opor[2];
+
+		A->velocity[0] = - A->coord[0][0] + (B->coord[0][0] + C->coord[0][0]) / 2.0;
+		A->velocity[1] = -A->coord[0][1] + (B->coord[0][1] + C->coord[0][1]) / 2.0;
+		A->velocity[2] = -A->coord[0][2] + (B->coord[0][2] + C->coord[0][2]) / 2.0;
+		A->num_velocity++;
+	}
+
+	N = this->B_Luch[0].size() - 1;
+	for (int i_step = 0; i_step < this->B_Luch[0].size(); i_step++)
+	{
+		auto A = this->B_Luch[M][i_step]->Yzels_opor[2];
+		auto B = this->B_Luch[M1][i_step]->Yzels_opor[2];
+		auto C = this->B_Luch[M2][i_step]->Yzels_opor[2];
+
+		A->velocity[0] = -A->coord[0][0] + (B->coord[0][0] + C->coord[0][0]) / 2.0;
+		A->velocity[1] = -A->coord[0][1] + (B->coord[0][1] + C->coord[0][1]) / 2.0;
+		A->velocity[2] = -A->coord[0][2] + (B->coord[0][2] + C->coord[0][2]) / 2.0;
+		A->num_velocity++;
+	}
+
+	N = this->E_Luch[0].size() - 1;
+	for (int i_step = 0; i_step < this->E_Luch[0].size(); i_step++)
+	{
+		auto A = this->E_Luch[M][i_step]->Yzels_opor[1];
+		auto B = this->E_Luch[M1][i_step]->Yzels_opor[1];
+		auto C = this->E_Luch[M2][i_step]->Yzels_opor[1];
+
+		A->velocity[0] = -A->coord[0][0] + (B->coord[0][0] + C->coord[0][0]) / 2.0;
+		A->velocity[1] = -A->coord[0][1] + (B->coord[0][1] + C->coord[0][1]) / 2.0;
+		A->velocity[2] = -A->coord[0][2] + (B->coord[0][2] + C->coord[0][2]) / 2.0;
+		A->num_velocity++;
+	}
+
+	N = this->D_Luch[0].size() - 1;
+	for (int i_step = 0; i_step < this->geo->N4 - 3; i_step++)
+	{
+		auto A = this->D_Luch[M][i_step]->Yzels_opor[1];
+		auto B = this->D_Luch[M1][i_step]->Yzels_opor[1];
+		auto C = this->D_Luch[M2][i_step]->Yzels_opor[1];
+
+		A->velocity[0] = -A->coord[0][0] + (B->coord[0][0] + C->coord[0][0]) / 2.0;
+		A->velocity[1] = -A->coord[0][1] + (B->coord[0][1] + C->coord[0][1]) / 2.0;
+		A->velocity[2] = -A->coord[0][2] + (B->coord[0][2] + C->coord[0][2]) / 2.0;
+		A->num_velocity++;
+	}
+
+
+	// Вычисляем новые координаты узлов на поверхности
+	for (auto& yz : this->All_Yzel)
+	{
+		if (yz->num_velocity > 0)
 		{
-			for (auto& yz : gr->yzels)
+			yz->velocity[0] /= yz->num_velocity;
+			yz->velocity[1] /= yz->num_velocity;
+			yz->velocity[2] /= yz->num_velocity;
+		}
+		else
+		{
+			continue;
+		}
+
+		if (true)
+		{
+			Eigen::Vector3d A, B;
+			A << yz->coord[now][0], yz->coord[now][1], yz->coord[now][2];
+			Eigen::Vector3d V;
+			V << yz->velocity[0], yz->velocity[1], yz->velocity[2];
+			if (A(0) >= 0.0)
 			{
-				B << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
-				double r_yz = B.norm();
-				double r_yz_new = 0.0;
-				unsigned short int i_yz_new = 0;
-				for (auto& ggr : yz->grans)
+				B = A;
+			}
+			else
+			{
+				B << 0.0, A(1), A(2);
+			}
+			B.normalize();
+			A = A + V.dot(B) * B;
+			yz->coord[now2][0] = A[0];
+			yz->coord[now2][1] = A[1];
+			yz->coord[now2][2] = A[2];
+		}
+	}
+
+	// Остальные узлы на HP (невыделяемой части) надо подвинуть
+	if (true)
+	{
+		short int NN = this->D_Luch[0].size() - 1;
+		for (auto& L : this->D_Luch)
+		{
+
+			double h1 = norm2(0.0, L[this->geo->N4 - 4]->Yzels_opor[1]->coord[now2][1],
+				L[this->geo->N4 - 4]->Yzels_opor[1]->coord[now2][2]);
+
+			// Высота контакта в хвосте (остаётся постоянной)
+			//double h2 = norm2(0.0, L[NN]->Yzels_opor[1]->coord[now2][1],
+			//	L[NN]->Yzels_opor[1]->coord[now2][2]);
+
+			for (short int i = this->geo->N4 - 3; i <= NN; i++)
+			{
+				//double h = h1 + (i - this->geo->N4 + 2) * (h2 - h1) / (NN - this->geo->N4 + 2);
+				double h = h1;
+				auto yz = L[i]->Yzels_opor[1];
+				double hh = norm2(0.0, yz->coord[now2][1], yz->coord[now2][2]);
+				if (hh < 0.0000001 || h < 0.0000001 || std::isnan(hh) || std::isnan(h) ||
+					std::fpclassify(h) == FP_SUBNORMAL || std::fpclassify(hh) == FP_SUBNORMAL)
+					// || fabs(1.0 - h / hh) > 0.0001)
 				{
-					for (auto& yyz : ggr->yzels)
-					{
-						if (yyz->number == yz->number) continue;
-						V << yyz->coord[0][0], yyz->coord[0][1], yyz->coord[0][2];
-						double r_yyz = V.norm();
-						r_yz_new += r_yyz;
-						i_yz_new++;
-						if (r_yz < r_yyz) goto b1;
-					}
+					cout << "Error 8563529613" << endl;
+					whach(h);
+					whach(hh);
+					whach(h1);
+					//whach(h2);
 				}
-				// Если дошли до сюда, значит этот узел действительно максимальный
-				nomera.push_back(yz->number);
-				RRR.push_back(r_yz_new / i_yz_new);
-			b1:
-				r_yz_new = 0.0;
+
+
+				yz->coord[now2][1] = yz->coord[now2][1] * h / hh;
+				yz->coord[now2][2] = yz->coord[now2][2] * h / hh;
 			}
 		}
 	}
 
-	for (unsigned int j = 0; j < nomera.size(); j++)
-	{
-		unsigned int i = nomera[j];
-		auto& yz = this->All_Yzel[i - 1];
-		double rr = RRR[j];
-		A << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
-		double r = A.norm();
 
-		yz->coord[0][0] *= (rr / r);
-		yz->coord[0][1] *= (rr / r);
-		yz->coord[0][2] *= (rr / r);
-		yz->coord[1][0] = yz->coord[0][0];
-		yz->coord[1][1] = yz->coord[0][1];
-		yz->coord[1][2] = yz->coord[0][2];
-	}
-
-	// -----------------------------------
-	nomera.clear();
-	RRR.clear();
-
-	// Для малых R
-	for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
-	{
-		auto gr = this->Gran_HP[i_step];
-		A << gr->center[0][0], gr->center[0][1], gr->center[0][2];
-		double rr = A.norm();
-
-		double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
-		if (phi < this->geo->tetta0 + 0.17)
-		{
-			for (auto& yz : gr->yzels)
-			{
-				B << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
-				double r_yz = B.norm();
-				double r_yz_new = 0.0;
-				unsigned short int i_yz_new = 0;
-				for (auto& ggr : yz->grans)
-				{
-					for (auto& yyz : ggr->yzels)
-					{
-						if (yyz->number == yz->number) continue;
-						V << yyz->coord[0][0], yyz->coord[0][1], yyz->coord[0][2];
-						double r_yyz = V.norm();
-						r_yz_new += r_yyz;
-						i_yz_new++;
-						if (r_yz > r_yyz) goto bb1;
-					}
-				}
-				// Если дошли до сюда, значит этот узел действительно максимальный
-				nomera.push_back(yz->number);
-				RRR.push_back(r_yz_new / i_yz_new);
-			bb1:
-				r_yz_new = 0.0;
-			}
-		}
-	}
-
-	for (unsigned int j = 0; j < nomera.size(); j++)
-	{
-		unsigned int i = nomera[j];
-		auto& yz = this->All_Yzel[i - 1];
-		double rr = RRR[j];
-		A << yz->coord[0][0], yz->coord[0][1], yz->coord[0][2];
-		double r = A.norm();
-
-		yz->coord[0][0] *= (rr / r);
-		yz->coord[0][1] *= (rr / r);
-		yz->coord[0][2] *= (rr / r);
-		yz->coord[1][0] = yz->coord[0][0];
-		yz->coord[1][1] = yz->coord[0][1];
-		yz->coord[1][2] = yz->coord[0][2];
-	}
-	// ------------------------------------
 	for (int i_step = 0; i_step < this->All_Luch.size(); i_step++)
 	{
 		auto lu = this->All_Luch[i_step];
-		lu->dvigenie(0);
+		lu->dvigenie(1);
 	}
+
 	for (auto& i : this->All_Yzel)
 	{
 		for (unsigned short int j = 0; j < 3; j++)
 		{
-			i->coord[1][j] = i->coord[0][j];
+			i->coord[0][j] = i->coord[1][j];
 		}
+	}
+
+	for (auto& yz : this->All_Yzel)
+	{
+		yz->num_velocity = 0;
+		yz->velocity[0] = 0.0;
+		yz->velocity[1] = 0.0;
+		yz->velocity[2] = 0.0;
 	}
 
 
