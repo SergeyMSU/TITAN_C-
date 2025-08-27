@@ -221,16 +221,16 @@ Phys_param::Phys_param()
     }
 
 
-    this->param_names.push_back("rho");  this->plasma_name.push_back("rho");
-    this->param_names.push_back("p"); this->plasma_name.push_back("p");
-    this->param_names.push_back("Vx"); this->plasma_name.push_back("Vx");
-    this->param_names.push_back("Vy"); this->plasma_name.push_back("Vy");
-    this->param_names.push_back("Vz"); this->plasma_name.push_back("Vz");
-    this->param_names.push_back("Bx"); this->plasma_name.push_back("Bx");
-    this->param_names.push_back("By"); this->plasma_name.push_back("By");
-    this->param_names.push_back("Bz"); this->plasma_name.push_back("Bz");
-    this->param_names.push_back("Q"); this->plasma_name.push_back("Q");
-    this->param_names.push_back("rho_He"); this->plasma_name.push_back("rho_He");
+    this->param_names.push_back("rho");  this->plasma_name.push_back("rho"); this->plasma_pui_name.push_back("rho");
+    this->param_names.push_back("p"); this->plasma_name.push_back("p"); this->plasma_pui_name.push_back("p");
+    this->param_names.push_back("Vx"); this->plasma_name.push_back("Vx"); this->plasma_pui_name.push_back("Vx");
+    this->param_names.push_back("Vy"); this->plasma_name.push_back("Vy"); this->plasma_pui_name.push_back("Vy");
+    this->param_names.push_back("Vz"); this->plasma_name.push_back("Vz"); this->plasma_pui_name.push_back("Vz");
+    this->param_names.push_back("Bx"); this->plasma_name.push_back("Bx"); this->plasma_pui_name.push_back("Bx");
+    this->param_names.push_back("By"); this->plasma_name.push_back("By"); this->plasma_pui_name.push_back("By");
+    this->param_names.push_back("Bz"); this->plasma_name.push_back("Bz"); this->plasma_pui_name.push_back("Bz");
+    this->param_names.push_back("Q"); this->plasma_name.push_back("Q"); this->plasma_pui_name.push_back("Q");
+    this->param_names.push_back("rho_He"); this->plasma_name.push_back("rho_He"); this->plasma_pui_name.push_back("rho_He");
 
 
 
@@ -261,10 +261,10 @@ Phys_param::Phys_param()
     // Добавляем пикапы
     if (this->is_PUI == true)
     {
-        this->param_names.push_back("rho_Pui_1");
-        this->param_names.push_back("rho_Pui_2");
-        this->param_names.push_back("p_Pui_1");
-        this->param_names.push_back("p_Pui_2");
+        this->param_names.push_back("rho_Pui_1"); this->plasma_pui_name.push_back("rho_Pui_1");
+        this->param_names.push_back("rho_Pui_2"); this->plasma_pui_name.push_back("rho_Pui_2");
+        this->param_names.push_back("p_Pui_1"); this->plasma_pui_name.push_back("p_Pui_1");
+        this->param_names.push_back("p_Pui_2"); this->plasma_pui_name.push_back("p_Pui_2");
     }
 
     // Задаём имена дополнительныхъ жидкостей пикапов
@@ -413,6 +413,7 @@ void Phys_param::initVarMap()
     {"sglag_HP_k_angle", VarRef(&this->sglag_HP_k_angle)},
     {"pui_nW", VarRef(&this->pui_nW)},
     {"pui_wR", VarRef(&this->pui_wR)},
+    {"TVD_atom", VarRef(&this->TVD_atom)},
     {"MK_source_S", VarRef(&this->MK_source_S)}
     };
 }

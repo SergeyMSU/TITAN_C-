@@ -16,11 +16,15 @@ public:
     vector<string> param_names;
     // Все имена параметров, наличие которых мы ожидаем в ячейках!
     vector<string> plasma_name; // Имена плазменных значений
+    vector<string> plasma_pui_name; // Имена плазменных значений
     vector<string> H_param_names;
-    vector<string> H_name;   // имена дополнительных жидкостей водорода
+
+
     vector<string> pui_name;   // имена дополнительных жидкостей пикапов
     vector<string> MK_param;   // дополнительные параметры для MK
-    vector<string> p_pui_name;   
+
+    vector<string> p_pui_name; 
+    vector<string> H_name;   // имена дополнительных жидкостей водорода
 
     std::unordered_set<std::string> r2_snos_names;
     std::unordered_set<std::string> r2g_snos_names;
@@ -113,7 +117,8 @@ public:
 
     // Настройки расчёта Плазмы
     double KFL;                   // критерий Куранта
-    bool TVD;                   // Делаем ли ТВД?
+    bool TVD;                   // Делаем ли ТВД для плазмы?
+    bool TVD_atom = true;                   // Делаем ли ТВД для атомов?
 
     bool culc_plasma;     // НЕ АКТИВЕН      // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
     bool culc_atoms;             // Вычисляем ли атомы или оставляем их вмороженными

@@ -4345,7 +4345,15 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 					{
 						double kk = 1.0;
 						if (razmer == true) kk = this->phys_param->Get_razmer(nam);
-						fout << " " << parameters[nam] * kk;
+
+						if (std::isnan(parameters[nam]) || std::fpclassify(parameters[nam]) == FP_SUBNORMAL)
+						{
+							fout << " " << 0.0;
+						}
+						else
+						{
+							fout << " " << parameters[nam] * kk;
+						}
 					}
 					else
 					{
