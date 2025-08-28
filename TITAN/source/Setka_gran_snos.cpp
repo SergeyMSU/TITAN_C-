@@ -169,7 +169,8 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 		auto B = gr->cells[1];
 
 		// Делаем ли ТВД?
-		if (this->phys_param->TVD == true && A->is_TVD == true && B->is_TVD == true)
+		if (this->phys_param->TVD == true && A->is_TVD == true && B->is_TVD == true &&
+			(gr->type2 != Type_Gran_surf::HP || this->phys_param->Snos_on_HP == true))
 		{
 			// AA  -  A  -|-  B  -  BB
 			Eigen::Vector3d Ac, Bc, AAc, BBc, G, vec;

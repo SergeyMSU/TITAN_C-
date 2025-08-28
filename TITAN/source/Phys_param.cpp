@@ -414,6 +414,7 @@ void Phys_param::initVarMap()
     {"pui_nW", VarRef(&this->pui_nW)},
     {"pui_wR", VarRef(&this->pui_wR)},
     {"TVD_atom", VarRef(&this->TVD_atom)},
+    {"Snos_on_HP", VarRef(&this->Snos_on_HP)},
     {"MK_source_S", VarRef(&this->MK_source_S)}
     };
 }

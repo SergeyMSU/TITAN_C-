@@ -1493,7 +1493,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	for (unsigned int step = 1; step <= steps; step++)
 	{
-		if (step % 10 == 0)
+		if (step % 50 == 0)
 		{
 			cout << "Global step = " << step << endl;
 			whach(time);
