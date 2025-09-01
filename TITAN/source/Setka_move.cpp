@@ -562,8 +562,10 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		VVV.push_back(this->D_Luch);
 		VVV.push_back(this->E_Luch);
 		VVV.push_back(this->B_Luch);
+		VVV.push_back(this->A_Luch);
 		VVV_int.push_back(1);
 		VVV_int.push_back(1);
+		VVV_int.push_back(2);
 		VVV_int.push_back(2);
 
 		double phi_a = polar_angle(this->A_Luch[0][1]->Yzels[0]->coord[0][0], 
@@ -2661,8 +2663,10 @@ void Setka::Smooth_angle_HP(void)
 	VVV.push_back(this->D_Luch);
 	VVV.push_back(this->E_Luch);
 	VVV.push_back(this->B_Luch);
+	VVV.push_back(this->A_Luch);
 	VVV_int.push_back(1);
 	VVV_int.push_back(1);
+	VVV_int.push_back(2);
 	VVV_int.push_back(2);
 
 	for (size_t ii = 0; ii < VVV.size(); ii++)
