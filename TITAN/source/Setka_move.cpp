@@ -704,7 +704,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 #pragma omp parallel for private(A, B, V) schedule(dynamic)
 			for (size_t i = 0; i < nn; i++)
 			{
-				if (i > 3 && i < nn - 3) continue;
+				//if (i > 3 && i < nn - 3) continue;
 
 				for (size_t j = 0; j < mm; j++)
 				{
@@ -1606,6 +1606,8 @@ void Setka::Smooth_head_TS2(void)
 
 void Setka::Smooth_head_HP2(void)
 {
+	// В этой функции точки на HP при phi = 0 двигались к средним арифметическим между точками при
+	// phi+1 и phi-1
 	cout << "Start Smooth_head_HP2" << endl;
 	// Функция ручного сглаживания HP
 	int now = 0;
@@ -1778,6 +1780,130 @@ void Setka::Smooth_head_HP2(void)
 
 	cout << "End Smooth_head_HP2" << endl;
 }
+
+void Setka::Smooth_HP1(void)
+{
+	// В этой функции несколько точек в конце HP сдвиаются на положение r = предыдущим точкам на HP
+	cout << "Start Smooth_HP1" << endl;
+	// Функция ручного сглаживания HP
+	int now = 0;
+	int now2 = 1;
+	int M = this->A_Luch.size() - 1;
+	int M1 = 0;
+	int M2 = M - 1;
+
+	for (auto& yz : this->All_Yzel)
+	{
+		yz->num_velocity = 0;
+		yz->velocity[0] = 0.0;
+		yz->velocity[1] = 0.0;
+		yz->velocity[2] = 0.0;
+	}
+
+	// Вычисляем новые координаты узлов на поверхности
+	for (auto& yz : this->All_Yzel)
+	{
+		if (yz->num_velocity > 0)
+		{
+			yz->velocity[0] /= yz->num_velocity;
+			yz->velocity[1] /= yz->num_velocity;
+			yz->velocity[2] /= yz->num_velocity;
+		}
+		else
+		{
+			continue;
+		}
+
+		if (true)
+		{
+			Eigen::Vector3d A, B;
+			A << yz->coord[now][0], yz->coord[now][1], yz->coord[now][2];
+			Eigen::Vector3d V;
+			V << yz->velocity[0], yz->velocity[1], yz->velocity[2];
+			if (A(0) >= 0.0)
+			{
+				B = A;
+			}
+			else
+			{
+				B << 0.0, A(1), A(2);
+			}
+			B.normalize();
+			A = A + V.dot(B) * B;
+			yz->coord[now2][0] = A[0];
+			yz->coord[now2][1] = A[1];
+			yz->coord[now2][2] = A[2];
+		}
+	}
+
+	// Остальные узлы на HP (невыделяемой части) надо подвинуть
+	if (true)
+	{
+		short int NN = this->D_Luch[0].size() - 1;
+		for (auto& L : this->D_Luch)
+		{
+
+			double h1 = norm2(0.0, L[this->geo->N4 - 4 - 4]->Yzels_opor[1]->coord[now2][1],
+				L[this->geo->N4 - 4 - 4]->Yzels_opor[1]->coord[now2][2]);
+
+			// Высота контакта в хвосте (остаётся постоянной)
+			//double h2 = norm2(0.0, L[NN]->Yzels_opor[1]->coord[now2][1],
+			//	L[NN]->Yzels_opor[1]->coord[now2][2]);
+
+			for (short int i = this->geo->N4 - 3 - 4; i <= NN; i++)
+			{
+				//double h = h1 + (i - this->geo->N4 + 2) * (h2 - h1) / (NN - this->geo->N4 + 2);
+				double h = h1;
+				auto yz = L[i]->Yzels_opor[1];
+				double hh = norm2(0.0, yz->coord[now2][1], yz->coord[now2][2]);
+				if (hh < 0.0000001 || h < 0.0000001 || std::isnan(hh) || std::isnan(h) ||
+					std::fpclassify(h) == FP_SUBNORMAL || std::fpclassify(hh) == FP_SUBNORMAL)
+					// || fabs(1.0 - h / hh) > 0.0001)
+				{
+					cout << "Error 8563529613" << endl;
+					whach(h);
+					whach(hh);
+					whach(h1);
+					//whach(h2);
+				}
+
+
+				yz->coord[now2][1] = yz->coord[now2][1] * h / hh;
+				yz->coord[now2][2] = yz->coord[now2][2] * h / hh;
+			}
+		}
+	}
+
+
+	for (int i_step = 0; i_step < this->All_Luch.size(); i_step++)
+	{
+		auto lu = this->All_Luch[i_step];
+		lu->dvigenie(1);
+	}
+
+	for (auto& i : this->All_Yzel)
+	{
+		for (unsigned short int j = 0; j < 3; j++)
+		{
+			i->coord[0][j] = i->coord[1][j];
+		}
+	}
+
+	for (auto& yz : this->All_Yzel)
+	{
+		yz->num_velocity = 0;
+		yz->velocity[0] = 0.0;
+		yz->velocity[1] = 0.0;
+		yz->velocity[2] = 0.0;
+	}
+
+
+	this->Calculating_measure(0);
+	this->Calculating_measure(1);
+
+	cout << "End Smooth_HP1" << endl;
+}
+
 
 void Setka::Smooth_head_HP(void)
 {
@@ -2548,7 +2674,7 @@ void Setka::Smooth_angle_HP(void)
 		for (size_t i = 0; i < nn; i++)
 		{
 			//if (i == 1) continue;
-			if (i > 3 && i < nn - 3) continue;
+			//if (i > 3 && i < nn - 3) continue;
 
 			short int ip = i + 1;
 			short int ipp = i + 2;

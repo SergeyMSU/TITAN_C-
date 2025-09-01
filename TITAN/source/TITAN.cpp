@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0077.bin");   // 23
+    S1.Download_cell_parameters("parameters_0106.bin");   // 65
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
     // 62 включи TVD
@@ -44,7 +44,8 @@ int main()
 
     S1.auto_set_luch_geo_parameter(0);
 
-    //S1.Smooth_head_HP2(); // Ручное сглаживыание
+    //S1.Smooth_head_HP2(); // Ручное сглаживание
+    //S1.Smooth_HP1(); // Ручное сглаживание
 
     S1.Init_TVD();
     cout << "D2 " << endl;
@@ -74,12 +75,12 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 3 * 22; i++) // 6 * 2
+    for (int i = 1; i <= 3 * 15; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
-        S1.Go(false, 400, 1); // 400   1
-        S1.Go(true, 100, 1); // 400   1
+        S1.Go(false, 300, 1); // 400   1
+        S1.Go(true, 200, 1); // 400   1
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
 
@@ -93,7 +94,7 @@ int main()
 
         //S1.Init_physics();
 
-        if (i % 6 == 0)
+        if (i % 3 == 0)
         {
             string namn = "parameters_promeg_11" + to_string(i) + ".bin";
             S1.Save_cell_parameters(namn);
@@ -113,7 +114,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0078.bin");
+    S1.Save_cell_parameters("parameters_0107.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();

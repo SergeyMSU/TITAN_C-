@@ -152,8 +152,8 @@ public:
 
 	void Smooth_head_TS2(void); // ѕопытка сгладить выпирающие и вдавленные узлы
 	void Smooth_head_HP2(void);
-	// Ќе получилось, так как если поверхность не радиальна€, то и сглаживание почти не работает
-	// ¬озможно будет работать в случае сильного разваливани€ 
+
+	void Smooth_HP1(void);
 
 	void Smooth_head_HP3(void);
 	void Smooth_head_TS3(void);
