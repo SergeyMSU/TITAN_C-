@@ -2072,7 +2072,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				auto B = gr->cells[1];
 
 				B->parameters[now2]["p_Pui_1"] = A->parameters[now2]["p_Pui_1"] *
-					B->parameters[now2]["p"] / A->parameters[now2]["p"];
+					kv(B->parameters[now2]["rho"] / A->parameters[now2]["rho"]);
 			}
 		}
 

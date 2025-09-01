@@ -734,7 +734,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 						this->phys_param->sglag_HP_k_angle * (B - A) / time;
 
 					AA->mut.lock();
-					AA->velocity[0] += V(0);
+					AA->velocity[0] += 0.0;
 					AA->velocity[1] += V(1);
 					AA->velocity[2] += V(2);
 					AA->num_velocity++;
@@ -2532,8 +2532,8 @@ Eigen::Vector2d fitCircleRobust(const std::vector<Eigen::Vector2d>& points, doub
 
 	// 1. Initial guess using geometric median
 	Eigen::Vector2d center = Eigen::Vector2d::Zero();
-	for (const auto& p : points) center += p;
-	center /= n;
+	//for (const auto& p : points) center += p;
+	//center /= n;
 
 	// 2. Levenberg-Marquardt optimization
 	double radius = 0.0;
@@ -2678,38 +2678,61 @@ void Setka::Smooth_angle_HP(void)
 
 			short int ip = i + 1;
 			short int ipp = i + 2;
+			short int ippp = i + 3;
 			short int im = i - 1;
 			short int imm = i - 2;
+			short int immm = i - 3;
 
 			if (ip == nn) ip = 0;
 			if (ipp == nn) ipp = 0;
+			if (ippp == nn) ippp = 0;
 			if (ipp == nn + 1) ipp = 1;
+			if (ippp == nn + 1) ippp = 1;
+			if (ippp == nn + 2) ippp = 2;
 
 			if (im == -1) im = nn - 1;
 			if (imm == -1) imm = nn - 1;
+			if (immm == -1) immm = nn - 1;
 			if (imm == -2) imm = nn - 2;
+			if (immm == -2) immm = nn - 2;
+			if (immm == -3) immm = nn - 3;
 
 			for (size_t j = 0; j < mm; j++)
 			{
 				std::vector<Eigen::Vector2d> points;
 				auto AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];
 				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				//cout << AA->coord[0][1] << " " << AA->coord[0][2] << endl;
 				Yzel* AA2 = AA;
 
 				AA = VVV[ii][im][j]->Yzels_opor[VVV_int[ii]];
 				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				//cout << AA->coord[0][1] << " " << AA->coord[0][2] << endl;
 				AA2->Yzel_sosed_sglag2.insert(AA);
 
 				AA = VVV[ii][imm][j]->Yzels_opor[VVV_int[ii]];
 				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				//cout << AA->coord[0][1] << " " << AA->coord[0][2] << endl;
 				AA2->Yzel_sosed_sglag2.insert(AA);
 
 				AA = VVV[ii][ip][j]->Yzels_opor[VVV_int[ii]];
 				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				//cout << AA->coord[0][1] << " " << AA->coord[0][2] << endl;
 				AA2->Yzel_sosed_sglag2.insert(AA);
 
 				AA = VVV[ii][ipp][j]->Yzels_opor[VVV_int[ii]];
 				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				//cout << AA->coord[0][1] << " " << AA->coord[0][2] << endl;
+				AA2->Yzel_sosed_sglag2.insert(AA);
+
+				AA = VVV[ii][ippp][j]->Yzels_opor[VVV_int[ii]];
+				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				//cout << AA->coord[0][1] << " " << AA->coord[0][2] << endl;
+				AA2->Yzel_sosed_sglag2.insert(AA);
+
+				AA = VVV[ii][immm][j]->Yzels_opor[VVV_int[ii]];
+				points.push_back(Eigen::Vector2d(AA->coord[0][1], AA->coord[0][2]));
+				//cout << AA->coord[0][1] << " " << AA->coord[0][2] << endl;
 				AA2->Yzel_sosed_sglag2.insert(AA);
 
 				//Eigen::Vector2d center = fitCircleCenter(points);
@@ -2721,15 +2744,17 @@ void Setka::Smooth_angle_HP(void)
 
 				AA2->parameters["xcc"] = center[0];
 				AA2->parameters["ycc"] = center[1];
+				//cout << center[0] << " " << center[1] << endl;
+				//cout << radius << endl;
+				//exit(-1);
 				
+				continue;
 
 				AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];
 
 				Eigen::Vector2d A, B;
 				A << AA->coord[0][1], AA->coord[0][2];
 				B = A;
-
-				continue;
 
 				// Дальше алгоритм не используется, мы просто нашли центр для 
 				// сглаживания HP в программе
