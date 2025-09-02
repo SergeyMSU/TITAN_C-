@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0113.bin");   // 107
+    S1.Download_cell_parameters("parameters_0049.bin");   // 107
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
     // 62 включи TVD
@@ -75,13 +75,14 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 3 * 4; i++) // 6 * 2
+    S1.Go(true, 1000, 1);
+    for (int i = 1; i <= 3 * 7; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
 
-        S1.Go(false, 300, 1); // 400   1
-        S1.Go(true, 300, 1); // 400   1
+        S1.Go(false, 400, 1); // 400   1
+        S1.Go(true, 200, 1); // 400   1
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
 
@@ -115,7 +116,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0114.bin");
+    S1.Save_cell_parameters("parameters_0050.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     //S1.Edges_create();

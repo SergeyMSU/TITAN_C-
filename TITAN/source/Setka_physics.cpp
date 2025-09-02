@@ -373,11 +373,11 @@ void Setka::Init_physics(void)
 				the = -the + const_pi / 2.0;   // Т.к.в данных по СВ на 1 а.е.угол от - 90 до 90 у Алексашова
 				cc = this->phys_param->Matr * vv;
 
-				mV = this->phys_param->Get_v_0(the);
+				mV = this->phys_param->Get_v_0(the / const_pi * 180.0);
 
-				double Tp = this->phys_param->Get_T_0(the); // Температура
+				double Tp = this->phys_param->Get_T_0(the / const_pi * 180.0); // Температура
 
-				double np = this->phys_param->Get_rho_0(the);
+				double np = this->phys_param->Get_rho_0(the / const_pi * 180.0);
 
 				double rho = (this->phys_param->mep + 2.0 * this->phys_param->mrho_He_0 *
 					this->phys_param->mep +
@@ -488,11 +488,11 @@ void Setka::Init_physics(void)
 				the = -the + const_pi / 2.0;   // Т.к.в данных по СВ на 1 а.е.угол от - 90 до 90 у Алексашова
 				cc = this->phys_param->Matr * vv;
 
-				mV = this->phys_param->Get_v_0(the);
+				mV = this->phys_param->Get_v_0(the / const_pi * 180.0);
 
-				double Tp = this->phys_param->Get_T_0(the); // Температура
+				double Tp = this->phys_param->Get_T_0(the / const_pi * 180.0); // Температура
 
-				double np = this->phys_param->Get_rho_0(the);
+				double np = this->phys_param->Get_rho_0(the / const_pi * 180.0);
 
 				double rho = (this->phys_param->mep + 2.0 * this->phys_param->mrho_He_0 * 
 					this->phys_param->mep + 
