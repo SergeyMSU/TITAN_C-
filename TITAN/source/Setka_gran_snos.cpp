@@ -168,6 +168,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 		auto A = gr->cells[0];
 		auto B = gr->cells[1];
 
+
 		// Делаем ли ТВД?
 		if (this->phys_param->TVD == true && A->is_TVD == true && B->is_TVD == true &&
 			(gr->type2 != Type_Gran_surf::HP || this->phys_param->Snos_on_HP == true))
@@ -226,6 +227,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					V2[2] = "Vy_H1";
 					V3[2] = "Vz_H1";
 
+
 					for (short int ik = 0; ik < 3; ik++)
 					{
 
@@ -282,6 +284,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 							Vright[0], Vright[1], Vright[2],
 							par_right[V3[ik]], par_right[V1[ik]], par_right[V2[ik]]);
 					}
+					
 				}
 
 
@@ -673,27 +676,58 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					V2[2] = "Vy_H1";
 					V3[2] = "Vz_H1";
 
-					for (short int ik = 0; ik < 3; ik++)
+					double the1 = acos(G[2] / rr);
+
+					if (the1 > const_pi / 9 && the1 < 8 * const_pi / 9)
 					{
-						// Переводим скорости в сферическую с.к.
-						VA << 0.0, 0.0, 0.0;
 
-						spherical_skorost(Ac[2], Ac[0], Ac[1],
-							A->parameters[now][V3[ik]], A->parameters[now][V1[ik]],
-							A->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
-
-						if(V1[ik] == "Bx")
+						for (short int ik = 0; ik < 3; ik++)
 						{
-							//cout << "B = " << VA[0] << " " << VA[1] << " " << VA[2] << endl;
-							VA[0] = VA[0] * (kv(r1 / rr));
-							VA[1] = VA[1] * ((r1) / (rr));
-							VA[2] = VA[2] * ((r1) / (rr));
-							//cout << VA[0] << " " << VA[1] << " " << VA[2] << endl << endl;
-						}
+							// Переводим скорости в сферическую с.к.
+							VA << 0.0, 0.0, 0.0;
 
-						dekard_skorost(G[2], G[0], G[1],
-							VA[0], VA[1], VA[2],
-							par_left[V3[ik]], par_left[V1[ik]], par_left[V2[ik]]);
+							spherical_skorost(Ac[2], Ac[0], Ac[1],
+								A->parameters[now][V3[ik]], A->parameters[now][V1[ik]],
+								A->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
+
+							if (V1[ik] == "Bx")
+							{
+								//cout << "B = " << VA[0] << " " << VA[1] << " " << VA[2] << endl;
+								VA[0] = VA[0] * (kv(r1 / rr));
+								VA[1] = VA[1] * ((r1) / (rr));
+								VA[2] = VA[2] * ((r1) / (rr));
+								//cout << VA[0] << " " << VA[1] << " " << VA[2] << endl << endl;
+							}
+
+							dekard_skorost(G[2], G[0], G[1],
+								VA[0], VA[1], VA[2],
+								par_left[V3[ik]], par_left[V1[ik]], par_left[V2[ik]]);
+						}
+					}
+					else
+					{
+						for (short int ik = 0; ik < 3; ik++)
+						{
+							// Переводим скорости в сферическую с.к.
+							VA << 0.0, 0.0, 0.0;
+
+							spherical_skorost(Ac[0], Ac[1], Ac[2],
+								A->parameters[now][V1[ik]], A->parameters[now][V2[ik]],
+								A->parameters[now][V3[ik]], VA[0], VA[1], VA[2]);
+
+							if (V1[ik] == "Bx")
+							{
+								//cout << "B = " << VA[0] << " " << VA[1] << " " << VA[2] << endl;
+								VA[0] = VA[0] * (kv(r1 / rr));
+								VA[1] = VA[1] * ((r1) / (rr));
+								VA[2] = VA[2] * ((r1) / (rr));
+								//cout << VA[0] << " " << VA[1] << " " << VA[2] << endl << endl;
+							}
+
+							dekard_skorost(G[0], G[1], G[2],
+								VA[0], VA[1], VA[2],
+								par_left[V1[ik]], par_left[V2[ik]], par_left[V3[ik]]);
+						}
 					}
 				}
 
@@ -782,25 +816,53 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					V2[2] = "Vy_H1";
 					V3[2] = "Vz_H1";
 
-					for (short int ik = 0; ik < 3; ik++)
+					double the1 = acos(G[2] / rr);
+
+					if (the1 > const_pi / 9 && the1 < 8 * const_pi / 9)
 					{
-						// Переводим скорости в сферическую с.к.
-						spherical_skorost(Ac[2], Ac[0], Ac[1],
-							B->parameters[now][V3[ik]], B->parameters[now][V1[ik]],
-							B->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
-
-						if (V1[ik] == "Bx")
+						for (short int ik = 0; ik < 3; ik++)
 						{
-							//cout << "A = " << VA[0] << " " << VA[1] << " " << VA[2] << endl;
-							VA[0] = VA[0] * (kv(r1 / rr));
-							VA[1] = VA[1] * ((r1) / (rr));
-							VA[2] = VA[2] * ((r1) / (rr));
-							//cout << VA[0] << " " << VA[1] << " " << VA[2] << endl << endl;;
-						}
+							// Переводим скорости в сферическую с.к.
+							spherical_skorost(Ac[2], Ac[0], Ac[1],
+								B->parameters[now][V3[ik]], B->parameters[now][V1[ik]],
+								B->parameters[now][V2[ik]], VA[0], VA[1], VA[2]);
 
-						dekard_skorost(G[2], G[0], G[1],
-							VA[0], VA[1], VA[2],
-							par_right[V3[ik]], par_right[V1[ik]], par_right[V2[ik]]);
+							if (V1[ik] == "Bx")
+							{
+								//cout << "A = " << VA[0] << " " << VA[1] << " " << VA[2] << endl;
+								VA[0] = VA[0] * (kv(r1 / rr));
+								VA[1] = VA[1] * ((r1) / (rr));
+								VA[2] = VA[2] * ((r1) / (rr));
+								//cout << VA[0] << " " << VA[1] << " " << VA[2] << endl << endl;;
+							}
+
+							dekard_skorost(G[2], G[0], G[1],
+								VA[0], VA[1], VA[2],
+								par_right[V3[ik]], par_right[V1[ik]], par_right[V2[ik]]);
+						}
+					}
+					else
+					{
+						for (short int ik = 0; ik < 3; ik++)
+						{
+							// Переводим скорости в сферическую с.к.
+							spherical_skorost(Ac[0], Ac[1], Ac[2],
+								B->parameters[now][V1[ik]], B->parameters[now][V2[ik]],
+								B->parameters[now][V3[ik]], VA[0], VA[1], VA[2]);
+
+							if (V1[ik] == "Bx")
+							{
+								//cout << "A = " << VA[0] << " " << VA[1] << " " << VA[2] << endl;
+								VA[0] = VA[0] * (kv(r1 / rr));
+								VA[1] = VA[1] * ((r1) / (rr));
+								VA[2] = VA[2] * ((r1) / (rr));
+								//cout << VA[0] << " " << VA[1] << " " << VA[2] << endl << endl;;
+							}
+
+							dekard_skorost(G[0], G[1], G[2],
+								VA[0], VA[1], VA[2],
+								par_right[V1[ik]], par_right[V2[ik]], par_right[V3[ik]]);
+						}
 					}
 				}
 
@@ -867,5 +929,8 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			}
 			
 		}
-	}
+	
+
+
+}
 }
