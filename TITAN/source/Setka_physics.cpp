@@ -257,13 +257,14 @@ void Setka::Init_physics(void)
 		{
 			i->parameters[1] = i->parameters[0];
 
-			if (false)//(norm2(i->center[0][0], i->center[0][1], i->center[0][2]) < 2.0)
+			if (false)//(i->type == Type_cell::Zone_1)
 			{
-				i->parameters[0]["rho_H4"] = 0.16;
-				i->parameters[0]["p_H4"] = 0.13;
-				i->parameters[0]["Vx_H4"] = -2.5;
-				i->parameters[0]["Vy_H4"] = 0.0;
-				i->parameters[0]["Vz_H4"] = 0.0;
+				double r = norm2(i->center[0][0], i->center[0][1], i->center[0][2]);
+				i->parameters[0]["rho_H2"] = 0.00001;
+				i->parameters[0]["p_H2"] = 0.00001;
+				i->parameters[0]["Vx_H2"] = -1.0;
+				i->parameters[0]["Vy_H2"] = 0.0;
+				i->parameters[0]["Vz_H2"] = 0.0;
 
 				i->parameters[1] = i->parameters[0];
 			}
@@ -516,6 +517,7 @@ void Setka::Init_physics(void)
 				i->parameters["Vy_H1"] = mV * vec(1) / r;
 				i->parameters["Vz_H1"] = mV * vec(2) / r;
 				i->parameters["p_H1"] = 0.0001;
+				
 
 				if (this->phys_param->num_H >= 5)
 				{
