@@ -136,7 +136,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			unordered_map<string, double> par_left;
 			unordered_map<string, double> par_right;
 
-			Snos_on_Gran(gr, par_left, par_right, now);
+			Snos_on_Gran(gr, par_left, par_right, now, true);
 
 			std::vector<double> qqq, qqq1, qqq2;
 			qqq.resize(8);
@@ -231,7 +231,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			// Получаем парамытры для снесённых значений
 			unordered_map<string, double> par_left, par_right;
-			this->Snos_on_Gran(gr, par_left, par_right, now);
+			this->Snos_on_Gran(gr, par_left, par_right, now, true);
 
 			if (false) // Параметры в центрах ячеек
 			{
@@ -381,7 +381,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			// Получаем параметры для снесённых значений
 			unordered_map<string, double> par_left, par_right;
-			this->Snos_on_Gran(gr, par_left, par_right, now);
+			this->Snos_on_Gran(gr, par_left, par_right, now, true);
 
 			if (false) // Параметры в центрах ячеек
 			{

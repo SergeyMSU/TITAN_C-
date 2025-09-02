@@ -200,7 +200,7 @@ public:
 		short int now, short int zone);
 
 	void Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
-		unordered_map<string, double>& par_right, short int now);
+		unordered_map<string, double>& par_right, short int now, bool plasma_culc_or_atoms);
 
 	void Culc_Velocity_surface(short int now, const double& time, short int metod = 1);
 

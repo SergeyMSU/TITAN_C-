@@ -2191,7 +2191,15 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			A->center[now][2] - B->center[now][2]) / 2.0;
 	}
 
-	this->Snos_on_Gran(gr, par_left, par_right, now);
+	if (this->phys_param->culc_plasma == true)
+	{
+		this->Snos_on_Gran(gr, par_left, par_right, now, true);
+	}
+
+	if (this->phys_param->culc_atoms == true)
+	{
+		this->Snos_on_Gran(gr, par_left, par_right, now, false);
+	}
 
 	Option.x = gr->center[now][0];
 	Option.y = gr->center[now][1];
@@ -2528,7 +2536,11 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		{
 			auto C1 = gr->cells[0];
 			auto C2 = gr->cells[1];
-			this->Snos_on_Gran(gr, par_left, par_right, 0);
+
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, false);
+			
+
 
 			Eigen::Vector3d A1, A2, A3;
 			A1 << C1->center[0][0], C1->center[0][1], C1->center[0][2];
@@ -2648,7 +2660,9 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		{
 			auto C1 = gr->cells[0];
 			auto C2 = gr->cells[1];
-			this->Snos_on_Gran(gr, par_left, par_right, 0);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, false);
+		
 
 			Eigen::Vector3d A1, A2, A3;
 			A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
@@ -2700,7 +2714,10 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			{
 				auto C1 = gr->cells[0];
 				auto C2 = gr->cells[1];
-				this->Snos_on_Gran(gr, par_left, par_right, 0);
+
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+				this->Snos_on_Gran(gr, par_left, par_right, 0, false);
+				
 
 				Eigen::Vector3d A1, A2, A3, nn;
 				A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
@@ -2805,7 +2822,10 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			{
 				auto C1 = gr->cells[0];
 				auto C2 = gr->cells[1];
-				this->Snos_on_Gran(gr, par_left, par_right, 0);
+
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+				this->Snos_on_Gran(gr, par_left, par_right, 0, false);
+				
 
 				Eigen::Vector3d A1, A2, A3;
 				A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
@@ -2859,7 +2879,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		{
 			auto C1 = gr->cells[0];
 			auto C2 = gr->cells[1];
-			this->Snos_on_Gran(gr, par_left, par_right, 0);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, false);
 
 			Eigen::Vector3d A1, A2, A3;
 			A1 << C1->center[0][0], C1->center[0][1], C1->center[0][2];
@@ -2953,7 +2974,9 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		{
 			auto C1 = gr->cells[0];
 			auto C2 = gr->cells[1];
-			this->Snos_on_Gran(gr, par_left, par_right, 0);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, false);
+			
 
 			Eigen::Vector3d A1, A2, A3;
 			A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
@@ -3066,7 +3089,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		{
 			auto C1 = gr->cells[0];
 			auto C2 = gr->cells[1];
-			this->Snos_on_Gran(gr, par_left, par_right, 0);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, false);
 
 			Eigen::Vector3d A1, A2, A3;
 			A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
@@ -3231,7 +3255,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			this->Snos_on_Gran(gr, par_left, par_right, 0);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
@@ -3336,7 +3360,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			this->Snos_on_Gran(gr, par_left, par_right, 0);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
@@ -3434,7 +3458,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
 
-			this->Snos_on_Gran(gr, par_left, par_right, 0);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
 
@@ -3506,7 +3530,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
 				out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
 
-				this->Snos_on_Gran(gr, par_left, par_right, 0);
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 				out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
 				out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
 			}
@@ -3573,7 +3597,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
 				out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
 
-				this->Snos_on_Gran(gr, par_left, par_right, 0);
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 				out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
 				out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
 
@@ -3618,7 +3642,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			this->Snos_on_Gran(gr, par_left, par_right, 0);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
@@ -3716,7 +3740,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
 
-			this->Snos_on_Gran(gr, par_left, par_right, 0);
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
 
@@ -3788,7 +3812,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
 				out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
 
-				this->Snos_on_Gran(gr, par_left, par_right, 0);
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 				out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
 				out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
 			}
@@ -3855,7 +3879,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
 				out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
 
-				this->Snos_on_Gran(gr, par_left, par_right, 0);
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 				out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
 				out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
 
@@ -4224,7 +4248,7 @@ void Setka::Culc_rotors_in_cell(void)
 						unordered_map<string, double> par_left, par_right;
 						if (gr_->type == Type_Gran::Us)
 						{
-							this->Snos_on_Gran(gr_, par_left, par_right, 0);
+							this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 
 							if (gr_->type2 == Type_Gran_surf::Us)
 							{
@@ -4373,7 +4397,7 @@ void Setka::Culc_divergence_in_cell(void)
 
 			if (gr->type == Type_Gran::Us)
 			{
-				this->Snos_on_Gran(gr, par_left, par_right, 0);
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 
 				if (gr->type2 == Type_Gran_surf::Us)
 				{
