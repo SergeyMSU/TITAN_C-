@@ -257,7 +257,7 @@ void Setka::Init_physics(void)
 		{
 			i->parameters[1] = i->parameters[0];
 
-			if (false)//(i->type == Type_cell::Zone_1)
+			if (i->type == Type_cell::Zone_1)
 			{
 				double r = norm2(i->center[0][0], i->center[0][1], i->center[0][2]);
 				i->parameters[0]["rho_H2"] = 0.00001;
