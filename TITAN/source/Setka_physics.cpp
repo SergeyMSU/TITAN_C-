@@ -2465,6 +2465,9 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		exit(-1);
 	}
 
+	// Записываем есть ли особенная интерполяция на разрывах (или всё сплошным образом)
+	out.write(reinterpret_cast<const char*>(&razriv), sizeof(bool));
+
 	// Записываем до какого расстояния слева выделяется HP
 	out.write(reinterpret_cast<const char*>(&this->geo->L6), sizeof(double));
 
@@ -2493,245 +2496,67 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	// Считаем сколько дополнительных ячеек будет на внешней границе
 	unsigned int gr_b = 0;
 
-	//  Записываем первую зону
-	if (true)
+	if (razriv == true)
 	{
-		for (const auto& Cel : this->All_Cell)
-		{
-			Cel->is_need = static_cast<short int>(Cel->type);
-			if (Cel->is_need == 1) gr_b++;
-		}
-
-		// Записываем количество ячеек
-		size = gr_b + 1 + 2 * this->Gran_TS.size(); // Центр + доп точки на границе и за ней
-		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
-
-		for (const auto& Cel : this->All_Cell)
-		{
-			if (Cel->is_need != 1) continue;
-			double aa = Cel->center[0][0];
-			double bb = Cel->center[0][1];
-			double cc = Cel->center[0][2];
-			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = 0.0;
-
-				if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
-				{
-					aa = Cel->parameters[0][i];
-				}
-
-				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			}
-
-
-			double zzz = 1.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-		}
-
-		unordered_map<string, double> par_left, par_right;
-		for (const auto& gr : this->Gran_TS)
-		{
-			auto C1 = gr->cells[0];
-			auto C2 = gr->cells[1];
-
-			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
-			this->Snos_on_Gran(gr, par_left, par_right, 0, false);
-			
-
-
-			Eigen::Vector3d A1, A2, A3;
-			A1 << C1->center[0][0], C1->center[0][1], C1->center[0][2];
-
-			double aa = gr->center[0][0];
-			double bb = gr->center[0][1];
-			double cc = gr->center[0][2];
-			A2 << aa, bb, cc;
-			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = 0.0;
-
-				if (par_left.find(i) != par_left.end())
-				{
-					aa = par_left[i];
-				}
-
-				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			}
-
-			double zzz = 1.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-
-			A3 = A2 + (A2 - A1);
-			out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = par_left[i];
-				bb = C1->parameters[0][i];
-				cc = aa + (aa - bb);
-
-				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-			}
-
-			zzz = 1.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-		}
-
-		// Записываем центральную точку
+		//  Записываем первую зону
 		if (true)
 		{
-			double aa = 0.0;
-			double bb = 0.0;
-			double cc = 0.0;
-			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
+			for (const auto& Cel : this->All_Cell)
 			{
-				aa = 0.0;
-				if (this->Cell_Center->parameters[0].find(i) != this->Cell_Center->parameters[0].end())
-				{
-					aa = this->Cell_Center->parameters[0][i];
-				}
-				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				Cel->is_need = static_cast<short int>(Cel->type);
+				if (Cel->is_need == 1) gr_b++;
 			}
 
-			//cout << "================  " << this->Cell_Center->parameters[0]["rho"] << endl;
+			// Записываем количество ячеек
+			size = gr_b + 1 + 2 * this->Gran_TS.size(); // Центр + доп точки на границе и за ней
+			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
-			double zzz = 1.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-			//cout << "================  " << zzz << endl;
-		}
-	}
-
-	// Записываем вторую зону
-	if (true)
-	{
-		gr_b = 0;
-		for (const auto& Cel : this->All_Cell)
-		{
-			Cel->is_need = static_cast<short int>(Cel->type);
-			if ( (Cel->is_need == 2 || Cel->is_need == 3) && Cel->center[0][0] >= this->geo->L6 - 50.0) gr_b++;
-		}
-
-		// Записываем количество ячеек
-		size = gr_b + 2 * this->Gran_TS.size() + 0 * this->Gran_HP.size(); //доп точки на TS и HP
-		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
-
-		for (const auto& Cel : this->All_Cell)
-		{
-			if ( Cel->is_need == 1 || Cel->is_need == 4 || Cel->center[0][0] < this->geo->L6 - 50.0) continue;
-			double aa = Cel->center[0][0];
-			double bb = Cel->center[0][1];
-			double cc = Cel->center[0][2];
-			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
+			for (const auto& Cel : this->All_Cell)
 			{
-				aa = 0.0;
-
-				if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
-				{
-					aa = Cel->parameters[0][i];
-				}
-
+				if (Cel->is_need != 1) continue;
+				double aa = Cel->center[0][0];
+				double bb = Cel->center[0][1];
+				double cc = Cel->center[0][2];
 				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			}
-
-
-			double zzz = static_cast<short int>(Cel->type);
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-		}
-
-		unordered_map<string, double> par_left, par_right;
-		for (const auto& gr : this->Gran_TS)
-		{
-			auto C1 = gr->cells[0];
-			auto C2 = gr->cells[1];
-			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
-			this->Snos_on_Gran(gr, par_left, par_right, 0, false);
-		
-
-			Eigen::Vector3d A1, A2, A3;
-			A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
-
-			double aa = gr->center[0][0];
-			double bb = gr->center[0][1];
-			double cc = gr->center[0][2];
-			A2 << aa, bb, cc;
-			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = 0.0;
-
-				if (par_right.find(i) != par_right.end())
-				{
-					aa = par_right[i];
-				}
-
-				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			}
-
-			double zzz = 2.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-
-			A3 = A2 + (A2 - A1);
-			out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = par_right[i];
-				bb = C2->parameters[0][i];
-				cc = aa + (aa - bb);
-
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+					{
+						aa = Cel->parameters[0][i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+
+				double zzz = 1.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 			}
 
-			zzz = 2.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-		}
-
-		if (false)
-		{
-			for (const auto& gr : this->Gran_HP)
+			unordered_map<string, double> par_left, par_right;
+			for (const auto& gr : this->Gran_TS)
 			{
 				auto C1 = gr->cells[0];
 				auto C2 = gr->cells[1];
 
 				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 				this->Snos_on_Gran(gr, par_left, par_right, 0, false);
-				
 
-				Eigen::Vector3d A1, A2, A3, nn;
-				A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
+
+
+				Eigen::Vector3d A1, A2, A3;
+				A1 << C1->center[0][0], C1->center[0][1], C1->center[0][2];
 
 				double aa = gr->center[0][0];
 				double bb = gr->center[0][1];
 				double cc = gr->center[0][2];
 				A2 << aa, bb, cc;
-				nn << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
-				double zzz;
-
-				/*out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
@@ -2747,87 +2572,532 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
 				}
 
-				zzz = 2.0;
-				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));*/
+				double zzz = 1.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 
-				for (short int io = 1; io <= 1; io++)
+				A3 = A2 + (A2 - A1);
+				out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
 				{
+					aa = par_left[i];
+					bb = C1->parameters[0][i];
+					cc = aa + (aa - bb);
 
-					A3 = A1;
+					out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+				}
 
-					out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(double));
-					out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(double));
-					out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(double));
+				zzz = 1.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+			}
+
+			// Записываем центральную точку
+			if (true)
+			{
+				double aa = 0.0;
+				double bb = 0.0;
+				double cc = 0.0;
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+					if (this->Cell_Center->parameters[0].find(i) != this->Cell_Center->parameters[0].end())
+					{
+						aa = this->Cell_Center->parameters[0][i];
+					}
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+				//cout << "================  " << this->Cell_Center->parameters[0]["rho"] << endl;
+
+				double zzz = 1.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+				//cout << "================  " << zzz << endl;
+			}
+		}
+
+		// Записываем вторую зону
+		if (true)
+		{
+			gr_b = 0;
+			for (const auto& Cel : this->All_Cell)
+			{
+				Cel->is_need = static_cast<short int>(Cel->type);
+				if ((Cel->is_need == 2 || Cel->is_need == 3) && Cel->center[0][0] >= this->geo->L6 - 50.0) gr_b++;
+			}
+
+			// Записываем количество ячеек
+			size = gr_b + 2 * this->Gran_TS.size() + 0 * this->Gran_HP.size(); //доп точки на TS и HP
+			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+			for (const auto& Cel : this->All_Cell)
+			{
+				if (Cel->is_need == 1 || Cel->is_need == 4 || Cel->center[0][0] < this->geo->L6 - 50.0) continue;
+				double aa = Cel->center[0][0];
+				double bb = Cel->center[0][1];
+				double cc = Cel->center[0][2];
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+					{
+						aa = Cel->parameters[0][i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+
+				double zzz = static_cast<short int>(Cel->type);
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+			}
+
+			unordered_map<string, double> par_left, par_right;
+			for (const auto& gr : this->Gran_TS)
+			{
+				auto C1 = gr->cells[0];
+				auto C2 = gr->cells[1];
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+				this->Snos_on_Gran(gr, par_left, par_right, 0, false);
+
+
+				Eigen::Vector3d A1, A2, A3;
+				A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
+
+				double aa = gr->center[0][0];
+				double bb = gr->center[0][1];
+				double cc = gr->center[0][2];
+				A2 << aa, bb, cc;
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (par_right.find(i) != par_right.end())
+					{
+						aa = par_right[i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+				double zzz = 2.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+				A3 = A2 + (A2 - A1);
+				out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = par_right[i];
+					bb = C2->parameters[0][i];
+					cc = aa + (aa - bb);
+
+					out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+				}
+
+				zzz = 2.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+			}
+
+			if (false)
+			{
+				for (const auto& gr : this->Gran_HP)
+				{
+					auto C1 = gr->cells[0];
+					auto C2 = gr->cells[1];
+
+					this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+					this->Snos_on_Gran(gr, par_left, par_right, 0, false);
+
+
+					Eigen::Vector3d A1, A2, A3, nn;
+					A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
+
+					double aa = gr->center[0][0];
+					double bb = gr->center[0][1];
+					double cc = gr->center[0][2];
+					A2 << aa, bb, cc;
+					nn << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
+					double zzz;
+
+					/*out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+					out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+					out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
 					for (const auto& i : this->phys_param->param_names)
 					{
-						aa = par_left[i];
-						bb = C1->parameters[0][i];
-						cc = bb; //bb + io * (aa - bb);
+						aa = 0.0;
 
-						out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+						if (par_left.find(i) != par_left.end())
+						{
+							aa = par_left[i];
+						}
+
+						out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
 					}
 
 					zzz = 2.0;
-					out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+					out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));*/
+
+					for (short int io = 1; io <= 1; io++)
+					{
+
+						A3 = A1;
+
+						out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(double));
+						out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(double));
+						out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(double));
+
+						for (const auto& i : this->phys_param->param_names)
+						{
+							aa = par_left[i];
+							bb = C1->parameters[0][i];
+							cc = bb; //bb + io * (aa - bb);
+
+							out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+						}
+
+						zzz = 2.0;
+						out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+					}
 				}
 			}
 		}
-	}
 
-	// Записываем третью зону
-	if (true)
-	{
-		gr_b = 0;
-		for (const auto& Cel : this->All_Cell)
+		// Записываем третью зону
+		if (true)
 		{
-			Cel->is_need = static_cast<short int>(Cel->type);
-			if (Cel->is_need >= 2 && Cel->center[0][0] >= -20.0) gr_b++;
-		}
-
-		// Записываем количество ячеек
-		size = gr_b + 0 * this->Gran_HP.size() + 2 * this->Gran_BS.size(); //доп точки на TS и HP
-		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
-
-		for (const auto& Cel : this->All_Cell)
-		{
-			if (Cel->is_need < 2 || Cel->center[0][0] < -20.0) continue;
-			double aa = Cel->center[0][0];
-			double bb = Cel->center[0][1];
-			double cc = Cel->center[0][2];
-			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
+			gr_b = 0;
+			for (const auto& Cel : this->All_Cell)
 			{
-				aa = 0.0;
-
-				if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
-				{
-					aa = Cel->parameters[0][i];
-				}
-
-				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				Cel->is_need = static_cast<short int>(Cel->type);
+				if (Cel->is_need >= 2 && Cel->center[0][0] >= -20.0) gr_b++;
 			}
 
+			// Записываем количество ячеек
+			size = gr_b + 0 * this->Gran_HP.size() + 2 * this->Gran_BS.size(); //доп точки на TS и HP
+			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
-			double zzz = static_cast<short int>(Cel->type);
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+			for (const auto& Cel : this->All_Cell)
+			{
+				if (Cel->is_need < 2 || Cel->center[0][0] < -20.0) continue;
+				double aa = Cel->center[0][0];
+				double bb = Cel->center[0][1];
+				double cc = Cel->center[0][2];
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+					{
+						aa = Cel->parameters[0][i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+
+				double zzz = static_cast<short int>(Cel->type);
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+			}
+
+			unordered_map<string, double> par_left, par_right;
+
+			if (false)
+			{
+				for (const auto& gr : this->Gran_HP)
+				{
+					auto C1 = gr->cells[0];
+					auto C2 = gr->cells[1];
+
+					this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+					this->Snos_on_Gran(gr, par_left, par_right, 0, false);
+
+
+					Eigen::Vector3d A1, A2, A3;
+					A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
+
+					double aa = gr->center[0][0];
+					double bb = gr->center[0][1];
+					double cc = gr->center[0][2];
+					A2 << aa, bb, cc;
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+					out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+					out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+					for (const auto& i : this->phys_param->param_names)
+					{
+						aa = 0.0;
+
+						if (par_right.find(i) != par_right.end())
+						{
+							aa = par_right[i];
+						}
+
+						out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+					}
+
+					double zzz = 3.0;
+					out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+					for (short int io = 1; io <= 5; io++)
+					{
+						A3 = A2 + io * (A2 - A1);
+						out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+						out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+						out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+						for (const auto& i : this->phys_param->param_names)
+						{
+							aa = par_right[i];
+							bb = C2->parameters[0][i];
+							cc = aa;// + io * (aa - bb);
+
+							out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+						}
+
+						zzz = 3.0;
+						out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+					}
+				}
+			}
+
+			for (const auto& gr : this->Gran_BS)
+			{
+				auto C1 = gr->cells[0];
+				auto C2 = gr->cells[1];
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+				this->Snos_on_Gran(gr, par_left, par_right, 0, false);
+
+				Eigen::Vector3d A1, A2, A3;
+				A1 << C1->center[0][0], C1->center[0][1], C1->center[0][2];
+
+				double aa = gr->center[0][0];
+				double bb = gr->center[0][1];
+				double cc = gr->center[0][2];
+				A2 << aa, bb, cc;
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (par_left.find(i) != par_left.end())
+					{
+						aa = par_left[i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+				double zzz = 3.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+				A3 = A2 + (A2 - A1);
+				out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = par_left[i];
+					bb = C1->parameters[0][i];
+					cc = aa + (aa - bb);
+
+					out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+				}
+
+				zzz = 3.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+			}
+
 		}
 
-		unordered_map<string, double> par_left, par_right;
-
-		if (false)
+		// Записываем четвёртую зону
+		if (true)
 		{
+			gr_b = 0;
+			for (const auto& Cel : this->All_Cell)
+			{
+				Cel->is_need = static_cast<short int>(Cel->type);
+				if ((Cel->is_need == 4 || Cel->is_need == 3) && Cel->center[0][0] >= -100.0) gr_b++;
+			}
+
+			// Записываем количество ячеек
+			size = gr_b + 3 * this->Gran_BS.size(); //доп точки на TS и HP
+			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+			for (const auto& Cel : this->All_Cell)
+			{
+				if ((Cel->is_need != 4 && Cel->is_need != 3) || Cel->center[0][0] < -100.0) continue;
+				double aa = Cel->center[0][0];
+				double bb = Cel->center[0][1];
+				double cc = Cel->center[0][2];
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+					{
+						aa = Cel->parameters[0][i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+
+				double zzz = static_cast<short int>(Cel->type);
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+			}
+
+			unordered_map<string, double> par_left, par_right;
+			for (const auto& gr : this->Gran_BS)
+			{
+				auto C1 = gr->cells[0];
+				auto C2 = gr->cells[1];
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+				this->Snos_on_Gran(gr, par_left, par_right, 0, false);
+
+
+				Eigen::Vector3d A1, A2, A3;
+				A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
+
+				double aa = gr->center[0][0];
+				double bb = gr->center[0][1];
+				double cc = gr->center[0][2];
+				A2 << aa, bb, cc;
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (par_right.find(i) != par_right.end())
+					{
+						aa = par_right[i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+				double zzz = 4.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+				A3 = A2 + (A2 - A1);
+				out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = par_right[i];
+					bb = C2->parameters[0][i];
+					cc = aa + (aa - bb);
+
+					out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+				}
+
+				zzz = 4.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+
+				A3 = A2 + 2 * (A2 - A1);
+				out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = par_right[i];
+					bb = C2->parameters[0][i];
+					cc = aa + 2 * (aa - bb);
+
+					out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+				}
+
+				zzz = 4.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+			}
+
+		}
+
+		// Записываем пятую зону
+		if (true)
+		{
+			gr_b = 0;
+			for (const auto& Cel : this->All_Cell)
+			{
+				Cel->is_need = static_cast<short int>(Cel->type);
+				if ((Cel->is_need >= 2) && Cel->center[0][0] >= this->geo->L6 - 50.0
+					&& Cel->center[0][0] <= 60.0) gr_b++;
+			}
+
+			// Записываем количество ячеек
+			size = gr_b + 2 * this->Gran_HP.size(); //доп точки на TS и HP
+			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+			for (const auto& Cel : this->All_Cell)
+			{
+				if ((Cel->is_need == 1) || Cel->center[0][0] < this->geo->L6 - 50.0
+					|| Cel->center[0][0] > 60.0) continue;
+				double aa = Cel->center[0][0];
+				double bb = Cel->center[0][1];
+				double cc = Cel->center[0][2];
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+					{
+						aa = Cel->parameters[0][i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+
+				double zzz = static_cast<short int>(Cel->type);
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+			}
+
+			unordered_map<string, double> par_left, par_right;
 			for (const auto& gr : this->Gran_HP)
 			{
 				auto C1 = gr->cells[0];
 				auto C2 = gr->cells[1];
-
 				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 				this->Snos_on_Gran(gr, par_left, par_right, 0, false);
-				
 
 				Eigen::Vector3d A1, A2, A3;
 				A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
@@ -2855,295 +3125,30 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				double zzz = 3.0;
 				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 
-				for (short int io = 1; io <= 5; io++)
-				{
-					A3 = A2 + io * (A2 - A1);
-					out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
-					out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
-					out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
+				A3 = A2 + (A2 - A1);
+				out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-					for (const auto& i : this->phys_param->param_names)
-					{
-						aa = par_right[i];
-						bb = C2->parameters[0][i];
-						cc = aa;// + io * (aa - bb);
-
-						out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-					}
-
-					zzz = 3.0;
-					out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-				}
-			}
-		}
-
-		for (const auto& gr : this->Gran_BS)
-		{
-			auto C1 = gr->cells[0];
-			auto C2 = gr->cells[1];
-			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
-			this->Snos_on_Gran(gr, par_left, par_right, 0, false);
-
-			Eigen::Vector3d A1, A2, A3;
-			A1 << C1->center[0][0], C1->center[0][1], C1->center[0][2];
-
-			double aa = gr->center[0][0];
-			double bb = gr->center[0][1];
-			double cc = gr->center[0][2];
-			A2 << aa, bb, cc;
-			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = 0.0;
-
-				if (par_left.find(i) != par_left.end())
-				{
-					aa = par_left[i];
-				}
-
-				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			}
-
-			double zzz = 3.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-
-			A3 = A2 + (A2 - A1);
-			out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = par_left[i];
-				bb = C1->parameters[0][i];
-				cc = aa + (aa - bb);
-
-				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-			}
-
-			zzz = 3.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-		}
-
-	}
-
-	// Записываем четвёртую зону
-	if (true)
-	{
-		gr_b = 0;
-		for (const auto& Cel : this->All_Cell)
-		{
-			Cel->is_need = static_cast<short int>(Cel->type);
-			if ( (Cel->is_need == 4 || Cel->is_need == 3) && Cel->center[0][0] >= -100.0) gr_b++;
-		}
-
-		// Записываем количество ячеек
-		size = gr_b + 3 * this->Gran_BS.size(); //доп точки на TS и HP
-		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
-
-		for (const auto& Cel : this->All_Cell)
-		{
-			if ( (Cel->is_need != 4 && Cel->is_need != 3) || Cel->center[0][0] < -100.0) continue;
-			double aa = Cel->center[0][0];
-			double bb = Cel->center[0][1];
-			double cc = Cel->center[0][2];
-			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = 0.0;
-
-				if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
-				{
-					aa = Cel->parameters[0][i];
-				}
-
-				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			}
-
-
-			double zzz = static_cast<short int>(Cel->type);
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-		}
-
-		unordered_map<string, double> par_left, par_right;
-		for (const auto& gr : this->Gran_BS)
-		{
-			auto C1 = gr->cells[0];
-			auto C2 = gr->cells[1];
-			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
-			this->Snos_on_Gran(gr, par_left, par_right, 0, false);
-			
-
-			Eigen::Vector3d A1, A2, A3;
-			A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
-
-			double aa = gr->center[0][0];
-			double bb = gr->center[0][1];
-			double cc = gr->center[0][2];
-			A2 << aa, bb, cc;
-			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = 0.0;
-
-				if (par_right.find(i) != par_right.end())
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = par_right[i];
+					bb = C2->parameters[0][i];
+					cc = aa + (aa - bb);
+
+					out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 				}
 
-				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				zzz = 3.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 			}
 
-			double zzz = 4.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 
-			A3 = A2 + (A2 - A1);
-			out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = par_right[i];
-				bb = C2->parameters[0][i];
-				cc = aa + (aa - bb);
-
-				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-			}
-
-			zzz = 4.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-
-			A3 = A2 + 2 * (A2 - A1);
-			out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = par_right[i];
-				bb = C2->parameters[0][i];
-				cc = aa + 2 * (aa - bb);
-
-				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-			}
-
-			zzz = 4.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 		}
 
-	}
-
-	// Записываем пятую зону
-	if (true)
-	{
-		gr_b = 0;
-		for (const auto& Cel : this->All_Cell)
-		{
-			Cel->is_need = static_cast<short int>(Cel->type);
-			if ( (Cel->is_need >= 2) && Cel->center[0][0] >= this->geo->L6 - 50.0
-				&& Cel->center[0][0] <= 60.0) gr_b++;
-		}
-
-		// Записываем количество ячеек
-		size = gr_b + 2 * this->Gran_HP.size(); //доп точки на TS и HP
-		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
-
-		for (const auto& Cel : this->All_Cell)
-		{
-			if ( (Cel->is_need == 1) || Cel->center[0][0] < this->geo->L6 - 50.0
-				|| Cel->center[0][0] > 60.0) continue;
-			double aa = Cel->center[0][0];
-			double bb = Cel->center[0][1];
-			double cc = Cel->center[0][2];
-			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = 0.0;
-
-				if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
-				{
-					aa = Cel->parameters[0][i];
-				}
-
-				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			}
-
-
-			double zzz = static_cast<short int>(Cel->type);
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-		}
-
-		unordered_map<string, double> par_left, par_right;
-		for (const auto& gr : this->Gran_HP)
-		{
-			auto C1 = gr->cells[0];
-			auto C2 = gr->cells[1];
-			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
-			this->Snos_on_Gran(gr, par_left, par_right, 0, false);
-
-			Eigen::Vector3d A1, A2, A3;
-			A1 << C2->center[0][0], C2->center[0][1], C2->center[0][2];
-
-			double aa = gr->center[0][0];
-			double bb = gr->center[0][1];
-			double cc = gr->center[0][2];
-			A2 << aa, bb, cc;
-			out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = 0.0;
-
-				if (par_right.find(i) != par_right.end())
-				{
-					aa = par_right[i];
-				}
-
-				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
-			}
-
-			double zzz = 3.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-
-			A3 = A2 + (A2 - A1);
-			out.write(reinterpret_cast<const char*>(&A3[0]), sizeof(aa));
-			out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
-			out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
-
-			for (const auto& i : this->phys_param->param_names)
-			{
-				aa = par_right[i];
-				bb = C2->parameters[0][i];
-				cc = aa + (aa - bb);
-
-				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
-			}
-
-			zzz = 3.0;
-			out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
-		}
-
-		
-
-	}
-
-	// Записываем шестую зону
-	if (true)
+		// Записываем шестую зону
+		if (true)
 	{
 		gr_b = 0;
 		for (const auto& Cel : this->All_Cell)
@@ -3184,7 +3189,74 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		}
 
 	}
+	}
+	else
+	{
+		if (true)
+		{
+			for (const auto& Cel : this->All_Cell)
+			{
+				Cel->is_need = static_cast<short int>(Cel->type);
+			}
 
+			// Записываем количество ячеек
+			size = this->All_Cell.size() + 1; // + Центр
+			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+			for (const auto& Cel : this->All_Cell)
+			{
+				double aa = Cel->center[0][0];
+				double bb = Cel->center[0][1];
+				double cc = Cel->center[0][2];
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+					{
+						aa = Cel->parameters[0][i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+
+				double zzz = static_cast<double>(Cel->is_need);
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+			}
+
+			// Записываем центральную точку
+			if (true)
+			{
+				double aa = 0.0;
+				double bb = 0.0;
+				double cc = 0.0;
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+					if (this->Cell_Center->parameters[0].find(i) != this->Cell_Center->parameters[0].end())
+					{
+						aa = this->Cell_Center->parameters[0][i];
+					}
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+				//cout << "================  " << this->Cell_Center->parameters[0]["rho"] << endl;
+
+				double zzz = 1.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+				//cout << "================  " << zzz << endl;
+			}
+		}
+	}
 
 	// Записываем дополнительные точки (на небольшом удалении от внешней границы, чтоб 
 	// убрать артефакты в интерполяции

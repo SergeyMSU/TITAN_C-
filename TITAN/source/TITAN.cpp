@@ -25,11 +25,11 @@ int main()
     cout << "B " << endl;
     S1.Calculating_measure(1);
     cout << "B2 " << endl;
-
+    
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0117.bin");   // 107
+    S1.Download_cell_parameters("parameters_0053.bin");   // 107
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
     // 62 включи TVD
@@ -61,7 +61,7 @@ int main()
     S1.Tecplot_print_all_lush_in_2D();
     S1.Tecplot_print_all_cell_in_3D();
 
-    S1.Algoritm(2);
+    //S1.Algoritm(2);
     S1.Tecplot_print_all_gran_in_surface("TS");
     S1.Tecplot_print_all_gran_in_surface("HP");
     S1.Tecplot_print_all_gran_in_surface("BS");
@@ -75,13 +75,13 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 3 * 3; i++) // 6 * 2
+    for (int i = 1; i <= 1; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
 
         S1.Go(false, 400, 1); // 400   1
-        S1.Go(true, 200, 1); // 400   1
+        //S1.Go(true, 50, 1); // 400   1
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
 
@@ -115,16 +115,16 @@ int main()
         return 0;
     }
 
-    //S1.Save_cell_parameters("parameters_0052.bin");
-    S1.Save_cell_parameters("parameters_0118.bin");
+    S1.Save_cell_parameters("parameters_0054.bin");
+    //S1.Save_cell_parameters("parameters_0118.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
-    //S1.Edges_create();
-    //S1.Culc_divergence_in_cell();
-    //S1.Culc_rotors_in_cell();
+    /*S1.Edges_create();
+    S1.Culc_divergence_in_cell();
+    S1.Culc_rotors_in_cell();*/
 
-    S1.Save_for_interpolate("For_intertpolate_71.bin", true);
-    Interpol SS = Interpol("For_intertpolate_71.bin");
+    S1.Save_for_interpolate("For_intertpolate_54.bin", true);
+    Interpol SS = Interpol("For_intertpolate_54.bin");
 
     if (false) // Проверка интерполятора
     {

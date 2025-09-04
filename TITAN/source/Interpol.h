@@ -51,6 +51,7 @@ public:
 	unordered_map<string, double> stepen;   // Степени радиуса в интерполяции
 
 	double L6;  // До какого расстояния слева выделяется контакт
+	bool razriv;       // Есть ли особая интерполяция на разрывах?
 
 	Interpol(string name);
 	~Interpol();

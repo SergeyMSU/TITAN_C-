@@ -22,6 +22,8 @@ Interpol::Interpol(string name)
 	// —начала список строк с названи€ми переменных
 	// ѕотом все €чейки в формате: три координаты и значени€ этих переменных
 
+    in.read(reinterpret_cast<char*>(&this->razriv), sizeof(bool));
+
     in.read(reinterpret_cast<char*>(&this->L6), sizeof(this->L6));
 
      // „итаем количество строк
@@ -69,118 +71,118 @@ Interpol::Interpol(string name)
         this->Cells_1.push_back(A);
     }
 
-    // —читываем вторую зону
-    in.read(reinterpret_cast<char*>(&size), sizeof(size));
-    for (size_t i = 0; i < size; ++i)
+    if (this->razriv == true)
     {
-        double a, b, c;
-        in.read(reinterpret_cast<char*>(&a), sizeof(a));
-        in.read(reinterpret_cast<char*>(&b), sizeof(b));
-        in.read(reinterpret_cast<char*>(&c), sizeof(c));
-        auto A = new Int_point(a, b, c);
-
-        this->points_2.push_back({ {a, b, c}, i });
-
-        for (const auto& i : this->param_names)
+        // —читываем вторую зону
+        in.read(reinterpret_cast<char*>(&size), sizeof(size));
+        for (size_t i = 0; i < size; ++i)
         {
-            double a;
+            double a, b, c;
             in.read(reinterpret_cast<char*>(&a), sizeof(a));
-            A->parameters[i] = a;
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            auto A = new Int_point(a, b, c);
+
+            this->points_2.push_back({ {a, b, c}, i });
+
+            for (const auto& i : this->param_names)
+            {
+                double a;
+                in.read(reinterpret_cast<char*>(&a), sizeof(a));
+                A->parameters[i] = a;
+            }
+
+            this->Cells_2.push_back(A);
         }
 
-        this->Cells_2.push_back(A);
-    }
-
-
-    // —читываем третью зону
-    in.read(reinterpret_cast<char*>(&size), sizeof(size));
-    for (size_t i = 0; i < size; ++i)
-    {
-        double a, b, c;
-        in.read(reinterpret_cast<char*>(&a), sizeof(a));
-        in.read(reinterpret_cast<char*>(&b), sizeof(b));
-        in.read(reinterpret_cast<char*>(&c), sizeof(c));
-        auto A = new Int_point(a, b, c);
-
-        this->points_3.push_back({ {a, b, c}, i });
-
-        for (const auto& i : this->param_names)
+        // —читываем третью зону
+        in.read(reinterpret_cast<char*>(&size), sizeof(size));
+        for (size_t i = 0; i < size; ++i)
         {
-            double a;
+            double a, b, c;
             in.read(reinterpret_cast<char*>(&a), sizeof(a));
-            A->parameters[i] = a;
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            auto A = new Int_point(a, b, c);
+
+            this->points_3.push_back({ {a, b, c}, i });
+
+            for (const auto& i : this->param_names)
+            {
+                double a;
+                in.read(reinterpret_cast<char*>(&a), sizeof(a));
+                A->parameters[i] = a;
+            }
+
+            this->Cells_3.push_back(A);
         }
 
-        this->Cells_3.push_back(A);
-    }
-
-
-    // —читываем четвЄртую зону
-    in.read(reinterpret_cast<char*>(&size), sizeof(size));
-    for (size_t i = 0; i < size; ++i)
-    {
-        double a, b, c;
-        in.read(reinterpret_cast<char*>(&a), sizeof(a));
-        in.read(reinterpret_cast<char*>(&b), sizeof(b));
-        in.read(reinterpret_cast<char*>(&c), sizeof(c));
-        auto A = new Int_point(a, b, c);
-
-        this->points_4.push_back({ {a, b, c}, i });
-
-        for (const auto& i : this->param_names)
+        // —читываем четвЄртую зону
+        in.read(reinterpret_cast<char*>(&size), sizeof(size));
+        for (size_t i = 0; i < size; ++i)
         {
-            double a;
+            double a, b, c;
             in.read(reinterpret_cast<char*>(&a), sizeof(a));
-            A->parameters[i] = a;
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            auto A = new Int_point(a, b, c);
+
+            this->points_4.push_back({ {a, b, c}, i });
+
+            for (const auto& i : this->param_names)
+            {
+                double a;
+                in.read(reinterpret_cast<char*>(&a), sizeof(a));
+                A->parameters[i] = a;
+            }
+
+            this->Cells_4.push_back(A);
         }
 
-        this->Cells_4.push_back(A);
-    }
-
-    // —читываем п€тую зону
-    in.read(reinterpret_cast<char*>(&size), sizeof(size));
-    for (size_t i = 0; i < size; ++i)
-    {
-        double a, b, c;
-        in.read(reinterpret_cast<char*>(&a), sizeof(a));
-        in.read(reinterpret_cast<char*>(&b), sizeof(b));
-        in.read(reinterpret_cast<char*>(&c), sizeof(c));
-        auto A = new Int_point(a, b, c);
-
-        this->points_5.push_back({ {a, b, c}, i });
-
-        for (const auto& i : this->param_names)
+        // —читываем п€тую зону
+        in.read(reinterpret_cast<char*>(&size), sizeof(size));
+        for (size_t i = 0; i < size; ++i)
         {
-            double a;
+            double a, b, c;
             in.read(reinterpret_cast<char*>(&a), sizeof(a));
-            A->parameters[i] = a;
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            auto A = new Int_point(a, b, c);
+
+            this->points_5.push_back({ {a, b, c}, i });
+
+            for (const auto& i : this->param_names)
+            {
+                double a;
+                in.read(reinterpret_cast<char*>(&a), sizeof(a));
+                A->parameters[i] = a;
+            }
+
+            this->Cells_5.push_back(A);
         }
 
-        this->Cells_5.push_back(A);
-    }
-
-    // —читываем шестую зону
-    in.read(reinterpret_cast<char*>(&size), sizeof(size));
-    for (size_t i = 0; i < size; ++i)
-    {
-        double a, b, c;
-        in.read(reinterpret_cast<char*>(&a), sizeof(a));
-        in.read(reinterpret_cast<char*>(&b), sizeof(b));
-        in.read(reinterpret_cast<char*>(&c), sizeof(c));
-        auto A = new Int_point(a, b, c);
-
-        this->points_6.push_back({ {a, b, c}, i });
-
-        for (const auto& i : this->param_names)
+        // —читываем шестую зону
+        in.read(reinterpret_cast<char*>(&size), sizeof(size));
+        for (size_t i = 0; i < size; ++i)
         {
-            double a;
+            double a, b, c;
             in.read(reinterpret_cast<char*>(&a), sizeof(a));
-            A->parameters[i] = a;
+            in.read(reinterpret_cast<char*>(&b), sizeof(b));
+            in.read(reinterpret_cast<char*>(&c), sizeof(c));
+            auto A = new Int_point(a, b, c);
+
+            this->points_6.push_back({ {a, b, c}, i });
+
+            for (const auto& i : this->param_names)
+            {
+                double a;
+                in.read(reinterpret_cast<char*>(&a), sizeof(a));
+                A->parameters[i] = a;
+            }
+
+            this->Cells_6.push_back(A);
         }
-
-        this->Cells_6.push_back(A);
     }
-
 
     // —читываем TS
     if (true)
@@ -315,11 +317,15 @@ Interpol::Interpol(string name)
 
     // ƒелаем триангул€цию
     this->Delone_1 = new Delaunay(this->points_1.begin(), this->points_1.end());
-    this->Delone_2 = new Delaunay(this->points_2.begin(), this->points_2.end());
-    this->Delone_3 = new Delaunay(this->points_3.begin(), this->points_3.end());
-    this->Delone_4 = new Delaunay(this->points_4.begin(), this->points_4.end());
-    this->Delone_5 = new Delaunay(this->points_5.begin(), this->points_5.end());
-    this->Delone_6 = new Delaunay(this->points_6.begin(), this->points_6.end());
+
+    if (this->razriv == true)
+    {
+        this->Delone_2 = new Delaunay(this->points_2.begin(), this->points_2.end());
+        this->Delone_3 = new Delaunay(this->points_3.begin(), this->points_3.end());
+        this->Delone_4 = new Delaunay(this->points_4.begin(), this->points_4.end());
+        this->Delone_5 = new Delaunay(this->points_5.begin(), this->points_5.end());
+        this->Delone_6 = new Delaunay(this->points_6.begin(), this->points_6.end());
+    }
 
     this->Delone_TS = new Delaunay2(this->point_TS.begin(), this->point_TS.end());
     this->Delone_BS = new Delaunay2(this->point_BS.begin(), this->point_BS.end());
@@ -472,7 +478,7 @@ know_zone:
     Cell_handle containing_cell;
     std::vector <Int_point*>* CCC = nullptr;
     //cout << "A02" << endl;
-    if (my_zone == 1)
+    if (my_zone == 1 || this->razriv == false)
     {
         CCC = &this->Cells_1;
         containing_cell = this->Delone_1->locate(query);

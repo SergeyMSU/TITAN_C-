@@ -186,8 +186,6 @@ void Setka::Algoritm(short int alg)
 		this->Tecplot_print_gran_with_condition(5);
 		this->Tecplot_print_gran_with_condition(6);
 
-		// Ќадо проверить зону 7 на посто€нных пол€х с перезар€дкой (на ћаксвелле) - не уверен в правильности
-
 		vector<short int> zones_number;
 
 		zones_number.push_back(6);
