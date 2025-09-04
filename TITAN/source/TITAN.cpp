@@ -61,7 +61,7 @@ int main()
     S1.Tecplot_print_all_lush_in_2D();
     S1.Tecplot_print_all_cell_in_3D();
 
-    //S1.Algoritm(2);
+    S1.Algoritm(2);
     S1.Tecplot_print_all_gran_in_surface("TS");
     S1.Tecplot_print_all_gran_in_surface("HP");
     S1.Tecplot_print_all_gran_in_surface("BS");
@@ -75,7 +75,7 @@ int main()
     S1.Smooth_head_TS3();
 
 
-    for (int i = 1; i <= 3 * 12; i++) // 6 * 2
+    for (int i = 1; i <= 3 * 3; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
