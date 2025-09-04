@@ -44,7 +44,7 @@ public:
 
 	unordered_map<string, Eigen::VectorXd> interpolate_alpha;
 
-	// »сточники рождени€ пикапов
+	// »сточники рождени€ пикапов (их должно быть в €чейке столько же, сколько у нас есть сортов пикапов в этой зоне)
 	vector<double> pui_Sm;
 	vector<double> pui_Sp;
 

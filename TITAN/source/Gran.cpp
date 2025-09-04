@@ -41,7 +41,7 @@ void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 		this->AMR[nH - 1][ni]->Read("data_AMR/" + name_f);
 
 
-		if (this->type == Type_Gran::Us && need_refine == true)
+		if (need_refine == true)
 		{
 			this->AMR[nH - 1][ni]->Refine();
 		}

@@ -1337,6 +1337,7 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 
 int Setka::determ_zone(Cell* C, short int now)
 {
+	// 1, 2, 3, 4
 	double rho = C->parameters[now]["rho"];
 	double p = C->parameters[now]["p"];
 	double u = C->parameters[now]["Vx"];

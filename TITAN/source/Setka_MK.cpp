@@ -213,6 +213,35 @@ void Setka::Set_MK_Zone(void)
 	this->MK_Grans.resize(7);
 	this->MK_Potoks.resize(7);
 	for (short int i = 0; i < 7; ++i) this->MK_Potoks[i] = 0.0;
+	this->MK_zone_4.resize(7, 4);
+	this->MK_zone_4 <<  false, false, false, false,
+						false, false, false, false,
+						false, false, false, false,
+						false, false, false, false,
+						false, false, false, false,
+						false, false, false, false,
+						false, false, false, false;
+	for (auto& cell : this->All_Cell)
+	{
+		int zone = this->determ_zone(cell, 0);
+		this->MK_zone_4(cell->MK_zone - 1, zone - 1) = true;
+	}
+
+	// Посмотрим что получилось
+	if (true)
+	{
+		cout << "See MK_zone_4" << endl;
+		for (size_t i = 0; i < 7; i++)
+		{
+			for (size_t j = 0; j < 4; j++)
+			{
+				cout << this->MK_zone_4(i, j) << " ";
+			}
+			cout << endl;
+		}
+		cout << endl;
+	}
+
 
 	// 1 зона
 	for (auto& gr : this->Gran_TS)
@@ -220,6 +249,7 @@ void Setka::Set_MK_Zone(void)
 		this->MK_Grans[0].push_back(gr);
 		gr->MK_type.push_back(1);
 	}
+
 
 	// 2 зона
 	for (auto& gr : this->All_Gran)
@@ -591,7 +621,6 @@ void Setka::MK_prepare(short int zone_MK)
 
 #pragma omp parallel for schedule(dynamic)
 		for(size_t ijk = 0; ijk < this->MK_Grans[zone_MK - 1].size(); ijk++)
-		//for (auto& gr : this->MK_Grans[zone_MK - 1])
 		{
 			auto gr = this->MK_Grans[zone_MK - 1][ijk];
 			gr->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
@@ -612,8 +641,8 @@ void Setka::MK_prepare(short int zone_MK)
 			{
 				for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
 				{
-					if (ni == ii) gr->Read_AMR(ii, iH, true && this->phys_param->refine_AMR);
-					if (ni2 == ii) gr->Read_AMR(ii, iH, false && this->phys_param->refine_AMR);
+					if (ni == ii) gr->Read_AMR(ii, iH, this->phys_param->refine_AMR);
+					if (ni2 == ii) gr->Read_AMR(ii, iH, false);
 
 					if (false)
 					{
@@ -760,7 +789,8 @@ void Setka::MK_prepare(short int zone_MK)
 	//pause_seconds(15);
 
 	// Можно удалить файлы граничных граней, так как они только место занимают
-	if (true)
+	// Уже удалил, больше не должны появляться
+	if (false)
 	{
 		cout << "Start: Ydalenie lishnix failov" << endl;
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
@@ -895,7 +925,7 @@ void Setka::MK_prepare(short int zone_MK)
 	}
 
 	// Считаем необходимые геометрические параметры для МК
-	// И добавляем переменные в ячейки
+	// И добавляем переменные в ячейки (заполняем нулями)
 	if (true)
 	{
 		for (auto& i : this->All_Cell)
@@ -968,7 +998,6 @@ void Setka::MK_delete(short int zone_MK)
 		unsigned int num_ = 0;
 		unsigned int sr_num = 0;
 #pragma omp parallel for schedule(dynamic)
-		//for (auto& gr : this->MK_Grans[zone_MK - 1])
 		for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
 		{
 			auto& gr = this->MK_Grans[zone_MK - 1][idx];
@@ -1003,7 +1032,7 @@ void Setka::MK_delete(short int zone_MK)
 		// Нужно сохрянять только выходящие грани!
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
 		{
-			short int ni = 1;
+			short int ni = 1;  // Выходящая функция распределения
 			if (gr->cells[0]->MK_zone == zone_MK)
 			{
 				ni = 0;
@@ -1022,10 +1051,8 @@ void Setka::MK_delete(short int zone_MK)
 						{
 							gr->AMR[iH - 1][ii]->Save("data_AMR/" + name_f);
 						}
-						//cout << "Delete " << ii << " " << iH << " " << 
-						//	gr->number << endl;
+
 						gr->AMR[iH - 1][ii]->Delete();
-						//cout << "Delete2" << endl;
 						delete gr->AMR[iH - 1][ii];
 					}
 					else
@@ -1070,7 +1097,6 @@ void Setka::MK_go(short int zone_MK)
 	unsigned int ALL_N = 0;  // Общее число запущенных в итоге частиц
 	unsigned int k1 = 0;
 #pragma omp parallel for schedule(dynamic)
-	//for (auto& gr : this->MK_Grans[zone_MK - 1])
 	for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
 	{
 		auto& gr = this->MK_Grans[zone_MK - 1][idx];
