@@ -1346,7 +1346,7 @@ int Setka::determ_zone(Cell* C, short int now)
 	double M = norm2(u, v, w) / sqrt(this->phys_param->gamma * p / rho);
 	
 
-	if (C->parameters[now]["Q"] < 50.0)
+	if (C->parameters[now]["Q"] / rho < 50.0)
 	{
 		double x = C->center[now][0];
 		double y = C->center[now][1];
