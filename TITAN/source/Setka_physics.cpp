@@ -255,19 +255,26 @@ void Setka::Init_physics(void)
 	{
 		for (auto& i : this->All_Cell)
 		{
-			i->parameters[1] = i->parameters[0];
+			
+			double r = norm2(i->center[0][0], i->center[0][1], i->center[0][2]);
 
-			if (i->type == Type_cell::Zone_1)
+			int zone = determ_zone(i, 0);
+			if (zone == 1)
 			{
-				double r = norm2(i->center[0][0], i->center[0][1], i->center[0][2]);
-				i->parameters[0]["rho_H2"] = 0.00001;
-				i->parameters[0]["p_H2"] = 0.00001;
-				i->parameters[0]["Vx_H2"] = -1.0;
-				i->parameters[0]["Vy_H2"] = 0.0;
-				i->parameters[0]["Vz_H2"] = 0.0;
-
-				i->parameters[1] = i->parameters[0];
+				i->parameters[0]["rho_H7"] = 0.0000001;
+				i->parameters[0]["p_H7"] = 0.0000001 / 2.0;
+				i->parameters[0]["Vx_H7"] = i->parameters[0]["Vx_H2"];
+				i->parameters[0]["Vy_H7"] = i->parameters[0]["Vy_H2"];
+				i->parameters[0]["Vz_H7"] = i->parameters[0]["Vz_H2"];
 			}
+
+			if (i->center[0][0] < -120)
+			{
+				i->parameters[0]["Vx_H7"] = -3.0;
+			}
+
+
+			i->parameters[1] = i->parameters[0];
 
 		}
 	}
@@ -609,6 +616,11 @@ void Setka::Init_physics(void)
 		}
 	}
 
+
+	for (auto& i : this->All_Cell)
+	{
+		i->parameters[1] = i->parameters[0];
+	}
 }
 
 void Setka::Init_TVD(void)
@@ -1487,8 +1499,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	Cell* A, B;
 
 
-	double time = 0.000001;  // Текущий шаг по времени
-	double loc_time = 0.000001;  // Текущий шаг по времени
+	double time = 0.00001;  // Текущий шаг по времени
+	double loc_time = 0.00001;  // Текущий шаг по времени
 
 	double xc_min = 0.0, yc_min = 0.0, zc_min = 0.0;
 	string name_min_time = "___";
@@ -1773,9 +1785,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					}
 
 
-					if (rho_pui_sum > (rho3 - rho_He3) * 0.997)
+					if (rho_pui_sum > (rho3 - rho_He3) * 0.995)
 					{
-						double kkl = ((rho3 - rho_He3) * 0.997) / rho_pui_sum;
+						double kkl = ((rho3 - rho_He3) * 0.995) / rho_pui_sum;
 
 						pui_n = -1;
 						for (const auto& nam : this->phys_param->pui_name)

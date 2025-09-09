@@ -19,6 +19,7 @@ public:
 
 	void Intitial_read(void);
 	void regularize(void); // –егул€ризаци€ точек в кругу
+	void regularize2(void); // –егул€ризаци€ точек в кругу
 	void Intitial_build(void);  // ѕроецируем точки на сфере и создаЄм точки с другой стороны
 	void Intitial_build2(void); // —оздаЄм остальные точки на сфере
 	void Intitial_build3(void); // —оздаЄм остальные точки на сфере

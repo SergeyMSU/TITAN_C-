@@ -15,7 +15,8 @@ int main()
     //C->cells.push_back(A->cells[4]);
 
 
-    S.regularize();
+    //S.regularize();
+    //S.regularize2();
 
     // Этот блок для создания 3Д Геометрии
     //S.Intitial_build();

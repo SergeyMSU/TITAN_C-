@@ -79,13 +79,14 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						par_left["Vy" + nam] = C->parameters[now]["Vy" + nam];
 						par_left["Vz" + nam] = C->parameters[now]["Vz" + nam];
 
+						
 						if (par_left["Vx" + nam] * gr->normal[now][0] +
 							par_left["Vy" + nam] * gr->normal[now][1] +
-							par_left["Vz" + nam] * gr->normal[now][2] < 0.0)
+							par_left["Vz" + nam] * gr->normal[now][2] < 0.1)  // TODO OTSOS
 						{
-							par_left["Vx" + nam] = 0.1 * gr->normal[now][0];
-							par_left["Vy" + nam] = 0.1 * gr->normal[now][1];
-							par_left["Vz" + nam] = 0.1 * gr->normal[now][2];
+							par_left["Vx" + nam] = 0.5 * gr->normal[now][0];
+							par_left["Vy" + nam] = 0.5 * gr->normal[now][1];
+							par_left["Vz" + nam] = 0.5 * gr->normal[now][2];
 						}
 
 						par_right["rho" + nam] = par_left["rho" + nam];
@@ -93,6 +94,12 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						par_right["Vx" + nam] = par_left["Vx" + nam];
 						par_right["Vy" + nam] = par_left["Vy" + nam];
 						par_right["Vz" + nam] = par_left["Vz" + nam];
+
+						if (nam == "_H7")
+						{
+							par_right["p" + nam] = par_left["p" + nam]/2.0;
+						}
+
 					}
 					else if (hydrogen_cond == 2)
 					{

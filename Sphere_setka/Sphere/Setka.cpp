@@ -9,7 +9,7 @@ void Setka::Intitial_read(void)
 	double b, b1, b2;
 
 	ifstream fout;
-	fout.open("Sergey_4.k");
+	fout.open("Sergey_100.k");
 
 	if (fout.is_open() == false)
 	{
@@ -22,7 +22,7 @@ void Setka::Intitial_read(void)
 		fout >> str;
 	}
 
-	for (int ii = 0; ii < 502; ii++) // 497
+	for (int ii = 0; ii < 1085; ii++) // 502
 	{
 		for (int i = 0; i < 10; i++)
 		{
@@ -43,7 +43,7 @@ void Setka::Intitial_read(void)
 		fout >> str;
 	}
 
-	for (int ii = 0; ii < 533; ii++) // 528
+	for (int ii = 0; ii < 1136; ii++) // 533
 	{
 		for (int i = 0; i < 6; i++)
 		{
@@ -107,7 +107,7 @@ void Setka::regularize(void)
 				y1 = I->points[kp]->y;
 				x2 = I->points[km]->x;
 				y2 = I->points[km]->y;
-				if (I->points[k]->get_radius() > 40) continue;
+				if (I->points[k]->get_radius() > 0.999) continue;  // 40
 				u = x1 - x0;
 				v = y1 - y0;
 				u2 = x2 - x0;
@@ -116,8 +116,8 @@ void Setka::regularize(void)
 				double ll2 = sqrt((u2) * (u2) + (v2) * (v2));
 				double stepen = 5.0;
 
-				I->points[k]->Vx += (u * pow(ll1, stepen) + u2 * pow(ll2, stepen)) / 10.0 / pow((ll1 + ll2), stepen);
-				I->points[k]->Vy += (v * pow(ll1, stepen) + v2 * pow(ll2, stepen)) / 10.0 / pow((ll1 + ll2), stepen);
+				I->points[k]->Vx += (u * pow(ll1, stepen) + u2 * pow(ll2, stepen)) / 10.0 / pow((ll1 + ll2), stepen); //10
+				I->points[k]->Vy += (v * pow(ll1, stepen) + v2 * pow(ll2, stepen)) / 10.0 / pow((ll1 + ll2), stepen); // 10
 				I->points[k]->Vnum += 1;
 
 				/*n1 = sqrt(u * u + v * v);
@@ -175,7 +175,7 @@ void Setka::regularize(void)
 				y1 = I->points[kp]->y;
 				x2 = I->points[km]->x;
 				y2 = I->points[km]->y;
-				if (I->points[k]->get_radius() > 40) continue;
+				if (I->points[k]->get_radius() > 0.999) continue; // 40.0
 				u = x1 - x0;
 				v = y1 - y0;
 				u2 = x2 - x0;
@@ -195,8 +195,8 @@ void Setka::regularize(void)
 				uu = uu / n1;
 				vv = vv / n1;
 				skalar = acos(u * u2 + v * v2);
-				I->points[k]->Vx += uu * pow((pi / 2 - skalar) * 3, 3) / 200.0;
-				I->points[k]->Vy += vv * pow((pi / 2 - skalar) * 3, 3) / 200.0;
+				I->points[k]->Vx += uu * pow((pi / 2 - skalar) * 3, 3) / 200.0; // 200
+				I->points[k]->Vy += vv * pow((pi / 2 - skalar) * 3, 3) / 200.0; // 200
 				I->points[k]->Vnum += 1;
 			}
 		}
@@ -213,6 +213,72 @@ void Setka::regularize(void)
 
 	}
 }
+
+void Setka::regularize2(void)
+{
+	for (int step = 0; step < 8000; step++) {
+		double step_size = 0.00001;  // Уменьшаем шаг со временем
+
+		for (auto& point : this->all_points) {
+			point->Vx = point->Vy = 0.0;
+			point->Vnum = 0;
+		}
+
+		for (auto& cell : this->all_Cells) {
+			for (int k = 0; k < 4; k++) {
+				if (cell->points[k]->get_radius() > 0.999) continue;
+
+				int kp = (k + 1) % 4;
+				int km = (k + 3) % 4;
+
+				point* p0 = cell->points[k];
+				point* p1 = cell->points[kp];
+				point* p2 = cell->points[km];
+
+				// Выравнивание длин
+				double dx1 = p1->x - p0->x;
+				double dy1 = p1->y - p0->y;
+				double dx2 = p2->x - p0->x;
+				double dy2 = p2->y - p0->y;
+
+				double len1 = sqrt(dx1 * dx1 + dy1 * dy1);
+				double len2 = sqrt(dx2 * dx2 + dy2 * dy2);
+
+				p0->Vx += (dx1 / len1 + dx2 / len2) * step_size;
+				p0->Vy += (dy1 / len1 + dy2 / len2) * step_size;
+
+				// Выравнивание углов
+				double dot = (dx1 * dx2 + dy1 * dy2) / (len1 * len2);
+				dot = std::max(-1.0, std::min(1.0, dot));  // Ограничиваем для acos
+				double angle = acos(dot);
+
+				double target_angle = pi / 2.0;
+				double angle_diff = target_angle - angle;
+
+				// Биссектриса угла
+				double bisect_x = (dx1 / len1 + dx2 / len2);
+				double bisect_y = (dy1 / len1 + dy2 / len2);
+				double bisect_len = sqrt(bisect_x * bisect_x + bisect_y * bisect_y);
+
+				if (bisect_len > 1e-10) {
+					//p0->Vx += bisect_x / bisect_len * angle_diff * step_size * 0.5;
+					//p0->Vy += bisect_y / bisect_len * angle_diff * step_size * 0.5;
+				}
+
+				p0->Vnum += 1;
+			}
+		}
+
+		// Обновление координат
+		for (auto& point : this->all_points) {
+			if (point->Vnum > 0 && point->get_radius() <= 0.999) {
+				point->x += point->Vx / point->Vnum;
+				point->y += point->Vy / point->Vnum;
+			}
+		}
+	}
+}
+
 
 void Setka::Intitial_build(void)
 {
