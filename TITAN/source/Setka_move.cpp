@@ -194,6 +194,8 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
 		{
 			auto gr = this->Gran_HP[i_step];
+
+			if (gr->grans_surf.size() < 4) continue;
 			auto A = gr->cells[0];
 			auto B = gr->cells[1];
 			short int metod_ = gr->Get_method();
@@ -1277,10 +1279,23 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			double h1 = norm2(0.0, L[this->geo->N4 - 4]->Yzels_opor[1]->coord[now2][1],
 				L[this->geo->N4 - 4]->Yzels_opor[1]->coord[now2][2]);
+			double xx1 = L[this->geo->N4 - 4]->Yzels_opor[1]->coord[now2][0];
+
+			double h2 = norm2(0.0, L[this->geo->N4 - 6]->Yzels_opor[1]->coord[now2][1],
+				L[this->geo->N4 - 6]->Yzels_opor[1]->coord[now2][2]);
+			double xx2 = L[this->geo->N4 - 6]->Yzels_opor[1]->coord[now2][0];
 
 			// Высота контакта в хвосте (остаётся постоянной)
 			//double h2 = norm2(0.0, L[NN]->Yzels_opor[1]->coord[now2][1],
 			//	L[NN]->Yzels_opor[1]->coord[now2][2]);
+
+			// Двигаем пред-пред последнюю точку (можно улучшить, сделав линейно, а не просто среднее арифметическое)
+			auto yz = L[this->geo->N4 - 5]->Yzels_opor[1];
+			double hh = norm2(0.0, yz->coord[now2][1], yz->coord[now2][2]);
+			double xx = yz->coord[now2][0];
+			double hhh = linear2(xx1, h1, xx2, h2, xx);
+			yz->coord[now2][1] = yz->coord[now2][1] * hhh / hh;
+			yz->coord[now2][2] = yz->coord[now2][2] * hhh / hh;
 
 			for (short int i = this->geo->N4 - 3; i <= NN; i++)
 			{
