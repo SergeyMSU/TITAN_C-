@@ -1286,6 +1286,15 @@ void Setka::MK_go(short int zone_MK)
 								" " << P.coord[2] << endl;
 							exit(-1);
 						}
+
+						if (klk > 97)
+						{
+							cout << "INFO! 457658u56ytg456347" << endl;
+							P.coord[0] = Center_cell[0];
+							P.coord[1] = Center_cell[1];
+							P.coord[2] = Center_cell[2];
+						}
+
 						Move[0] = (-P.coord[0] + Center_cell[0]) / 1000.0;
 						Move[1] = (-P.coord[1] + Center_cell[1]) / 1000.0;
 						Move[2] = (-P.coord[2] + Center_cell[2]) / 1000.0;
