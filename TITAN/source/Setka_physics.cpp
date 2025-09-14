@@ -4335,7 +4335,7 @@ void Setka::Culc_rotors_in_cell(void)
 						unordered_map<string, double> par_left, par_right;
 						if (gr_->type == Type_Gran::Us)
 						{
-							this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+							this->Snos_on_Gran(gr_, par_left, par_right, 0, true);
 
 							if (gr_->type2 == Type_Gran_surf::Us)
 							{
