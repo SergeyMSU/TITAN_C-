@@ -1356,16 +1356,15 @@ int Setka::determ_zone(Cell* C, short int now)
 	double v = C->parameters[now]["Vy"];
 	double w = C->parameters[now]["Vz"];
 	double M = norm2(u, v, w) / sqrt(this->phys_param->gamma * p / rho);
-	
+
+	double x = C->center[now][0];
+	double y = C->center[now][1];
+	double z = C->center[now][2];
+	double r = norm2(x, y, z);
 
 	if (C->parameters[now]["Q"] / rho < 50.0)
 	{
-		double x = C->center[now][0];
-		double y = C->center[now][1];
-		double z = C->center[now][2];
-		double r = norm2(x, y, z);
-
-		if (M > 1 && r < 45)
+		if (M > 3.0 && r < 45)
 		{
 			return 1;
 		}
@@ -1376,14 +1375,21 @@ int Setka::determ_zone(Cell* C, short int now)
 	}
 	else
 	{
-		if (M > 1)
+		if (M > 1 && x > 0.0)
 		{
+
+			if (true && C->type == Type_cell::Zone_3)   // Это можно использовать если сетка установилась
+			{
+				return 3;
+			}
+
 			return 4;
 		}
 		else
 		{
 			return 3;
 		}
+
 	}
 
 	if (this->regim_otladki)

@@ -186,6 +186,7 @@ void Setka::Algoritm(short int alg)
 		this->Tecplot_print_gran_with_condition(5);
 		this->Tecplot_print_gran_with_condition(6);
 
+
 		vector<short int> zones_number;
 
 		zones_number.push_back(6);

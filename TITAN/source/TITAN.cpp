@@ -64,7 +64,6 @@ int main()
     S1.Tecplot_print_all_cell_in_3D();
 
     S1.Algoritm(2);
-    return 0;
 
 
     S1.Tecplot_print_all_gran_in_surface("TS");
@@ -132,17 +131,6 @@ int main()
 
     S1.Save_for_interpolate("For_intertpolate_138.bin", true);
     Interpol SS = Interpol("For_intertpolate_138.bin");
-
-    std::unordered_map<string, double> parameters;
-    Cell_handle next_cell;
-    Cell_handle prev_cell = Cell_handle();
-    SS.Get_param(4.0, 1.0, 1.0, parameters, prev_cell, next_cell);
-    for (const auto& [key, value] : parameters) {
-        std::cout << key << ":  " << value << '\n';
-    }
-    return 0;
-
-    return 0;
 
     if (false) // Проверка интерполятора
     {

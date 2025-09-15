@@ -224,8 +224,96 @@ void Setka::Set_MK_Zone(void)
 	for (auto& cell : this->All_Cell)
 	{
 		int zone = this->determ_zone(cell, 0);
+
+		// Некоторые проверки для правильного определения зоны
+		if (cell->MK_zone == 3 && zone == 1)
+		{
+			cout << "INFORM teegedcvfv" << endl;
+			cout << cell->center[0][0] << " " << cell->center[0][1] << " " << cell->center[0][2] << endl;
+		}
+
+
 		this->MK_zone_4(cell->MK_zone - 1, zone - 1) = true;
 	}
+
+	this->H_komponent_in_zone.resize(4, this->phys_param->num_H);
+	for (size_t i = 0; i < 4; i++)
+	{
+		for (size_t j = 0; j < this->phys_param->num_H; j++)
+		{
+			this->H_komponent_in_zone(i, j) = false;
+		}
+	}
+
+	for (int i = 0; i < this->phys_param->hydrogen_arise_1.rows(); ++i) 
+	{
+		for (int j = 0; j < this->phys_param->hydrogen_arise_1.cols(); ++j) 
+		{
+			int8_t value = this->phys_param->hydrogen_arise_1(i, j);
+			this->H_komponent_in_zone(0, value - 1) = true;
+		}
+	}
+
+	for (int i = 0; i < this->phys_param->hydrogen_arise_2.rows(); ++i)
+	{
+		for (int j = 0; j < this->phys_param->hydrogen_arise_2.cols(); ++j)
+		{
+			int8_t value = this->phys_param->hydrogen_arise_2(i, j);
+			this->H_komponent_in_zone(1, value - 1) = true;
+		}
+	}
+
+	for (int i = 0; i < this->phys_param->hydrogen_arise_3.rows(); ++i)
+	{
+		for (int j = 0; j < this->phys_param->hydrogen_arise_3.cols(); ++j)
+		{
+			int8_t value = this->phys_param->hydrogen_arise_3(i, j);
+			this->H_komponent_in_zone(2, value - 1) = true;
+		}
+	}
+
+	for (int i = 0; i < this->phys_param->hydrogen_arise_4.rows(); ++i)
+	{
+		for (int j = 0; j < this->phys_param->hydrogen_arise_4.cols(); ++j)
+		{
+			int8_t value = this->phys_param->hydrogen_arise_4(i, j);
+			this->H_komponent_in_zone(3, value - 1) = true;
+		}
+	}
+
+	this->MK_zone_H.resize(7, this->phys_param->num_H);
+	for (size_t i = 0; i < 7; i++)
+	{
+		for (size_t j = 0; j < this->phys_param->num_H; j++)
+		{
+			this->MK_zone_H(i, j) = false;
+		}
+	}
+
+	for (size_t i = 0; i < 7; i++)
+	{
+		for (size_t j = 0; j < this->phys_param->num_H; j++)
+		{
+			bool is_H = false;
+			for (size_t zone_ = 0; zone_ < 4; zone_++)
+			{
+				if (this->MK_zone_4(i, zone_) == true)
+				{
+					if (this->H_komponent_in_zone(zone_, j) == true)
+					{
+						is_H = true;
+					}
+				}
+			}
+			this->MK_zone_H(i, j) = is_H;
+		}
+	}
+
+
+
+
+
+
 
 	// Посмотрим что получилось
 	if (true)
@@ -236,6 +324,30 @@ void Setka::Set_MK_Zone(void)
 			for (size_t j = 0; j < 4; j++)
 			{
 				cout << this->MK_zone_4(i, j) << " ";
+			}
+			cout << endl;
+		}
+		cout << endl;
+
+		cout << "See H_komponent_in_zone" << endl;
+
+		for (size_t i = 0; i < 4; i++)
+		{
+			for (size_t j = 0; j < this->phys_param->num_H; j++)
+			{
+				cout << this->H_komponent_in_zone(i, j) << " ";
+			}
+			cout << endl;
+		}
+		cout << endl;
+
+		cout << "See MK_zone_H" << endl;
+
+		for (size_t i = 0; i < 7; i++)
+		{
+			for (size_t j = 0; j < this->phys_param->num_H; j++)
+			{
+				cout << this->MK_zone_H(i, j) << " ";
 			}
 			cout << endl;
 		}
@@ -619,15 +731,33 @@ void Setka::MK_prepare(short int zone_MK)
 		unsigned short int NNall = 0;
 		double S = 0.0;
 
+		unsigned int k1 = 0;
+
 #pragma omp parallel for schedule(dynamic)
 		for(size_t ijk = 0; ijk < this->MK_Grans[zone_MK - 1].size(); ijk++)
 		{
+			#pragma omp critical (first) 
+			{
+				k1++;
+				if (k1 % 100 == 0)
+				{
+					cout << "Gran = " << k1 << "    Iz: " << this->MK_Grans[zone_MK - 1].size() << endl;
+				}
+			}
+
 			auto gr = this->MK_Grans[zone_MK - 1][ijk];
 			gr->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
 			gr->MK_Potok = 0.0;
+
+			// Выделяем место под AMR, сколько сортов водорода, столько и места
 			if (gr->AMR.size() < this->phys_param->num_H)
 			{
 				gr->AMR.resize(this->phys_param->num_H);
+				for (size_t i = 0; i < this->phys_param->num_H; i++)
+				{
+					gr->AMR[i][0] = nullptr;
+					gr->AMR[i][1] = nullptr;
+				}
 			}
 
 			short int ni = 1;  // Определяем выходящую функцию распределения
@@ -641,103 +771,39 @@ void Setka::MK_prepare(short int zone_MK)
 			{
 				for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
 				{
-					if (ni == ii) gr->Read_AMR(ii, iH, this->phys_param->refine_AMR);
-					if (ni2 == ii) gr->Read_AMR(ii, iH, false);
-
-					if (false)
+					// Выходящую функцию загружаем, обнуляем и сохраняеи
+					if (ni == ii)
 					{
-						if (gr->AMR[iH - 1][ii] == nullptr)
+						if (gr->type == Type_Gran::Us)
 						{
+							gr->Read_AMR(ii, iH, this->phys_param->refine_AMR);
+							gr->AMR[iH - 1][ni]->Fill_null();
+
 							string name_f = "func_grans_AMR_" + to_string(ii) + "_H" +
 								to_string(iH) + "_" + to_string(gr->number) + ".bin";
-							if (file_exists("data_AMR/" + name_f) && gr->type == Type_Gran::Us)
+
+							if (this->phys_param->save_AMR == true)
 							{
-								//cout << "Exist  " << iH << " " << ii << endl;
-								// В этом случае просто считываем AMR - сетку
-								gr->AMR[iH - 1][ii] = new AMR_f();
-								gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
-								gr->AMR[iH - 1][ii]->Read("data_AMR/" + name_f);
-
-
-								if (ni == ii && this->phys_param->refine_AMR == true && gr->type == Type_Gran::Us &&
-									gr->AMR[iH - 1][ii]->Size() < 3000)
-								{
-									unsigned short int NN = 1;
-									NN = gr->AMR[iH - 1][ii]->Refine();
-									NNall += NN;
-								}
-
-								if (gr->AMR[iH - 1][ii]->Size() > 5000)
-								{
-									cout << "_____________________________" << endl;
-									cout << "Anomalious function  H = " << iH << "  ii = " << ii << endl;
-									cout << gr->center[0][0] << " " << gr->center[0][1] << " " <<
-										gr->center[0][2] << " " << endl;
-									cout << gr->AMR[iH - 1][ii]->Size() << endl;
-									cout << "_____________________________" << endl;
-								}
-							}
-							else
-							{
-								// В этом случае создаём новую AMR - сетку
-								//cout << "ih = " << iH << " " << ii << endl;
-								if (gr->type == Type_Gran::Us)
-								{
-									gr->AMR[iH - 1][ii] = new AMR_f(0.0, 20.0, -20.0, 20.0,
-										-20.0, 20.0, 3, 6, 6);
-									gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
-								}
-								else
-								{
-									gr->AMR[iH - 1][ii] = new AMR_f(0.0, 20.0, -20.0, 20.0,
-										-20.0, 20.0, 1, 1, 1);
-									gr->AMR[iH - 1][ii]->AMR_self = gr->AMR[iH - 1][ii];
-								}
+								gr->AMR[iH - 1][ii]->Save("data_AMR/" + name_f);
 							}
 
-							// На всякий случай задаём нормаль
-							if (ii == 0)
-							{
-								gr->AMR[iH - 1][ii]->Vn[0] = gr->normal[0][0];
-								gr->AMR[iH - 1][ii]->Vn[1] = gr->normal[0][1];
-								gr->AMR[iH - 1][ii]->Vn[2] = gr->normal[0][2];
-							}
-							else
-							{
-								gr->AMR[iH - 1][ii]->Vn[0] = -gr->normal[0][0];
-								gr->AMR[iH - 1][ii]->Vn[1] = -gr->normal[0][1];
-								gr->AMR[iH - 1][ii]->Vn[2] = -gr->normal[0][2];
-							}
-							gr->AMR[iH - 1][ii]->Set_bazis();
-
-							// Заполняем параметры на AMR
-							gr->AMR[iH - 1][ii]->parameters["n"] = 0.0;
-							gr->AMR[iH - 1][ii]->parameters["nn"] = 0.0;
-							gr->AMR[iH - 1][ii]->parameters["Smu"] = 0.0;
+							gr->AMR[iH - 1][ii]->Delete();
+							delete gr->AMR[iH - 1][ii];
+							gr->AMR[iH - 1][ii] = nullptr;
 						}
 					}
+
+
+					if (ni2 == ii)
+					{
+						gr->Read_AMR(ii, iH, false);
+					}
+
 				}
 			}
 
-			if (gr->type == Type_Gran::Us)
-			{
-				for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
-				{
-					short int ni = 1;  // определяем выходящую функцию распределения
-					if (gr->cells[0]->MK_zone == zone_MK)
-					{
-						ni = 0;
-					}
-					unsigned int njn = gr->AMR[iH - 1][ni]->Size();
-					#pragma omp critical (erfgwerwe) 
-					{
-						NN1_ += njn;
-						NN2_++;
-					}
-				}
-			}
 
-			// Считаем сразу поток атомов через грань
+			// Считаем сразу поток атомов через грань (только для входящей функции)
 			if (true)
 			{
 				if (gr->type == Type_Gran::Us)
@@ -773,10 +839,12 @@ void Setka::MK_prepare(short int zone_MK)
 				}
 			}
 
-			// Удалим сразу входящие функции распределения
+			// Удалим сразу все входящие функции распределения (так как цель была посчитать поток)
 			for (short int iH = 1; iH <= gr->AMR.size(); iH++)
 			{
 				gr->AMR[iH - 1][ni2]->Delete();
+				delete gr->AMR[iH - 1][ni2];
+				gr->AMR[iH - 1][ni2] = nullptr;
 			}
 
 		}
@@ -948,7 +1016,7 @@ void Setka::MK_prepare(short int zone_MK)
 	}
 
 	// Обнулим функции распределения, в которые будем накапливать информацию
-	if (true)
+	if (false)
 	{
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
 		{
@@ -958,6 +1026,7 @@ void Setka::MK_prepare(short int zone_MK)
 			{
 				ni = 0;
 			}
+
 			for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
 			{
 				auto funk = gr->AMR[iH - 1][ni];
@@ -991,43 +1060,46 @@ void Setka::MK_delete(short int zone_MK)
 	}
 
 	// Мельчим AMR сетку, если надо
-	if (this->phys_param->de_refine_AMR == true)
+	if (false)
 	{
-		cout << "start de_refine_AMR" << endl;
-		unsigned int nmnm = 0;
-		unsigned int num_ = 0;
-		unsigned int sr_num = 0;
-#pragma omp parallel for schedule(dynamic)
-		for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
+		if (this->phys_param->de_refine_AMR == true)
 		{
-			auto& gr = this->MK_Grans[zone_MK - 1][idx];
-			if (gr->type != Type_Gran::Us) continue;
-
-			short int ni = 1;
-			if (gr->cells[0]->MK_zone == zone_MK)
+			cout << "start de_refine_AMR" << endl;
+			unsigned int nmnm = 0;
+			unsigned int num_ = 0;
+			unsigned int sr_num = 0;
+#pragma omp parallel for schedule(dynamic)
+			for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
 			{
-				ni = 0;
-			}
+				auto& gr = this->MK_Grans[zone_MK - 1][idx];
+				if (gr->type != Type_Gran::Us) continue;
 
-			for (short int iH = 1; iH <= gr->AMR.size(); iH++)
-			{
-				int iki = gr->AMR[iH - 1][ni]->de_Refine();
-
-				#pragma omp critical (third) 
+				short int ni = 1;
+				if (gr->cells[0]->MK_zone == zone_MK)
 				{
-					nmnm += iki;
-					num_++;
-					sr_num += gr->AMR[iH - 1][ni]->Size();
+					ni = 0;
 				}
-					
+
+				for (short int iH = 1; iH <= gr->AMR.size(); iH++)
+				{
+					int iki = gr->AMR[iH - 1][ni]->de_Refine();
+
+#pragma omp critical (third) 
+					{
+						nmnm += iki;
+						num_++;
+						sr_num += gr->AMR[iH - 1][ni]->Size();
+					}
+
+				}
 			}
+			cout << "Ydaleno  " << nmnm << "  yacheek" << endl;
+			cout << "Srednee chislo yacheek =  " << (1.0 * sr_num) / num_ << endl;
 		}
-		cout << "Ydaleno  " << nmnm << "  yacheek" << endl;
-		cout << "Srednee chislo yacheek =  " << (1.0 * sr_num) / num_ << endl;
 	}
 
 	// Записываем AMR сетку для граней
-	if (true)
+	if (false)
 	{
 		// Нужно сохрянять только выходящие грани!
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
@@ -1094,55 +1166,109 @@ void Setka::MK_go(short int zone_MK)
 	cout << "All potok = " << this->MK_Potoks[zone_MK - 1] << endl;
 	//exit(-1);
 
-	unsigned int ALL_N = 0;  // Общее число запущенных в итоге частиц
-	unsigned int k1 = 0;
-#pragma omp parallel for schedule(dynamic)
-	for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
+	// Подготовка нужных массивов 
+	if (true)
 	{
-		auto& gr = this->MK_Grans[zone_MK - 1][idx];
-		Eigen::Vector3d n;
-		Eigen::Vector3d t;
-		Eigen::Vector3d m;
-
-		#pragma omp critical (first) 
+		cout << "Start download_1" << endl;
+		// 1. Надо загрузить выходящие функции распределения только для сортов, которые рождаются в данной области
+		for (size_t j = 0; j < this->phys_param->num_H; j++)
 		{
-			k1++;
-			if (k1 % 1000 == 0)
+			if (this->MK_zone_H(zone_MK - 1, j) == true)
 			{
-				cout << "Gran = " << k1 << "    Iz: " << this->MK_Grans[zone_MK - 1].size() << endl;
+				// Значит нам надо загрузить выходящую функцию для водорода сорта j
+				for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
+				{
+					auto& gr = this->MK_Grans[zone_MK - 1][idx];
+					if (gr->type != Type_Gran::Us) continue;
+
+					short int ni = 1; // Номер "выходящей" функции распределения
+					if (gr->cells[0]->MK_zone == zone_MK)
+					{
+						ni = 0;
+					}
+					gr->Read_AMR(ni, j + 1, false);
+				}
 			}
 		}
-		// Выбираем конкретный номер датчика случайных чисел
-		unsigned int sens_num1 = 2 * omp_get_thread_num();
-		unsigned int sens_num2 = 2 * omp_get_thread_num() + 1;
 
-		//this->Sensors[sens_num1]->MakeRandom();
-		//this->Sensors[sens_num1]->MakeRandom();
-		//this->Sensors[sens_num2]->MakeRandom();
+		cout << "End download_1" << endl;
+	}
 
-		short int ni = 0; // Номер "входящей" функции распределения
-		if (gr->cells[0]->MK_zone == zone_MK)
+	unsigned int ALL_N = 0;  // Общее число запущенных в итоге частиц
+	unsigned int k1 = 0;
+
+	// Разыгрываем каждый сорт отдельно, так как для него нужны свои массивы
+	for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
+	{
+		// Для каждого запускаемого сорта надо загрузить выходяющии функции распределения на всех гранях
+		// и входящую функуию только для текущей грани
+
+		cout << "Start download_2  for sort " << nh_ << endl;
+		// 1. Загружаем выходящие функции распределения данного сорта аодорода для всех граней 
+		// если они ещё не хагружены на предыдущем шаге
+		if (this->MK_zone_H(zone_MK - 1, nh_) == false)
 		{
-			ni = 1;
+			for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
+			{
+				auto& gr = this->MK_Grans[zone_MK - 1][idx];
+				if (gr->type != Type_Gran::Us) continue;
+
+				short int ni = 1; // Номер "выходящей" функции распределения
+				if (gr->cells[0]->MK_zone == zone_MK)
+				{
+					ni = 0;
+				}
+				gr->Read_AMR(ni, nh_ + 1, false);
+			}
 		}
-		double full_gran_potok = gr->MK_Potok;
+		cout << "End download_2  for sort " << nh_ << endl;
 
-
-		if (full_gran_potok < 0.0000001 * MK_Potoks[zone_MK - 1]/ this->MK_Grans[zone_MK - 1].size())
+		// 2. Теперь бежим по граням и делаем основной алгоритм
+		k1 = 0;
+		#pragma omp parallel for schedule(dynamic)
+		for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
 		{
-			continue;
-		}
+			auto& gr = this->MK_Grans[zone_MK - 1][idx];
+			Eigen::Vector3d n;
+			Eigen::Vector3d t;
+			Eigen::Vector3d m;
 
-		// Получаем нормаль для граничных граней (это будет внешняя нормаль)
-		if (gr->type != Type_Gran::Us)
-		{
-			n << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
-			get_bazis(n, t, m);
-		}
+			#pragma omp critical (first) 
+			{
+				k1++;
+				if (k1 % 100 == 0)
+				{
+					cout << "Gran = " << k1 << "    Iz: " << this->MK_Grans[zone_MK - 1].size() << "  sort " << nh_ + 1 << endl;
+				}
+			}
+			// Выбираем конкретный номер датчика случайных чисел
+			unsigned int sens_num1 = 2 * omp_get_thread_num();
+			unsigned int sens_num2 = 2 * omp_get_thread_num() + 1;
 
-		// Разыгрываем каждый сорт отдельно
-		for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
-		{
+			//this->Sensors[sens_num1]->MakeRandom();
+			//this->Sensors[sens_num1]->MakeRandom();
+			//this->Sensors[sens_num2]->MakeRandom();
+
+			short int ni = 0; // Номер "входящей" функции распределения
+			if (gr->cells[0]->MK_zone == zone_MK)
+			{
+				ni = 1;
+			}
+			double full_gran_potok = gr->MK_Potok;
+
+
+			if (full_gran_potok < 0.0000001 * MK_Potoks[zone_MK - 1] / this->MK_Grans[zone_MK - 1].size())
+			{
+				continue;
+			}
+
+			// Получаем нормаль для граничных граней (это будет внешняя нормаль)
+			if (gr->type != Type_Gran::Us)
+			{
+				n << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
+				get_bazis(n, t, m);
+			}
+
 			auto& func = gr->AMR[nh_][ni];
 
 			if (gr->type == Type_Gran::Us)
@@ -1150,6 +1276,21 @@ void Setka::MK_go(short int zone_MK)
 				gr->Read_AMR(ni, nh_ + 1, false);
 				func->Culk_SpotokV(gr->area[0]);
 			}
+			else
+			{
+				gr->Read_AMR(ni, nh_ + 1, false);
+				func->SpotokV = 0.0;
+				if (nh_ == 3) // Так как поток есть только у атомов 4-го сорта
+				{
+					Eigen::Vector3d nn;
+					nn << -func->Vn[0], -func->Vn[1], -func->Vn[2];
+					// Так как нормаль должна быть внешняя к грани
+					double sjv = Get_Spotok_inf(nn);
+					func->SpotokV = sjv * gr->area[0];
+				}
+			}
+
+
 
 			if (func->SpotokV < 0.0000001 * full_gran_potok)
 			{
@@ -1158,7 +1299,7 @@ void Setka::MK_go(short int zone_MK)
 			}
 
 			// Расчитываем число запускаемых частиц
-			unsigned int N_particle = max(static_cast<int>(func->SpotokV / mu_expect) + 1, 
+			unsigned int N_particle = max(static_cast<int>(func->SpotokV / mu_expect) + 1,
 				min(N_on_gran, 100));
 			double mu = func->SpotokV / N_particle; // Вес каждой частицы
 
@@ -1185,7 +1326,7 @@ void Setka::MK_go(short int zone_MK)
 					cout << "Error 9767653421" << endl;
 					exit(-1);
 				}
-				
+
 				P.mu = mu;                           // Вес частицы
 				P.sort = nh_ + 1;                    // Сорт частицы
 
@@ -1327,21 +1468,6 @@ void Setka::MK_go(short int zone_MK)
 					}
 				}
 
-				// Отладочная информация
-				if (false)
-				{
-					cout << "_______________________________" << endl;
-					cout << "Zapusk test  " << P.sort << "    " << gr->number << endl;
-					whach(P.coord[0]);
-					whach(P.coord[1]);
-					whach(P.coord[2]);
-					whach(P.Vel[0]);
-					whach(P.Vel[1]);
-					whach(P.Vel[2]);
-					cout << "mu = " << P.mu << endl;
-					cout << "_______________________________" << endl;
-				}
-
 				Cell* previos = P.cel;
 				Cell* ppp = this->Find_cell_point(P.coord[0], P.coord[1], P.coord[2], 0, previos);
 				if (ppp != P.cel)
@@ -1363,28 +1489,100 @@ void Setka::MK_go(short int zone_MK)
 				//cout << "END" << endl;
 			}
 
-			if (gr->type == Type_Gran::Us) func->Delete();
+			if (gr->type == Type_Gran::Us)
+			{
+				func->Delete();
+				delete func;
+				func = nullptr;
+			}
+			
 		}
+	
+
+		// 3. Теперь надо сохранить ненужные выходящие функции распределения, но предварительно нормировать их
+		// Ненужные функции распределения, это функции сорта nh_, при условии, что этот сорт не рождается в области
+		// Сохраняем, удаляем, но перед этим нормируем
+		cout << "Start delete_1  for sort " << nh_ << endl;
+		if (this->MK_zone_H(zone_MK - 1, nh_) == false)
+		{
+			for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
+			{
+				auto& gr = this->MK_Grans[zone_MK - 1][idx];
+				if (gr->type != Type_Gran::Us) continue;
+
+				short int ni = 1; // Номер "выходящей" функции распределения
+				if (gr->cells[0]->MK_zone == zone_MK)
+				{
+					ni = 0;
+				}
+
+				gr->AMR[nh_][ni]->Normir_velocity_volume(gr->area[0]);
+				if (this->phys_param->de_refine_AMR == true)
+				{
+					gr->AMR[nh_][ni]->de_Refine();
+				}
+
+				string name_f = "func_grans_AMR_" + to_string(ni) + "_H" +
+					to_string(nh_ + 1) + "_" + to_string(gr->number) + ".bin";
+				if (this->phys_param->save_AMR == true)
+				{
+					gr->AMR[nh_][ni]->Save("data_AMR/" + name_f);
+				}
+				gr->AMR[nh_][ni]->Delete();
+				delete gr->AMR[nh_][ni];
+				gr->AMR[nh_][ni] = nullptr;
+			}
+		}
+		cout << "End delete_1  for sort " << nh_ << endl;
 	}
+
 
 	cout << "**********************************" << endl;
 	cout << "Obshee chislo chastic = " << ALL_N << endl;
 
-	// Нормировка функции распределения
-	for (auto& gr : this->MK_Grans[zone_MK - 1])
+
+	// Теперь нормируем оставшиеся функции распределения, сохраняем и удаляем
+	if (true)
 	{
-		short int ni = 1; // Номер "выходящей" функции распределения
-		if (gr->cells[0]->MK_zone == zone_MK)
+		cout << "Start save_1" << endl;
+		for (size_t j = 0; j < this->phys_param->num_H; j++)
 		{
-			ni = 0;
+			if (this->MK_zone_H(zone_MK - 1, j) == true)
+			{
+				// Значит нам надо сохранить выходящую функцию для водорода сорта j
+				for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
+				{
+					auto& gr = this->MK_Grans[zone_MK - 1][idx];
+					if (gr->type != Type_Gran::Us) continue;
+
+					short int ni = 1; // Номер "выходящей" функции распределения
+					if (gr->cells[0]->MK_zone == zone_MK)
+					{
+						ni = 0;
+					}
+
+					gr->AMR[j][ni]->Normir_velocity_volume(gr->area[0]);
+					if (this->phys_param->de_refine_AMR == true)
+					{
+						gr->AMR[j][ni]->de_Refine();
+					}
+					string name_f = "func_grans_AMR_" + to_string(ni) + "_H" +
+						to_string(j + 1) + "_" + to_string(gr->number) + ".bin";
+					if (this->phys_param->save_AMR == true)
+					{
+						gr->AMR[j][ni]->Save("data_AMR/" + name_f);
+					}
+					gr->AMR[j][ni]->Delete();
+					delete gr->AMR[j][ni];
+					gr->AMR[j][ni] = nullptr;
+				}
+			}
 		}
 
-		for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
-		{
-			auto& func = gr->AMR[nh_][ni];
-			func->Normir_velocity_volume(gr->area[0]);
-		}
+		cout << "End save_1" << endl;
 	}
+
+
 
 	// Нормировка Моментов в ячейках
 	k1 = 0;
@@ -1413,7 +1611,7 @@ void Setka::MK_go(short int zone_MK)
 	cout << "End: Normir moment in cells" << endl;
 
 	// Выведем одну функцию посмотреть что получилось)
-	if (true)
+	if (false)
 	{
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
 		{

@@ -15,6 +15,8 @@ short int Gran::Get_method()
 
 void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 {
+	// nH - начинается с 1 !!!!!!!!!!!!!!!!!!!!!!!!!
+
 	if (this->AMR.size() < nH)
 	{
 		cout << "Error 9yfhgrydttrjik743" << endl;

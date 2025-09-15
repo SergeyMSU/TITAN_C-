@@ -82,7 +82,9 @@ public:
 
 	// Параметры для Монте-Карло
 	vector < vector<Gran*>> MK_Grans;         // Сколько зон, столько и наборов граней вокруг каждой зоны
-	Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>  MK_zone_4;   // Для каждой зоны МК, показывает какой физической зоне (1 - 4) она принадлежит
+	Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>  MK_zone_4;   // Для каждой зоны МК, показывает какой физической зоне (1 - 4) она принадлежит (может принадлежать нескольким)
+	Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>  H_komponent_in_zone;   // Какие компоненты водорода рождаются в каждой физической зоне (считается автоматически)
+	Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>  MK_zone_H;   // Для каждой зоны МК показывает какие H в ней рождаются (считается автоматически)
 	vector <double> MK_Potoks;  // Потоки через зоны (через вышеопределённые наборы граней)
 
 
