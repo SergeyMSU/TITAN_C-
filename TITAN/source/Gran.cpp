@@ -31,7 +31,10 @@ void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 
 	if (this->AMR[nH - 1][ni]->cells.size() > 0)
 	{
-		cout << "Error 5678567yrewertfewgr" << endl;
+		cout << "Error 5678567yrewertfewgr  " << endl;
+		cout << nH << ni << endl;
+		cout << (int)(this->type) << endl;
+		cout << (int)(this->type2) << endl;
 		exit(-1);
 	}
 

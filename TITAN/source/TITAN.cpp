@@ -125,9 +125,9 @@ int main()
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
-    S1.Edges_create();
-    S1.Culc_divergence_in_cell();
-    S1.Culc_rotors_in_cell();
+    //S1.Edges_create();
+    //S1.Culc_divergence_in_cell();
+    //S1.Culc_rotors_in_cell();
 
     S1.Save_for_interpolate("For_intertpolate_138.bin", true);
     Interpol SS = Interpol("For_intertpolate_138.bin");

@@ -190,7 +190,7 @@ void Setka::Algoritm(short int alg)
 		vector<short int> zones_number;
 
 		zones_number.push_back(6);
-		/*zones_number.push_back(4);
+		zones_number.push_back(4);
 		zones_number.push_back(2);
 		zones_number.push_back(1);
 		zones_number.push_back(3);
@@ -200,7 +200,7 @@ void Setka::Algoritm(short int alg)
 		zones_number.push_back(3);
 		zones_number.push_back(1);
 		zones_number.push_back(2);
-		zones_number.push_back(4);*/
+		zones_number.push_back(4);
 
 		for (const auto& zone_play : zones_number)
 		{

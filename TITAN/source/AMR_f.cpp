@@ -910,6 +910,17 @@ void AMR_f::Read(string namef)
 	size_t dims[3];
 	in.read(reinterpret_cast<char*>(dims), 3 * sizeof(size_t));
 
+
+	if (dims[0] > 1000 || dims[1] > 1000 || dims[2] > 1000)
+	{
+		cout << "ERROR  ergergergefgrvergheg" << endl;
+		cout << namef << endl;
+		cout << dims[0] << " " << dims[1] << " " << dims[2] << endl;
+		exit(-1);
+	}
+
+
+
 	// Выделяем память под корневую сетку
 	this->cells.resize(boost::extents[dims[0]][dims[1]][dims[2]]);
 

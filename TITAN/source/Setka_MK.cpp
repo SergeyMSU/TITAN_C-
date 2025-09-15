@@ -771,11 +771,16 @@ void Setka::MK_prepare(short int zone_MK)
 			{
 				for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
 				{
-					// Выходящую функцию загружаем, обнуляем и сохраняеи
+					// Выходящую функцию загружаем, обнуляем и сохраняем
 					if (ni == ii)
 					{
 						if (gr->type == Type_Gran::Us)
 						{
+							if (gr->AMR[iH - 1][ii] != nullptr)
+							{
+								cout << "ERROR ergiegkjoeigjergeg" << endl;
+								exit(-1);
+							}
 							gr->Read_AMR(ii, iH, this->phys_param->refine_AMR);
 							gr->AMR[iH - 1][ni]->Fill_null();
 
@@ -796,6 +801,12 @@ void Setka::MK_prepare(short int zone_MK)
 
 					if (ni2 == ii)
 					{
+						if (gr->AMR[iH - 1][ii] != nullptr)
+						{
+							cout << "ERROR ergeyh45t34tergdgrdsrg" << endl;
+							cout << "iH = " << iH << "   ii" << ii << endl;
+							exit(-1);
+						}
 						gr->Read_AMR(ii, iH, false);
 					}
 
@@ -1295,6 +1306,9 @@ void Setka::MK_go(short int zone_MK)
 			if (func->SpotokV < 0.0000001 * full_gran_potok)
 			{
 				// Функция распределния нулевая, можно не разыгрывать
+				func->Delete();
+				delete func;
+				func = nullptr;
 				continue;
 			}
 
@@ -1489,12 +1503,10 @@ void Setka::MK_go(short int zone_MK)
 				//cout << "END" << endl;
 			}
 
-			if (gr->type == Type_Gran::Us)
-			{
-				func->Delete();
-				delete func;
-				func = nullptr;
-			}
+			func->Delete();
+			delete func;
+			func = nullptr;
+			
 			
 		}
 	
@@ -2017,7 +2029,9 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				dekard_skorost(P.coord[0], P.coord[1], P.coord[2],
 					Wr, Wphi, Wthe, P.Vel[0], P.Vel[1], P.Vel[2]);
 
-				P.sort = (short int)(P.cel->type);
+				short int zone = this->determ_zone(P.cel, 0);
+				// Потом нужно отделить сорта от термальных протонов и пикапов 1 и 2
+				P.sort = zone; // (short int)(P.cel->type);                              // Определение сорта частицы  !TODO
 				P.KSI = -log(1.0 - Sens->MakeRandom());
 				vtoroy_shans = false;
 				if (P.cel->MK_zone != zone_MK)

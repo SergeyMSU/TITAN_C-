@@ -6,7 +6,7 @@ class MK_particle
 public:
 	double Vel[3];    // Скорость частицы
 	double coord[3];  // Положение частицы
-	short int sort;         // Сорт частицы  1, 2, 3, 4
+	short int sort;         // Сорт частицы  1, 2, 3, 4 .....
 	double mu;              // Вес частицы
 	double KSI;              // Для вычисления длины свободного провбега
 	double I_do;             // Для розыгрыша длины свободного пробега

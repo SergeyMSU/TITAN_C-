@@ -721,6 +721,12 @@ void AMR_cell::Read_cell(std::ifstream& in)
 	size_t dims[3];
 	in.read(reinterpret_cast<char*>(dims), 3 * sizeof(size_t));
 
+	if (dims[0] > 1000 || dims[1] > 1000 || dims[2] > 1000)
+	{
+		cout << "ERROR  ertygru685467ujtuy3terdg" << endl;
+		exit(-1);
+	}
+
 	// Выделяем память под вложенный массив
 	this->cells.resize(boost::extents[dims[0]][dims[1]][dims[2]]);
 

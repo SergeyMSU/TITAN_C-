@@ -311,11 +311,12 @@ Phys_param::Phys_param()
 
     // Параметры в ячейках для Монте-Карло
     this->MK_param.push_back("MK_n_H"); this->param_names.push_back("MK_n_H");
-    this->MK_param.push_back("MK_n_H1"); this->param_names.push_back("MK_n_H1");
-    this->MK_param.push_back("MK_n_H2"); this->param_names.push_back("MK_n_H2");
-    this->MK_param.push_back("MK_n_H3"); this->param_names.push_back("MK_n_H3");
-    this->MK_param.push_back("MK_n_H4"); this->param_names.push_back("MK_n_H4");
-    
+    for (size_t ii = 1; ii <= this->num_H; ii++)
+    {
+        string nii = "MK_n_H" + to_string(ii);
+        this->MK_param.push_back(nii); this->param_names.push_back(nii);
+    }
+
 
     // Перевод в размерные единицы   СГС
     this->perevod_razmer["r"] = 4.21132;
