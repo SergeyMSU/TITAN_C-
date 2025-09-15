@@ -29,7 +29,7 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0057.bin");   // 107   119
+    S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
     //S1.Download_cell_parameters("parameters_0054.bin");   // 107
 
     // 19 стартовая точка от которой две параллели с пикапами и без
@@ -63,7 +63,10 @@ int main()
     S1.Tecplot_print_all_lush_in_2D();
     S1.Tecplot_print_all_cell_in_3D();
 
-    //S1.Algoritm(2);
+    S1.Algoritm(2);
+    return 0;
+
+
     S1.Tecplot_print_all_gran_in_surface("TS");
     S1.Tecplot_print_all_gran_in_surface("HP");
     S1.Tecplot_print_all_gran_in_surface("BS");
@@ -127,8 +130,8 @@ int main()
     S1.Culc_divergence_in_cell();
     S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_54.bin", true);
-    Interpol SS = Interpol("For_intertpolate_54.bin");
+    S1.Save_for_interpolate("For_intertpolate_138.bin", true);
+    Interpol SS = Interpol("For_intertpolate_138.bin");
 
     std::unordered_map<string, double> parameters;
     Cell_handle next_cell;

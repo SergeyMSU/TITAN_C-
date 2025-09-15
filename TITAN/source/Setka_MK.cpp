@@ -1404,7 +1404,11 @@ void Setka::MK_go(short int zone_MK)
 		}
 
 		cell->MK_normir_Moments(this->phys_param);
-		cell->MK_calc_Sm(this->phys_param);  // Нужно параллелить, так как эта функция долго обрабатывается
+
+		if (this->phys_param->MK_source_S == true)
+		{
+			cell->MK_calc_Sm(this->phys_param);  // Нужно параллелить, так как эта функция долго обрабатывается
+		}
 	}
 	cout << "End: Normir moment in cells" << endl;
 
