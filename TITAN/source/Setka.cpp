@@ -3079,6 +3079,23 @@ void Setka::Winslow_method(void)
 
 }
 
+void Setka::Print_SpSm(double x, double y, double z)
+{
+	Cell* prev = nullptr;
+	Cell* A = Find_cell_point(x, y, z, 0, prev);
+	if (A == nullptr)
+	{
+		cout << "Error f3et45yghbrhg" << endl;
+		return;
+	}
+
+	A->Init_S(2, this->phys_param->pui_nW);
+	A->read_S_FromFile();
+	A->print_SmSp(this->phys_param->pui_wR, to_string(x));
+	A->pui_Sm.resize(0);
+	A->pui_Sp.resize(0, 0);
+}
+
 void Setka::Tecplot_print_all_yzel_in_3D(string name)
 {
 	// name - это имя сетки

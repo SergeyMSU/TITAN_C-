@@ -725,8 +725,10 @@ void Setka::MK_prepare(short int zone_MK)
 	if (true)
 	{
 		cout << "Start: Zagruzka AMR" << endl;
-		unsigned int NN1_ = 0;
-		unsigned int NN2_ = 0;
+		unsigned int N1 = 0;
+		unsigned int N2 = 0;
+		unsigned int N_vxod = 0;
+		unsigned int N_vixod = 0;
 
 		unsigned short int NNall = 0;
 		double S = 0.0;
@@ -784,6 +786,12 @@ void Setka::MK_prepare(short int zone_MK)
 							gr->Read_AMR(ii, iH, this->phys_param->refine_AMR);
 							gr->AMR[iH - 1][ni]->Fill_null();
 
+							#pragma omp critical (vixod) 
+							{
+								N_vixod += gr->AMR[iH - 1][ni]->Size();
+								N1++;
+							}
+
 							string name_f = "func_grans_AMR_" + to_string(ii) + "_H" +
 								to_string(iH) + "_" + to_string(gr->number) + ".bin";
 
@@ -808,6 +816,15 @@ void Setka::MK_prepare(short int zone_MK)
 							exit(-1);
 						}
 						gr->Read_AMR(ii, iH, false);
+
+						if (gr->type == Type_Gran::Us)
+						{
+							#pragma omp critical (vxod) 
+							{
+								N_vxod += gr->AMR[iH - 1][ii]->Size();
+								N2++;
+							}
+						}
 					}
 
 				}
@@ -860,7 +877,8 @@ void Setka::MK_prepare(short int zone_MK)
 
 		}
 		cout << "Izmelcheno  " << NNall << "  yacheek" << endl;
-		cout << "Srednee chislo yacheek v AMR na vixodnix granyax =  " << 1.0 * NN1_/ NN2_ << endl;
+		cout << "Srednee chislo yacheek v AMR na VIXodnix granyax =  " << 1.0 * N_vixod / N1 << endl;
+		cout << "Srednee chislo yacheek v AMR na VXodnix granyax =  " << 1.0 * N_vxod / N2 << endl;
 		cout << "End: Zagruzka AMR" << endl;
 		this->MK_Potoks[zone_MK - 1] = S; // ¬ход€щий поток через всю границу зоны
 	}
@@ -1054,6 +1072,19 @@ void Setka::MK_prepare(short int zone_MK)
 		}
 	}
 
+
+	// —читаем и создадим S+  S-  в €чейках
+	if (this->phys_param->MK_source_S == true)
+	{
+		for (auto& i : this->All_Cell)
+		{
+			if (i->MK_zone == zone_MK)
+			{
+				i->Init_S(this->phys_param->num_pui, this->phys_param->pui_nW);
+			}
+		}
+	}
+
 	cout << "END MK_prepare   zone_MK = " << zone_MK << endl;
 }
 
@@ -1160,6 +1191,21 @@ void Setka::MK_delete(short int zone_MK)
 			this->Download_cell_MK_parameters(this->phys_param->MK_file, zone_MK);
 		}
 		this->Save_cell_MK_parameters(this->phys_param->MK_file);
+	}
+
+	// —читаем и создадим S+  S-  в €чейках
+	if (this->phys_param->MK_source_S == true)
+	{
+		for (auto& i : this->All_Cell)
+		{
+			if (i->MK_zone == zone_MK)
+			{
+				i->write_S_ToFile();
+				// ќсвобождаем пам€ть
+				i->pui_Sm.resize(0);
+				i->pui_Sp.resize(0, 0);
+			}
+		}
 	}
 
 	cout << "END MK_delete" << endl;
@@ -1871,19 +1917,22 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		
 		//Sootnosheniya(ro, p, rho_He, 0.0, 0.0, (int)(P.cel->type),
 		//	rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
-
 		unordered_map<string, double> param;
 
-		this->phys_param->Plasma_components((int)(P.cel->type), P.cel->parameters[0], param);
+		this->phys_param->Plasma_components_1((int)(P.cel->type), P.cel->parameters[0], param); // Ёто без пикапов
+
+		
+		//this->phys_param->Plasma_components((int)(P.cel->type), P.cel->parameters[0], param);
 
 		rho_Th = param["rho_Th"];
 		p_Th = param["p_Th"];
 
 		if (rho_Th <= 1e-8) rho_Th = 1e-8;
-		if (p_Th <= 1e-8/2.0) p_Th = 1e-8/2.0;
+		if (p_Th <= 1e-8 / 2.0) p_Th = 1e-8 / 2.0;
 
 		ro = rho_Th;
 		cp = sqrt(2.0 * p_Th / rho_Th);
+		
 
 		// ---------------------------------------------------------------
 
@@ -1923,9 +1972,10 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 					P.cel->MK_Add_particle(P, time);
 				}
 
+				short int zone = this->determ_zone(P.cel, 0);
 				if (this->phys_param->MK_source_S == true)
 				{
-					P.cel->MK_Add_pui_source(u, nu_ex, P.mu, time, this->phys_param);
+					P.cel->MK_Add_pui_source(P, u, nu_ex, P.mu, time, this->phys_param, zone, 0);
 				}
 				// -------------------------------------------------------------------
 			}
@@ -2000,6 +2050,8 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				double uz_M = Velosity_2(u, cp) / (uz * kv(cp) * cp * const_pi * sqrtpi_);
 				double uz_E = Velosity_3(u, cp);
 
+				short int zone = this->determ_zone(P.cel, 0);
+
 				// «десь записываем необходимые моменты в €чейку ---------------------
 				if (this->phys_param->culc_cell_moments == true)
 				{
@@ -2008,7 +2060,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 				if (this->phys_param->MK_source_S == true)
 				{
-					P.cel->MK_Add_pui_source(u, nu_ex, P.mu, t_ex, this->phys_param);
+					P.cel->MK_Add_pui_source(P, u, nu_ex, P.mu, time, this->phys_param, zone, 0);
 				}
 				// -------------------------------------------------------------------
 
@@ -2029,7 +2081,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				dekard_skorost(P.coord[0], P.coord[1], P.coord[2],
 					Wr, Wphi, Wthe, P.Vel[0], P.Vel[1], P.Vel[2]);
 
-				short int zone = this->determ_zone(P.cel, 0);
+				
 				// ѕотом нужно отделить сорта от термальных протонов и пикапов 1 и 2
 				P.sort = zone; // (short int)(P.cel->type);                              // ќпределение сорта частицы  !TODO
 				P.KSI = -log(1.0 - Sens->MakeRandom());

@@ -45,9 +45,16 @@ public:
 	unordered_map<string, Eigen::VectorXd> interpolate_alpha;
 
 	// »сточники рождени€ пикапов (их должно быть в €чейке столько же, сколько у нас есть сортов пикапов в этой зоне)
-	vector<double> pui_Sm;
-	vector<double> pui_Sp;
+	vector<double> pui_Sm;   // (n)
+	Eigen::MatrixXd pui_Sp;   // (2, n)
 
+	//vector<double> pui_Sm;
+	//vector<double> pui_Sp;
+
+	void Init_S(short int k, short int n);   // »нициализаци€ S+ S-
+	void write_S_ToFile(void);
+	void read_S_FromFile(void);
+	void print_SmSp(double Wmax, string nam);
 
 	void Get_RBF_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par);
 	void Get_IDW_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par, Phys_param* phys_param);
@@ -78,8 +85,8 @@ public:
 	void Tecplot_print_cell(void);
 
 	void MK_Add_particle(MK_particle& P, const double& time);
-	void MK_Add_pui_source(const double& wr, const double& nu_ex, const double& mu,
-		const double& time, Phys_param* phys_param);
+	void MK_Add_pui_source(MK_particle& P, const double& wr, const double& nu_ex, const double& mu,
+		const double& time, Phys_param* phys_param, short int zone, short int parent);
 
 	void MK_calc_Sm(Phys_param* phys_param);
 	void MK_normir_Moments(Phys_param* phys_param);

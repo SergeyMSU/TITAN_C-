@@ -63,6 +63,11 @@ int main()
     S1.Tecplot_print_all_lush_in_2D();
     S1.Tecplot_print_all_cell_in_3D();
 
+    //S1.Print_SpSm(20.0, 0.0, 0.0);
+    //S1.Print_SpSm(10.0, 0.0, 0.0);
+    //S1.Print_SpSm(40.0, 0.0, 0.0);
+    //return 0;
+
     S1.Algoritm(2);
 
 
@@ -129,7 +134,7 @@ int main()
     //S1.Culc_divergence_in_cell();
     //S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_138.bin", true);
+    S1.Save_for_interpolate("For_intertpolate_138.bin", false);
     Interpol SS = Interpol("For_intertpolate_138.bin");
 
     if (false) // Проверка интерполятора

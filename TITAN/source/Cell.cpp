@@ -1,5 +1,126 @@
 ﻿#include "Cell.h"
 
+
+
+void Cell::Init_S(short int k, short int n)
+{
+	this->pui_Sm.resize(n);
+	this->pui_Sp.resize(k, n);
+
+	for (size_t i = 0; i < n; i++)
+	{
+		this->pui_Sm[i] = 0.0;
+	}
+
+
+	this->pui_Sp.setZero();
+}
+
+void Cell::write_S_ToFile(void)
+{
+	std::string filename = "data_SpSm/func_cells_SpSm_" + to_string(this->number) + ".bin";
+
+
+	std::ofstream file(filename, std::ios::binary);
+	if (!file.is_open()) {
+		std::cerr << "Error jdheirgfvbierboifeurfvef " << filename << std::endl;
+		exit(-1);
+	}
+
+	try {
+		// Записываем размеры матриц
+		int rows = this->pui_Sp.rows();
+		int cols = this->pui_Sp.cols();
+		file.write(reinterpret_cast<const char*>(&rows), sizeof(rows));
+		file.write(reinterpret_cast<const char*>(&cols), sizeof(cols));
+
+		int size = this->pui_Sm.size();
+		file.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+
+		// Записываем данные pui_Sm
+		file.write(reinterpret_cast<const char*>(this->pui_Sm.data()),
+			size * sizeof(double));
+
+		// Записываем данные pui_Sp
+		file.write(reinterpret_cast<const char*>(this->pui_Sp.data()),
+			rows * cols * sizeof(double));
+
+		file.close();
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error  KJHfuiyregbuyifbeihrfyugwuhuerf" << e.what() << std::endl;
+		file.close();
+		exit(-1);
+	}
+}
+
+void Cell::read_S_FromFile(void) 
+{
+	std::string filename = "data_SpSm/func_cells_SpSm_" + to_string(this->number) + ".bin";
+
+	if (file_exists(filename) == false) return;
+
+	std::ifstream file(filename, std::ios::binary);
+	if (!file.is_open()) 
+	{
+		std::cerr << "Error 98u98y8fwgrihfbuoerfre" << filename << std::endl;
+		exit(-10);
+	}
+
+	try {
+		// Читаем размеры матриц
+		int rows, cols, size;
+		file.read(reinterpret_cast<char*>(&rows), sizeof(rows));
+		file.read(reinterpret_cast<char*>(&cols), sizeof(cols));
+
+		file.read(reinterpret_cast<char*>(&size), sizeof(size));
+
+		// Проверяем соответствие размеров
+		if (rows != this->pui_Sp.rows() || cols != this->pui_Sp.cols())
+		{
+			std::cerr << "Error ejighieurgerg54t4t5"
+				<< "fail: " << rows << "  x   " << cols << ", "
+				<< "expect: " << this->pui_Sp.rows() << "  x  " << this->pui_Sp.cols() << std::endl;
+			file.close();
+			exit(-10);
+		}
+
+		// Читаем данные pui_Sm
+		file.read(reinterpret_cast<char*>(this->pui_Sm.data()),
+			size * sizeof(double));
+
+		// Читаем данные pui_Sp
+		file.read(reinterpret_cast<char*>(this->pui_Sp.data()),
+			rows * cols * sizeof(double));
+
+		file.close();
+
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error 384try78geurgfuegf " << e.what() << std::endl;
+		file.close();
+		exit(-19);
+	}
+}
+
+void Cell::print_SmSp(double Wmax, string nam)
+{
+	ofstream fout;
+	string name_f = "Tecplot_SpSm_" + nam  + "__" + to_string(this->number) + ".txt";
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = u, Sm, Sp1, Sp2" << endl;
+	int size = this->pui_Sm.size();
+	double dx = Wmax / size;
+	for (int i = 0; i < size; ++i)
+	{
+		double center = (i + 0.5) * dx;  // центр ячейки
+		fout << center << " " << this->pui_Sm[i] << " " << this->pui_Sp(0, i) << " " << this->pui_Sp(1, i) << std::endl;
+	}
+
+	fout.close();
+}
+
 void Cell::Get_RBF_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par)
 {
 	Eigen::Vector3d point;
@@ -462,18 +583,50 @@ void Cell::MK_Add_particle(MK_particle& P, const double& time)
 		this->mut.unlock();
 }
 
-void Cell::MK_Add_pui_source(const double& wr, const double& nu_ex, const double& mu, 
-	const double& time, Phys_param* phys_param)
+void Cell::MK_Add_pui_source(MK_particle& P, const double& wr, const double& nu_ex, const double& mu,
+	const double& time, Phys_param* phys_param, short int zone, short int parent)
 {
+	// zone = 1, 2, 3, 4
+	// parent - 0, 1, 2 от каго рождён атом? тепловой протон, pui1, pui2
+
 	int index = static_cast<int>(wr / phys_param->pui_wR * phys_param->pui_nW);
 	if (index < 0)  index = 0;
 	if (index >= phys_param->pui_nW)  index = phys_param->pui_nW - 1;
+
+	this->mut.lock();
+	this->pui_Sm[index] += mu * time;
+	this->mut.unlock();
+
+	// Надо понять, в какой S записываем 
+	short int k = 0;
+	if (zone == 1)
+	{
+		k = phys_param->proton_arise_1(P.sort, parent);
+	}
+	else if (zone == 2)
+	{
+		k = phys_param->proton_arise_2(P.sort, parent);
+	}
+	else if (zone == 3)
+	{
+		k = phys_param->proton_arise_3(P.sort, parent);
+	}
+	else if (zone == 4)
+	{
+		k = phys_param->proton_arise_4(P.sort, parent);
+	}
+	else
+	{
+		cout << "ERROR j9egrhg9u34980tuf9hwe9prggfewr" << endl;
+		exit(-1);
+	}
+
+
+	if (k == 0) return;
+	k = k - 1;
 	
 	this->mut.lock();
-
-	this->pui_Sm[index] += mu * time;
-	this->pui_Sp[index] +=  mu * time * nu_ex;
-
+	this->pui_Sp(k, index) +=  mu * time * nu_ex;
 	this->mut.unlock();
 }
 
@@ -495,7 +648,7 @@ void Cell::MK_calc_Sm(Phys_param* phys_param)
 			for (size_t k = 1; k <= 40; k++)
 			{
 				the = dthe * k;
-				d = sqrt(kv(Vh) + kv(2) - 2.0 * w * Vh * cos(the));
+				d = sqrt(kv(Vh) + kv(w) - 2.0 * w * Vh * cos(the));
 				if (d > 0.000000001)
 				{
 					pui_Sm2[ij] += ff * d * sigma(d) * sin(the) * dthe * 2.0 * const_pi;
@@ -546,7 +699,14 @@ void Cell::MK_normir_Moments(Phys_param* phys_param)
 			double pui_w1 = ij * phys_param->pui_wR / phys_param->pui_nW;
 			double pui_w2 = (ij + 1) * phys_param->pui_wR / phys_param->pui_nW;
 			this->pui_Sm[ij] /= (this->volume[0]);
-			this->pui_Sp[ij] /= (this->volume[0] * 4.0 * const_pi * (1.0 / 3.0) * (pow3(pui_w2) - pow3(pui_w1)));
+			for (size_t ki = 0; ki < this->pui_Sp.rows(); ki++)
+			{
+				if (ki > 1)
+				{
+					cout << "Error lokal 9803u45th9erfgre" << endl;
+				}
+				this->pui_Sp(ki, ij) /= (this->volume[0] * 4.0 * const_pi * (1.0 / 3.0) * (pow3(pui_w2) - pow3(pui_w1)));
+			}
 		}
 	}
 }
