@@ -725,10 +725,13 @@ void Setka::MK_prepare(short int zone_MK)
 	if (true)
 	{
 		cout << "Start: Zagruzka AMR" << endl;
-		unsigned int N1 = 0;
-		unsigned int N2 = 0;
-		unsigned int N_vxod = 0;
-		unsigned int N_vixod = 0;
+		unsigned int N1[20];
+		unsigned int N_vxod[20];
+		for (short int i = 0; i < 20; i++)
+		{
+			N1[i] = 0;
+			N_vxod[i] = 0;
+		}
 
 		unsigned short int NNall = 0;
 		double S = 0.0;
@@ -788,8 +791,8 @@ void Setka::MK_prepare(short int zone_MK)
 
 							#pragma omp critical (vixod) 
 							{
-								N_vixod += gr->AMR[iH - 1][ni]->Size();
-								N1++;
+								//N_vixod[iH - 1] += gr->AMR[iH - 1][ni]->Size();
+								//N1[iH - 1]++;
 							}
 
 							string name_f = "func_grans_AMR_" + to_string(ii) + "_H" +
@@ -821,8 +824,8 @@ void Setka::MK_prepare(short int zone_MK)
 						{
 							#pragma omp critical (vxod) 
 							{
-								N_vxod += gr->AMR[iH - 1][ii]->Size();
-								N2++;
+								N_vxod[iH - 1] += gr->AMR[iH - 1][ii]->Size();
+								N1[iH - 1]++;
 							}
 						}
 					}
@@ -877,8 +880,14 @@ void Setka::MK_prepare(short int zone_MK)
 
 		}
 		cout << "Izmelcheno  " << NNall << "  yacheek" << endl;
-		if (N1 > 0) cout << "Srednee chislo yacheek v AMR na VIXodnix granyax =  " << 1.0 * N_vixod / N1 << endl;
-		if (N2 > 0) cout << "Srednee chislo yacheek v AMR na VXodnix granyax =  " << 1.0 * N_vxod / N2 << endl;
+		std::ofstream file1("info_AMR_size.txt", std::ios::app);
+		for (short int iH = 0; iH < 9; iH++)
+		{
+			if (N1[iH] == 0) N1[iH] = 1;
+			file1 << "Zone:  " << zone_MK << "   H = " << iH + 1 << 
+				"   vxod size: " << 1.0 * N_vxod[iH] / N1[iH] << std::endl;
+		}
+		file1.close();
 		cout << "End: Zagruzka AMR" << endl;
 		this->MK_Potoks[zone_MK - 1] = S; // Входящий поток через всю границу зоны
 	}
@@ -1223,8 +1232,13 @@ void Setka::MK_go(short int zone_MK)
 	cout << "All potok = " << this->MK_Potoks[zone_MK - 1] << endl;
 	//exit(-1);
 
-	unsigned int N2 = 0;
-	unsigned int N_vixod = 0;
+	unsigned int N2[9];
+	unsigned int N_vixod[9];
+	for (short int i = 0; i < 9; i++)
+	{
+		N2[i] = 0;
+		N_vixod[i] = 0;
+	}
 
 	// Подготовка нужных массивов 
 	if (true)
@@ -1248,8 +1262,8 @@ void Setka::MK_go(short int zone_MK)
 					}
 					gr->Read_AMR(ni, j + 1, this->phys_param->refine_AMR);
 					gr->AMR[j][ni]->Fill_null();
-					N_vixod += gr->AMR[j][ni]->Size();
-					N2++;
+					N_vixod[j] += gr->AMR[j][ni]->Size();
+					N2[j]++;
 				}
 			}
 		}
@@ -1283,8 +1297,8 @@ void Setka::MK_go(short int zone_MK)
 				}
 				gr->Read_AMR(ni, nh_ + 1, this->phys_param->refine_AMR);
 				gr->AMR[nh_][ni]->Fill_null();
-				N_vixod += gr->AMR[nh_][ni]->Size();
-				N2++;
+				N_vixod[nh_] += gr->AMR[nh_][ni]->Size();
+				N2[nh_]++;
 			}
 		}
 		cout << "End download_2  for sort " << nh_ << endl;
@@ -1302,7 +1316,7 @@ void Setka::MK_go(short int zone_MK)
 			#pragma omp critical (first) 
 			{
 				k1++;
-				if (k1 % 100 == 0)
+				if (k1 % 500 == 0)
 				{
 					cout << "Gran = " << k1 << "    Iz: " << this->MK_Grans[zone_MK - 1].size() << "  sort " << nh_ + 1 << endl;
 				}
@@ -1607,7 +1621,15 @@ void Setka::MK_go(short int zone_MK)
 	cout << "**********************************" << endl;
 	cout << "Obshee chislo chastic = " << ALL_N << endl;
 
-	cout << "Obshee chislo yacheek na VIXod grans = " << 1.0 * N_vixod / N2 << endl;
+	std::ofstream file1("info_AMR_size.txt", std::ios::app);
+	for (short int iH = 0; iH < 9; iH++)
+	{
+		if (N2[iH] == 0) N2[iH] = 1;
+		file1 << "Zone:  " << zone_MK << "   H = " << iH + 1 <<
+			"   vixod size: " << 1.0 * N_vixod[iH] / N2[iH] << std::endl;
+	}
+	file1.close();
+
 
 
 	// Теперь нормируем оставшиеся функции распределения, сохраняем и удаляем
