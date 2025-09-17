@@ -11,8 +11,6 @@ void Cell::Init_S(short int k, short int n)
 	{
 		this->pui_Sm[i] = 0.0;
 	}
-
-
 	this->pui_Sp.setZero();
 }
 
@@ -601,25 +599,27 @@ void Cell::MK_Add_pui_source(MK_particle& P, const double& wr, const double& nu_
 	short int k = 0;
 	if (zone == 1)
 	{
-		k = phys_param->proton_arise_1(P.sort, parent);
+		k = phys_param->proton_arise_1(P.sort - 1, parent);
 	}
 	else if (zone == 2)
 	{
-		k = phys_param->proton_arise_2(P.sort, parent);
+		k = phys_param->proton_arise_2(P.sort - 1, parent);
 	}
 	else if (zone == 3)
 	{
-		k = phys_param->proton_arise_3(P.sort, parent);
+		k = phys_param->proton_arise_3(P.sort - 1, parent);
 	}
 	else if (zone == 4)
 	{
-		k = phys_param->proton_arise_4(P.sort, parent);
+		k = phys_param->proton_arise_4(P.sort - 1, parent);
 	}
 	else
 	{
 		cout << "ERROR j9egrhg9u34980tuf9hwe9prggfewr" << endl;
 		exit(-1);
 	}
+
+	//cout << "Proverka:   " <<  P.sort << "   " << parent << "   " << zone << "   " << k << endl;
 
 
 	if (k == 0) return;

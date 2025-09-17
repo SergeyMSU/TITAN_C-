@@ -70,6 +70,14 @@ int main()
 
     S1.Algoritm(2);
 
+    S1.Print_SpSm(17.0, 0.0, 0.0);
+    S1.Print_SpSm(20.0, 0.0, 0.0);
+    S1.Print_SpSm(25.0, 0.0, 0.0);
+    S1.Print_SpSm(1.0, 0.0, 0.0);
+    S1.Print_SpSm(5.0, 0.0, 0.0);
+    S1.Print_SpSm(10.0, 0.0, 0.0);
+    S1.Print_SpSm(15.0, 0.0, 0.0);
+
 
     S1.Tecplot_print_all_gran_in_surface("TS");
     S1.Tecplot_print_all_gran_in_surface("HP");

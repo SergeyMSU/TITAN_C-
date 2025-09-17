@@ -774,7 +774,7 @@ void Setka::MK_prepare(short int zone_MK)
 				for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
 				{
 					// Выходящую функцию загружаем, обнуляем и сохраняем
-					if (ni == ii)
+					if (false)//(ni == ii)
 					{
 						if (gr->type == Type_Gran::Us)
 						{
@@ -877,8 +877,8 @@ void Setka::MK_prepare(short int zone_MK)
 
 		}
 		cout << "Izmelcheno  " << NNall << "  yacheek" << endl;
-		cout << "Srednee chislo yacheek v AMR na VIXodnix granyax =  " << 1.0 * N_vixod / N1 << endl;
-		cout << "Srednee chislo yacheek v AMR na VXodnix granyax =  " << 1.0 * N_vxod / N2 << endl;
+		if (N1 > 0) cout << "Srednee chislo yacheek v AMR na VIXodnix granyax =  " << 1.0 * N_vixod / N1 << endl;
+		if (N2 > 0) cout << "Srednee chislo yacheek v AMR na VXodnix granyax =  " << 1.0 * N_vxod / N2 << endl;
 		cout << "End: Zagruzka AMR" << endl;
 		this->MK_Potoks[zone_MK - 1] = S; // Входящий поток через всю границу зоны
 	}
@@ -1223,6 +1223,9 @@ void Setka::MK_go(short int zone_MK)
 	cout << "All potok = " << this->MK_Potoks[zone_MK - 1] << endl;
 	//exit(-1);
 
+	unsigned int N2 = 0;
+	unsigned int N_vixod = 0;
+
 	// Подготовка нужных массивов 
 	if (true)
 	{
@@ -1243,7 +1246,10 @@ void Setka::MK_go(short int zone_MK)
 					{
 						ni = 0;
 					}
-					gr->Read_AMR(ni, j + 1, false);
+					gr->Read_AMR(ni, j + 1, this->phys_param->refine_AMR);
+					gr->AMR[j][ni]->Fill_null();
+					N_vixod += gr->AMR[j][ni]->Size();
+					N2++;
 				}
 			}
 		}
@@ -1275,7 +1281,10 @@ void Setka::MK_go(short int zone_MK)
 				{
 					ni = 0;
 				}
-				gr->Read_AMR(ni, nh_ + 1, false);
+				gr->Read_AMR(ni, nh_ + 1, this->phys_param->refine_AMR);
+				gr->AMR[nh_][ni]->Fill_null();
+				N_vixod += gr->AMR[nh_][ni]->Size();
+				N2++;
 			}
 		}
 		cout << "End download_2  for sort " << nh_ << endl;
@@ -1560,7 +1569,7 @@ void Setka::MK_go(short int zone_MK)
 		// 3. Теперь надо сохранить ненужные выходящие функции распределения, но предварительно нормировать их
 		// Ненужные функции распределения, это функции сорта nh_, при условии, что этот сорт не рождается в области
 		// Сохраняем, удаляем, но перед этим нормируем
-		cout << "Start delete_1  for sort " << nh_ << endl;
+		cout << "Start delete_1  for sort " << nh_ + 1 << endl;
 		if (this->MK_zone_H(zone_MK - 1, nh_) == false)
 		{
 			for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
@@ -1591,12 +1600,14 @@ void Setka::MK_go(short int zone_MK)
 				gr->AMR[nh_][ni] = nullptr;
 			}
 		}
-		cout << "End delete_1  for sort " << nh_ << endl;
+		cout << "End delete_1  for sort " << nh_ + 1 << endl;
 	}
 
 
 	cout << "**********************************" << endl;
 	cout << "Obshee chislo chastic = " << ALL_N << endl;
+
+	cout << "Obshee chislo yacheek na VIXod grans = " << 1.0 * N_vixod / N2 << endl;
 
 
 	// Теперь нормируем оставшиеся функции распределения, сохраняем и удаляем
@@ -2060,7 +2071,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 				if (this->phys_param->MK_source_S == true)
 				{
-					P.cel->MK_Add_pui_source(P, u, nu_ex, P.mu, time, this->phys_param, zone, 0);
+					P.cel->MK_Add_pui_source(P, u, nu_ex, P.mu, t_ex, this->phys_param, zone, 0);
 				}
 				// -------------------------------------------------------------------
 

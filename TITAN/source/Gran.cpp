@@ -48,7 +48,18 @@ void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 
 		if (need_refine == true)
 		{
-			this->AMR[nH - 1][ni]->Refine();
+			unsigned int N = this->AMR[nH - 1][ni]->Size();
+			if (N < 3000)
+			{
+				this->AMR[nH - 1][ni]->Refine();
+			}
+			else
+			{
+				cout << "Warning:  AMR = " << N << endl;
+				cout << "Info: nH > 3000   = " << nH << "   gran -> " << this->center[0][0] << " " << this->center[0][1] << " " <<
+					this->center[0][2] << endl;
+				cout << "gran number = " << this->number << endl;
+			}
 		}
 	}
 	else
