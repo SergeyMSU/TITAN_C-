@@ -58,11 +58,16 @@ public:
 
 
 	bool Get_param(const double& x, const double& y, const double& z,
-		std::unordered_map<string, double>& parameters, const Cell_handle& prev_cell, Cell_handle& next_cell);
-
-	bool Get_param(const double& x, const double& y, const double& z, 
-		std::unordered_map<string, double>& parameters, 
-		const Cell_handle& prev_cell, Cell_handle& next_cell, short int& this_zone);
+		std::unordered_map<string, double>& parameters);
+	bool Get_param(const double& x, const double& y, const double& z,
+		std::unordered_map<string, double>& parameters, const std::array<Cell_handle, 6>& prev_cell,
+		std::array<Cell_handle, 6>& next_cell,
+		short int& this_zone);
+	bool Get_param(const double& x, const double& y, const double& z,
+		std::unordered_map<string, double>& parameters, short int& this_zone);
+	bool Get_param(const double& x, const double& y, const double& z,
+		std::unordered_map<string, double>& parameters, const std::array<Cell_handle, 6>& prev_cell,
+		std::array<Cell_handle, 6>& next_cell);
 
 	bool Get_TS(const double& x, const double& y, const double& z,
 		std::unordered_map<string, double>& parameters);

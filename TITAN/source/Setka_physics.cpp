@@ -284,8 +284,6 @@ void Setka::Init_physics(void)
 	{
 		Interpol SS = Interpol("For_intertpolate_1.bin");
 		std::unordered_map<string, double> parameters;
-		Cell_handle next_cell;
-		Cell_handle prev_cell = Cell_handle();
 		bool fine_int;
 
 		for (auto& i : this->All_Cell)
@@ -293,8 +291,7 @@ void Setka::Init_physics(void)
 			if (norm2(i->center[0][0], i->center[0][1], i->center[0][2]) < 10.0)
 			{
 				fine_int = SS.Get_param(i->center[0][0], i->center[0][1], i->center[0][2], 
-					parameters, prev_cell, next_cell);
-				prev_cell = next_cell;
+					parameters);
 
 				i->parameters[0]["rho_H1"] = parameters["rho_H1"];
 				i->parameters[0]["Vx_H1"] = parameters["Vx_H1"];

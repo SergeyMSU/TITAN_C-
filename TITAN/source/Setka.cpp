@@ -230,12 +230,18 @@ void Setka::Algoritm(short int alg)
 		// Считаем функции распределения
 		unsigned int st = 0;
 		cout << "Start: Culc PUI" << endl;
-		for (auto& A : this->All_Cell)
+
+		#pragma omp parallel for schedule(dynamic)
+		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
 		{
-			st++;
-			if (st % 1000 == 0)
+			auto A = this->All_Cell[idx];
+			#pragma omp critical (first) 
 			{
-				cout << "st = " << st << "   from " << this->All_Cell.size() << endl;
+				st++;
+				if (st % 1000 == 0)
+				{
+					cout << "st = " << st << "   from " << this->All_Cell.size() << endl;
+				}
 			}
 			short int zone = determ_zone(A, 0);
 			A->Init_f_pui(this->phys_param->pui_nW, zone);
@@ -4020,8 +4026,6 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 	unsigned int N = 5000;
 	Eigen::Vector3d C;
 	std::unordered_map<string, double> parameters;
-	Cell_handle next_cell;
-	Cell_handle prev_cell = Cell_handle();
 	bool fine_int;
 
 	for (size_t i = 0; i < N; i++)
@@ -4029,10 +4033,9 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 		C = Origin + i * vec / N * leng;
 
 		//cout << "Int1->Get_param A" << endl;
-		fine_int = Int1->Get_param(C(0), C(1), C(2), parameters, prev_cell, next_cell);
+		fine_int = Int1->Get_param(C(0), C(1), C(2), parameters);
 		//cout << "Int1->Get_param B" << endl;
 		if (fine_int == false) continue;
-		prev_cell = next_cell;
 
 		fout << 1.0 * i / N * leng << " " << C(0) << " " << C(1) << " " << C(2);
 		for (auto& nam : Int1->param_names)
@@ -4343,8 +4346,6 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 
 	Eigen::Vector3d C2;
 	std::unordered_map<string, double> parameters;
-	Cell_handle next_cell;
-	Cell_handle prev_cell = Cell_handle();
 	bool fine_int;
 
 	for (const auto& i : all_setka)
@@ -4370,14 +4371,14 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			C(0) = j[0];
 			C(1) = j[1];
 			C(2) = j[2];
-			fine_int = Int1->Get_param(C(0), C(1), C(2), parameters, prev_cell, next_cell);
+			fine_int = Int1->Get_param(C(0), C(1), C(2), parameters);
 			if (fine_int == false)
 			{
 				C = C * 0.999;
-				fine_int = Int1->Get_param(C(0), C(1), C(2), parameters, prev_cell, next_cell);
+				fine_int = Int1->Get_param(C(0), C(1), C(2), parameters);
 			}
 
-			if (fine_int == true) next_cell = prev_cell;
+
 			if (fine_int == false)
 			{
 				visible = false;
@@ -4390,14 +4391,13 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			C(0) = j[0];
 			C(1) = j[1];
 			C(2) = j[2];
-			fine_int = Int1->Get_param(C(0), C(1), C(2), parameters, prev_cell, next_cell);
+			fine_int = Int1->Get_param(C(0), C(1), C(2), parameters);
 			if (fine_int == false)
 			{
 				C = C * 0.999;
-				fine_int = Int1->Get_param(C(0), C(1), C(2), parameters, prev_cell, next_cell);
+				fine_int = Int1->Get_param(C(0), C(1), C(2), parameters);
 			}
 
-			if (fine_int == true) next_cell = prev_cell;
 
 			if (visible == false)
 			{

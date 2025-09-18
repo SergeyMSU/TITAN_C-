@@ -407,14 +407,34 @@ std::array<double, 4> barycentric_coordinates(const Point& P, const Tetrahedron&
 }
 
 bool Interpol::Get_param(const double& x, const double& y, const double& z,
-    std::unordered_map<string, double>& parameters, const Cell_handle& prev_cell, Cell_handle& next_cell)
+    std::unordered_map<string, double>& parameters)
+{
+    short int this_zone;
+    std::array<Cell_handle, 6> prev_cell;
+    std::array<Cell_handle, 6> next_cell;
+    for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
+    return this->Get_param(x, y, z, parameters, prev_cell, next_cell, this_zone);
+}
+
+bool Interpol::Get_param(const double& x, const double& y, const double& z,
+    std::unordered_map<string, double>& parameters, short int& this_zone)
+{
+    std::array<Cell_handle, 6> prev_cell;
+    std::array<Cell_handle, 6> next_cell;
+    for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
+    return this->Get_param(x, y, z, parameters, prev_cell, next_cell, this_zone);
+}
+
+bool Interpol::Get_param(const double& x, const double& y, const double& z,
+    std::unordered_map<string, double>& parameters, const std::array<Cell_handle, 6>& prev_cell, 
+    std::array<Cell_handle, 6>& next_cell)
 {
     short int this_zone;
     return this->Get_param(x, y, z, parameters, prev_cell, next_cell, this_zone);
 }
 
 bool Interpol::Get_param(const double& x, const double& y, const double& z, 
-    std::unordered_map<string, double>& parameters, const Cell_handle& prev_cell, Cell_handle& next_cell, 
+    std::unordered_map<string, double>& parameters, const std::array<Cell_handle, 6>& prev_cell, std::array<Cell_handle, 6>& next_cell,
     short int& this_zone)
 {
     //cout << "A0" << endl;
@@ -517,59 +537,65 @@ know_zone:
     if (my_zone == 1 || this->razriv == false)
     {
         CCC = &this->Cells_1;
-        containing_cell = this->Delone_1->locate(query);
+        containing_cell = this->Delone_1->locate(query, prev_cell[0]);
         if (this->Delone_1->is_infinite(containing_cell))
         {
             return false;
         }
+        next_cell[0] = containing_cell;
     }
     else if((my_zone == 2))
     {
         CCC = &this->Cells_2;
-        containing_cell = this->Delone_2->locate(query);
+        containing_cell = this->Delone_2->locate(query, prev_cell[1]);
         if (this->Delone_2->is_infinite(containing_cell))
         {
             return false;
         }
+        next_cell[1] = containing_cell;
     }
     else if ((my_zone == 3))
     {
         CCC = &this->Cells_3;
-        containing_cell = this->Delone_3->locate(query);
+        containing_cell = this->Delone_3->locate(query, prev_cell[2]);
         if (this->Delone_3->is_infinite(containing_cell))
         {
             return false;
         }
+        next_cell[2] = containing_cell;
     }
     else if ((my_zone == 4))
     {
         CCC = &this->Cells_4;
-        containing_cell = this->Delone_4->locate(query);
+        containing_cell = this->Delone_4->locate(query, prev_cell[3]);
         if (this->Delone_4->is_infinite(containing_cell))
         {
             return false;
         }
+        next_cell[3] = containing_cell;
     }
     else if ((my_zone == 5))
     {
         CCC = &this->Cells_5;
-        containing_cell = this->Delone_5->locate(query);
+        containing_cell = this->Delone_5->locate(query, prev_cell[4]);
         if (this->Delone_5->is_infinite(containing_cell))
         {
             return false;
         }
+        next_cell[4] = containing_cell;
     }
     else if ((my_zone == 6))
     {
         CCC = &this->Cells_6;
-        containing_cell = this->Delone_6->locate(query);
+        containing_cell = this->Delone_6->locate(query, prev_cell[5]);
         if (this->Delone_6->is_infinite(containing_cell))
         {
             return false;
         }
+        next_cell[5] = containing_cell;
     }
     //cout << "A5" << endl;
-    next_cell = containing_cell;
+   
 
     //cout << "A2" << endl;
     // Получаем вершины тетраэдра 

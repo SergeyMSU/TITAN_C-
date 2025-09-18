@@ -2327,7 +2327,7 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 	double pui_wR = this->phys_param->pui_wR;
 	double nH = this->phys_param->par_n_H_LISM;
 
-	const short int dstep = 5;  // На сколько дробим шаг по времени (по сравнению со временем пролёта 1 ае)
+	const short int dstep = 2;  // На сколько дробим шаг по времени (по сравнению со временем пролёта 1 ае)
 
 	Eigen::VectorXd mas_w0(pui_nW);
 	Eigen::VectorXd mas_w(pui_nW);
@@ -2426,7 +2426,9 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 		while (true)
 		{
 			A_do = A;
-			step++; if (step > 1000000) { cout << "Infiniti cycle ERROR ertert34634rt34tgewrg" << endl; exit(-1); }
+			step++; if (step > 1000000) { cout << "Infiniti cycle ERROR ertert34634rt34tgewrg" << endl; 
+			cout << A->parameters[0]["Vx"] << " " << A->parameters[0]["Vy"] << " " << A->parameters[0]["Vz"] << endl; 
+			exit(-1); }
 
 			if (step > 990000)
 			{
@@ -2438,6 +2440,7 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 			if (A == nullptr)
 			{
 				cout << "Error hrtgth45t4twtiet5" << endl;
+				cout << r[0] << " " << r[1] << " " << r[2] << endl;
 				exit(-1);
 			}
 
@@ -2455,12 +2458,12 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 			{
 				if (r[0] > 0)
 				{
-					r = r / 1.005;
+					r = r / 1.03;
 				}
 				else
 				{
-					r[1] = r[1] / 1.005;
-					r[2] = r[2] / 1.005;
+					r[1] = r[1] / 1.03;
+					r[2] = r[2] / 1.03;
 				}
 				continue;
 			}

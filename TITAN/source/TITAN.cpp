@@ -29,8 +29,8 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
-    S1.Download_cell_parameters("parameters_0057.bin");   // 107
+    S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
+    //S1.Download_cell_parameters("parameters_0057.bin");   // 107
 
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
@@ -68,7 +68,7 @@ int main()
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    if (false)
+    if (true)
     {
         S1.Algoritm(3);
 
@@ -159,11 +159,17 @@ int main()
     Interpol SS = Interpol("For_intertpolate_057.bin");
 
     cout << "AAA" << endl;
-    std::unordered_map<string, double> param;
-    Cell_handle prev_cell = Cell_handle();
-    Cell_handle next_cell = Cell_handle();
 
-    SS.Get_param(10.0 * S1.geo->R0, 0.0, 0.0, param, prev_cell, next_cell);
+    // Начальная инициализация
+    std::unordered_map<string, double> param;
+    std::array<Cell_handle, 6> prev_cell;
+    std::array<Cell_handle, 6> next_cell;
+    for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
+
+    SS.Get_param(10.0, 0.0, 0.0, param, prev_cell, next_cell);     // Интерполируем переменные
+    for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // Обновляем предыдущую ячейку
+
+
     cout << "BBB" << endl;
     for (const auto& [key, value] : param) {
         std::cout << key << ":  " << value << '\n';
@@ -173,8 +179,6 @@ int main()
     if (false) // Проверка интерполятора
     {
         std::unordered_map<string, double> parameters;
-        Cell_handle next_cell;
-        Cell_handle prev_cell = Cell_handle();
         // Открываем файл для записи
         std::ofstream outfile("angles.txt");
         if (!outfile.is_open()) {
@@ -195,7 +199,7 @@ int main()
                     double z = 0.0;
                     short int zoon = 0;
                     // Записываем в файл
-                    SS.Get_param(x, y, z, parameters, prev_cell, next_cell, zoon);
+                    SS.Get_param(x, y, z, parameters, zoon);
                     if (zoon == 3)
                     {
                         outfile << x << " " << y << std::endl;
