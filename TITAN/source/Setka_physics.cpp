@@ -2480,7 +2480,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 {
 	std::ofstream out(filename, std::ios::binary);
 	if (!out) {
-		cout << "Error 097564537  Can not open file to writing: " + filename << endl;
+		cout << "Error 097564537  Can not  open file to writing: " + filename << endl;
 		exit(-1);
 	}
 
@@ -2502,6 +2502,13 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		// Затем саму строку
 		out.write(str.data(), str_size);
 	}
+
+	cout << "All parameters (send): " << endl;
+	for (const auto& i : this->phys_param->param_names)
+	{
+		cout << i << "  ";
+	}
+	cout << endl;
 
 	// Добавляем геометрическую зону
 	if (true)
@@ -3319,6 +3326,9 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	unordered_map<string, double> par_left, par_right;
 	// Запишем координаты поверхностей (на самом деле центров граней)
 
+	int test_i = 121;
+	out.write(reinterpret_cast<const char*>(&test_i), sizeof(int));
+
 	// TS
 	if (true)
 	{
@@ -3349,8 +3359,12 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
 			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
-			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
-			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
 
 			// Симметрия phi
 			phi_1 = phi_1 + 2 * const_pi;
@@ -3363,8 +3377,11 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
-			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
 
 			// Симметрия phi
 			phi_1 = phi_1 - 2 * const_pi;
@@ -3378,8 +3395,11 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
-			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
 
 			// Симметрия - theta
 			phi_1 = phi_1 + 2 * const_pi;
@@ -3393,8 +3413,11 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
-			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
 
 			// Симметрия - theta
 			the_1 = -the_1;
@@ -3408,12 +3431,18 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
-			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
 		}
 
 		outfile.close();
 	}
+
+	test_i = 122;
+	out.write(reinterpret_cast<const char*>(&test_i), sizeof(int));
 
 	// HP
 	if (true)
@@ -3699,6 +3728,9 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		outfile.close();
 	}
 
+	test_i = 123;
+	out.write(reinterpret_cast<const char*>(&test_i), sizeof(int));
+
 	// BS
 	if (true)
 	{
@@ -3914,73 +3946,10 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 
 		outfile.close();
-
-		// Теперь цилиндрическая запись HP
-
-		size_t size_x = 100;
-		size_t size_phi = 120;
-
-		out.write(reinterpret_cast<const char*>(&size_x), sizeof(size_x));
-		out.write(reinterpret_cast<const char*>(&size_phi), sizeof(size_phi));
-		outfile.open("HP_2_interpol.txt");
-
-		for (size_t i = 0; i < size_phi; ++i)
-		{
-			for (size_t j = 0; j < size_x; ++j)
-			{
-				double phi_ = -const_pi / 9.176784 + i * (2 * const_pi / (size_phi - 10));
-				double x_ = this->geo->L6 * 0.9999 + j * (-this->geo->L6 + 5) / size_x;
-				double time;
-				bool bb = false;
-				Gran* G = nullptr;
-				Eigen::Vector3d orig, Vel;
-
-				for (const auto& gr : this->Gran_HP)
-				{
-					orig << x_, 0.0, 0.0;
-					Vel << 0.0, cos(phi_), sin(phi_);
-					bool aa = gr->Luch_crossing(orig, Vel, time);
-					if (aa == true && time > 0)
-					{
-						G = gr;
-						bb = true;
-						break;
-					}
-				}
-
-				if (bb == false)
-				{
-					cout << "Error 8765ugeugg346  " << endl;
-					cout << x_ << " " << phi_ << endl;
-					exit(-1);
-				}
-
-				Eigen::Vector3d CC;
-				CC = orig + Vel * time;
-
-				double r_1 = sqrt(kv(CC[1]) + kv(CC[2]));
-
-				outfile << x_ << " " << phi_ << " " << r_1 << endl;
-
-				Gran* gr = G;
-
-				out.write(reinterpret_cast<const char*>(&x_), sizeof(double));
-				out.write(reinterpret_cast<const char*>(&phi_), sizeof(double));
-				out.write(reinterpret_cast<const char*>(&r_1), sizeof(double));
-
-				out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(double));
-				out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
-				out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
-
-				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
-				out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
-				out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
-
-			}
-		}
-		outfile.close();
 	}
 
+	test_i = 124;
+	out.write(reinterpret_cast<const char*>(&test_i), sizeof(int));
 
 
 	for (size_t i = 0; i < 999; i++)

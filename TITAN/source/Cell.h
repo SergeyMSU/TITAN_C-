@@ -48,10 +48,20 @@ public:
 	vector<double> pui_Sm;   // (n)
 	Eigen::MatrixXd pui_Sp;   // (2, n)
 
+	// Функции распределения пикапов
+	vector<double> f_pui_1;   // (n)
+	vector<double> f_pui_2;   // (n)
+
 	//vector<double> pui_Sm;
 	//vector<double> pui_Sp;
 
-	void Init_S(short int k, short int n);   // Инициализация S+ S-
+	void Init_f_pui(short int n, short int zone);  // Инициализация f_pui, заполняет нулями
+	void Delete_f_pui(void);
+	void write_pui_ToFile(void);
+	void read_pui_FromFile(void);
+	void print_pui(double Wmax, string nam);
+
+	void Init_S(short int k, short int n);   // Инициализация S+ S-, заполняет нулями
 	void write_S_ToFile(void);
 	void read_S_FromFile(void);
 	void print_SmSp(double Wmax, string nam);

@@ -29,8 +29,8 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
-    //S1.Download_cell_parameters("parameters_0054.bin");   // 107
+    //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
+    S1.Download_cell_parameters("parameters_0057.bin");   // 107
 
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
@@ -68,15 +68,28 @@ int main()
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    S1.Algoritm(2);
+    if (false)
+    {
+        S1.Algoritm(3);
 
-    S1.Print_SpSm(17.0, 0.0, 0.0);
-    S1.Print_SpSm(20.0, 0.0, 0.0);
-    S1.Print_SpSm(25.0, 0.0, 0.0);
-    S1.Print_SpSm(1.0, 0.0, 0.0);
-    S1.Print_SpSm(5.0, 0.0, 0.0);
-    S1.Print_SpSm(10.0, 0.0, 0.0);
-    S1.Print_SpSm(15.0, 0.0, 0.0);
+        S1.Print_SpSm(17.0, 0.0, 0.0);
+        S1.Print_SpSm(20.0, 0.0, 0.0);
+        S1.Print_SpSm(25.0, 0.0, 0.0);
+        S1.Print_SpSm(1.0, 0.0, 0.0);
+        S1.Print_SpSm(5.0, 0.0, 0.0);
+        S1.Print_SpSm(10.0, 0.0, 0.0);
+        S1.Print_SpSm(15.0, 0.0, 0.0);
+
+        S1.Print_pui(17.0, 0.0, 0.0);
+        S1.Print_pui(20.0, 0.0, 0.0);
+        S1.Print_pui(25.0, 0.0, 0.0);
+        S1.Print_pui(1.0, 0.0, 0.0);
+        S1.Print_pui(5.0, 0.0, 0.0);
+        S1.Print_pui(10.0, 0.0, 0.0);
+        S1.Print_pui(15.0, 0.0, 0.0);
+
+        return 0;
+    }
 
 
     S1.Tecplot_print_all_gran_in_surface("TS");
@@ -138,12 +151,24 @@ int main()
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
-    //S1.Edges_create();
-    //S1.Culc_divergence_in_cell();
-    //S1.Culc_rotors_in_cell();
+    S1.Edges_create();
+    S1.Culc_divergence_in_cell();
+    S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_138.bin", false);
-    Interpol SS = Interpol("For_intertpolate_138.bin");
+    S1.Save_for_interpolate("For_intertpolate_057.bin", true);
+    Interpol SS = Interpol("For_intertpolate_057.bin");
+
+    cout << "AAA" << endl;
+    std::unordered_map<string, double> param;
+    Cell_handle prev_cell = Cell_handle();
+    Cell_handle next_cell = Cell_handle();
+
+    SS.Get_param(10.0 * S1.geo->R0, 0.0, 0.0, param, prev_cell, next_cell);
+    cout << "BBB" << endl;
+    for (const auto& [key, value] : param) {
+        std::cout << key << ":  " << value << '\n';
+    }
+    return 0.0;
 
     if (false) // Проверка интерполятора
     {

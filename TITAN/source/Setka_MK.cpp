@@ -2321,6 +2321,325 @@ double Setka::Get_Spotok_inf(const Eigen::Vector3d& n)
 	return -(-exp(-kv(Ux)) + sqrtpi_ * Ux * erfc(Ux)) / (2.0 * sqrtpi_);
 }
 
+void Setka::Culc_f_pui_in_cell(Cell* Cel)
+{
+	short int pui_nW = this->phys_param->pui_nW;
+	double pui_wR = this->phys_param->pui_wR;
+	double nH = this->phys_param->par_n_H_LISM;
+
+	const short int dstep = 5;  // На сколько дробим шаг по времени (по сравнению со временем пролёта 1 ае)
+
+	Eigen::VectorXd mas_w0(pui_nW);
+	Eigen::VectorXd mas_w(pui_nW);
+	Eigen::VectorXd f0_pui(pui_nW);
+	Eigen::VectorXd f1_pui(pui_nW);
+	Eigen::VectorXd mas_Sm(pui_nW);
+
+	Eigen::Vector3d r;
+	r[0] = Cel->center[0][0];
+	r[1] = Cel->center[0][1];
+	r[2] = Cel->center[0][2];
+
+	double dt = 0.0001;
+	double rho0 = Cel->parameters[0]["rho"];
+	double qInt = 0.0;               // Интеграл от источника массы при ионизации
+	double q1, rho, rho_do;
+	Cell* prev = nullptr;
+	Cell* A = nullptr;
+	Cell* A_do = nullptr;
+	short int zone_now;
+
+	for (short int i = 0; i < pui_nW; i++)
+	{
+		mas_w0[i] = ((i + 0.5) * pui_wR / pui_nW);
+		f0_pui[i] = 0.0;
+		f1_pui[i] = 0.0;
+		mas_Sm[i] = 0.0;
+	}
+
+	mas_w = mas_w0;
+
+	short int zone = determ_zone(Cel, 0);
+	unsigned int step = 0;
+
+
+	if (zone == 1)
+	{
+		while (true)
+		{
+			step++; if (step > 1000000) { cout << "Infiniti cycle ERROR t8y5y65" << endl; exit(-1);}
+
+			if (step > 990000)
+			{
+				cout << "step > 990000 " << r[0] << " " << r[1] << " " << r[2] << endl;
+			}
+
+
+			A = Find_cell_point(r[0], r[1], r[2], 0, prev);
+			if (A == nullptr)
+			{
+				cout << "Error 9089h45hgtine5gg" << endl;
+				exit(-1);
+			}
+
+			zone_now = determ_zone(A, 0);
+			if (zone_now >= 2)
+			{
+				cout << "Error 8i67u5u4h4rhuytyjkt6" << endl;
+				exit(-1);
+			}
+
+			if (step % 20 == 0)  // Иногда корректируем шаг по времени
+			{
+				dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
+			}
+
+			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
+			rho = A->parameters[0]["rho"];
+			qInt = qInt + dt * q1 / rho;
+			r[0] -= A->parameters[0]["Vx"] * dt;
+			r[1] -= A->parameters[0]["Vy"] * dt;
+			r[2] -= A->parameters[0]["Vz"] * dt;
+
+			for (short int iw = 0; iw < pui_nW; iw++)
+			{
+				short int numw = min(int(mas_w[iw] / pui_wR * pui_nW), pui_nW - 1);
+				if (mas_w(iw) < pui_wR && mas_w(iw) > 0)
+				{
+					mas_Sm(iw) = mas_Sm(iw) + nH * A->pui_Sm[numw] * dt;
+					f0_pui(iw) = f0_pui(iw) + nH * A->pui_Sp(0, numw) * dt * exp(-mas_Sm(iw));  // Это S + , просто сразу накапливаем в функцию распределения
+				}
+				mas_w(iw) = mas_w0(iw) / (pow((rho0 / rho), (1.0 / 3.0)) * exp(-1.0 / 3.0 * qInt));
+			}
+
+			if (r.norm() < 1.01 * this->geo->R0) break;
+		}
+
+		for (short int iw = 0; iw < pui_nW; iw++)
+		{
+			Cel->f_pui_1[iw] = f0_pui[iw];
+		}
+	}
+	else if (zone == 2)
+	{
+		unsigned int step_in_cell = 0;
+		while (true)
+		{
+			A_do = A;
+			step++; if (step > 1000000) { cout << "Infiniti cycle ERROR ertert34634rt34tgewrg" << endl; exit(-1); }
+
+			if (step > 990000)
+			{
+				cout << "AB step > 990000 " << r[0] << " " << r[1] << " " << r[2] << "   " << zone << " " << zone_now << endl;
+			}
+
+
+			A = Find_cell_point(r[0], r[1], r[2], 0, prev);
+			if (A == nullptr)
+			{
+				cout << "Error hrtgth45t4twtiet5" << endl;
+				exit(-1);
+			}
+
+			if (A == A_do)
+			{
+				step_in_cell++;
+			}
+			else
+			{
+				step_in_cell = 0;
+			}
+
+			zone_now = determ_zone(A, 0);
+			if (zone_now >= 3 || step_in_cell > 1000)
+			{
+				if (r[0] > 0)
+				{
+					r = r / 1.005;
+				}
+				else
+				{
+					r[1] = r[1] / 1.005;
+					r[2] = r[2] / 1.005;
+				}
+				continue;
+			}
+
+			if (step % 20 == 0)  // Иногда корректируем шаг по времени
+			{
+				dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
+			}
+
+			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
+			rho_do = rho;
+			rho = A->parameters[0]["rho"];
+
+			if (zone_now == 1) break;
+
+			qInt = qInt + dt * q1 / rho;
+			r[0] -= A->parameters[0]["Vx"] * dt;
+			r[1] -= A->parameters[0]["Vy"] * dt;
+			r[2] -= A->parameters[0]["Vz"] * dt;
+
+			for (short int iw = 0; iw < pui_nW; iw++)
+			{
+				short int numw = min(int(mas_w[iw] / pui_wR * pui_nW), pui_nW - 1);
+				if (mas_w(iw) < pui_wR && mas_w(iw) > 0)
+				{
+					mas_Sm(iw) = mas_Sm(iw) + nH * A->pui_Sm[numw] * dt;
+					f0_pui(iw) = f0_pui(iw) + nH * A->pui_Sp(0, numw) * dt * exp(-mas_Sm(iw));  // Это S + , просто сразу накапливаем в функцию распределения
+					f1_pui(iw) = f1_pui(iw) + nH * A->pui_Sp(1, numw) * dt * exp(-mas_Sm(iw));  // Это S + , просто сразу накапливаем в функцию распределения
+				}
+				mas_w(iw) = mas_w0(iw) / (pow((rho0 / rho), (1.0 / 3.0)) * exp(-1.0 / 3.0 * qInt));
+			}
+		}
+
+		// Ищем грань-TS в текущей ячейке
+		Gran* G = nullptr;
+		for (auto& gr : A->grans)
+		{
+			if (gr->type2 == Type_Gran_surf::TS)
+			{
+				G = gr;
+				break;
+			}
+		}
+
+		if (G == nullptr) { cout << "ERRROR  3i4j34hfg34tf3" << endl; exit(-2); }
+
+		double s = rho_do / rho;
+		Eigen::Vector3d B;
+		Eigen::Vector3d normal;
+		B << A->parameters[0]["Bx"], A->parameters[0]["By"], A->parameters[0]["Bz"];
+		normal << G->normal[0][0], G->normal[0][1], G->normal[0][2];
+		double cospsi = B.dot(normal) / (B.norm());
+		double AA = sqrt(kv(cospsi) + kv(s) * (1.0 - kv(cospsi)));
+		double BB = kv(s) / kv(AA);
+		double C = (2.0 * AA + BB) / 3.0;
+
+		rho0 = rho;
+		qInt = 0.0;
+		mas_w0 = mas_w / sqrt(C);
+		mas_w = mas_w0;
+
+		// Теперь бежим до Солнца
+		step = 0;
+		while (true)
+		{
+			step++; if (step > 1000000) { cout << "Infiniti cycle ERROR gegeyteg45hytik979687" << endl; exit(-1); }
+			A = Find_cell_point(r[0], r[1], r[2], 0, prev);
+			if (A == nullptr)
+			{
+				cout << "Error 9089h45hgtine5gg" << endl;
+				exit(-1);
+			}
+
+			zone_now = determ_zone(A, 0);
+			if (zone_now >= 2)
+			{
+				cout << "Error 8i67u5u4h4rhuytyjkt6" << endl;
+				exit(-1);
+			}
+
+			if (step % 20 == 0)  // Иногда корректируем шаг по времени
+			{
+				dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
+			}
+
+			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
+			rho = A->parameters[0]["rho"];
+			qInt = qInt + dt * q1 / rho;
+			r[0] -= A->parameters[0]["Vx"] * dt;
+			r[1] -= A->parameters[0]["Vy"] * dt;
+			r[2] -= A->parameters[0]["Vz"] * dt;
+
+			for (short int iw = 0; iw < pui_nW; iw++)
+			{
+				short int numw = min(int(mas_w[iw] / pui_wR * pui_nW), pui_nW - 1);
+				if (mas_w(iw) < pui_wR && mas_w(iw) > 0)
+				{
+					mas_Sm(iw) = mas_Sm(iw) + nH * A->pui_Sm[numw] * dt;
+					f0_pui(iw) = f0_pui(iw) + nH * A->pui_Sp(0, numw) * dt * exp(-mas_Sm(iw)) * s / pow(C, 1.5);  // Это S + , просто сразу накапливаем в функцию распределения
+				}
+				mas_w(iw) = mas_w0(iw) / (pow((rho0 / rho), (1.0 / 3.0)) * exp(-1.0 / 3.0 * qInt));
+			}
+
+			if (r.norm() < 1.01 * this->geo->R0) break;
+		}
+
+		for (short int iw = 0; iw < pui_nW; iw++)
+		{
+			Cel->f_pui_1[iw] = f0_pui[iw];
+			Cel->f_pui_2[iw] = f1_pui[iw];
+		}
+	}
+	else if (zone >= 3)
+	{
+		dt = 0.001;
+		while (true)
+		{
+			step++; if (step > 1000000) { cout << "Infiniti cycle ERROR  geget34" << endl; exit(-1); }
+			if (step > 990000)
+			{
+				cout << "AC step > 990000 " << r[0] << " " << r[1] << " " << r[2] << "   " << zone << " " << zone_now << endl;
+			}
+
+			A = Find_cell_point(r[0], r[1], r[2], 0, prev);
+			if (A == nullptr) break;
+
+			zone_now = determ_zone(A, 0);
+			if (zone_now == 1)
+			{
+				cout << "Error jytk7896yh4y4h4t345tg" << endl;
+				exit(-1);
+			}
+
+			if (zone_now == 2)
+			{
+				if (r[0] > 0)
+				{
+					r = r * 1.0005;
+				}
+				else
+				{
+					r[1] = r[1] * 1.0005;
+					r[2] = r[2] * 1.0005;
+				}
+				continue;
+			}
+
+			if (step % 20 == 0)  // Иногда корректируем шаг по времени
+			{
+				dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
+			}
+
+			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
+			rho = A->parameters[0]["rho"];
+			qInt = qInt + dt * q1 / rho;
+			r[0] -= A->parameters[0]["Vx"] * dt;
+			r[1] -= A->parameters[0]["Vy"] * dt;
+			r[2] -= A->parameters[0]["Vz"] * dt;
+
+			for (short int iw = 0; iw < pui_nW; iw++)
+			{
+				short int numw = min(int(mas_w[iw] / pui_wR * pui_nW), pui_nW - 1);
+				if (mas_w(iw) < pui_wR && mas_w(iw) > 0)
+				{
+					mas_Sm(iw) = mas_Sm(iw) + nH * A->pui_Sm[numw] * dt;
+					f0_pui(iw) = f0_pui(iw) + nH * A->pui_Sp(0, numw) * dt * exp(-mas_Sm(iw));  // Это S + , просто сразу накапливаем в функцию распределения
+				}
+				mas_w(iw) = mas_w0(iw) / (pow((rho0 / rho), (1.0 / 3.0)) * exp(-1.0 / 3.0 * qInt));
+			}
+		}
+
+		for (short int iw = 0; iw < pui_nW; iw++)
+		{
+			Cel->f_pui_1[iw] = f0_pui[iw];
+		}
+	}
+
+}
+
 void Setka::Velosity_initial(Sensor* s, Eigen::Vector3d& V,
 	const Eigen::Vector3d& n, const Eigen::Vector3d& t, 
 	const Eigen::Vector3d& m)

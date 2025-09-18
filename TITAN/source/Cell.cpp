@@ -1,6 +1,32 @@
 ﻿#include "Cell.h"
 
 
+void Cell::Init_f_pui(short int n, short int zone)
+{
+	this->f_pui_1.resize(n);
+
+	for (size_t i = 0; i < n; i++)
+	{
+		this->f_pui_1[i] = 0.0;
+	}
+
+	if (zone == 2)
+	{
+		this->f_pui_2.resize(n);
+
+		for (size_t i = 0; i < n; i++)
+		{
+			this->f_pui_2[i] = 0.0;
+		}
+	}
+}
+
+void Cell::Delete_f_pui(void)
+{
+	this->f_pui_1.resize(0);
+	this->f_pui_2.resize(0);
+}
+
 
 void Cell::Init_S(short int k, short int n)
 {
@@ -48,6 +74,39 @@ void Cell::write_S_ToFile(void)
 	}
 	catch (const std::exception& e) {
 		std::cerr << "Error  KJHfuiyregbuyifbeihrfyugwuhuerf" << e.what() << std::endl;
+		file.close();
+		exit(-1);
+	}
+}
+
+void Cell::write_pui_ToFile(void)
+{
+	std::string filename = "data_pui/func_cells_pui_" + to_string(this->number) + ".bin";
+
+
+	std::ofstream file(filename, std::ios::binary);
+	if (!file.is_open()) {
+		std::cerr << "Error thrthrtghery4523234saedfw423 " << filename << std::endl;
+		exit(-1);
+	}
+
+	try {
+		// Записываем размеры матриц
+		int size1 = this->f_pui_1.size();
+		int size2 = this->f_pui_2.size();
+		file.write(reinterpret_cast<const char*>(&size1), sizeof(size1));
+		file.write(reinterpret_cast<const char*>(&size2), sizeof(size2));
+
+		file.write(reinterpret_cast<const char*>(this->f_pui_1.data()),
+			size1 * sizeof(double));
+
+		file.write(reinterpret_cast<const char*>(this->f_pui_1.data()),
+			size2 * sizeof(double));
+
+		file.close();
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error  rthr6yu45756874t5ruhjrt435" << e.what() << std::endl;
 		file.close();
 		exit(-1);
 	}
@@ -102,6 +161,49 @@ void Cell::read_S_FromFile(void)
 	}
 }
 
+void Cell::read_pui_FromFile(void)
+{
+	std::string filename = "data_pui/func_cells_pui_" + to_string(this->number) + ".bin";
+
+	if (file_exists(filename) == false) return;
+
+	std::ifstream file(filename, std::ios::binary);
+	if (!file.is_open())
+	{
+		std::cerr << "Error fyjrtyhrtyhert234234asrq3" << filename << std::endl;
+		exit(-10);
+	}
+
+	try {
+		// Читаем размеры матриц
+		int size1, size2;
+		file.read(reinterpret_cast<char*>(&size1), sizeof(size1));
+		file.read(reinterpret_cast<char*>(&size2), sizeof(size2));
+
+		if(size1 != this->f_pui_1.size() || size2 != this->f_pui_2.size())
+		{
+			std::cerr << "Error ergertgruy567456456" << std::endl;
+			file.close();
+			exit(-10);
+		}
+
+
+		file.read(reinterpret_cast<char*>(this->f_pui_1.data()),
+			size1 * sizeof(double));
+
+		file.read(reinterpret_cast<char*>(this->f_pui_2.data()),
+			size2 * sizeof(double));
+
+		file.close();
+
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error ergw4y74567345tfgrgujk89;9 " << e.what() << std::endl;
+		file.close();
+		exit(-19);
+	}
+}
+
 void Cell::print_SmSp(double Wmax, string nam)
 {
 	ofstream fout;
@@ -114,6 +216,26 @@ void Cell::print_SmSp(double Wmax, string nam)
 	{
 		double center = (i + 0.5) * dx;  // центр ячейки
 		fout << center << " " << this->pui_Sm[i] << " " << this->pui_Sp(0, i) << " " << this->pui_Sp(1, i) << std::endl;
+	}
+
+	fout.close();
+}
+
+void Cell::print_pui(double Wmax, string nam)
+{
+	ofstream fout;
+	string name_f = "Tecplot_pui_" + nam + "__" + to_string(this->number) + ".txt";
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = u, f1, f2, f" << endl;
+	int size = this->pui_Sm.size();
+	double dx = Wmax / size;
+	for (int i = 0; i < size; ++i)
+	{
+		double center = (i + 0.5) * dx;  // центр ячейки
+		double f2 = 0.0;
+		if (this->f_pui_2.size() > i) f2 = this->f_pui_2[i];
+		fout << center << " " << this->f_pui_1[i] << " " << f2 << " " <<
+			this->f_pui_1[i] + f2 << std::endl;
 	}
 
 	fout.close();

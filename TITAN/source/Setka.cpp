@@ -165,6 +165,7 @@ Setka::~Setka()
 void Setka::Algoritm(short int alg)
 {
 	// 2 - Монте-Карло
+	// 3 - Вычисление f_pui по посчитанным S+ S-
 
 	cout << "Start Algoritm " << alg << endl;
 
@@ -214,6 +215,41 @@ void Setka::Algoritm(short int alg)
 			this->MK_prepare(zone_play);
 			this->MK_go(zone_play);
 			this->MK_delete(zone_play);
+		}
+	}
+	else if (alg == 3)
+	{
+		// Потяну ли я загружать S+ S- для всех ячеек сетки? Должно влезть в память (это 2 Гб примерно)
+		// Загружаем S+ S- для всей сетки
+		for (auto& A : this->All_Cell)
+		{
+			A->Init_S(2, this->phys_param->pui_nW);
+			A->read_S_FromFile();
+		}
+
+		// Считаем функции распределения
+		unsigned int st = 0;
+		cout << "Start: Culc PUI" << endl;
+		for (auto& A : this->All_Cell)
+		{
+			st++;
+			if (st % 1000 == 0)
+			{
+				cout << "st = " << st << "   from " << this->All_Cell.size() << endl;
+			}
+			short int zone = determ_zone(A, 0);
+			A->Init_f_pui(this->phys_param->pui_nW, zone);
+			this->Culc_f_pui_in_cell(A);
+			A->write_pui_ToFile();
+			A->Delete_f_pui();
+		}
+		cout << "End: Culc PUI" << endl;
+
+		// Удаляем все S+ S- (чистим память)
+		for (auto& A : this->All_Cell)
+		{
+			A->pui_Sm.resize(0);
+			A->pui_Sp.resize(0, 0);
 		}
 	}
 }
@@ -3100,6 +3136,22 @@ void Setka::Print_SpSm(double x, double y, double z)
 	A->print_SmSp(this->phys_param->pui_wR, to_string(x));
 	A->pui_Sm.resize(0);
 	A->pui_Sp.resize(0, 0);
+}
+
+void Setka::Print_pui(double x, double y, double z)
+{
+	Cell* prev = nullptr;
+	Cell* A = Find_cell_point(x, y, z, 0, prev);
+	if (A == nullptr)
+	{
+		cout << "Error ergertygrey4356tegr" << endl;
+		return;
+	}
+
+	A->Init_f_pui(2, this->phys_param->pui_nW);
+	A->read_pui_FromFile();
+	A->print_pui(this->phys_param->pui_wR, to_string(x));
+	A->Delete_f_pui();
 }
 
 void Setka::Tecplot_print_all_yzel_in_3D(string name)

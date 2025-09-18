@@ -14,7 +14,7 @@ Interpol::Interpol(string name)
     cout << "Start: Interpol" << endl;
 	std::ifstream in(name, std::ios::binary);
 	if (!in) {
-		cout << "Error 1329764965  Can not open file to reading: " + name << endl;
+		cout << "Error 1329764965  Can   not open file to reading: " + name << endl;
 		exit(-1);
 	}
 
@@ -184,6 +184,14 @@ Interpol::Interpol(string name)
         }
     }
 
+    int test_i = 0;
+    in.read(reinterpret_cast<char*>(&test_i), sizeof(int));
+    if (test_i != 121)
+    {
+        cout << "ERROR 1erjgiuheiuth8737y4tg08e4hoiufg4e" << endl;
+        exit(-1);
+    }
+
     // —читываем TS
     if (true)
     {
@@ -205,14 +213,27 @@ Interpol::Interpol(string name)
             A->parameters["nx"] = a;
             A->parameters["ny"] = b;
             A->parameters["nz"] = c;
-            in.read(reinterpret_cast<char*>(&a), sizeof(a));
-            in.read(reinterpret_cast<char*>(&b), sizeof(b));
 
-            A->parameters["rho_L"] = a;
-            A->parameters["rho_R"] = b;
+            for (const auto& i : this->param_names)
+            {
+                if (i == "zone_geo") continue;
+                in.read(reinterpret_cast<char*>(&a), sizeof(a));
+                in.read(reinterpret_cast<char*>(&b), sizeof(b));
+
+                A->parameters[i + "_L"] = a;
+                A->parameters[i + "_R"] = b;
+            }
 
             this->Cells_TS.push_back(A);
         }
+    }
+
+    test_i = 0;
+    in.read(reinterpret_cast<char*>(&test_i), sizeof(int));
+    if (test_i != 122)
+    {
+        cout << "ERROR 2erjgiuheiuth8737y4tg08e4hoiufg4e" << endl;
+        exit(-1);
     }
 
     // —читываем HP
@@ -280,6 +301,14 @@ Interpol::Interpol(string name)
         }
     }
 
+    test_i = 0;
+    in.read(reinterpret_cast<char*>(&test_i), sizeof(int));
+    if (test_i != 123)
+    {
+        cout << "ERROR 3erjgiuheiuth8737y4tg08e4hoiufg4e" << endl;
+        exit(-1);
+    }
+
     // —читываем BS
     if (true)
     {
@@ -311,6 +340,13 @@ Interpol::Interpol(string name)
         }
     }
 
+    test_i = 0;
+    in.read(reinterpret_cast<char*>(&test_i), sizeof(int));
+    if (test_i != 124)
+    {
+        cout << "ERROR 4erjgiuheiuth8737y4tg08e4hoiufg4e" << endl;
+        exit(-1);
+    }
 
 
     in.close();
