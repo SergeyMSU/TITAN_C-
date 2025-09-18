@@ -235,7 +235,7 @@ void Setka::Algoritm(short int alg)
 		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
 		{
 			auto A = this->All_Cell[idx];
-			#pragma omp critical (first) 
+			#pragma omp critical (gergergerg4) 
 			{
 				st++;
 				if (st % 1000 == 0)

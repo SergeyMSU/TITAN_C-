@@ -2425,7 +2425,7 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 		unsigned int step_in_cell = 0;
 		while (true)
 		{
-			A_do = A;
+			if(A!= nullptr) A_do = A;
 			step++; if (step > 1000000) { cout << "Infiniti cycle ERROR ertert34634rt34tgewrg" << endl; 
 			cout << A->parameters[0]["Vx"] << " " << A->parameters[0]["Vy"] << " " << A->parameters[0]["Vz"] << endl; 
 			exit(-1); }
@@ -2439,9 +2439,11 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 			A = Find_cell_point(r[0], r[1], r[2], 0, prev);
 			if (A == nullptr)
 			{
-				cout << "Error hrtgth45t4twtiet5" << endl;
-				cout << r[0] << " " << r[1] << " " << r[2] << endl;
-				exit(-1);
+				r = r / 1.0001;
+				continue;
+				//cout << "Error hrtgth45t4twtiet5" << endl;
+				//cout << r[0] << " " << r[1] << " " << r[2] << endl;
+				//exit(-1);
 			}
 
 			if (A == A_do)
@@ -2508,7 +2510,24 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 			}
 		}
 
-		if (G == nullptr) { cout << "ERRROR  3i4j34hfg34tf3" << endl; exit(-2); }
+		if (G == nullptr) 
+		{ 
+			for (auto& gr : A_do->grans)
+			{
+				if (gr->type2 == Type_Gran_surf::TS)
+				{
+					G = gr;
+					break;
+				}
+			}
+
+			if (G == nullptr)
+			{
+				cout << "ERRROR  3i4j34hfg34tf3" << endl;
+				cout << r[0] << " " << r[1] << " " << r[2] << endl;
+				exit(-2);
+			}
+		}
 
 		double s = rho_do / rho;
 		Eigen::Vector3d B;
