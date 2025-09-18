@@ -100,7 +100,7 @@ void Cell::write_pui_ToFile(void)
 		file.write(reinterpret_cast<const char*>(this->f_pui_1.data()),
 			size1 * sizeof(double));
 
-		file.write(reinterpret_cast<const char*>(this->f_pui_1.data()),
+		file.write(reinterpret_cast<const char*>(this->f_pui_2.data()),
 			size2 * sizeof(double));
 
 		file.close();
@@ -183,6 +183,7 @@ void Cell::read_pui_FromFile(void)
 		if(size1 != this->f_pui_1.size() || size2 != this->f_pui_2.size())
 		{
 			std::cerr << "Error ergertgruy567456456" << std::endl;
+			cout << size1 << " " << size2 << " " << this->f_pui_1.size() << " " << this->f_pui_2.size() << endl;
 			file.close();
 			exit(-10);
 		}
@@ -227,7 +228,7 @@ void Cell::print_pui(double Wmax, string nam)
 	string name_f = "Tecplot_pui_" + nam + "__" + to_string(this->number) + ".txt";
 	fout.open(name_f);
 	fout << "TITLE = HP  VARIABLES = u, f1, f2, f" << endl;
-	int size = this->pui_Sm.size();
+	int size = this->f_pui_1.size();
 	double dx = Wmax / size;
 	for (int i = 0; i < size; ++i)
 	{

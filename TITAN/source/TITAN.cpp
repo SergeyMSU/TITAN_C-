@@ -71,7 +71,7 @@ int main()
     if (true)
     {
         S1.Algoritm(3);
-
+        cout << "AABB" << endl;
         S1.Print_SpSm(17.0, 0.0, 0.0);
         S1.Print_SpSm(20.0, 0.0, 0.0);
         S1.Print_SpSm(25.0, 0.0, 0.0);

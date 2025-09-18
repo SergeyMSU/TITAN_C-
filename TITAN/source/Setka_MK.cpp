@@ -2389,10 +2389,10 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 				exit(-1);
 			}
 
-			if (step % 20 == 0)  // Иногда корректируем шаг по времени
-			{
-				dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
-			}
+			//if (step % 20 == 0)  // Иногда корректируем шаг по времени
+			//{
+			//	dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
+			//}
 
 			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
 			rho = A->parameters[0]["rho"];
@@ -2458,7 +2458,7 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 			zone_now = determ_zone(A, 0);
 			if (zone_now >= 3 || step_in_cell > 1000)
 			{
-				if (r[0] > 0)
+				if (r[0] > 0 || sqrt(kv(r[1]) + kv(r[2])) < 20.0)
 				{
 					r = r / 1.03;
 				}
@@ -2470,10 +2470,12 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 				continue;
 			}
 
-			if (step % 20 == 0)  // Иногда корректируем шаг по времени
-			{
-				dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
-			}
+			//if (step % 20 == 0)  // Иногда корректируем шаг по времени
+			//{
+			//	dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
+			//}
+
+			//dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
 
 			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
 			rho_do = rho;
@@ -2525,6 +2527,8 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 			{
 				cout << "ERRROR  3i4j34hfg34tf3" << endl;
 				cout << r[0] << " " << r[1] << " " << r[2] << endl;
+				cout << dt << " " << A->parameters[0]["Vx"] << " " << A->parameters[0]["Vy"] << 
+					" " << A->parameters[0]["Vz"] << endl;
 				exit(-2);
 			}
 		}
@@ -2565,7 +2569,7 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 
 			if (step % 20 == 0)  // Иногда корректируем шаг по времени
 			{
-				dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
+				//dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
 			}
 
 			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
@@ -2632,7 +2636,7 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 
 			if (step % 20 == 0)  // Иногда корректируем шаг по времени
 			{
-				dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
+				//dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
 			}
 
 			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать

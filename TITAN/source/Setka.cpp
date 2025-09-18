@@ -1,5 +1,7 @@
 #include "Setka.h"
 #include <algorithm>
+#include <filesystem> // Для работы с файловой системой
+namespace fs = std::filesystem; // Создаем псевдоним для удобства
 
 #define  macros1(n, x, y, z) A->yzels[n]->coord[0][0] = x; \
 	A->yzels[n]->coord[0][1] = y; \
@@ -231,6 +233,23 @@ void Setka::Algoritm(short int alg)
 		unsigned int st = 0;
 		cout << "Start: Culc PUI" << endl;
 
+
+		// Удаляем некоторые файлы pui
+		if (true)
+		{
+			for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+			{
+				auto A = this->All_Cell[idx];
+				short int zone = determ_zone(A, 0);
+				if (zone == 2)
+				{
+					std::string filename = "data_pui/func_cells_pui_" + to_string(A->number) + ".bin";
+					fs::remove(filename);
+				}
+			}
+		}
+
+
 		#pragma omp parallel for schedule(dynamic)
 		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
 		{
@@ -243,6 +262,10 @@ void Setka::Algoritm(short int alg)
 					cout << "st = " << st << "   from " << this->All_Cell.size() << endl;
 				}
 			}
+
+			std::string filename = "data_pui/func_cells_pui_" + to_string(A->number) + ".bin";
+			if (file_exists(filename) == true) continue;
+
 			short int zone = determ_zone(A, 0);
 			A->Init_f_pui(this->phys_param->pui_nW, zone);
 			this->Culc_f_pui_in_cell(A);
@@ -3154,7 +3177,8 @@ void Setka::Print_pui(double x, double y, double z)
 		return;
 	}
 
-	A->Init_f_pui(2, this->phys_param->pui_nW);
+	short int zone = determ_zone(A, 0);
+	A->Init_f_pui(this->phys_param->pui_nW, zone);
 	A->read_pui_FromFile();
 	A->print_pui(this->phys_param->pui_wR, to_string(x));
 	A->Delete_f_pui();
