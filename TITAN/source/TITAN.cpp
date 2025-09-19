@@ -70,9 +70,9 @@ int main()
 
     if (true)
     {
-        S1.Algoritm(3);
+        S1.Algoritm(4);
         cout << "AABB" << endl;
-        S1.Print_SpSm(17.0, 0.0, 0.0);
+        /*S1.Print_SpSm(17.0, 0.0, 0.0);
         S1.Print_SpSm(20.0, 0.0, 0.0);
         S1.Print_SpSm(25.0, 0.0, 0.0);
         S1.Print_SpSm(1.0, 0.0, 0.0);
@@ -87,8 +87,12 @@ int main()
         S1.Print_pui(5.0, 0.0, 0.0);
         S1.Print_pui(10.0, 0.0, 0.0);
         S1.Print_pui(15.0, 0.0, 0.0);
+        S1.Print_pui(28.0, 0.0, 0.0);
+        S1.Print_pui(50.0, 0.0, 0.0);
+        S1.Print_pui(100.0, 0.0, 0.0);
+        S1.Print_pui(200.0, 0.0, 0.0);*/
 
-        return 0;
+        //return 0;
     }
 
 
@@ -155,29 +159,38 @@ int main()
     S1.Culc_divergence_in_cell();
     S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_057.bin", true);
-    Interpol SS = Interpol("For_intertpolate_057.bin");
+    S1.Save_for_interpolate("For_intertpolate_137.bin", true);
+    Interpol SS = Interpol("For_intertpolate_137.bin");
 
     cout << "AAA" << endl;
 
-    // Начальная инициализация
-    std::unordered_map<string, double> param;
-    std::array<Cell_handle, 6> prev_cell;
-    std::array<Cell_handle, 6> next_cell;
-    for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
+    if (false)
+    {
+        // Начальная инициализация
+        std::unordered_map<string, double> param;
+        std::array<Cell_handle, 6> prev_cell;
+        std::array<Cell_handle, 6> next_cell;
+        for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
 
-    SS.Get_param(10.0, 0.0, 0.0, param, prev_cell, next_cell);     // Интерполируем переменные
-    for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // Обновляем предыдущую ячейку
+        SS.Get_param(10.0, 0.0, 0.0, param, prev_cell, next_cell);     // Интерполируем переменные
+        for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // Обновляем предыдущую ячейку
 
 
-    cout << "BBB" << endl;
-    for (const auto& [key, value] : param) {
-        std::cout << key << ":  " << value << '\n';
+        cout << "BBB" << endl;
+        for (const auto& [key, value] : param) {
+            std::cout << key << ":  " << value << '\n';
+        }
+        return 0.0;
     }
-    return 0.0;
 
     if (false) // Проверка интерполятора
     {
+        // Начальная инициализация
+        std::unordered_map<string, double> param;
+        std::array<Cell_handle, 6> prev_cell;
+        std::array<Cell_handle, 6> next_cell;
+        for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
+
         std::unordered_map<string, double> parameters;
         // Открываем файл для записи
         std::ofstream outfile("angles.txt");
@@ -237,7 +250,7 @@ int main()
         // Закрываем файл
         outfile.close();
 
-        std::unordered_map<string, double> param;
+        //std::unordered_map<string, double> param;
         SS.Get_TS(13.94, 0.0, 0.0, param);
         for (const auto& [key, value] : param) {
             std::cout << key << ":  " << value << '\n';

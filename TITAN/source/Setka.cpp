@@ -168,6 +168,7 @@ void Setka::Algoritm(short int alg)
 {
 	// 2 - Монте-Карло
 	// 3 - Вычисление f_pui по посчитанным S+ S-
+	// 4 - Вычисление n_pui  и  T_pui  по рассчитанным f_pui
 
 	cout << "Start Algoritm " << alg << endl;
 
@@ -235,7 +236,7 @@ void Setka::Algoritm(short int alg)
 
 
 		// Удаляем некоторые файлы pui
-		if (true)
+		if (false)
 		{
 			for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
 			{
@@ -280,6 +281,38 @@ void Setka::Algoritm(short int alg)
 			A->pui_Sm.resize(0);
 			A->pui_Sp.resize(0, 0);
 		}
+	}
+	else if (alg == 4)
+	{
+		unsigned int st = 0;
+		#pragma omp parallel for schedule(dynamic)
+		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+		{
+			auto A = this->All_Cell[idx];
+			#pragma omp critical (gergergerg4) 
+			{
+				st++;
+				if (st % 1000 == 0)
+				{
+					cout << "st = " << st << "   from " << this->All_Cell.size() << endl;
+				}
+			}
+
+			std::string filename = "data_pui/func_cells_pui_" + to_string(A->number) + ".bin";
+			if (file_exists(filename) != true)
+			{
+				cout << "Error  Net pui! fergebhr6yveybhe5vte " << endl;
+				exit(-1);
+			}
+
+			short int zone = determ_zone(A, 0);
+			A->Init_f_pui(this->phys_param->pui_nW, zone);
+			A->read_pui_FromFile();
+			// Здесь вычисляем нужные моменты
+			A->culc_pui_n_T(this->phys_param->pui_wR);
+			A->Delete_f_pui();
+		}
+
 	}
 }
 

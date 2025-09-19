@@ -60,6 +60,7 @@ public:
 	void write_pui_ToFile(void);
 	void read_pui_FromFile(void);
 	void print_pui(double Wmax, string nam);
+	void culc_pui_n_T(const double& pui_wR);
 
 	void Init_S(short int k, short int n);   // Инициализация S+ S-, заполняет нулями
 	void write_S_ToFile(void);

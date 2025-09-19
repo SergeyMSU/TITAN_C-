@@ -242,6 +242,39 @@ void Cell::print_pui(double Wmax, string nam)
 	fout.close();
 }
 
+void Cell::culc_pui_n_T(const double& pui_wR)
+{
+	double S = 0.0;
+	double S2 = 0.0;
+	short int pui_nw = this->f_pui_1.size();
+
+	for (short int i = 0; i < this->f_pui_1.size(); i++)
+	{
+		double w = (i + 0.5) * pui_wR / this->f_pui_1.size();
+		S = S + this->f_pui_1[i] * 4.0 * const_pi * kv(w) * (pui_wR / pui_nw);
+		S2 = S2 + this->f_pui_1[i] * 4.0 * const_pi * pow4(w) * (pui_wR / pui_nw);
+	}
+
+	S2 = S2 / (S * 3.0);
+	this->parameters[0]["MK_rho_Pui_1"] = S;
+	this->parameters[0]["MK_T_Pui_1"] = S2;
+
+
+	pui_nw = this->f_pui_2.size();
+	S = S2 = 0.0;
+
+	for (short int i = 0; i < this->f_pui_2.size(); i++)
+	{
+		double w = (i + 0.5) * pui_wR / this->f_pui_2.size();
+		S = S + this->f_pui_2[i] * 4.0 * const_pi * kv(w) * (pui_wR / pui_nw);
+		S2 = S2 + this->f_pui_2[i] * 4.0 * const_pi * pow4(w) * (pui_wR / pui_nw);
+	}
+
+	S2 = S2 / (S * 3.0);
+	this->parameters[0]["MK_rho_Pui_2"] = S;
+	this->parameters[0]["MK_T_Pui_2"] = S2;
+}
+
 void Cell::Get_RBF_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par)
 {
 	Eigen::Vector3d point;
