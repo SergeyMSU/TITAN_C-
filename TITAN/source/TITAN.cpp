@@ -184,7 +184,19 @@ int main()
         for (const auto& [key, value] : param) {
             std::cout << key << ":  " << value << '\n';
         }
+
+        cout << "SSSSS" << endl;
+
+        std::unordered_map<string, double> param2;
+
+        SS.Get_HP(10.0, 0.0, 0.0, param2);
+
+        for (const auto& [key, value] : param2) 
+        {
+            std::cout << key << ":  " << value << '\n';
+        }
         return 0.0;
+
     }
 
     if (false) // Проверка интерполятора
