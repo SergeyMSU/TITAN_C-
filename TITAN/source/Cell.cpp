@@ -270,7 +270,14 @@ void Cell::culc_pui_n_T(const double& pui_wR)
 		S2 = S2 + this->f_pui_2[i] * 4.0 * const_pi * pow4(w) * (pui_wR / pui_nw);
 	}
 
-	S2 = S2 / (S * 3.0);
+	if (S > 0.0000001)
+	{
+		S2 = S2 / (S * 3.0);
+	}
+	else
+	{
+		S2 = 0.0;
+	}
 	this->parameters[0]["MK_rho_Pui_2"] = S;
 	this->parameters[0]["MK_T_Pui_2"] = S2;
 }

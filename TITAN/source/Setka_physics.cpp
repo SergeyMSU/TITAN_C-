@@ -4182,7 +4182,7 @@ void Setka::Download_cell_MK_parameters(string filename, short int zone_except)
 	}
 
 	vector<string> param_file;
-	cout << "MK_parameters: ";
+	//cout << "MK_parameters: ";
 	size_t size;
 	in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
 	for (size_t i = 0; i < size; ++i)
@@ -4195,10 +4195,10 @@ void Setka::Download_cell_MK_parameters(string filename, short int zone_except)
 		in.read(key_buffer.data(), key_size);
 		std::string key(key_buffer.begin(), key_buffer.end());
 
-		cout << key << " ";
+		//cout << key << " ";
 		param_file.push_back(key);
 	}
-	cout << endl;
+	//cout << endl;
 
 
 	for (auto& ii : this->All_Cell)

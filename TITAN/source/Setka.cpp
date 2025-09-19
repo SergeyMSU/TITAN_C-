@@ -169,6 +169,7 @@ void Setka::Algoritm(short int alg)
 	// 2 - Монте-Карло
 	// 3 - Вычисление f_pui по посчитанным S+ S-
 	// 4 - Вычисление n_pui  и  T_pui  по рассчитанным f_pui
+	// 5 - Добавить в ячейки значение моментов водорода из Монте-Карло
 
 	cout << "Start Algoritm " << alg << endl;
 
@@ -292,7 +293,7 @@ void Setka::Algoritm(short int alg)
 			#pragma omp critical (gergergerg4) 
 			{
 				st++;
-				if (st % 1000 == 0)
+				if (st % 10000 == 0)
 				{
 					cout << "st = " << st << "   from " << this->All_Cell.size() << endl;
 				}
@@ -313,7 +314,29 @@ void Setka::Algoritm(short int alg)
 			A->Delete_f_pui();
 		}
 
+		this->phys_param->param_names.push_back("MK_rho_Pui_1");
+		this->phys_param->param_names.push_back("MK_T_Pui_1");
+		this->phys_param->param_names.push_back("MK_rho_Pui_2");
+		this->phys_param->param_names.push_back("MK_T_Pui_2");
+
 	}
+	else if (alg == 5)
+	{
+		// Так как в файле хранятся параметры во всех ячейках (даже в тех, которые были за пределом рассчитанной зоны)
+		// Нужно сначала скачать все кроме текущей зоны (так как они только что посчитаны), а потом записать все
+		
+		if (file_exists(this->phys_param->MK_file))
+		{
+			this->Download_cell_MK_parameters(this->phys_param->MK_file, -1);
+		}
+		else
+		{
+			cout << "Error 94ut9yegfh9perfg8yvowjrgf9348" << endl;
+		}
+		
+	}
+
+	cout << "End Algoritm " << alg << endl;
 }
 
 Cell* Setka::Find_cell_point(const double& x, const double& y, const double& z, short int now, Cell*& previos)

@@ -29,8 +29,8 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
-    //S1.Download_cell_parameters("parameters_0057.bin");   // 107
+    //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
+    S1.Download_cell_parameters("parameters_0057.bin");   // 107
 
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
@@ -68,9 +68,10 @@ int main()
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    if (true)
+    if (false)
     {
         S1.Algoritm(4);
+        S1.Algoritm(5);
         cout << "AABB" << endl;
         /*S1.Print_SpSm(17.0, 0.0, 0.0);
         S1.Print_SpSm(20.0, 0.0, 0.0);
@@ -155,12 +156,15 @@ int main()
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
-    S1.Edges_create();
-    S1.Culc_divergence_in_cell();
-    S1.Culc_rotors_in_cell();
+    //S1.Edges_create();
+    //S1.Culc_divergence_in_cell();
+    //S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_137.bin", true);
-    Interpol SS = Interpol("For_intertpolate_137.bin");
+    S1.Save_for_interpolate("For_intertpolate_57-.bin", true);
+    Interpol SS = Interpol("For_intertpolate_57-.bin");
+
+    //S1.Save_for_interpolate("For_intertpolate_137-.bin", true);
+    //Interpol SS = Interpol("For_intertpolate_137-.bin");
 
     cout << "AAA" << endl;
 

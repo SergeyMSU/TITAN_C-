@@ -1195,6 +1195,8 @@ void Setka::MK_delete(short int zone_MK)
 	// «аписываем моменты
 	if (this->phys_param->culc_cell_moments == true)
 	{
+		// “ак как в файле хран€тс€ параметры во всех €чейках (даже в тех, которые были за пределом рассчитанной зоны)
+		// Ќужно сначала скачать все кроме текущей зоны (так как они только что посчитаны), а потом записать все
 		if (file_exists(this->phys_param->MK_file))
 		{
 			this->Download_cell_MK_parameters(this->phys_param->MK_file, zone_MK);
