@@ -52,8 +52,25 @@ public:
 	vector<double> f_pui_1;   // (n)
 	vector<double> f_pui_2;   // (n)
 
+
+	vector<double> F_integr_pui_1;   // (pui_F_n)
+	vector<double> nu_integr_pui_1;   // (pui_F_n)
+	vector<double> Mz_integr_pui_1;   // (pui_F_n)
+	vector<double> E_integr_pui_1;   // (pui_F_n)
+	vector<double> F_integr_pui_2;   // (pui_F_n)
+	vector<double> nu_integr_pui_2;   // (pui_F_n)
+	vector<double> Mz_integr_pui_2;   // (pui_F_n)
+	vector<double> E_integr_pui_2;   // (pui_F_n)
+
 	//vector<double> pui_Sm;
 	//vector<double> pui_Sp;
+
+	void Init_pui_integral(short int n, short int zone);  // Инициализация f_pui, заполняет нулями
+	void Delete_pui_integral(void);
+	void write_pui_integral_ToFile(void);
+	void read_pui_integral_FromFile(void);
+	void pui_integral_Culc(Phys_param* phys_param);
+
 
 	void Init_f_pui(short int n, short int zone);  // Инициализация f_pui, заполняет нулями
 	void Delete_f_pui(void);
@@ -61,6 +78,7 @@ public:
 	void read_pui_FromFile(void);
 	void print_pui(double Wmax, string nam);
 	void culc_pui_n_T(const double& pui_wR);
+	double pui_get_f(const double& w, short int ii);  // Возвращает значение f_pui в данной точке // TODO!!!
 
 	void Init_S(short int k, short int n);   // Инициализация S+ S-, заполняет нулями
 	void write_S_ToFile(void);

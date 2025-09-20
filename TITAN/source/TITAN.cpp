@@ -68,10 +68,9 @@ int main()
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    if (false)
+    if (true)
     {
-        S1.Algoritm(4);
-        S1.Algoritm(5);
+        S1.Algoritm(6);
         cout << "AABB" << endl;
         /*S1.Print_SpSm(17.0, 0.0, 0.0);
         S1.Print_SpSm(20.0, 0.0, 0.0);
@@ -93,7 +92,7 @@ int main()
         S1.Print_pui(100.0, 0.0, 0.0);
         S1.Print_pui(200.0, 0.0, 0.0);*/
 
-        //return 0;
+        return 0;
     }
 
 

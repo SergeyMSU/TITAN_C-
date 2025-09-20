@@ -170,6 +170,7 @@ void Setka::Algoritm(short int alg)
 	// 3 - Вычисление f_pui по посчитанным S+ S-
 	// 4 - Вычисление n_pui  и  T_pui  по рассчитанным f_pui
 	// 5 - Добавить в ячейки значение моментов водорода из Монте-Карло
+	// 6 - Вычисление функции h0 для розыгрыша пикапов (она считается один раз для каждого сечения перезарядки)
 
 	cout << "Start Algoritm " << alg << endl;
 
@@ -334,6 +335,10 @@ void Setka::Algoritm(short int alg)
 			cout << "Error 94ut9yegfh9perfg8yvowjrgf9348" << endl;
 		}
 		
+	}
+	else if (alg == 6)
+	{
+		this->Culc_h0_for_pui();
 	}
 
 	cout << "End Algoritm " << alg << endl;

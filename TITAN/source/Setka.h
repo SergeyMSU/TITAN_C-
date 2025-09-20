@@ -180,6 +180,7 @@ public:
 	// ФИЗИКА ****************************************************************************
 	// ****************************************************************************
 
+
 	void Init_boundary_grans(void); // Объявляет какие грани являются граничными
 	// Создаёт список граничных граней
 	// Выдяляет ячейки во внутренней области, которые считаются отдельно,
@@ -203,6 +204,8 @@ public:
 
 	void Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 		short int now, short int zone);
+
+	void Culc_h0_for_pui(void); // Считает h_0 для пикапов и сразу записывает в файл результат
 
 	void Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 		unordered_map<string, double>& par_right, short int now, bool plasma_culc_or_atoms);

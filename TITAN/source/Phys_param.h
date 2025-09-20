@@ -171,11 +171,15 @@ public:
     string MK_file;            // Фаил для сохранения моментов в ячейках
 
     bool MK_source_S = false;         // Нужно ли считать источники S+ и S- в МК
-    int pui_nW;               // Число разбиений массивов S+ и S- в ячейках
-    double pui_wR;            // Максимальная относительная скорость в массивах S+ и S-
+    int pui_nW;                  // Число разбиений массивов S+ и S- в ячейках
+    double pui_wR;               // Максимальная относительная скорость в массивах S+ и S-
+    short int pui_h0_n = 300;    // Для h0 в розыгрыше pui
+    double pui_h0_wc = 200;      // Для h0 в розыгрыше pui
+    short int pui_F_n = 200;      // На сколько частей мы разбиваем первообразную для розыгрыша PUI
      
 
-
+    inline double sigma(double x);                  // Сечение перезарядки
+    inline double sigma2(double x, double y);
 
 
     Eigen::Matrix3d Matr;              // Матрица перехода 1

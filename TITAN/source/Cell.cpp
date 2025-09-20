@@ -1,6 +1,52 @@
 ﻿#include "Cell.h"
 
 
+void Cell::Init_pui_integral(short int n, short int zone)
+{
+	this->F_integr_pui_1.resize(n);
+	this->nu_integr_pui_1.resize(n);
+	this->Mz_integr_pui_1.resize(n);
+	this->E_integr_pui_1.resize(n);
+
+	for (size_t i = 0; i < n; i++)
+	{
+		this->F_integr_pui_1[i] = 0.0;
+		this->nu_integr_pui_1[i] = 0.0;
+		this->Mz_integr_pui_1[i] = 0.0;
+		this->E_integr_pui_1[i] = 0.0;
+	}
+
+	if (zone == 2)
+	{
+		this->F_integr_pui_2.resize(n);
+		this->nu_integr_pui_2.resize(n);
+		this->Mz_integr_pui_2.resize(n);
+		this->E_integr_pui_2.resize(n);
+
+		for (size_t i = 0; i < n; i++)
+		{
+			this->F_integr_pui_2[i] = 0.0;
+			this->nu_integr_pui_2[i] = 0.0;
+			this->Mz_integr_pui_2[i] = 0.0;
+			this->E_integr_pui_2[i] = 0.0;
+		}
+	}
+}
+
+void Cell::Delete_pui_integral(void)
+{
+	this->F_integr_pui_1.resize(0);
+	this->nu_integr_pui_1.resize(0);
+	this->Mz_integr_pui_1.resize(0);
+	this->E_integr_pui_1.resize(0);
+
+	this->F_integr_pui_2.resize(0);
+	this->nu_integr_pui_2.resize(0);
+	this->Mz_integr_pui_2.resize(0);
+	this->E_integr_pui_2.resize(0);
+}
+
+
 void Cell::Init_f_pui(short int n, short int zone)
 {
 	this->f_pui_1.resize(n);
@@ -77,6 +123,166 @@ void Cell::write_S_ToFile(void)
 		file.close();
 		exit(-1);
 	}
+}
+
+
+void Cell::write_pui_integral_ToFile(void)
+{
+	std::string filename = "data_pui_intergal/func_cells_pui_" + to_string(this->number) + ".bin";
+
+
+	std::ofstream file(filename, std::ios::binary);
+	if (!file.is_open()) {
+		std::cerr << "Error egertgerg2345745yerg " << filename << std::endl;
+		exit(-1);
+	}
+
+	try {
+		// Записываем размеры матриц
+		int size1 = this->F_integr_pui_1.size();
+		int size2 = this->F_integr_pui_2.size();
+		file.write(reinterpret_cast<const char*>(&size1), sizeof(size1));
+		file.write(reinterpret_cast<const char*>(&size2), sizeof(size2));
+
+		file.write(reinterpret_cast<const char*>(this->F_integr_pui_1.data()),
+			size1 * sizeof(double));
+		file.write(reinterpret_cast<const char*>(this->nu_integr_pui_1.data()),
+			size1 * sizeof(double));
+		file.write(reinterpret_cast<const char*>(this->Mz_integr_pui_1.data()),
+			size1 * sizeof(double));
+		file.write(reinterpret_cast<const char*>(this->E_integr_pui_1.data()),
+			size1 * sizeof(double));
+
+		file.write(reinterpret_cast<const char*>(this->F_integr_pui_2.data()),
+			size2 * sizeof(double));
+		file.write(reinterpret_cast<const char*>(this->nu_integr_pui_2.data()),
+			size2 * sizeof(double));
+		file.write(reinterpret_cast<const char*>(this->Mz_integr_pui_2.data()),
+			size2 * sizeof(double));
+		file.write(reinterpret_cast<const char*>(this->E_integr_pui_2.data()),
+			size2 * sizeof(double));
+
+		int prv = 468;
+		file.write(reinterpret_cast<const char*>(prv), sizeof(prv));
+
+		file.close();
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error  t4y6545tgdfgwer34t" << e.what() << std::endl;
+		file.close();
+		exit(-1);
+	}
+}
+
+void Cell::read_pui_integral_FromFile(void)
+{
+	std::string filename = "data_pui_intergal/func_cells_pui_" + to_string(this->number) + ".bin";
+
+	if (file_exists(filename) == false) return;
+
+	std::ifstream file(filename, std::ios::binary);
+	if (!file.is_open())
+	{
+		std::cerr << "Error ji86y4tre4364ye5tg" << filename << std::endl;
+		exit(-10);
+	}
+
+	vector<double> F_integr_pui_1;   // (pui_F_n)
+	vector<double> nu_integr_pui_1;   // (pui_F_n)
+	vector<double> Mz_integr_pui_1;   // (pui_F_n)
+	vector<double> E_integr_pui_1;   // (pui_F_n)
+
+	try {
+		// Читаем размеры матриц
+		int size1, size2;
+		file.read(reinterpret_cast<char*>(&size1), sizeof(size1));
+		file.read(reinterpret_cast<char*>(&size2), sizeof(size2));
+
+		if (size1 != this->F_integr_pui_1.size() || size2 != this->F_integr_pui_2.size())
+		{
+			std::cerr << "Error reerhyy6576456t45uhrdgrt" << std::endl;
+			cout << size1 << " " << size2 << " " << this->F_integr_pui_1.size() << " " << 
+				this->F_integr_pui_2.size() << endl;
+			file.close();
+			exit(-10);
+		}
+
+
+		file.read(reinterpret_cast<char*>(this->F_integr_pui_1.data()),
+			size1 * sizeof(double));
+		file.read(reinterpret_cast<char*>(this->nu_integr_pui_1.data()),
+			size1 * sizeof(double));
+		file.read(reinterpret_cast<char*>(this->Mz_integr_pui_1.data()),
+			size1 * sizeof(double));
+		file.read(reinterpret_cast<char*>(this->E_integr_pui_1.data()),
+			size1 * sizeof(double));
+
+		file.read(reinterpret_cast<char*>(this->F_integr_pui_2.data()),
+			size2 * sizeof(double));
+		file.read(reinterpret_cast<char*>(this->nu_integr_pui_2.data()),
+			size2 * sizeof(double));
+		file.read(reinterpret_cast<char*>(this->Mz_integr_pui_2.data()),
+			size2 * sizeof(double));
+		file.read(reinterpret_cast<char*>(this->E_integr_pui_2.data()),
+			size2 * sizeof(double));
+
+		int pvr;
+		file.read(reinterpret_cast<char*>(pvr),
+			sizeof(pvr));
+		if (pvr != 468)
+		{
+			cout << "Error  93498tryh38hgibuwe4fghp9iehg" << endl;
+			exit(-1);
+		}
+
+		file.close();
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error ry4536345te5y34ty34et;9 " << e.what() << std::endl;
+		file.close();
+		exit(-19);
+	}
+}
+
+void Cell::pui_integral_Culc(Phys_param* phys_param)
+{
+	// Вычисляем сначала норму  \rho_w (см. документацию "PUI")
+	for (int ijk = 0; ijk < 2; ijk++)
+	{
+		if (ijk == 1 && F_integr_pui_2.size() == 0) continue;
+
+		double SS = 0.0;
+		unsigned short int nn1 = 1000;
+		for (int i = 0; i < nn1; i++)
+		{
+			double w = (i + 0.5) * phys_param->pui_wR / nn1;
+			double ff = pui_get_f(w, ijk);
+			SS += ff * kv(w) * (w + phys_param->pui_h0_wc) * phys_param->sigma(w + phys_param->pui_h0_wc)
+				* (phys_param->pui_wR / nn1);
+		}
+
+		double S1 = 0.0;
+		double w_val = 0.0;
+		for (int i = 0; i < phys_param->pui_F_n; i++)
+		{
+			double S2 = (i + 0.5) * 1.0 / phys_param->pui_F_n;
+
+			while (S1 < S2)
+			{
+				w_val += (phys_param->pui_wR / nn1);
+				double ff = pui_get_f(w_val, ijk);
+				S1 += ff * kv(w_val) * (w_val + phys_param->pui_h0_wc) *
+					phys_param->sigma(w_val + phys_param->pui_h0_wc) * (phys_param->pui_wR / nn1) / SS;
+			}
+
+			if(ijk == 0) this->F_integr_pui_1[i] = w_val;
+			if(ijk == 1) this->F_integr_pui_2[i] = w_val;
+		}
+	}
+
+	// Далее надо считать частиту перезарядки и источники импульса и энергии
+
+
 }
 
 void Cell::write_pui_ToFile(void)
@@ -280,6 +486,11 @@ void Cell::culc_pui_n_T(const double& pui_wR)
 	}
 	this->parameters[0]["MK_rho_Pui_2"] = S;
 	this->parameters[0]["MK_T_Pui_2"] = S2;
+}
+
+double Cell::pui_get_f(const double& w, short int ii)
+{
+	return 0.0;
 }
 
 void Cell::Get_RBF_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par)

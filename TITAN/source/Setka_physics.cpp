@@ -1232,6 +1232,61 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 	//exit(-1);
 }
 
+void Setka::Culc_h0_for_pui(void)
+{
+	vector<double> h0_pui(this->phys_param->pui_h0_n);
+
+	#pragma omp parallel for schedule(dynamic)
+	for (int k = 0; k < this->phys_param->pui_h0_n; k++)
+	{
+		double S = 0.0;
+		double UH = (k + 0.5) * this->phys_param->pui_wR / this->phys_param->pui_h0_n;
+
+		for (int i = 0; i < 1000; i++) {
+			double w = (i + 0.5) * this->phys_param->pui_wR / 1000.0;
+
+			for (int j = 0; j < 180; j++) 
+			{
+				double the = j * const_pi / 180.0;
+				double u = sqrt(pow(w * sin(the), 2) + pow(w * cos(the) - UH, 2));
+				S = max(S, u * sigma(u) / 
+					((w + this->phys_param->pui_h0_wc) * sigma(w + this->phys_param->pui_h0_wc)));
+			}
+		}
+		h0_pui[k] = S;
+	}
+	
+
+	// Запись результатов в файл
+	std::ofstream outfile("h0_for_pui.bin", std::ios::binary | std::ios::out);
+
+	if (!outfile.is_open()) {
+		std::cerr << "Error  tybherbvhenbevrrtb564656 " << std::endl;
+		return;
+	}
+
+	// Записываем размер вектора (количество элементов)
+	size_t size = h0_pui.size();
+	outfile.write(reinterpret_cast<const char*>(&size), sizeof(size_t));
+
+	// Записываем данные вектора
+	outfile.write(reinterpret_cast<const char*>(h0_pui.data()), size * sizeof(double));
+
+	// Для проверку успешности считывания
+	int vb = 123;
+	outfile.write(reinterpret_cast<const char*>(&vb), sizeof(vb));
+
+	outfile.close();
+
+	std::ofstream outfile2("h0_PUI.txt");
+	for (int k = 0; k < this->phys_param->pui_h0_n; k++)
+	{
+		double UH = (k - 0.5) * this->phys_param->pui_wR / this->phys_param->pui_h0_n;
+		outfile2 << UH << " " << h0_pui[k] << std::endl;
+	}
+	outfile2.close();
+}
+
 void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE, 
 	short int now, short int zone)
 {

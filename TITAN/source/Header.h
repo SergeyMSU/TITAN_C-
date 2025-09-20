@@ -56,17 +56,6 @@ class MK_particle;
 #include <chrono>
 #include <random>
 
-#define a_2 (0.1307345665) 
-
-inline double sigma(double x)
-{
-    return kv(1.0 - a_2 * log(x));
-}
-
-inline double sigma2(double x, double y)
-{
-    return kv(1.0 - a_2 * log((x) * (y)));
-}
 
 
 // Boost библиотека (надо подключать к компилятору отдельно)
