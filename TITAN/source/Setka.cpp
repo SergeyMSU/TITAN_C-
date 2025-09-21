@@ -350,17 +350,26 @@ void Setka::Algoritm(short int alg)
 			#pragma omp critical (gergergerg4) 
 			{
 				st++;
-				if (st % 10000 == 0)
+				if (st % 250 == 0)
 				{
 					cout << "st = " << st << "   from " << this->All_Cell.size() << endl;
 				}
 			}
 			auto A = this->All_Cell[idx];
 			short int zone = determ_zone(A, 0);
+
+			A->Init_f_pui(this->phys_param->pui_nW, zone);
+			A->read_pui_FromFile();
+
 			A->Init_pui_integral(this->phys_param->pui_F_n, zone);
+			//cout << "A" << endl;
 			A->pui_integral_Culc(this->phys_param);
+			//cout << "B" << endl;
 			A->write_pui_integral_ToFile();
+			//cout << "C" << endl;
 			A->Delete_pui_integral();
+			//cout << "D" << endl;
+			A->Delete_f_pui();
 		}
 	}
 

@@ -128,11 +128,12 @@ void Cell::write_S_ToFile(void)
 
 void Cell::write_pui_integral_ToFile(void)
 {
-	std::string filename = "data_pui_intergal/func_cells_pui_" + to_string(this->number) + ".bin";
+	std::string filename = "data_pui_intergal/func_cells_pui_integral_" + to_string(this->number) + ".bin";
 
 
 	std::ofstream file(filename, std::ios::binary);
-	if (!file.is_open()) {
+	if (!file.is_open()) 
+	{
 		std::cerr << "Error egertgerg2345745yerg " << filename << std::endl;
 		exit(-1);
 	}
@@ -161,9 +162,10 @@ void Cell::write_pui_integral_ToFile(void)
 			size2 * sizeof(double));
 		file.write(reinterpret_cast<const char*>(this->E_integr_pui_2.data()),
 			size2 * sizeof(double));
+		
 
 		int prv = 468;
-		file.write(reinterpret_cast<const char*>(prv), sizeof(prv));
+		file.write(reinterpret_cast<const char*>(&prv), sizeof(prv));
 
 		file.close();
 	}
@@ -267,12 +269,15 @@ void Cell::pui_integral_Culc(Phys_param* phys_param)
 		double w_val = 0.0;
 		for (int i = 0; i < phys_param->pui_F_n; i++)
 		{
+			//cout << "i = " << i << endl;
 			double S2 = (i + 0.5) * 1.0 / phys_param->pui_F_n;
 
 			while (S1 < S2)
 			{
 				w_val += (phys_param->pui_wR / nn1);
+				//cout << "get " << w_val << " " << phys_param->pui_wR << endl;
 				ff = pui_get_f(w_val, ijk, phys_param->pui_wR);
+				//cout << "ff = " << ff << endl;
 				S1 += ff * kv(w_val) * (w_val + phys_param->pui_h0_wc) *
 					phys_param->sigma(w_val + phys_param->pui_h0_wc) * (phys_param->pui_wR / nn1) / SS;
 			}
@@ -284,29 +289,34 @@ void Cell::pui_integral_Culc(Phys_param* phys_param)
 
 		// Далее надо считать частиту перезарядки и источники импульса и энергии
 		double the, u;
-		nn1 = 1000;
+		nn1 = 500;
+		short int nn2 = 90;
 		for (int i = 0; i < phys_param->pui_F_n; i++)
 		{
+			//cout << "i = " << i << endl;
 			S = 0.0;
 			SS = 0.0;
 			S1 = 0.0;
 			UH = (i + 0.5) * phys_param->pui_wR / phys_param->pui_F_n;
 			for (int j = 0; j < nn1; j++)
 			{
+				//cout << "j = " << i << endl;
 				w = (j + 0.5) * phys_param->pui_wR / nn1;
 				ff = pui_get_f(w, ijk, phys_param->pui_wR);
-				for (int k = 0; i < 180; k++)
+				for (int k = 0; k < nn2; k++)
 				{
-					the = const_pi * k / 180;
+					//cout << "j = " << i << endl;
+					the = const_pi * k / nn2;
 					u = sqrt(kv(w * sin(the)) + kv(w * cos(the) - UH));
 					u = max(u, 0.000001);
-					S = S + 2.0 * const_pi * ff * kv(w) * u * phys_param->sigma(u) * sin(the) * (const_pi / 180) * (phys_param->pui_wR / nn1);
-					SS = SS + 2.0 * const_pi * ff * kv(w) * u * phys_param->sigma(u) * sin(the) * w * cos(the) * (const_pi / 180) * (phys_param->pui_wR / nn1);
-					S1 = S1 + const_pi * ff * kv(w) * u * phys_param->sigma(u) * sin(the) * kv(w) * (const_pi / 180) * (phys_param->pui_wR / nn1);
+					double ks = const_pi * ff * kv(w) * u * phys_param->sigma(u) * sin(the) * (const_pi / nn2) * (phys_param->pui_wR / nn1);
+					S = S + 2.0 * ks;
+					SS = SS + 2.0 * w * cos(the) * ks;
+					S1 = S1 + kv(w) * ks;
 				}
 			}
 
-			if (ijk == 1)
+			if (ijk == 0)
 			{
 				this->nu_integr_pui_1[i] = S;
 				this->Mz_integr_pui_1[i] = SS;
