@@ -65,7 +65,7 @@ public:
 	//vector<double> pui_Sm;
 	//vector<double> pui_Sp;
 
-	void Init_pui_integral(short int n, short int zone);  // Инициализация f_pui, заполняет нулями
+	void Init_pui_integral(short int n, short int zone);  // Инициализация интеграллов для розыгрыша pui
 	void Delete_pui_integral(void);
 	void write_pui_integral_ToFile(void);
 	void read_pui_integral_FromFile(void);
@@ -78,7 +78,7 @@ public:
 	void read_pui_FromFile(void);
 	void print_pui(double Wmax, string nam);
 	void culc_pui_n_T(const double& pui_wR);
-	double pui_get_f(const double& w, short int ii);  // Возвращает значение f_pui в данной точке // TODO!!!
+	double pui_get_f(const double& w, short int ii, const double& Wmax);  // Возвращает значение f_pui в данной точке // TODO!!!
 
 	void Init_S(short int k, short int n);   // Инициализация S+ S-, заполняет нулями
 	void write_S_ToFile(void);

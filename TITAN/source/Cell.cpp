@@ -253,10 +253,12 @@ void Cell::pui_integral_Culc(Phys_param* phys_param)
 
 		double SS = 0.0;
 		unsigned short int nn1 = 1000;
+		double ff, w, S, UH;
+
 		for (int i = 0; i < nn1; i++)
 		{
-			double w = (i + 0.5) * phys_param->pui_wR / nn1;
-			double ff = pui_get_f(w, ijk);
+			w = (i + 0.5) * phys_param->pui_wR / nn1;
+			ff = pui_get_f(w, ijk, phys_param->pui_wR);
 			SS += ff * kv(w) * (w + phys_param->pui_h0_wc) * phys_param->sigma(w + phys_param->pui_h0_wc)
 				* (phys_param->pui_wR / nn1);
 		}
@@ -270,18 +272,59 @@ void Cell::pui_integral_Culc(Phys_param* phys_param)
 			while (S1 < S2)
 			{
 				w_val += (phys_param->pui_wR / nn1);
-				double ff = pui_get_f(w_val, ijk);
+				ff = pui_get_f(w_val, ijk, phys_param->pui_wR);
 				S1 += ff * kv(w_val) * (w_val + phys_param->pui_h0_wc) *
 					phys_param->sigma(w_val + phys_param->pui_h0_wc) * (phys_param->pui_wR / nn1) / SS;
 			}
 
-			if(ijk == 0) this->F_integr_pui_1[i] = w_val;
-			if(ijk == 1) this->F_integr_pui_2[i] = w_val;
+			if (ijk == 0) this->F_integr_pui_1[i] = w_val;
+			if (ijk == 1) this->F_integr_pui_2[i] = w_val;
+		}
+
+
+		// Далее надо считать частиту перезарядки и источники импульса и энергии
+		double the, u;
+		nn1 = 1000;
+		for (int i = 0; i < phys_param->pui_F_n; i++)
+		{
+			S = 0.0;
+			SS = 0.0;
+			S1 = 0.0;
+			UH = (i + 0.5) * phys_param->pui_wR / phys_param->pui_F_n;
+			for (int j = 0; j < nn1; j++)
+			{
+				w = (j + 0.5) * phys_param->pui_wR / nn1;
+				ff = pui_get_f(w, ijk, phys_param->pui_wR);
+				for (int k = 0; i < 180; k++)
+				{
+					the = const_pi * k / 180;
+					u = sqrt(kv(w * sin(the)) + kv(w * cos(the) - UH));
+					u = max(u, 0.000001);
+					S = S + 2.0 * const_pi * ff * kv(w) * u * phys_param->sigma(u) * sin(the) * (const_pi / 180) * (phys_param->pui_wR / nn1);
+					SS = SS + 2.0 * const_pi * ff * kv(w) * u * phys_param->sigma(u) * sin(the) * w * cos(the) * (const_pi / 180) * (phys_param->pui_wR / nn1);
+					S1 = S1 + const_pi * ff * kv(w) * u * phys_param->sigma(u) * sin(the) * kv(w) * (const_pi / 180) * (phys_param->pui_wR / nn1);
+				}
+			}
+
+			if (ijk == 1)
+			{
+				this->nu_integr_pui_1[i] = S;
+				this->Mz_integr_pui_1[i] = SS;
+				this->E_integr_pui_1[i] = S1;
+			}
+			else if (ijk == 1)
+			{
+				this->nu_integr_pui_2[i] = S;
+				this->Mz_integr_pui_2[i] = SS;
+				this->E_integr_pui_2[i] = S1;
+			}
+			else
+			{
+				cout << "Error iehrg9uhet7834yt" << endl;
+				exit(-1);
+			}
 		}
 	}
-
-	// Далее надо считать частиту перезарядки и источники импульса и энергии
-
 
 }
 
@@ -488,9 +531,85 @@ void Cell::culc_pui_n_T(const double& pui_wR)
 	this->parameters[0]["MK_T_Pui_2"] = S2;
 }
 
-double Cell::pui_get_f(const double& w, short int ii)
+double Cell::pui_get_f(const double& w, short int ii, const double& Wmax)
 {
-	return 0.0;
+	short int N = 0;
+	if (ii == 0) {N = this->f_pui_1.size();}
+	else if (ii == 1) {N = this->f_pui_2.size();}
+	else { cout << "ERROR ey4556uy564556ty4y453dfsde" << endl; exit(-1);}
+	if (N == 0) return 0.0;
+
+	double cell_size = Wmax / N;
+	int left_index = static_cast<int>(w / cell_size);
+	if (left_index == N) 
+	{
+		if (ii == 0) { return this->f_pui_1[N - 1]; }
+		else if (ii == 1) { return this->f_pui_2[N - 1]; }
+		else
+		{
+			cout << "ERROR hbtyryuj7ue4swswsw32" << endl;
+			exit(-1);
+		}
+	}
+
+	// Координаты центров ячеек
+	double left_center = (left_index + 0.5) * cell_size;
+	double right_center = (left_index + 1.5) * cell_size;
+
+	if (left_index == 0 && w < left_center) {
+		// Экстраполяция от первой ячейки
+		double next_center = (1.5) * cell_size;
+		if (ii == 0)
+		{
+			return this->f_pui_1[0] + (this->f_pui_1[1] - this->f_pui_1[0]) * 
+				(w - left_center) / (next_center - left_center);
+		}
+		else if (ii == 1)
+		{
+			return this->f_pui_2[0] + (this->f_pui_2[1] - this->f_pui_2[0]) *
+				(w - left_center) / (next_center - left_center);
+		}
+		else
+		{
+			cout << "ERROR tbftgeyt45tvggestv" << endl;
+			exit(-1);
+		}
+	}
+	else if (left_index == N - 1 && w > right_center) 
+	{
+		double prev_center = (N - 1.5) * cell_size;
+		if (ii == 0)
+		{
+			return this->f_pui_1[N - 2] + (this->f_pui_1[N - 1] - this->f_pui_1[N - 2]) *
+				(w - prev_center) / (right_center - prev_center);
+		}
+		else if (ii == 1)
+		{
+			return this->f_pui_2[N - 2] + (this->f_pui_2[N - 1] - this->f_pui_2[N - 2]) *
+				(w - prev_center) / (right_center - prev_center);
+		}
+		else
+		{
+			cout << "ERROR rtyr6uy56u5u56u5u6;sjfge" << endl;
+			exit(-1);
+		}
+	}
+
+	// Линейная интерполяция между центрами ячеек
+	double t = (w - left_center) / (right_center - left_center);
+	if (ii == 0)
+	{
+		return this->f_pui_1[left_index] * (1.0 - t) + this->f_pui_1[left_index + 1] * t;
+	}
+	else if (ii == 1)
+	{
+		return this->f_pui_2[left_index] * (1.0 - t) + this->f_pui_2[left_index + 1] * t;
+	}
+	else
+	{
+		cout << "ERROR 54tuh8745bgoi;sjfge" << endl;
+		exit(-1);
+	}
 }
 
 void Cell::Get_RBF_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par)
@@ -1025,7 +1144,7 @@ void Cell::MK_calc_Sm(Phys_param* phys_param)
 				d = sqrt(kv(Vh) + kv(w) - 2.0 * w * Vh * cos(the));
 				if (d > 0.000000001)
 				{
-					pui_Sm2[ij] += ff * d * sigma(d) * sin(the) * dthe * 2.0 * const_pi;
+					pui_Sm2[ij] += ff * d * phys_param->sigma(d) * sin(the) * dthe * 2.0 * const_pi;
 				}
 			}
 		}

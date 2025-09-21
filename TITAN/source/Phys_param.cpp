@@ -2499,12 +2499,12 @@ double Phys_param::Get_razmer(string par)
     return 1.0;
 }
 
-inline double Phys_param::sigma(double x)
-{
-    return kv(1.0 - this->par_a_2 * log(x));
-}
-
-inline double Phys_param::sigma2(double x, double y)
-{
-    return kv(1.0 - this->par_a_2 * log((x) * (y)));
-}
+//inline double Phys_param::sigma(double x)
+//{
+//    return kv(1.0 - this->par_a_2 * log(x));
+//}
+//
+//inline double Phys_param::sigma2(double x, double y)
+//{
+//    return kv(1.0 - this->par_a_2 * log((x) * (y)));
+//}

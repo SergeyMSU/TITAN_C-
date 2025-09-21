@@ -1249,8 +1249,8 @@ void Setka::Culc_h0_for_pui(void)
 			{
 				double the = j * const_pi / 180.0;
 				double u = sqrt(pow(w * sin(the), 2) + pow(w * cos(the) - UH, 2));
-				S = max(S, u * sigma(u) / 
-					((w + this->phys_param->pui_h0_wc) * sigma(w + this->phys_param->pui_h0_wc)));
+				S = max(S, u * this->phys_param->sigma(u) /
+					((w + this->phys_param->pui_h0_wc) * this->phys_param->sigma(w + this->phys_param->pui_h0_wc)));
 			}
 		}
 		h0_pui[k] = S;

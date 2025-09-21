@@ -178,8 +178,18 @@ public:
     short int pui_F_n = 200;      // На сколько частей мы разбиваем первообразную для розыгрыша PUI
      
 
-    inline double sigma(double x);                  // Сечение перезарядки
-    inline double sigma2(double x, double y);
+    //inline double sigma(double x);                  // Сечение перезарядки
+    //inline double sigma2(double x, double y);
+
+    inline double sigma(double x)
+    {
+        return kv(1.0 - this->par_a_2 * log(x));
+    }
+
+    inline double sigma2(double x, double y)
+    {
+        return kv(1.0 - this->par_a_2 * log((x) * (y)));
+    }
 
 
     Eigen::Matrix3d Matr;              // Матрица перехода 1

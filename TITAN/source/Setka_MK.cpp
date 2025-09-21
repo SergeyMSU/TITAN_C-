@@ -1983,7 +1983,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		double Vel_norm = sqrt(kvv(P.Vel[0], P.Vel[1], P.Vel[2]));
 
 		double uz = Velosity_1(u, cp);
-		double nu_ex = ro * uz * sigma(uz) / this->phys_param->par_Kn;
+		double nu_ex = ro * uz * this->phys_param->sigma(uz) / this->phys_param->par_Kn;
 		double sig = Vel_norm / nu_ex;
 		I += l / sig;
 
@@ -2840,7 +2840,7 @@ void Setka::M_K_Change_Velosity(Sensor* sens, const double& Ur, const double& Ut
 		u3 = Vphi - v3;
 		uuu = sqrt(kvv(u1, u2, u3));
 		yy = sqrt(kvv(y1, y2, y3));
-		h = ((uuu * sigma2(uuu, cp)) / (sigma2(X, cp) * (X + yy)));
+		h = ((uuu * this->phys_param->sigma2(uuu, cp)) / (this->phys_param->sigma2(X, cp) * (X + yy)));
 	} while (h < ksi6); 
 
 
