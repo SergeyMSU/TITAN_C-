@@ -70,7 +70,7 @@ int main()
 
     if (true)
     {
-        S1.Algoritm(7);
+        S1.Algoritm(5);
         cout << "AABB" << endl;
         /*S1.Print_SpSm(17.0, 0.0, 0.0);
         S1.Print_SpSm(20.0, 0.0, 0.0);
@@ -78,9 +78,9 @@ int main()
         S1.Print_SpSm(1.0, 0.0, 0.0);
         S1.Print_SpSm(5.0, 0.0, 0.0);
         S1.Print_SpSm(10.0, 0.0, 0.0);
-        S1.Print_SpSm(15.0, 0.0, 0.0);
+        S1.Print_SpSm(15.0, 0.0, 0.0);*/
 
-        S1.Print_pui(17.0, 0.0, 0.0);
+        /*S1.Print_pui(17.0, 0.0, 0.0);
         S1.Print_pui(20.0, 0.0, 0.0);
         S1.Print_pui(25.0, 0.0, 0.0);
         S1.Print_pui(1.0, 0.0, 0.0);
@@ -90,9 +90,9 @@ int main()
         S1.Print_pui(28.0, 0.0, 0.0);
         S1.Print_pui(50.0, 0.0, 0.0);
         S1.Print_pui(100.0, 0.0, 0.0);
-        S1.Print_pui(200.0, 0.0, 0.0);*/
+        S1.Print_pui(200.0, 0.0, 0.0);
 
-        return 0;
+        return 0;*/
     }
 
 
@@ -155,15 +155,15 @@ int main()
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
-    //S1.Edges_create();
-    //S1.Culc_divergence_in_cell();
-    //S1.Culc_rotors_in_cell();
+    S1.Edges_create();
+    S1.Culc_divergence_in_cell();
+    S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_57-.bin", true);
-    Interpol SS = Interpol("For_intertpolate_57-.bin");
+    //S1.Save_for_interpolate("For_intertpolate_57-.bin", true);
+    //Interpol SS = Interpol("For_intertpolate_57-.bin");
 
-    //S1.Save_for_interpolate("For_intertpolate_137-.bin", true);
-    //Interpol SS = Interpol("For_intertpolate_137-.bin");
+    S1.Save_for_interpolate("For_intertpolate_137-.bin", false);
+    Interpol SS = Interpol("For_intertpolate_137-.bin");
 
     cout << "AAA" << endl;
 

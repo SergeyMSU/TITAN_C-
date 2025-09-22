@@ -1170,6 +1170,7 @@ void Cell::MK_calc_Sm(Phys_param* phys_param)
 
 void Cell::MK_normir_Moments(Phys_param* phys_param)
 {
+	// Нормируем на объём ячейки плотности 
 	if (this->parameters[0].find("MK_n_H") != this->parameters[0].end())
 	{
 		this->parameters[0]["MK_n_H"] /= this->volume[0];
@@ -1194,6 +1195,32 @@ void Cell::MK_normir_Moments(Phys_param* phys_param)
 	{
 		this->parameters[0]["MK_n_H4"] /= this->volume[0];
 	}
+
+	if (this->parameters[0].find("MK_n_H5") != this->parameters[0].end())
+	{
+		this->parameters[0]["MK_n_H5"] /= this->volume[0];
+	}
+
+	if (this->parameters[0].find("MK_n_H6") != this->parameters[0].end())
+	{
+		this->parameters[0]["MK_n_H6"] /= this->volume[0];
+	}
+
+	if (this->parameters[0].find("MK_n_H7") != this->parameters[0].end())
+	{
+		this->parameters[0]["MK_n_H7"] /= this->volume[0];
+	}
+
+	if (this->parameters[0].find("MK_n_H8") != this->parameters[0].end())
+	{
+		this->parameters[0]["MK_n_H8"] /= this->volume[0];
+	}
+
+	if (this->parameters[0].find("MK_n_H9") != this->parameters[0].end())
+	{
+		this->parameters[0]["MK_n_H9"] /= this->volume[0];
+	}
+
 
 	if (phys_param->MK_source_S == true)
 	{
