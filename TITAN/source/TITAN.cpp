@@ -30,8 +30,8 @@ int main()
     cout << "C " << endl;
 
     //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
-    S1.Download_cell_parameters("parameters_0057.bin");   // 107
-    //S1.Download_cell_parameters("parameters_0200.bin");   // 107
+    //S1.Download_cell_parameters("parameters_0057.bin");   // 107
+    S1.Download_cell_parameters("parameters_0200.bin");   // 107
 
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
@@ -112,7 +112,7 @@ int main()
 
 
 
-    for (int i = 1; i <= 6 * 4; i++) // 6 * 2
+    for (int i = 1; i <= 6 * 12; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -152,7 +152,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0200.bin");
+    S1.Save_cell_parameters("parameters_0201.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
