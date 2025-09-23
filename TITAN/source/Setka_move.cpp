@@ -431,7 +431,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			this->phys_param->chlld(gr->Get_method(), gr->normal[now][0], gr->normal[now][1],
 				gr->normal[now][2],
-				w, qqq1, qqq2, qqq, false, 3,
+				w, qqq1, qqq2, qqq, false, 0,  // тут раньше было 3, теперь 0 поставил в определении скорости
 				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
 				Option);
 

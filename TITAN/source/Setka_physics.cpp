@@ -1414,9 +1414,11 @@ int Setka::determ_zone(Cell* C, short int now)
 	double z = C->center[now][2];
 	double r = norm2(x, y, z);
 
-	if (C->parameters[now]["Q"] / rho < 50.0)
+	//if (C->parameters[now]["Q"] / rho < 50.0)
+	if (C->type == Type_cell::Zone_1 || C->type == Type_cell::Zone_2)
 	{
-		if (M > 3.0 && r < 45)
+		//if (M > 3.0 && r < 45)
+		if(C->type == Type_cell::Zone_1)
 		{
 			return 1;
 		}
@@ -1427,14 +1429,9 @@ int Setka::determ_zone(Cell* C, short int now)
 	}
 	else
 	{
-		if (M > 1 && x > 0.0)
+		//if (M > 1 && x > 0.0)
+		if(true && C->type == Type_cell::Zone_4)
 		{
-
-			if (true && C->type == Type_cell::Zone_3)   // Это можно использовать если сетка установилась
-			{
-				return 3;
-			}
-
 			return 4;
 		}
 		else
@@ -1905,6 +1902,26 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz) + kvv(bx, by, bz) / 25.13274122871834590768) * Volume / Volume2
 						- time * (POTOK["p"] + (dsk / cpi4) * POTOK["divB"]) / Volume2 + time * SOURSE["E"]) -
 						0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
+
+					// Эффективная магнитная диссипация
+					if (cell->type == Type_cell::Zone_2 && p3/(kvv(bx3, by3, bz3) / (8.0 * const_pi)) < 1.0)
+					//if(false)
+					{
+						double p4, bx4, by4, bz4;
+						double tau = 10.0;
+
+						bx4 = bx3 - time * bx3 / tau;
+						by4 = by3 - time * by3 / tau;
+						bz4 = bz3 - time * bz3 / tau;
+						p4 = p3 + (time / tau - kv(time / tau)) * (this->phys_param->g1) * kvv(bx3, by3, bz3) / (4.0 * const_pi);
+
+						bx3 = bx4;
+						by3 = by4;
+						bz3 = bz4;
+						p3 = p4;
+					}
+
+
 				}
 				else
 				{
@@ -1942,7 +1959,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 					if (step % 25 == 0 && print_p_less_0 == false)
 					{
-#pragma omp critical (firstf) 
+						#pragma omp critical (firstf) 
 						{
 							if (print_p_less_0 == false)
 							{
