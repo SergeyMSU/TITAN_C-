@@ -1866,7 +1866,7 @@ void Phys_param::raspad_testing(void)
     konvect.push_back(0.0);
 
     this->chlld(2, 1.0, 0.0, 0.0,
-        w, qqq1, qqq2, qqq, false, 3,
+        w, qqq1, qqq2, qqq, false, 0, //3
         konvect_left, konvect_right, konvect, dsr, dsc, dsl,
         Option);
 
