@@ -1908,7 +1908,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					//if(false)
 					{
 						double p4, bx4, by4, bz4;
-						double tau = 4.0; // 10.0
+						double tau = 2.5 * max(sqrt(kvv(u3, v3, w3)), 0.01)/3.0; // 10.0
 
 						bx4 = bx3 - time * bx3 / tau;
 						by4 = by3 - time * by3 / tau;
