@@ -269,7 +269,7 @@ void Setka::Init_physics(void)
 				i->parameters[0]["Bx"] = this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
 				i->parameters[0]["By"] = this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
 				i->parameters[0]["Bz"] = 0.0;
-				i->parameters[0]["Q"] = 100.0 * i->parameters["rho"];
+				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
 			}
 			if (false)
 			{
