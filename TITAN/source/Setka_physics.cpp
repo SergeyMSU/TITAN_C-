@@ -251,7 +251,7 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// Редактирование каких-то переменных
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -259,7 +259,19 @@ void Setka::Init_physics(void)
 			double r = norm2(i->center[0][0], i->center[0][1], i->center[0][2]);
 
 			int zone = determ_zone(i, 0);
-			if (zone > 2)
+			if (i->center[0][0] > 100.0)
+			{
+				i->parameters[0]["rho"] = this->phys_param->rho_LISM;
+				i->parameters[0]["rho_He"] = this->phys_param->rho_HE_LISM; 
+				i->parameters[0]["p"] = this->phys_param->rho_p_LISM; 
+				i->parameters[0]["Vy"] = 0.0;
+				i->parameters[0]["Vz"] = 0.0;
+				i->parameters[0]["Bx"] = this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
+				i->parameters[0]["By"] = this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
+				i->parameters[0]["Bz"] = 0.0;
+				i->parameters[0]["Q"] = 100.0 * i->parameters["rho"];
+			}
+			if (false)
 			{
 				i->parameters[0]["rho"] *= 0.81;
 				i->parameters[0]["p"] *= 0.934;
