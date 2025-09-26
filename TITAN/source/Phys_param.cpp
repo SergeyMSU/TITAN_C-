@@ -31,9 +31,9 @@ Phys_param::Phys_param()
                              true, true,
                              true, false,
                              true, false;
-        // РџРёРєР°РїС‹ Р±СѓРґСѓС‚ Р·Р°РґР°РІР°С‚СЊСЃСЏ РІРµР·РґРµ (РґР»СЏ РїСЂРѕСЃС‚РѕС‚С‹), РїСЂРѕСЃС‚Рѕ РіРґРµ РёС… РЅРµС‚ Р±СѓРґСѓС‚ РѕРїСЂРµРґРµР»РµРЅС‹ РЅСѓР»СЏРјРё
-        // РџСЂРµРґСѓРїСЂРµР¶РґРµРЅРёРµ, РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСЂРѕР±Р»РµРјР° СЃ С‚РµРј, С‡С‚Рѕ РЅРµРєРѕС‚РѕСЂС‹Рµ
-        // РїРѕРІРµСЂС…РЅРѕСЃС‚Рё РІС‹РґРµР»СЏСЋС‚СЃСЏ РЅРµ РїРѕР»РЅРѕСЃС‚СЊСЋ
+        // Пикапы будут задаваться везде (для простоты), просто где их нет будут определены нулями
+        // Предупреждение, может быть проблема с тем, что некоторые
+        // поверхности выделяются не полностью
 
         this->pui_condition.resize(3, this->num_pui);
         this->pui_condition << 2, 0,
@@ -196,9 +196,9 @@ Phys_param::Phys_param()
         
     }
 
-    // 1 - 4 СЃС‚Р°СЂС‹Рµ РѕР±С‹С‡РЅС‹Рµ СЃРѕСЂС‚Р°
-    // 5 - 8 СЃРѕСЂС‚Р° РІРѕРґРѕСЂРѕРґР°, СЂРѕР¶РґС‘РЅРЅС‹Рµ РѕС‚ РїРёРєР°РїРѕРІ СЃРѕСЂС‚Р° 1
-    // 9 - СЃРѕСЂС‚ РІРѕРґРѕСЂРѕРґР° РѕС‚ РїРёРєР°РїРѕРІ СЃРѕСЂС‚Р° 2 (С‚Р°РєРѕР№ СЃРѕСЂС‚ РµСЃС‚СЊ С‚РѕР»СЊРєРѕ РІРѕ РІРЅСѓС‚СЂРµРЅРЅРµРј СѓРґР°СЂРЅРѕРј СЃР»РѕРµ).
+    // 1 - 4 старые обычные сорта
+    // 5 - 8 сорта водорода, рождённые от пикапов сорта 1
+    // 9 - сорт водорода от пикапов сорта 2 (такой сорт есть только во внутреннем ударном слое).
     
     this->plasma_condition.resize(3, 1);
     this->plasma_condition << 2,
@@ -234,7 +234,7 @@ Phys_param::Phys_param()
 
 
 
-    // Р”РѕР±Р°РІР»СЏРµРј РІРѕРґРѕСЂРѕРґ
+    // Добавляем водород
     for (size_t ii = 1; ii <= this->num_H; ii++)
     {
         string nii = "rho_H" + to_string(ii);
@@ -258,7 +258,7 @@ Phys_param::Phys_param()
         this->H_param_names.push_back(nii);
     }
 
-    // Р”РѕР±Р°РІР»СЏРµРј РїРёРєР°РїС‹
+    // Добавляем пикапы
     if (this->is_PUI == true)
     {
         this->param_names.push_back("rho_Pui_1"); this->plasma_pui_name.push_back("rho_Pui_1");
@@ -267,7 +267,7 @@ Phys_param::Phys_param()
         this->param_names.push_back("p_Pui_2"); this->plasma_pui_name.push_back("p_Pui_2");
     }
 
-    // Р—Р°РґР°С‘Рј РёРјРµРЅР° РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С…СЉ Р¶РёРґРєРѕСЃС‚РµР№ РїРёРєР°РїРѕРІ
+    // Задаём имена дополнительныхъ жидкостей пикапов
     if (this->is_PUI == true)
     {
         this->pui_name.push_back("_Pui_1");
@@ -280,7 +280,7 @@ Phys_param::Phys_param()
         this->p_pui_name.push_back(nam);
     }
 
-    // РРјРµРЅСЏ РґР»СЏ РѕСЃРѕР±РѕРіРѕ СЃРЅРѕСЃР° РІ РўР’Р”
+    // Именя для особого сноса в ТВД
     this->r2_snos_names.insert("rho");
     this->r2_snos_names.insert("Q");
     this->r2_snos_names.insert("rho_He");
@@ -295,7 +295,7 @@ Phys_param::Phys_param()
 
 
 
-    // Р—Р°РґР°С‘Рј РёРјРµРЅР° РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… Р¶РёРґРєРѕСЃС‚РµР№ РІРѕРґРѕСЂРѕРґР°
+    // Задаём имена дополнительных жидкостей водорода
     for (size_t ii = 1; ii <= this->num_H; ii++)
     {
         string nii = "_H" + to_string(ii);
@@ -309,7 +309,7 @@ Phys_param::Phys_param()
 
 
 
-    // РџР°СЂР°РјРµС‚СЂС‹ РІ СЏС‡РµР№РєР°С… РґР»СЏ РњРѕРЅС‚Рµ-РљР°СЂР»Рѕ
+    // Параметры в ячейках для Монте-Карло
     this->MK_param.push_back("MK_n_H"); this->param_names.push_back("MK_n_H");
     for (size_t ii = 1; ii <= this->num_H; ii++)
     {
@@ -318,12 +318,12 @@ Phys_param::Phys_param()
     }
 
 
-    // РџРµСЂРµРІРѕРґ РІ СЂР°Р·РјРµСЂРЅС‹Рµ РµРґРёРЅРёС†С‹   РЎР“РЎ
+    // Перевод в размерные единицы   СГС
     this->perevod_razmer["r"] = 1.0 / this->R_0; // 4.21132;
     this->perevod_razmer["rho"] = this->char_rho;
     this->perevod_razmer["V"] = this->char_v * 100000.0; // 1.03804e6;
     this->perevod_razmer["p"] = this->char_p;
-    this->perevod_razmer["B"] = this->char_B * 1e-6; // 3.28842e-7;    // РњР°РіРЅРёС‚РЅРѕРµ РїРѕР»Рµ РІ РјРёРєСЂРѕРіР°СѓСЃСЃР°С…   this->char_B * 1e-6;
+    this->perevod_razmer["B"] = this->char_B * 1e-6; // 3.28842e-7;    // Магнитное поле в микрогауссах   this->char_B * 1e-6;
     this->perevod_razmer["T"] = this->char_T;
 
 
@@ -335,7 +335,7 @@ Phys_param::Phys_param()
 	            	0.0177656909751554, 0.7057402284561816,  0.7082479157489927,
 		            0.0891029508867553, 0.7044237408557898, -0.7041646522383865;
 
-    // РћС‚РєСЂС‹РІР°РµРј С„Р°Р№Р» РґР»СЏ С‡С‚РµРЅРёСЏ
+    // Открываем файл для чтения
     std::ifstream file("nVT1au_new_2000-2022av.dat");
     if (!file.is_open()) {
         std::cerr << "Error 6564397608" << std::endl;
@@ -345,19 +345,19 @@ Phys_param::Phys_param()
     std::string line;
     bool is_first_line = true;
 
-    // Р§РёС‚Р°РµРј С„Р°Р№Р» РїРѕСЃС‚СЂРѕС‡РЅРѕ
+    // Читаем файл построчно
     while (std::getline(file, line)) {
-        // РџСЂРѕРїСѓСЃРєР°РµРј РїРµСЂРІСѓСЋ СЃС‚СЂРѕРєСѓ (Р·Р°РіРѕР»РѕРІРѕРє)
+        // Пропускаем первую строку (заголовок)
         if (is_first_line) {
             is_first_line = false;
             continue;
         }
 
-        // Р Р°Р·Р±РёРІР°РµРј СЃС‚СЂРѕРєСѓ РЅР° РѕС‚РґРµР»СЊРЅС‹Рµ Р·РЅР°С‡РµРЅРёСЏ
+        // Разбиваем строку на отдельные значения
         std::istringstream iss(line);
         double hlat, np, v, t;
 
-        // Р•СЃР»Рё СЃС‚СЂРѕРєР° СЃРѕРґРµСЂР¶РёС‚ РґР°РЅРЅС‹Рµ, Р·Р°РїРёСЃС‹РІР°РµРј РёС… РІ РІРµРєС‚РѕСЂС‹
+        // Если строка содержит данные, записываем их в векторы
         if (iss >> hlat >> np >> v >> t) {
             this->heliolat_deg.push_back(hlat);
             this->n_p_cm3.push_back(np);
@@ -439,7 +439,7 @@ void Phys_param::initVarMap()
     };
 }
 
-// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїР°СЂСЃРёРЅРіР° Р·РЅР°С‡РµРЅРёСЏ РёР· СЃС‚СЂРѕРєРё Рё Р·Р°РїРёСЃРё РІ РїРµСЂРµРјРµРЅРЅСѓСЋ
+// Функция для парсинга значения из строки и записи в переменную
 void Phys_param::parseAndAssign(VarRef varRef, const std::string& valueStr)
 {
     try {
@@ -479,44 +479,44 @@ void Phys_param::parseAndAssign(VarRef varRef, const std::string& valueStr)
 
 void Phys_param::set_parameters(void)
 {
-    // РЎС‚Р°СЂС‹Р№ РІР°СЂРёР°РЅС‚ Р·Р°РґР°РЅРёСЏ РїР°СЂР°РјРµС‚СЂРѕРІ (РµСЃС‚СЊ РЅРµ РІСЃРµ, РѕРЅ РЅРµ Р°РєС‚СѓР°Р»РµРЅ)
-    if (false) // Р·Р°РґР°РЅРёРµ РїР°СЂР°РјРµС‚СЂРѕРІ РІ СЂСѓС‡РЅСѓСЋ
+    // Старый вариант задания параметров (есть не все, он не актуален)
+    if (false) // задание параметров в ручную
     {
         this->is_div_V_in_cell = false;
 
-        this->is_PUI = true;       // РЎС‡РёС‚Р°РµРј Р»Рё РїРёРєР°РїС‹?
-        this->num_pui = 2;         // РЎРєРѕР»СЊРєРѕ СЃРѕСЂС‚РѕРІ РїРёРєР°РїРѕРІ РІ СЏС‡РµР№РєР°С…
+        this->is_PUI = true;       // Считаем ли пикапы?
+        this->num_pui = 2;         // Сколько сортов пикапов в ячейках
 
-        // РќР°СЃС‚СЂРѕР№РєРё СЂР°СЃС‡С‘С‚Р° РџР»Р°Р·РјС‹
-        this->KFL = 0.8;                   // РєСЂРёС‚РµСЂРёР№ РљСѓСЂР°РЅС‚Р°
-        this->TVD = false;                  // Р”РµР»Р°РµРј Р»Рё РўР’Р”?
+        // Настройки расчёта Плазмы
+        this->KFL = 0.8;                   // критерий Куранта
+        this->TVD = false;                  // Делаем ли ТВД?
 
-        this->culc_plasma = true;          // РЎС‡РёС‚Р°РµРј Р»Рё РїР»Р°Р·РјСѓ? РњРѕР¶РЅРѕ Р·Р°РјРѕСЂРѕР·РёС‚СЊ РїР»Р°Р·РјСѓ РґР»СЏ СЂР°СЃС‡С‘С‚Р° РІРѕРґРѕСЂРѕРґР°
-        this->culc_atoms = true;           // Р’С‹С‡РёСЃР»СЏРµРј Р»Рё Р°С‚РѕРјС‹ РёР»Рё РѕСЃС‚Р°РІР»СЏРµРј РёС… РІРјРѕСЂРѕР¶РµРЅРЅС‹РјРё
+        this->culc_plasma = true;          // Считаем ли плазму? Можно заморозить плазму для расчёта водорода
+        this->culc_atoms = true;           // Вычисляем ли атомы или оставляем их вмороженными
         this->move_setka = true;
 
 
-        this->move_TS = true;               // Р”РІРёРіР°РµРј Р»Рё TS
-        this->move_HP = true;               // Р”РІРёРіР°РµРј Р»Рё HP
+        this->move_TS = true;               // Двигаем ли TS
+        this->move_HP = true;               // Двигаем ли HP
         this->move_BS = true;
 
-        this->sglag_TS = true;              // Р”РµР»Р°РµРј Р»Рё СЃРіР»Р°Р¶РёРІР°РЅРёРµ TS
+        this->sglag_TS = true;              // Делаем ли сглаживание TS
         this->velocity_TS = 0.1;            // 0.05
-        this->sglag_TS_k_sphere = 0.01;  //0.01 0.002    // CРіР»Р°Р¶РёРІР°РЅРёРµ РІ РіРѕР»РѕРІРЅРѕР№ С‡Р°СЃС‚Рё
-        this->sglag_TS_k = 0.001;            // РЎРіР»Р°Р¶РёРІР°РЅРёРµ РЅР° РІС‹СЃРѕРєРёС… С€РёСЂРѕС‚Р°С…
-        this->sglag_TS_k_sphere_head = 0.05; // 0.08;   // РЎРіР»Р°Р¶РёРІР°РЅРёРµ РІ РіРѕР»РѕРІРЅРѕР№ С‡Р°СЃС‚Рё
-        this->sglag_TS_k_sphere_tail = 0.005; // 0.03;   // РЎРіР»Р°Р¶РёРІР°РЅРёРµ РІ С…РІРѕСЃС‚РѕРІРѕР№ С‡Р°СЃС‚Рё
+        this->sglag_TS_k_sphere = 0.01;  //0.01 0.002    // Cглаживание в головной части
+        this->sglag_TS_k = 0.001;            // Сглаживание на высоких широтах
+        this->sglag_TS_k_sphere_head = 0.05; // 0.08;   // Сглаживание в головной части
+        this->sglag_TS_k_sphere_tail = 0.005; // 0.03;   // Сглаживание в хвостовой части
 
 
 
         this->sglag_HP = true;
         this->velocity_HP = 0.1;  // 0.1
-        this->sglag_HP_k_sphere = 0.01;  //0.005     // CРіР»Р°Р¶РёРІР°РЅРёРµ РІ РіРѕР»РѕРІРЅРѕР№ С‡Р°СЃС‚Рё
-        this->sglag_HP_k = 0.03; // 0.01         // РЎРіР»Р°Р¶РёРІР°РЅРёРµ РЅРµ РІ РіРѕР»РѕРІРЅРѕР№ РѕР±Р»Р°СЃС‚Рё
-        this->sglag_HP_k_angle = 0.001; // 0.01         // РЎРіР»Р°Р¶РёРІР°РЅРёРµ РЅРµ РІ РіРѕР»РѕРІРЅРѕР№ РѕР±Р»Р°СЃС‚Рё
-        this->sglag_HP_angle = 1.8;    // 1.2 РєРѕСЌС„С„РёС†РёРµРЅС‚ СѓСЃРёР»РёРЅРµСЏ СЃРіР»Р°Р¶РёРІР°РЅРёСЏ РїРѕ СѓРіР»Сѓ
-        this->sglag_HP_along = 1.0;    // РєРѕСЌС„С„РёС†РёРµРЅС‚ СѓСЃРёР»РёРЅРµСЏ СЃРіР»Р°Р¶РёРІР°РЅРёСЏ РІРґРѕР»СЊ С…
-        this->sglag_HP_sphere = 5.0;   // РєРѕСЌС„С„РёС†РёРµРЅС‚ СѓСЃРёР»РµРЅРёСЏ СЃРіР»Р°Р¶РёРІР°РЅРёСЏ РІ РіРѕР»РѕРІРЅРѕР№ РѕР±Р»Р°СЃС‚Рё - РќР• РђРљРўРР’РќРћ
+        this->sglag_HP_k_sphere = 0.01;  //0.005     // Cглаживание в головной части
+        this->sglag_HP_k = 0.03; // 0.01         // Сглаживание не в головной области
+        this->sglag_HP_k_angle = 0.001; // 0.01         // Сглаживание не в головной области
+        this->sglag_HP_angle = 1.8;    // 1.2 коэффициент усилинея сглаживания по углу
+        this->sglag_HP_along = 1.0;    // коэффициент усилинея сглаживания вдоль х
+        this->sglag_HP_sphere = 5.0;   // коэффициент усиления сглаживания в головной области - НЕ АКТИВНО
 
 
         this->sglag_BS = false;
@@ -524,23 +524,23 @@ void Phys_param::set_parameters(void)
         this->velocity_BS = 0.3;  // 0.1
 
 
-        this->null_bn_on_HP = false;   // Р”Р»СЏ СЏС‡РµРµРє СЂСЏРґРѕРј СЃ HP РѕР±РЅСѓР»СЏРµРј РЅРѕСЂРјР°Р»СЊРЅСѓСЋ РєРѕРјРїРѕРЅРµРЅС‚Сѓ РјР°РіРЅРёС‚РЅРѕРіРѕ РїРѕР»СЏ
-        this->bn_in_p_on_HP = false;   // Р”Р»СЏ СЏС‡РµРµРє СЂСЏРґРѕРј СЃ HP Р·Р°РїРёСЃС‹РІР°РµРј РјР°РіРЅРёС‚РЅРѕРµ РїРѕР»Рµ РІ РґР°РІР»РµРЅРёРµ Рё СЂРµС€Р°РµРј Р“РѕРґСѓРЅРѕРІР°
+        this->null_bn_on_HP = false;   // Для ячеек рядом с HP обнуляем нормальную компоненту магнитного поля
+        this->bn_in_p_on_HP = false;   // Для ячеек рядом с HP записываем магнитное поле в давление и решаем Годунова
         this->contact_hard = true;
         this->TS_hard = false;
 
-        // РџР°СЂРјРµС‚СЂС‹ РЅР°СЃС‚СЂРѕР№РєРё MK
-        this->save_AMR = true;        // РќСѓР¶РЅРѕ Р»Рё СЃРѕС…СЂР°РЅСЏС‚СЊ РїРѕСЃС‡РёС‚Р°РЅРЅС‹Рµ С„СѓРЅРєС†РёРё СЂР°СЃРїСЂРµРґРµР»РµРЅРёСЏ?
-        this->culc_AMR = true;        // РќСѓР¶РЅРѕ Р»Рё СЃС‡РёС‚Р°С‚СЊ С„СѓРЅРєС†РёРё СЂР°СЃРїСЂРµРґРµР»РµРЅРёСЏ?
-        this->refine_AMR = true;      // РќСѓР¶РЅРѕ Р»Рё РјРµР»СЊС‡РёС‚СЊ РїРѕСЃС‡РёС‚Р°РЅРЅС‹Рµ С„СѓРЅРєС†РёРё СЂР°СЃРїСЂРµРґРµР»РµРЅРёСЏ?
-        this->N_per_gran = 40000;  // РЎРєРѕР»СЊРєРѕ РІ СЃСЂРµРґРЅРµРј С‡Р°СЃС‚РёС† РІС‹Р»РµС‚Р°РµС‚ СЃ РєР°Р¶РґРѕР№ РіСЂР°РЅРё
-        this->culc_cell_moments = true;    // РќСѓР¶РЅРѕ Р»Рё СЃС‡РёС‚Р°С‚СЊ РјРѕРјРµРЅС‚С‹ РІ СЏС‡РµР№РєР°С…?
-        this->de_refine_AMR = true;        // РќСѓР¶РЅРѕ Р»Рё РѕРіСЂСѓР±Р»СЏС‚СЊ AMR СЃРµС‚РєСѓ, РµСЃР»Рё С‚СЂРµР±СѓРµС‚СЃСЏ?
+        // Парметры настройки MK
+        this->save_AMR = true;        // Нужно ли сохранять посчитанные функции распределения?
+        this->culc_AMR = true;        // Нужно ли считать функции распределения?
+        this->refine_AMR = true;      // Нужно ли мельчить посчитанные функции распределения?
+        this->N_per_gran = 40000;  // Сколько в среднем частиц вылетает с каждой грани
+        this->culc_cell_moments = true;    // Нужно ли считать моменты в ячейках?
+        this->de_refine_AMR = true;        // Нужно ли огрублять AMR сетку, если требуется?
         this->MK_file = "parameters_MK_0002.bin";
     }
     else
     {
-        // РЎС‡РёС‚С‹РІР°РµРј РїР°СЂР°РјРµС‚СЂС‹ (СЌС‚Рѕ РЅР°СЃС‚СЂРѕР№РєРё СЂР°СЃС‡С‘С‚Р°) СЃ С„Р°Р№Р»Р°
+        // Считываем параметры (это настройки расчёта) с файла
         std::ifstream file("set_parameters.txt");
 
         if (!file.is_open()) {
@@ -552,7 +552,7 @@ void Phys_param::set_parameters(void)
         while (std::getline(file, line)) 
         {
             line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-            // РџСЂРѕРїСѓСЃРєР°РµРј РїСѓСЃС‚С‹Рµ СЃС‚СЂРѕРєРё
+            // Пропускаем пустые строки
             if (line.empty() || line.find_first_not_of(" \t") == std::string::npos) {
                 continue;
             }
@@ -560,9 +560,9 @@ void Phys_param::set_parameters(void)
             std::istringstream iss(line);
             std::string varName, valueStr;
 
-            // РР·РІР»РµРєР°РµРј РёРјСЏ Рё Р·РЅР°С‡РµРЅРёРµ (СЃ РїРѕРґРґРµСЂР¶РєРѕР№ РєР°РІС‹С‡РµРє)
+            // Извлекаем имя и значение (с поддержкой кавычек)
             if ((iss >> varName >> std::ws) && std::getline(iss >> std::ws, valueStr)) {
-                // РЈРґР°Р»СЏРµРј РїСЂРѕР±РµР»С‹ РІ РЅР°С‡Р°Р»Рµ/РєРѕРЅС†Рµ Р·РЅР°С‡РµРЅРёСЏ
+                // Удаляем пробелы в начале/конце значения
                 valueStr.erase(0, valueStr.find_first_not_of(" \t"));
                 valueStr.erase(valueStr.find_last_not_of(" \t") + 1);
 
@@ -581,7 +581,7 @@ void Phys_param::set_parameters(void)
         file.close();
 
 
-        // РўРµРїРµСЂСЊ С„РёР·РёС‡РµСЃРєРё РїР°СЂР°РјРµС‚СЂС‹ СЃР°РјРѕР№ РјРѕРґРµР»Рё
+        // Теперь физически параметры самой модели
         file = std::ifstream("set_model_parameters.txt");
 
         if (!file.is_open()) {
@@ -589,11 +589,10 @@ void Phys_param::set_parameters(void)
             exit(-1);
         }
 
-        std::string line;
         while (std::getline(file, line))
         {
             line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-            // РџСЂРѕРїСѓСЃРєР°РµРј РїСѓСЃС‚С‹Рµ СЃС‚СЂРѕРєРё
+            // Пропускаем пустые строки
             if (line.empty() || line.find_first_not_of(" \t") == std::string::npos) {
                 continue;
             }
@@ -601,9 +600,9 @@ void Phys_param::set_parameters(void)
             std::istringstream iss(line);
             std::string varName, valueStr;
 
-            // РР·РІР»РµРєР°РµРј РёРјСЏ Рё Р·РЅР°С‡РµРЅРёРµ (СЃ РїРѕРґРґРµСЂР¶РєРѕР№ РєР°РІС‹С‡РµРє)
+            // Извлекаем имя и значение (с поддержкой кавычек)
             if ((iss >> varName >> std::ws) && std::getline(iss >> std::ws, valueStr)) {
-                // РЈРґР°Р»СЏРµРј РїСЂРѕР±РµР»С‹ РІ РЅР°С‡Р°Р»Рµ/РєРѕРЅС†Рµ Р·РЅР°С‡РµРЅРёСЏ
+                // Удаляем пробелы в начале/конце значения
                 valueStr.erase(0, valueStr.find_first_not_of(" \t"));
                 valueStr.erase(valueStr.find_last_not_of(" \t") + 1);
 
@@ -629,12 +628,12 @@ void Phys_param::Plasma_components_1(const short int& zone,
     unordered_map<string, double>& param_in_cell,
     unordered_map<string, double>& param)
 {
-    // Р‘РµР· РїРёРєР°РїРѕРІ, С‚РѕР»СЊРєРѕ РїСЂРѕС‚РѕРЅС‹ Рё РіРµР»РёР№
+    // Без пикапов, только протоны и гелий
     // Te == Tth
-    // Р¤СѓРЅРєС†РёСЏ, РѕРїСЂРµРґРµР»СЏСЋС‰Р°СЏ С‚РµРјРїРµСЂР°С‚СѓСЂС‹ Рё РєРѕРЅС†РµРЅС‚СЂР°С†РёРё РіРµР»РёСЏ, 
-    // al - СЌС‚Рѕ Р·Р°СЂСЏРґ РіРµР»РёСЏ
-    // РµСЃР»Рё al = 1 С‚Рѕ РІРЅРµ РіРµР»РёРѕРїР°СѓР·С‹
-    // РµСЃР»Рё al = 2, С‚Рѕ РІРЅСѓС‚СЂРё РіРµР»РёРѕРїР°СѓР·С‹
+    // Функция, определяющая температуры и концентрации гелия, 
+    // al - это заряд гелия
+    // если al = 1 то вне гелиопаузы
+    // если al = 2, то внутри гелиопаузы
     short int al;
 
     double rho = param_in_cell["rho"];
@@ -668,12 +667,12 @@ void Phys_param::Plasma_components_2(const short int& zone,
     unordered_map<string, double>& param_in_cell,
     unordered_map<string, double>& param)
 {
-    // РџСЂРѕС‚РѕРЅС‹, РіРµР»РёР№, РїРёРєР°РїС‹ (РґРІР° СЃРѕСЂС‚Р°)
+    // Протоны, гелий, пикапы (два сорта)
     // Te == Tth
 
-    // al - СЌС‚Рѕ Р·Р°СЂСЏРґ РіРµР»РёСЏ
-    // РµСЃР»Рё al = 1 С‚Рѕ РІРЅРµ РіРµР»РёРѕРїР°СѓР·С‹
-    // РµСЃР»Рё al = 2, С‚Рѕ РІРЅСѓС‚СЂРё РіРµР»РёРѕРїР°СѓР·С‹
+    // al - это заряд гелия
+    // если al = 1 то вне гелиопаузы
+    // если al = 2, то внутри гелиопаузы
     short int al;
 
     double rho = param_in_cell["rho"];
@@ -694,7 +693,7 @@ void Phys_param::Plasma_components_2(const short int& zone,
 
     if (zone == 1 || zone == 3 || zone == 4)
     {
-        // Р—РґРµСЃСЊ РѕРґРёРЅ СЃРѕСЂС‚ РїРёРєР°РїРѕРІ
+        // Здесь один сорт пикапов
         rho_Pui_1 = param_in_cell["rho_Pui_1"];
         p_Pui_1 = param_in_cell["p_Pui_1"];
 
@@ -708,7 +707,7 @@ void Phys_param::Plasma_components_2(const short int& zone,
     }
     else
     {
-        // Р—РґРµСЃСЊ РґРІР° СЃРѕСЂС‚Р° РїРёРєР°РїРѕРІ
+        // Здесь два сорта пикапов
         rho_Pui_1 = param_in_cell["rho_Pui_1"];
         p_Pui_1 = param_in_cell["p_Pui_1"];
 
@@ -732,24 +731,24 @@ double Phys_param::Get_rho_0(const double& the)
     const auto& angles = this->heliolat_deg;
     const auto& np = this->n_p_cm3;
 
-    // РџСЂРѕРІРµСЂРєР° РЅР° РІС‹С…РѕРґ Р·Р° РїСЂРµРґРµР»С‹ РґРёР°РїР°Р·РѕРЅР°
+    // Проверка на выход за пределы диапазона
     if (the < angles.front() || the > angles.back()) {
         cout << "Ygol " + std::to_string(the) + " out of diapazon!" << endl;
         cout << "ERROR  0989767567" << endl;
     }
 
-    // РџРѕРёСЃРє Р±Р»РёР¶Р°Р№С€РёС… С‚РѕС‡РµРє
+    // Поиск ближайших точек
     size_t i = 0;
     while (i < angles.size() - 1 && angles[i + 1] < the) {
         i++;
     }
 
-    // Р•СЃР»Рё СѓРіРѕР» С‚РѕС‡РЅРѕ СЃРѕРІРїР°РґР°РµС‚ СЃ РѕРґРЅРёРј РёР· Р·РЅР°С‡РµРЅРёР№ РІ С„Р°Р№Р»Рµ
+    // Если угол точно совпадает с одним из значений в файле
     if (std::abs(the - angles[i]) < 1e-6) {
         return np[i];
     }
 
-    // Р›РёРЅРµР№РЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ: n_p = np1 + (theta - theta1) * (np2 - np1) / (theta2 - theta1)
+    // Линейная интерполяция: n_p = np1 + (theta - theta1) * (np2 - np1) / (theta2 - theta1)
     double theta1 = angles[i];
     double theta2 = angles[i + 1];
     double np1 = np[i];
@@ -763,24 +762,24 @@ double Phys_param::Get_T_0(const double& the)
     const auto& angles = this->heliolat_deg;
     const auto& np = this->T_K;
 
-    // РџСЂРѕРІРµСЂРєР° РЅР° РІС‹С…РѕРґ Р·Р° РїСЂРµРґРµР»С‹ РґРёР°РїР°Р·РѕРЅР°
+    // Проверка на выход за пределы диапазона
     if (the < angles.front() || the > angles.back()) {
         cout << "Ygol " + std::to_string(the) + " out of diapazon!" << endl;
         cout << "ERROR  0989767567" << endl;
     }
 
-    // РџРѕРёСЃРє Р±Р»РёР¶Р°Р№С€РёС… С‚РѕС‡РµРє
+    // Поиск ближайших точек
     size_t i = 0;
     while (i < angles.size() - 1 && angles[i + 1] < the) {
         i++;
     }
 
-    // Р•СЃР»Рё СѓРіРѕР» С‚РѕС‡РЅРѕ СЃРѕРІРїР°РґР°РµС‚ СЃ РѕРґРЅРёРј РёР· Р·РЅР°С‡РµРЅРёР№ РІ С„Р°Р№Р»Рµ
+    // Если угол точно совпадает с одним из значений в файле
     if (std::abs(the - angles[i]) < 1e-6) {
         return np[i];
     }
 
-    // Р›РёРЅРµР№РЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ: n_p = np1 + (theta - theta1) * (np2 - np1) / (theta2 - theta1)
+    // Линейная интерполяция: n_p = np1 + (theta - theta1) * (np2 - np1) / (theta2 - theta1)
     double theta1 = angles[i];
     double theta2 = angles[i + 1];
     double np1 = np[i];
@@ -794,24 +793,24 @@ double Phys_param::Get_v_0(const double& the)
     const auto& angles = this->heliolat_deg;
     const auto& np = this->V_kms;
 
-    // РџСЂРѕРІРµСЂРєР° РЅР° РІС‹С…РѕРґ Р·Р° РїСЂРµРґРµР»С‹ РґРёР°РїР°Р·РѕРЅР°
+    // Проверка на выход за пределы диапазона
     if (the < angles.front() || the > angles.back()) {
         cout << "Ygol " + std::to_string(the) + " out of diapazon!" << endl;
         cout << "ERROR  0989767567" << endl;
     }
 
-    // РџРѕРёСЃРє Р±Р»РёР¶Р°Р№С€РёС… С‚РѕС‡РµРє
+    // Поиск ближайших точек
     size_t i = 0;
     while (i < angles.size() - 1 && angles[i + 1] < the) {
         i++;
     }
 
-    // Р•СЃР»Рё СѓРіРѕР» С‚РѕС‡РЅРѕ СЃРѕРІРїР°РґР°РµС‚ СЃ РѕРґРЅРёРј РёР· Р·РЅР°С‡РµРЅРёР№ РІ С„Р°Р№Р»Рµ
+    // Если угол точно совпадает с одним из значений в файле
     if (std::abs(the - angles[i]) < 1e-6) {
         return np[i];
     }
 
-    // Р›РёРЅРµР№РЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ: n_p = np1 + (theta - theta1) * (np2 - np1) / (theta2 - theta1)
+    // Линейная интерполяция: n_p = np1 + (theta - theta1) * (np2 - np1) / (theta2 - theta1)
     double theta1 = angles[i];
     double theta2 = angles[i + 1];
     double np1 = np[i];
@@ -879,20 +878,20 @@ double Phys_param::energy(const double& rho, const double& p, const double& vv, 
 }
 
 
-void Phys_param::chlld(unsigned short int n_state, // РјРµС‚РѕРґ
-    const double& al, const double& be, const double& ge, // РЅРѕСЂРјР°Р»СЊ
-    const double& w, // СЃРєРѕСЂРѕСЃС‚СЊ РіСЂР°РЅРё
-    const std::vector<double>& qqq1, const std::vector<double>& qqq2, // РѕСЃРЅРѕРІРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹ СЃ РґРІСѓС… СЃС‚РѕСЂРѕРЅ 
-    std::vector<double>& qqq, // Р’С‹С…РѕРґРЅРѕР№ РїРѕС‚РѕРє
-    bool null_bn,  // РµСЃР»Рё  true, С‚Рѕ РЅСѓР¶РЅРѕ РѕР±РЅСѓР»РёС‚СЊ РїРѕС‚РѕРє РјР°РіРЅРёС‚РЅРѕРіРѕ РїРѕР»СЏ С‡РµСЂРµР· РїРѕРІРµСЂС…РЅРѕСЃС‚СЊ
-    unsigned short int n_disc,    // С„РѕСЂРјСѓР»Р° РґР»СЏ РѕРїСЂРµРґРµР»РµРЅРёСЏ СЃРєРѕСЂРѕСЃС‚Рё
-    const std::vector<double>& konvect_left,  // Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ РєРѕРЅРІРµРєС‚РёРІРЅРѕРіРѕ РїРµСЂРµРЅРѕСЃР° СЃР»РµРІР°
-    const std::vector<double>& konvect_right, // Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ РєРѕРЅРІРµРєС‚РёРІРЅРѕРіРѕ РїРµСЂРµРЅРѕСЃР° СЃРїСЂР°РІР°
-    std::vector<double>& konvect, // Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ РєРѕРЅРІРµРєС‚РёРІРЅРѕРіРѕ РїРµСЂРµРЅРѕСЃР° РџРћРўРћРљР
+void Phys_param::chlld(unsigned short int n_state, // метод
+    const double& al, const double& be, const double& ge, // нормаль
+    const double& w, // скорость грани
+    const std::vector<double>& qqq1, const std::vector<double>& qqq2, // основные параметры с двух сторон 
+    std::vector<double>& qqq, // Выходной поток
+    bool null_bn,  // если  true, то нужно обнулить поток магнитного поля через поверхность
+    unsigned short int n_disc,    // формула для определения скорости
+    const std::vector<double>& konvect_left,  // Дополнительные переменные конвективного переноса слева
+    const std::vector<double>& konvect_right, // Дополнительные переменные конвективного переноса справа
+    std::vector<double>& konvect, // Дополнительные переменные конвективного переноса ПОТОКИ
     double& dsr, double& dsc, double& dsl,
-    PrintOptions& opts, bool left_ydar, bool contact)  // Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РѕРїС†РёРѕРЅР°Р»СЊРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹
-    // n_state = 0 Р›Р°РєСЃ, // 1 HLL, // 2 HLLC,  3 HLLD
-    // РљРѕРЅРІРµРєС‚РёРІРЅС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ РґРѕР±Р°РІРёР» С‚РѕР»СЊРєРѕ РґР»СЏ HLL
+    PrintOptions& opts, bool left_ydar, bool contact)  // Дополнительные опциональные параметры
+    // n_state = 0 Лакс, // 1 HLL, // 2 HLLC,  3 HLLD
+    // Конвективные переменные добавил только для HLL
 {
 
     double FL[8];
@@ -1130,7 +1129,7 @@ void Phys_param::chlld(unsigned short int n_state, // РјРµС‚РѕРґ
     if (null_bn == true) UZ[5] = 0.0;
 
    
-    if (n_state <= 1)  // Р›Р°РєСЃ РёР»Рё HLL
+    if (n_state <= 1)  // Лакс или HLL
     {
         double dq[8];
         double FW[8];
@@ -1308,7 +1307,7 @@ void Phys_param::chlld(unsigned short int n_state, // РјРµС‚РѕРґ
             bzL[2] = bL[2] * suLm;
         }
 
-        // РЎРіР»Р°РґРёРј РЎРєРѕСЂРѕСЃС‚СЊ     РЇ РґРѕР±Р°РІРёР», РЅРµ Р±С‹Р»Рѕ РёР·РЅР°С‡Р°Р»СЊРЅРѕ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // Сгладим Скорость     Я добавил, не было изначально !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // vzR[1] = UZ[2] / UZ[0]
         // vzR[2] = UZ[3] / UZ[0]
         // vzL[1] = vzR[1]
@@ -1972,7 +1971,7 @@ void Phys_param::Godunov_Solver_Alexashov(const std::vector<double>& qqq1, const
     double rII = qqq2[0];
 
     int ipiz = 0;
-    if (pI > pII)   // РЎРјРµРЅР° РјРµСЃС‚Р°РјРё РІРµР»РёС‡РёРЅ
+    if (pI > pII)   // Смена местами величин
     {
         double eno2 = enII;;
         double teo22 = teII2;
@@ -1998,7 +1997,7 @@ void Phys_param::Godunov_Solver_Alexashov(const std::vector<double>& qqq1, const
         pII = p1;
         rII = r1;
         w = -w;
-        ipiz = 1;                                                                // ???? РћРЅ С‚РѕС‡РЅРѕ Р·РґРµСЃСЊ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ?
+        ipiz = 1;                                                                // ???? Он точно здесь должен быть?
     }
 
     double cI = 0.0;

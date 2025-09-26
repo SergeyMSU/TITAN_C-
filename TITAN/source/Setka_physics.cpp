@@ -259,20 +259,33 @@ void Setka::Init_physics(void)
 			double r = norm2(i->center[0][0], i->center[0][1], i->center[0][2]);
 
 			int zone = determ_zone(i, 0);
-			if (zone == 1)
+			if (zone > 2)
 			{
-				i->parameters[0]["rho_H7"] = 0.0000001;
-				i->parameters[0]["p_H7"] = 0.0000001 / 2.0;
-				i->parameters[0]["Vx_H7"] = i->parameters[0]["Vx_H2"];
-				i->parameters[0]["Vy_H7"] = i->parameters[0]["Vy_H2"];
-				i->parameters[0]["Vz_H7"] = i->parameters[0]["Vz_H2"];
-			}
+				i->parameters[0]["rho"] *= 0.81;
+				i->parameters[0]["p"] *= 0.934;
+				i->parameters[0]["rho_He"] *= 0.5;
+				i->parameters[0]["Bx"] *= 1.56751;
+				i->parameters[0]["By"] *= 1.56751;
+				i->parameters[0]["Bz"] *= 1.56751;
 
-			if (i->center[0][0] < -120)
-			{
-				i->parameters[0]["Vx_H7"] = -3.0;
-			}
 
+				double angle = 20.0 * const_pi / 180.0;
+				double cos_angle = cos(angle);
+				double sin_angle = sin(angle);
+
+				double Bx_old = i->parameters[0]["Bx"];
+				double By_old = i->parameters[0]["By"];
+				double Bz_old = i->parameters[0]["Bz"]; 
+
+				
+				// |cos(?)  -sin(?)   0| |Bx|
+				// |sin(?)   cos(?)   0| |By|
+				// |  0        0      1| |Bz|
+
+				i->parameters[0]["Bx"] = cos_angle * Bx_old - sin_angle * By_old;
+				i->parameters[0]["By"] = sin_angle * Bx_old + cos_angle * By_old;
+				i->parameters[0]["Bz"] = Bz_old; 
+			}
 
 			i->parameters[1] = i->parameters[0];
 
@@ -436,7 +449,7 @@ void Setka::Init_physics(void)
 			{
 				i->parameters["rho"] = this->phys_param->rho_LISM; // 1.60063; // 1.0 * (1.0 + this->phys_param->mrho_He_inf);
 				i->parameters["rho_He"] = this->phys_param->rho_HE_LISM; // 0.6; // this->phys_param->mrho_He_inf;
-				i->parameters["p"] = this->->phys_paramrho_p_LISM; // 1 + (i->parameters["rho_He"]) /
+				i->parameters["p"] = this->phys_param->rho_p_LISM; // 1 + (i->parameters["rho_He"]) /
 					//(i->parameters["rho"] - i->parameters["rho_He"]);
 				i->parameters["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters["Vy"] = 0.0;
@@ -1414,8 +1427,8 @@ int Setka::determ_zone(Cell* C, short int now)
 	double z = C->center[now][2];
 	double r = norm2(x, y, z);
 
-	//if (C->parameters[now]["Q"] / rho < 50.0)
-	if (C->type == Type_cell::Zone_1 || C->type == Type_cell::Zone_2)
+	if (C->parameters[now]["Q"] / rho < 50.0)
+	//if (C->type == Type_cell::Zone_1 || C->type == Type_cell::Zone_2)
 	{
 		//if (M > 3.0 && r < 45)
 		if(C->type == Type_cell::Zone_1)
