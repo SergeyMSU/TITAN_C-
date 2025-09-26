@@ -31,14 +31,14 @@ int main()
 
     //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
     //S1.Download_cell_parameters("parameters_0057.bin");   // 107
-    S1.Download_cell_parameters("parameters_0205.bin");   // 107
+    S1.Download_cell_parameters("parameters_0206.bin");   // 107
 
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
     // 62 включи TVD
     // 76 перед тем, как отключить все ТВД и все костыли
 
-    S1.geo->R0 = 0.237455;
+    S1.geo->R0 = S1.phys_param->R_0;
 
     // 23 полностью установленное решение без Пикапов (у контакта есть артефакт нужно сглаживание по
     // углу увеличить)
@@ -152,7 +152,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0207.bin");
+    S1.Save_cell_parameters("parameters_0208.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

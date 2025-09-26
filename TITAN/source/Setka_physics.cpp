@@ -434,9 +434,9 @@ void Setka::Init_physics(void)
 		{
 			if (i->type == Type_Gran::Outer_Hard)
 			{
-				i->parameters["rho"] = 1.60063; // 1.0 * (1.0 + this->phys_param->mrho_He_inf);
-				i->parameters["rho_He"] = 0.6; // this->phys_param->mrho_He_inf;
-				i->parameters["p"] = 1.15; // 1 + (i->parameters["rho_He"]) /
+				i->parameters["rho"] = this->phys_param->rho_LISM; // 1.60063; // 1.0 * (1.0 + this->phys_param->mrho_He_inf);
+				i->parameters["rho_He"] = this->phys_param->rho_HE_LISM; // 0.6; // this->phys_param->mrho_He_inf;
+				i->parameters["p"] = this->->phys_paramrho_p_LISM; // 1 + (i->parameters["rho_He"]) /
 					//(i->parameters["rho"] - i->parameters["rho_He"]);
 				i->parameters["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters["Vy"] = 0.0;
@@ -1904,11 +1904,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 						0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
 
 					// Ёффективна€ магнитна€ диссипаци€
-					if (cell->type == Type_cell::Zone_2) // && p3/(kvv(bx3, by3, bz3) / (8.0 * const_pi)) < 1.0)
-					//if(false)
+					//if (cell->type == Type_cell::Zone_2) // && p3/(kvv(bx3, by3, bz3) / (8.0 * const_pi)) < 1.0)
+					if(false)
 					{
 						double p4, bx4, by4, bz4;
-						double tau = 2.5 * max(sqrt(kvv(u3, v3, w3)), 0.01)/3.0; // 10.0
+						double tau = 3.0; // 10.0
 
 						bx4 = bx3 - time * bx3 / tau;
 						by4 = by3 - time * by3 / tau;

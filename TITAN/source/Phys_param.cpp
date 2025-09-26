@@ -319,12 +319,12 @@ Phys_param::Phys_param()
 
 
     // Перевод в размерные единицы   СГС
-    this->perevod_razmer["r"] = 4.21132;
-    this->perevod_razmer["rho"] = 0.06;
-    this->perevod_razmer["V"] = 1.03804e6;
-    this->perevod_razmer["p"] = 1.08137e-13;
-    this->perevod_razmer["B"] = 3.28842e-7;    // Магнитное поле в микрогауссах
-    this->perevod_razmer["T"] = 6530.0;  
+    this->perevod_razmer["r"] = 1.0 / this->R_0; // 4.21132;
+    this->perevod_razmer["rho"] = this->char_rho;
+    this->perevod_razmer["V"] = this->char_v * 100000.0; // 1.03804e6;
+    this->perevod_razmer["p"] = this->char_p;
+    this->perevod_razmer["B"] = this->char_B * 1e-6; // 3.28842e-7;    // Магнитное поле в микрогауссах   this->char_B * 1e-6;
+    this->perevod_razmer["T"] = this->char_T;
 
 
 	this->Matr << -0.9958639688067077,  0.01776569097515556,  0.08910295088675518,
@@ -416,6 +416,25 @@ void Phys_param::initVarMap()
     {"pui_wR", VarRef(&this->pui_wR)},
     {"TVD_atom", VarRef(&this->TVD_atom)},
     {"Snos_on_HP", VarRef(&this->Snos_on_HP)},
+
+    {"Velosity_inf", VarRef(&this->Velosity_inf)},
+    {"B_inf", VarRef(&this->B_inf)},
+    {"alphaB_inf", VarRef(&this->alphaB_inf)},
+    {"B_0", VarRef(&this->B_0)},
+    {"par_a_2", VarRef(&this->par_a_2)},
+    {"par_n_H_LISM", VarRef(&this->par_n_H_LISM)},
+    {"par_Kn", VarRef(&this->par_Kn)},
+    {"mrho_He_0", VarRef(&this->mrho_He_0)},
+    {"R_0", VarRef(&this->R_0)},
+    {"char_rho", VarRef(&this->char_rho)},
+    {"char_v", VarRef(&this->char_v)},
+    {"char_B", VarRef(&this->char_B)},
+    {"char_T", VarRef(&this->char_T)},
+    {"char_p", VarRef(&this->char_p)},
+    {"rho_LISM", VarRef(&this->rho_LISM)},
+    {"rho_HE_LISM", VarRef(&this->rho_HE_LISM)},
+    {"rho_p_LISM", VarRef(&this->rho_p_LISM)},
+
     {"MK_source_S", VarRef(&this->MK_source_S)}
     };
 }
@@ -521,7 +540,7 @@ void Phys_param::set_parameters(void)
     }
     else
     {
-        // Считываем параметры с файла
+        // Считываем параметры (это настройки расчёта) с файла
         std::ifstream file("set_parameters.txt");
 
         if (!file.is_open()) {
@@ -561,10 +580,46 @@ void Phys_param::set_parameters(void)
 
         file.close();
 
-        /*whach(this->is_div_V_in_cell);
-        whach(this->MK_file);
-        whach(this->refine_AMR);
-        whach(this->sglag_HP_angle);*/
+
+        // Теперь физически параметры самой модели
+        file = std::ifstream("set_model_parameters.txt");
+
+        if (!file.is_open()) {
+            cerr << "Error: Could not open file!   set_model_parameters.txt" << endl;
+            exit(-1);
+        }
+
+        std::string line;
+        while (std::getline(file, line))
+        {
+            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+            // Пропускаем пустые строки
+            if (line.empty() || line.find_first_not_of(" \t") == std::string::npos) {
+                continue;
+            }
+
+            std::istringstream iss(line);
+            std::string varName, valueStr;
+
+            // Извлекаем имя и значение (с поддержкой кавычек)
+            if ((iss >> varName >> std::ws) && std::getline(iss >> std::ws, valueStr)) {
+                // Удаляем пробелы в начале/конце значения
+                valueStr.erase(0, valueStr.find_first_not_of(" \t"));
+                valueStr.erase(valueStr.find_last_not_of(" \t") + 1);
+
+                if (varMap.count(varName)) {
+                    parseAndAssign(varMap[varName], valueStr);
+                }
+                else {
+                    std::cerr << "Unknown variable: " << varName << "\n";
+                }
+            }
+            else {
+                std::cerr << "Invalid line format: " << line << "\n";
+            }
+        }
+
+        file.close();
     }
 
 }
