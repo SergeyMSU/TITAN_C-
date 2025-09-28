@@ -251,7 +251,7 @@ void Setka::Init_physics(void)
 	double BR, BPHI, V1, V2, V3, mV;
 
 	// –едактирование каких-то переменных
-	if (true)
+	if (false)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -1929,8 +1929,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 						0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
 
 					// Ёффективна€ магнитна€ диссипаци€
-					//if (cell->type == Type_cell::Zone_2) // && p3/(kvv(bx3, by3, bz3) / (8.0 * const_pi)) < 1.0)
-					if(false)
+					if (cell->type == Type_cell::Zone_2) // && p3/(kvv(bx3, by3, bz3) / (8.0 * const_pi)) < 1.0)
+					//if(false)
 					{
 						double p4, bx4, by4, bz4;
 						double tau = 3.0; // 10.0
