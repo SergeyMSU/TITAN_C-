@@ -1929,8 +1929,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 						0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
 
 					// Эффективная магнитная диссипация
-					if (cell->type == Type_cell::Zone_2) // && p3/(kvv(bx3, by3, bz3) / (8.0 * const_pi)) < 1.0)
-					//if(false)
+					//if (cell->type == Type_cell::Zone_2) // && p3/(kvv(bx3, by3, bz3) / (8.0 * const_pi)) < 1.0)
+					if(false)
 					{
 						double p4, bx4, by4, bz4;
 						double tau = 2.5; // 10.0
@@ -2583,6 +2583,20 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 	// Записываем до какого расстояния слева выделяется HP
 	out.write(reinterpret_cast<const char*>(&this->geo->L6), sizeof(double));
+
+	// Добавляем ещё переменные для вывода  "BB/8pi"
+	if (true)
+	{
+		this->phys_param->param_names.push_back("BB/8pi");
+		for (const auto& Cel : this->All_Cell)
+		{
+			Cel->parameters[0]["BB/8pi"] = kvv(Cel->parameters[0]["Bx"],
+				Cel->parameters[0]["By"], Cel->parameters[0]["Bz"]) / (8.0 * const_pi);
+		}
+		this->Cell_Center->parameters[0]["BB/8pi"] = kvv(this->Cell_Center->parameters[0]["Bx"],
+			this->Cell_Center->parameters[0]["By"], this->Cell_Center->parameters[0]["Bz"]) / (8.0 * const_pi);
+	}
+
 
 	// Записываем количество строк
 	size_t size = this->phys_param->param_names.size() + 1;

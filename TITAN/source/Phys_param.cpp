@@ -336,7 +336,8 @@ Phys_param::Phys_param()
 		            0.0891029508867553, 0.7044237408557898, -0.7041646522383865;
 
     // Открываем файл для чтения
-    std::ifstream file("nVT1au_new_2000-2022av.dat");
+    //std::ifstream file("nVT1au_new_2000-2022av.dat");
+    std::ifstream file("nVT1au_IA2020.dat");
     if (!file.is_open()) {
         std::cerr << "Error 6564397608" << std::endl;
         exit(-1);
