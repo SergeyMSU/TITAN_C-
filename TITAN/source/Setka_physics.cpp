@@ -2762,7 +2762,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			for (const auto& Cel : this->All_Cell)
 			{
 				Cel->is_need = static_cast<short int>(Cel->type);
-				if ((Cel->is_need == 2 || Cel->is_need == 3) && Cel->center[0][0] >= this->geo->L6 - 50.0) gr_b++;
+				if ((Cel->is_need == 2) && Cel->center[0][0] >= this->geo->L6 - 50.0) gr_b++;
 			}
 
 			// Записываем количество ячеек
@@ -2771,7 +2771,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 			for (const auto& Cel : this->All_Cell)
 			{
-				if (Cel->is_need == 1 || Cel->is_need == 4 || Cel->center[0][0] < this->geo->L6 - 50.0) continue;
+				if (Cel->is_need <= 1 || Cel->is_need >= 3 || Cel->center[0][0] < this->geo->L6 - 50.0) continue;
 				double aa = Cel->center[0][0];
 				double bb = Cel->center[0][1];
 				double cc = Cel->center[0][2];
@@ -2921,7 +2921,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			for (const auto& Cel : this->All_Cell)
 			{
 				Cel->is_need = static_cast<short int>(Cel->type);
-				if (Cel->is_need >= 2 && Cel->center[0][0] >= -20.0) gr_b++;
+				if (Cel->is_need >= 3 && Cel->center[0][0] >= -20.0) gr_b++;
 			}
 
 			// Записываем количество ячеек
@@ -2930,7 +2930,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 			for (const auto& Cel : this->All_Cell)
 			{
-				if (Cel->is_need < 2 || Cel->center[0][0] < -20.0) continue;
+				if (Cel->is_need < 3 || Cel->center[0][0] < -20.0) continue;
 				double aa = Cel->center[0][0];
 				double bb = Cel->center[0][1];
 				double cc = Cel->center[0][2];
@@ -3076,7 +3076,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			for (const auto& Cel : this->All_Cell)
 			{
 				Cel->is_need = static_cast<short int>(Cel->type);
-				if ((Cel->is_need == 4 || Cel->is_need == 3) && Cel->center[0][0] >= -100.0) gr_b++;
+				if (Cel->is_need == 4 && Cel->center[0][0] >= -100.0) gr_b++;
 			}
 
 			// Записываем количество ячеек
@@ -3085,7 +3085,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 			for (const auto& Cel : this->All_Cell)
 			{
-				if ((Cel->is_need != 4 && Cel->is_need != 3) || Cel->center[0][0] < -100.0) continue;
+				if (Cel->is_need != 4 || Cel->center[0][0] < -100.0) continue;
 				double aa = Cel->center[0][0];
 				double bb = Cel->center[0][1];
 				double cc = Cel->center[0][2];
@@ -3189,7 +3189,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			for (const auto& Cel : this->All_Cell)
 			{
 				Cel->is_need = static_cast<short int>(Cel->type);
-				if ((Cel->is_need >= 2) && Cel->center[0][0] >= this->geo->L6 - 50.0
+				if ((Cel->is_need >= 3) && Cel->center[0][0] >= this->geo->L6 - 50.0
 					&& Cel->center[0][0] <= 60.0) gr_b++;
 			}
 
@@ -3199,7 +3199,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 			for (const auto& Cel : this->All_Cell)
 			{
-				if ((Cel->is_need == 1) || Cel->center[0][0] < this->geo->L6 - 50.0
+				if ((Cel->is_need <= 2) || Cel->center[0][0] < this->geo->L6 - 50.0
 					|| Cel->center[0][0] > 60.0) continue;
 				double aa = Cel->center[0][0];
 				double bb = Cel->center[0][1];

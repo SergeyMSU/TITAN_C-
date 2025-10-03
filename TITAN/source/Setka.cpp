@@ -103,13 +103,14 @@ Setka::Setka()
 	this->Cell_Center = new Cell;
 
 	this->New_initial();                     // Начальное создание узлов и ячеек
+	cout << "Setka-1" << endl;
 	this->New_connect();                     // Начальное создание граней и связывание их с ячейками
 	// Также добавляет соседей для каждой ячеки
-
+	cout << "Setka-2" << endl;
 	this->New_append_surfaces();
 	// Создание граней на TS, HP, BS 
 	// связывание граничных граней с соседями
-
+	cout << "Setka-3" << endl;
 	this->Renumerate();
 
 	// заполняем коррдинаты узлов на другом временном слое
@@ -121,6 +122,7 @@ Setka::Setka()
 		}
 	}
 
+	cout << "Setka-4" << endl;
 	this->Tecplot_print_all_lush_in_2D();
 
 }

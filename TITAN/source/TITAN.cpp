@@ -16,6 +16,8 @@ int main()
 
     Setka S1 = Setka();
 
+    cout << "Build " << endl;
+
     S1.Read_old_surface("ASurf_Save00591.bin");
     S1.Move_to_surf(S1.Surf1);
 
@@ -31,7 +33,7 @@ int main()
 
     //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
     //S1.Download_cell_parameters("parameters_0057.bin");   // 107
-    S1.Download_cell_parameters("parameters_0212.bin");   // 107
+    S1.Download_cell_parameters("parameters_0057.bin");   // 107
 
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
@@ -111,7 +113,7 @@ int main()
 
 
 
-    for (int i = 1; i <= 9 * 9; i++) // 6 * 2
+    for (int i = 1; i <= 9 * 0; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -151,16 +153,17 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0215.bin");
-    //S1.Save_cell_parameters("parameters_0138.bin");
+    //S1.Save_cell_parameters("parameters_0215.bin");
+    //S1.Save_cell_parameters("parameters_0137.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
     S1.Edges_create();
     S1.Culc_divergence_in_cell();
     S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_215.bin", true);
-    Interpol SS = Interpol("For_intertpolate_215.bin");
+    S1.Save_for_interpolate("For_intertpolate_057-.bin", true);
+    return 0;
+    Interpol SS = Interpol("For_intertpolate_211-.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_137-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_137-.bin");
