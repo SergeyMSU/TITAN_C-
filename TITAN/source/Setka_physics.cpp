@@ -1933,7 +1933,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					//if(false)
 					{
 						double p4, bx4, by4, bz4;
-						double tau = 4.0; // 10.0
+						double tau = 2.5; // 10.0
 
 						bx4 = bx3 - time * bx3 / tau;
 						by4 = by3 - time * by3 / tau;
@@ -4333,6 +4333,362 @@ void Setka::Download_cell_MK_parameters(string filename, short int zone_except)
 
 
 	in.close();
+}
+
+void Setka::PereInterpolate(string filename, bool move)
+{
+	cout << "PereInterpolate: step 1/4" << endl;
+	Interpol SS = Interpol(filename);
+
+	cout << "PereInterpolate: step 2/4" << endl;
+	// Сначала двигаем все поверхности
+	if (move)
+	{
+		double x, y, z, r, rr, the, phi, R_BS;
+		std::unordered_map<string, double> param2;
+
+		for (int st = 0; st < 15; st++)
+		{
+			for (auto& i : this->A_Luch)
+			{
+				for (auto& j : i)
+				{
+					x = j->Yzels_opor[1]->coord[0][0];
+					y = j->Yzels_opor[1]->coord[0][1];
+					z = j->Yzels_opor[1]->coord[0][2];
+					r = sqrt(kvv(x, y, z));
+					the = polar_angle(x, sqrt(kv(y) + kv(z)));
+					phi = polar_angle(y, z);
+
+
+					SS.Get_TS(x, y, z, param2);
+					rr = param2["r"];
+					//rr = Surf->Get_TS(phi, the);
+
+					j->Yzels_opor[1]->coord[0][0] *= rr / r;
+					j->Yzels_opor[1]->coord[0][1] *= rr / r;
+					j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+					if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+					{
+						cout << "0989898653   errjr" << endl;
+					}
+
+
+					x = j->Yzels_opor[2]->coord[0][0];
+					y = j->Yzels_opor[2]->coord[0][1];
+					z = j->Yzels_opor[2]->coord[0][2];
+					r = sqrt(kvv(x, y, z));
+
+					SS.Get_HP(x, y, z, param2);
+					rr = param2["r"];
+					//rr = Surf->Get_HP(phi, the, 0);
+
+					j->Yzels_opor[2]->coord[0][0] *= rr / r;
+					j->Yzels_opor[2]->coord[0][1] *= rr / r;
+					j->Yzels_opor[2]->coord[0][2] *= rr / r;
+
+					if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+					{
+						cout << "9443563295   errjr" << endl;
+					}
+
+					x = j->Yzels_opor[3]->coord[0][0];
+					y = j->Yzels_opor[3]->coord[0][1];
+					z = j->Yzels_opor[3]->coord[0][2];
+					r = sqrt(kvv(x, y, z));
+					the = polar_angle(x, sqrt(kv(y) + kv(z)));
+					phi = polar_angle(y, z);
+
+					if (x < 0.01) x = 0.01;
+					SS.Get_BS(x, y, z, param2);
+					rr = param2["r"];
+					//rr = Surf->Get_BS(phi, the);
+
+					if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+					{
+						cout << "5794671565   errjr" << endl;
+					}
+
+					j->Yzels_opor[3]->coord[0][0] *= rr / r;
+					j->Yzels_opor[3]->coord[0][1] *= rr / r;
+					j->Yzels_opor[3]->coord[0][2] *= rr / r;
+
+				}
+			}
+
+			for (auto& j : this->A2_Luch)
+			{
+				x = j->Yzels_opor[1]->coord[0][0];
+				y = j->Yzels_opor[1]->coord[0][1];
+				z = j->Yzels_opor[1]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				the = polar_angle(x, sqrt(kv(y) + kv(z)));
+				phi = polar_angle(y, z);
+
+
+				SS.Get_TS(x, y, z, param2);
+				rr = param2["r"];
+				//rr = Surf->Get_TS(phi, the);
+
+				j->Yzels_opor[1]->coord[0][0] *= rr / r;
+				j->Yzels_opor[1]->coord[0][1] *= rr / r;
+				j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "0989898653   errjr" << endl;
+				}
+
+
+				x = j->Yzels_opor[2]->coord[0][0];
+				y = j->Yzels_opor[2]->coord[0][1];
+				z = j->Yzels_opor[2]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+
+				SS.Get_HP(x, y, z, param2);
+				rr = param2["r"];
+				//rr = Surf->Get_HP(phi, the, 0);
+
+				j->Yzels_opor[2]->coord[0][0] *= rr / r;
+				j->Yzels_opor[2]->coord[0][1] *= rr / r;
+				j->Yzels_opor[2]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "9443563295   errjr" << endl;
+				}
+
+				x = j->Yzels_opor[3]->coord[0][0];
+				y = j->Yzels_opor[3]->coord[0][1];
+				z = j->Yzels_opor[3]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				the = polar_angle(x, sqrt(kv(y) + kv(z)));
+				phi = polar_angle(y, z);
+
+				SS.Get_BS(x, y, z, param2);
+				rr = param2["r"];
+				//rr = Surf->Get_BS(phi, the);
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "5794671565   errjr" << endl;
+				}
+
+				j->Yzels_opor[3]->coord[0][0] *= rr / r;
+				j->Yzels_opor[3]->coord[0][1] *= rr / r;
+				j->Yzels_opor[3]->coord[0][2] *= rr / r;
+
+			}
+
+			for (auto& i : this->B_Luch)
+			{
+				for (auto& j : i)
+				{
+					x = j->Yzels_opor[1]->coord[0][0];
+					y = j->Yzels_opor[1]->coord[0][1];
+					z = j->Yzels_opor[1]->coord[0][2];
+					r = sqrt(kvv(x, y, z));
+					the = polar_angle(x, sqrt(kv(y) + kv(z)));
+					phi = polar_angle(y, z);
+
+					SS.Get_TS(x, y, z, param2);
+					rr = param2["r"];
+					//rr = Surf->Get_TS(phi, the);
+
+					j->Yzels_opor[1]->coord[0][0] *= rr / r;
+					j->Yzels_opor[1]->coord[0][1] *= rr / r;
+					j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+					if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+					{
+						cout << "0989898653   errjr" << endl;
+					}
+
+
+					x = j->Yzels_opor[2]->coord[0][0];
+					y = j->Yzels_opor[2]->coord[0][1];
+					z = j->Yzels_opor[2]->coord[0][2];
+
+					SS.Get_HP(x, y, z, param2);
+					rr = param2["r"];
+					//rr = Surf->Get_HP(phi, x, 1);
+					r = sqrt(kvv(0.0, y, z));
+					j->Yzels_opor[2]->coord[0][1] *= rr / r;
+					j->Yzels_opor[2]->coord[0][2] *= rr / r;
+
+					if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+					{
+						cout << "6510292073   errjr" << endl;
+					}
+
+				}
+			}
+
+			for (auto& i : this->C_Luch)
+			{
+				for (auto& j : i)
+				{
+					x = j->Yzels_opor[1]->coord[0][0];
+					y = j->Yzels_opor[1]->coord[0][1];
+					z = j->Yzels_opor[1]->coord[0][2];
+					r = sqrt(kvv(x, y, z));
+					the = polar_angle(x, sqrt(kv(y) + kv(z)));
+					phi = polar_angle(y, z);
+
+
+					SS.Get_TS(x, y, z, param2);
+					rr = param2["r"];
+					//rr = Surf->Get_TS(phi, the);
+
+					j->Yzels_opor[1]->coord[0][0] *= rr / r;
+					j->Yzels_opor[1]->coord[0][1] *= rr / r;
+					j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+					if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+					{
+						cout << "0989898653   errjr" << endl;
+					}
+				}
+			}
+
+			for (auto& j : this->C2_Luch)
+			{
+				x = j->Yzels_opor[1]->coord[0][0];
+				y = j->Yzels_opor[1]->coord[0][1];
+				z = j->Yzels_opor[1]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				the = polar_angle(x, sqrt(kv(y) + kv(z)));
+				phi = polar_angle(y, z);
+
+
+				SS.Get_TS(x, y, z, param2);
+				rr = param2["r"];
+				//rr = Surf->Get_TS(phi, the);
+
+				j->Yzels_opor[1]->coord[0][0] *= rr / r;
+				j->Yzels_opor[1]->coord[0][1] *= rr / r;
+				j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "0989898653   errjr" << endl;
+				}
+			}
+
+			for (auto& i : this->D_Luch)
+			{
+				for (auto& j : i)
+				{
+					x = j->Yzels_opor[1]->coord[0][0];
+					y = j->Yzels_opor[1]->coord[0][1];
+					z = j->Yzels_opor[1]->coord[0][2];
+					r = sqrt(kvv(0.0, y, z));
+
+					SS.Get_HP(x, y, z, param2);
+					rr = param2["r"];
+					//phi = polar_angle(y, z);
+					//rr = Surf->Get_HP(phi, x, 1);
+
+					j->Yzels_opor[1]->coord[0][1] *= rr / r;
+					j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+				}
+			}
+
+			for (auto& i : this->E_Luch)
+			{
+				for (auto& j : i)
+				{
+					x = j->Yzels_opor[1]->coord[0][0];
+					y = j->Yzels_opor[1]->coord[0][1];
+					z = j->Yzels_opor[1]->coord[0][2];
+					r = sqrt(kvv(0.0, y, z));
+					phi = polar_angle(y, z);
+
+					SS.Get_HP(x, y, z, param2);
+					rr = param2["r"];
+					//rr = Surf->Get_HP(phi, x, 1);
+
+					j->Yzels_opor[1]->coord[0][1] *= rr / r;
+					j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+					if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+					{
+						cout << "6510292073   errjr" << endl;
+					}
+				}
+			}
+
+			// Двигаем BS для B E D лучей
+			for (int i = 0; i < this->B_Luch.size(); i++)
+			{
+				R_BS = this->A_Luch[i].back()->Yzels_opor[3]->func_R(0);
+				for (auto& j : this->B_Luch[i])
+				{
+					y = j->Yzels_opor[3]->coord[0][1];
+					z = j->Yzels_opor[3]->coord[0][2];
+					r = sqrt(kvv(0.0, y, z));
+
+					j->Yzels_opor[3]->coord[0][1] *= R_BS / r;
+					j->Yzels_opor[3]->coord[0][2] *= R_BS / r;
+				}
+
+				for (auto& j : this->E_Luch[i])
+				{
+					y = j->Yzels_opor[2]->coord[0][1];
+					z = j->Yzels_opor[2]->coord[0][2];
+					r = sqrt(kvv(0.0, y, z));
+
+					j->Yzels_opor[2]->coord[0][1] *= R_BS / r;
+					j->Yzels_opor[2]->coord[0][2] *= R_BS / r;
+				}
+
+				for (auto& j : this->D_Luch[i])
+				{
+					y = j->Yzels_opor[2]->coord[0][1];
+					z = j->Yzels_opor[2]->coord[0][2];
+					r = sqrt(kvv(0.0, y, z));
+
+					j->Yzels_opor[2]->coord[0][1] *= R_BS / r;
+					j->Yzels_opor[2]->coord[0][2] *= R_BS / r;
+				}
+			}
+
+			for (auto& i : this->All_Luch)
+			{
+				i->dvigenie(0);
+			}
+
+		}
+
+	}
+
+	cout << "PereInterpolate: step 3/4" << endl;
+
+	// Теперь переинтерполируем все значения в ячейках
+
+	std::unordered_map<string, double> param;
+	std::array<Cell_handle, 6> prev_cell;
+	std::array<Cell_handle, 6> next_cell;
+	for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
+
+	for (auto& cel : this->All_Cell)
+	{
+		double x, y, z;
+		x = cel->center[0][0];
+		y = cel->center[0][1];
+		z = cel->center[0][2];
+		SS.Get_param(x, y, z, param, prev_cell, next_cell);     // Интерполируем переменные
+		for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // Обновляем предыдущую ячейку
+		for (const auto& [key, value] : param)
+		{
+			cel->parameters[0][key] = value;
+		}
+
+		cel->parameters[1] = cel->parameters[0];
+	}
+	cout << "PereInterpolate: step 4/4" << endl;
 }
 
 void Setka::Culc_rotors_in_cell(void)

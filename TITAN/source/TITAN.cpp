@@ -31,7 +31,9 @@ int main()
 
     //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
     //S1.Download_cell_parameters("parameters_0057.bin");   // 107
-    S1.Download_cell_parameters("parameters_0212.bin");   // 107
+    //S1.Download_cell_parameters("parameters_0218.bin");   // 107
+
+    S1.PereInterpolate("For_intertpolate_219.bin", true);
 
     // 19 стартовая точка от которой две параллели с пикапами и без
     // 32 с пикапами
@@ -54,6 +56,7 @@ int main()
     cout << "D2 " << endl;
 
     S1.Init_physics();
+    S1.PereInterpolate("For_intertpolate_219.bin", false);
 
     cout << "E " << endl;
 
@@ -111,7 +114,7 @@ int main()
 
 
 
-    for (int i = 1; i <= 9 * 9; i++) // 6 * 2
+    for (int i = 1; i <= 2 * 8; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -151,16 +154,16 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0215.bin");
+    S1.Save_cell_parameters("parameters_0220.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
-    S1.Edges_create();
-    S1.Culc_divergence_in_cell();
-    S1.Culc_rotors_in_cell();
+    //S1.Edges_create();
+    //S1.Culc_divergence_in_cell();
+    //S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_215.bin", true);
-    Interpol SS = Interpol("For_intertpolate_215.bin");
+    S1.Save_for_interpolate("For_intertpolate_220.bin", false);
+    Interpol SS = Interpol("For_intertpolate_220.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_137-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_137-.bin");

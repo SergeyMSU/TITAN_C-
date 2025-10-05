@@ -1071,7 +1071,8 @@ void Setka::New_initial()
 	vector<Yzel*> Yz_;
 
 	// Считываем файл 2Д сетки
-	ifstream ffin("SDK1_2D_Setka.bin", ios::binary | ios::in);
+	//ifstream ffin("SDK1_2D_Setka.bin", ios::binary | ios::in);
+	ifstream ffin("SDK2_2D_Setka.bin", ios::binary | ios::in);
 	if (!ffin)
 	{
 		cout << "Net takogo fajla (fajl 2D setki)" << endl;
