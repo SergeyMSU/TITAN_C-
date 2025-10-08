@@ -29,9 +29,9 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
+    S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
     //S1.Download_cell_parameters("parameters_0057.bin");   // 107
-    S1.Download_cell_parameters("parameters_0217.bin");   // 107
+    //S1.Download_cell_parameters("parameters_0217.bin");   // 107
 
     //S1.PereInterpolate("For_intertpolate_219.bin", true);
 
@@ -72,9 +72,9 @@ int main()
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    if (false)
+    if (true)
     {
-        S1.Algoritm(5);
+        S1.Algoritm(2);
         cout << "AABB" << endl;
         /*S1.Print_SpSm(17.0, 0.0, 0.0);
         S1.Print_SpSm(20.0, 0.0, 0.0);
@@ -94,9 +94,9 @@ int main()
         S1.Print_pui(28.0, 0.0, 0.0);
         S1.Print_pui(50.0, 0.0, 0.0);
         S1.Print_pui(100.0, 0.0, 0.0);
-        S1.Print_pui(200.0, 0.0, 0.0);
+        S1.Print_pui(200.0, 0.0, 0.0);*/
 
-        return 0;*/
+        return 0;
     }
 
 
@@ -162,11 +162,11 @@ int main()
     S1.Culc_divergence_in_cell();
     S1.Culc_rotors_in_cell();
 
-    S1.Save_for_interpolate("For_intertpolate_217.bin", true);
-    Interpol SS = Interpol("For_intertpolate_217.bin");
+    //S1.Save_for_interpolate("For_intertpolate_217.bin", true);
+    //Interpol SS = Interpol("For_intertpolate_217.bin");
 
-    //S1.Save_for_interpolate("For_intertpolate_137-.bin", false);
-    //Interpol SS = Interpol("For_intertpolate_137-.bin");
+    S1.Save_for_interpolate("For_intertpolate_137-.bin", false);
+    Interpol SS = Interpol("For_intertpolate_137-.bin");
 
     cout << "AAA" << endl;
 
