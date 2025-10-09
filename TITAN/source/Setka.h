@@ -273,6 +273,11 @@ public:
 	void Print_SpSm(double x, double y, double z);
 	void Print_pui(double x, double y, double z);
 
+	void Print_fH(short int zoneMK, Type_Gran_surf type, const double ex, const double ey, const double ez);
+	// Печатает функцию распределения атомов для каждого сорта на грани вокруг зоны zoneMK
+	// тип грани = type
+	// направление радиального вектора максимально близко к ex, ey, ez;
+
 	// Для Tecplot
 	void Tecplot_print_all_yzel_in_3D(string name);
 	// Печатает все узлы (но по слоям, чтобы можно было удобно их просмотреть)

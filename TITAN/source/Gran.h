@@ -57,6 +57,9 @@ public:
 	double MK_Potok;  // Суммарный поток по всем сортам у грани
 	unsigned short int N_particle = 0; // Число частиц, попавших в грань
 	mutex mut;
+
+	void Print_AMR(short int nH);
+	// Печатает в файл функции распределения на грани для водорода сорта nH
 	
 	void Read_AMR(short int ni, short int nH, bool need_refine = false);
 

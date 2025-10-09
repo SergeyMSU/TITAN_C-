@@ -1,8 +1,8 @@
-п»ї#include "Gran.h"
+#include "Gran.h"
 
 short int Gran::Get_method()
 {
-	// 0 - Р›Р°РєСЃ
+	// 0 - Лакс
 	// 1 - HLL
 	// 2 - HLLC
 	// 3 - HLLD
@@ -13,9 +13,212 @@ short int Gran::Get_method()
 	//return 3;
 }
 
+// Вычисление объёма тетраэдра
+double tetrahedron_volume_(const Point& A, const Point& B, const Point& C, const Point& D) {
+	Vector AB = B - A;
+	Vector AC = C - A;
+	Vector AD = D - A;
+	return CGAL::scalar_product(CGAL::cross_product(AB, AC), AD) / 6.0;
+}
+
+std::array<double, 4> barycentric_coordinates_(const Point& P, const Tetrahedron& tet) {
+	const Point& A = tet.vertex(0);
+	const Point& B = tet.vertex(1);
+	const Point& C = tet.vertex(2);
+	const Point& D = tet.vertex(3);
+
+	double V = tetrahedron_volume_(A, B, C, D);
+	double lambda1 = tetrahedron_volume_(P, B, C, D) / V;
+	double lambda2 = tetrahedron_volume_(A, P, C, D) / V;
+	double lambda3 = tetrahedron_volume_(A, B, P, D) / V;
+	double lambda4 = 1.0 - lambda1 - lambda2 - lambda3;
+
+	return { lambda1, lambda2, lambda3, lambda4 };
+}
+
+bool Get_param_amr(const double& x, const double& y, const double& z,
+	std::unordered_map<string, double>& parameters, std::vector <Int_point*>& Cells_1, Delaunay* Delone_1)
+{
+	Point query(x, y, z);
+	Cell_handle containing_cell;
+	containing_cell = Delone_1->locate(query);
+	if (Delone_1->is_infinite(containing_cell))
+	{
+		parameters["f"] = 0.0;
+		return false;
+	}
+
+	// Получаем вершины тетраэдра 
+	Point& p0 = containing_cell->vertex(0)->point();
+	Point& p1 = containing_cell->vertex(1)->point();
+	Point& p2 = containing_cell->vertex(2)->point();
+	Point& p3 = containing_cell->vertex(3)->point();
+
+	size_t i0 = containing_cell->vertex(0)->info();
+	size_t i1 = containing_cell->vertex(1)->info();
+	size_t i2 = containing_cell->vertex(2)->info();
+	size_t i3 = containing_cell->vertex(3)->info();
+
+	// Вычисляем барицентрические координаты 
+	auto coords = barycentric_coordinates_(query, Tetrahedron(p0, p1, p2, p3));
+
+	vector<size_t> i_n(4);
+	i_n[0] = i0;
+	i_n[1] = i1;
+	i_n[2] = i2;
+	i_n[3] = i3;
+
+	parameters["f"] = 0.0;
+	short int kl = 0;
+	for (const auto& ii : i_n)
+	{
+		parameters["f"] += coords[kl] * (Cells_1)[ii]->parameters["f"];
+		kl++;
+	}
+	return true;
+}
+
+
+
+void Gran::Print_AMR(short int nH)
+{
+	std::vector<std::pair<Point, size_t>> points_1; // точки и их номера для построения триангуляции
+	std::vector <Int_point*> Cells_1;     // Точки в которых хранятся параметры
+
+	std::vector<AMR_cell*> cells_amr;
+	std::array<double, 3> center;
+
+	Delaunay* Delone_1;
+
+
+	double Vx, Vy, Vz;
+	double x, y, z;
+	int NN = 300;
+	double VzL = -5.0;
+	double VzR = 5.0;
+	double dVz = (VzR - VzL) / NN;
+	int Nx = 100;
+	double VxL = -5.0;
+	double VxR = 5.0;
+	double dVx = (VxR - VxL) / Nx;
+	int Ny = 100;
+	double VyL = -5.0;
+	double VyR = 5.0;
+	double dVy = (VyR - VyL) / Ny;
+
+	boost::multi_array<double, 2> fff(boost::extents[Nx][Ny]);
+	for (size_t i = 0; i < Nx; ++i) 
+	{
+		for (size_t j = 0; j < Ny; ++j) 
+		{
+			fff[i][j] = 0.0;
+		}
+	}
+
+	for (const auto& amr : this->AMR[nH - 1])
+	{
+		if (amr == nullptr)
+		{
+			cout << "Error ertert34tr34t45erfer" << endl;
+			return;
+		}
+		amr->Get_all_cells(cells_amr);
+
+		unsigned int i = 0;
+		for (const auto& cell : cells_amr)
+		{
+			cell->Get_Center(amr, center);
+			auto A = new Int_point(center[0], center[1], center[2]);
+			A->parameters["f"] = cell->f;
+			points_1.push_back({ {center[0], center[1], center[2]}, i });
+			Cells_1.push_back(A);
+			i++;
+		}
+
+
+		// Делаем триангуляцию
+		Delone_1 = new Delaunay(points_1.begin(), points_1.end());
+
+		// Триангулировали функцию распределения, теперь надо её проинтегрировать и вывести в файл
+		std::unordered_map<string, double> parameters;
+
+		// Печатаем 2Д карту
+
+		for (int k1 = 0; k1 < Nx; k1++)
+		{
+			Vx = VxL + (VxR - VxL) * (k1 + 0.5) / Nx;
+			for (int k2 = 0; k2 < Ny; k2++)
+			{
+				Vy = VyL + (VyR - VyL) * (k2 + 0.5) / Ny;
+				double S = 0.0;
+				for (int k = 0; k < NN; k++)
+				{
+					Vz = VzL + (VzR - VzL) * (k + 0.5) / NN;
+					amr->Get_lokal_koordinate(Vx, Vy, Vz, x, y, z);
+					if (Get_param_amr(x, y, z, parameters, Cells_1, Delone_1) == true)
+					{
+						S += parameters["f"] * dVz;
+					}
+				}
+				fff[k1][k2] += S;
+			}
+		}
+
+		delete Delone_1;
+		cells_amr.clear();
+		for (auto& cel : Cells_1)
+		{
+			delete cel;
+			cel = nullptr;
+		}
+		Cells_1.clear();
+		points_1.clear();
+	}
+
+	// ====== СОЗДАНИЕ ФАЙЛА И ПЕЧАТЬ МАССИВА ======
+
+	// Создаем имя файла на основе номера грани и nH
+	string filename = "AMR_result_" + to_string(this->number) + "_H" + to_string(nH) + ".txt";
+
+	// Открываем файл для записи
+	ofstream outfile;
+	outfile.open(filename);
+
+	if (!outfile.is_open()) {
+		cout << "Error: Cannot open file " << filename << " for writing" << endl;
+		return;
+	}
+
+	// Заголовок файла в формате Tecplot
+	outfile << "TITLE = AMR Distribution" << endl;
+	outfile << "VARIABLES = Vx, Vy, f" << endl;
+	outfile << "ZONE I = " << Nx << ", J = " << Ny << ", F = POINT" << endl;
+
+	// Печатаем массив с координатами
+	for (int k2 = 0; k2 < Ny; k2++)  // сначала по Y
+	{
+		for (int k1 = 0; k1 < Nx; k1++)  // потом по X
+		{
+			Vx = VxL + (VxR - VxL) * (k1 + 0.5) / Nx;
+			Vy = VyL + (VyR - VyL) * (k2 + 0.5) / Ny;
+
+			outfile << Vx << " " << Vy << " " << fff[k1][k2] << endl;
+		}
+	}
+
+	// Закрываем файл
+	outfile.close();
+
+	// Открываем файл для записи информации
+	outfile.open("info_AMR_print.txt");
+
+	outfile << "AMR data saved to file:  " << filename << endl;
+	outfile << "Gran centr: " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][1] << endl;
+}
+
 void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 {
-	// nH - РЅР°С‡РёРЅР°РµС‚СЃСЏ СЃ 1 !!!!!!!!!!!!!!!!!!!!!!!!!
+	// nH - начинается с 1 !!!!!!!!!!!!!!!!!!!!!!!!!
 
 	if (this->AMR.size() < nH)
 	{
@@ -42,7 +245,7 @@ void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 		to_string(nH) + "_" + to_string(this->number) + ".bin";
 	if (file_exists("data_AMR/" + name_f) && this->type == Type_Gran::Us)
 	{
-		// Р’ СЌС‚РѕРј СЃР»СѓС‡Р°Рµ РїСЂРѕСЃС‚Рѕ СЃС‡РёС‚С‹РІР°РµРј AMR - СЃРµС‚РєСѓ
+		// В этом случае просто считываем AMR - сетку
 		this->AMR[nH - 1][ni]->Read("data_AMR/" + name_f);
 
 
@@ -76,7 +279,7 @@ void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 		}
 	}
 
-	// РќР° РІСЃСЏРєРёР№ СЃР»СѓС‡Р°Р№ Р·Р°РґР°С‘Рј РЅРѕСЂРјР°Р»СЊ
+	// На всякий случай задаём нормаль
 	if (ni == 0)
 	{
 		this->AMR[nH - 1][ni]->Vn[0] = this->normal[0][0];
@@ -91,7 +294,7 @@ void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 	}
 	this->AMR[nH - 1][ni]->Set_bazis();
 
-	// Р—Р°РїРѕР»РЅСЏРµРј РїР°СЂР°РјРµС‚СЂС‹ РЅР° AMR
+	// Заполняем параметры на AMR
 	this->AMR[nH - 1][ni]->parameters["n"] = 0.0;
 	this->AMR[nH - 1][ni]->parameters["nn"] = 0.0;
 	this->AMR[nH - 1][ni]->parameters["Smu"] = 0.0;
@@ -117,8 +320,8 @@ void Gran::Culc_measure(unsigned short int st_time)
 	yc = 0.0;
 	zc = 0.0;
 
-	// Р’С‹С‡РёСЃР»СЏРµРј С†РµРЅС‚СЂ РіСЂР°РЅРё
-	// РѕРЅ РїРѕРЅР°РґРѕР±РёС‚СЊСЃСЏ РґР»СЏ РїСЂРѕРІРµСЂРєРё РЅРѕСЂРјР°Р»Рё
+	// Вычисляем центр грани
+	// он понадобиться для проверки нормали
 	for (auto& i : this->yzels)
 	{
 		xc += i->coord[st_time][0];
@@ -132,10 +335,10 @@ void Gran::Culc_measure(unsigned short int st_time)
 	this->center[st_time][1] = yc;
 	this->center[st_time][2] = zc;
 
-	// РЎС‚Р°СЂС‹Р№ РІР°СЂРёР°РЅС‚, РіРґРµ РіСЂР°РЅСЊ = 4 С‚СЂРµСѓРіРѕР»СЊРЅРёРєР°
+	// Старый вариант, где грань = 4 треугольника
 	if (false)
 	{
-		// Р’С‹С‡РёСЃР»СЏРµРј РїР»РѕС‰Р°РґСЊ РіСЂР°РЅРё
+		// Вычисляем площадь грани
 		double S = 0.0;
 		int i2;
 		for (int i = 0; i < this->yzels.size(); i++)
@@ -150,9 +353,9 @@ void Gran::Culc_measure(unsigned short int st_time)
 		}
 		this->area[st_time] = S;
 	}
-	else  // Р“СЂР°РЅСЊ = 2 С‚СЂРµСѓРіРѕР»СЊРЅРёРєР°
+	else  // Грань = 2 треугольника
 	{
-		// Р’С‹С‡РёСЃР»СЏРµРј РїР»РѕС‰Р°РґСЊ РіСЂР°РЅРё
+		// Вычисляем площадь грани
 		double S = 0.0;
 		S += triangleArea3D(this->yzels[0]->coord[st_time][0], this->yzels[0]->coord[st_time][1],
 			this->yzels[0]->coord[st_time][2],
@@ -172,9 +375,9 @@ void Gran::Culc_measure(unsigned short int st_time)
 	}
 
 
-	// Р’С‹С‡РёСЃР»СЏРµРј РЅРѕСЂРјР°Р»СЊ РіСЂР°РЅРё
-	if (Ny != 4) // РґР»СЏ РґСЂСѓРіРёС… СЃР»СѓС‡Р°РµРІ СЃР»РµРґСѓСЋС‰РёР№ Р±Р»РѕРє РјРѕР¶РµС‚ СЂР°Р±РѕС‚Р°С‚СЊ РЅРµ РїСЂР°РІРёР»СЊРЅРѕ, 
-		// РЅСѓР¶РЅРѕ РѕС‚РґРµР»СЊРЅРѕ РёС… СЂР°СЃСЃРјР°С‚СЂРёРІР°С‚СЊ
+	// Вычисляем нормаль грани
+	if (Ny != 4) // для других случаев следующий блок может работать не правильно, 
+		// нужно отдельно их рассматривать
 	{
 		cout << "Error  0906764104" << endl;
 		exit(-1);
@@ -203,7 +406,7 @@ void Gran::Culc_measure(unsigned short int st_time)
 	n2 /= nn;
 	n3 /= nn;
 
-	// РќСѓР¶РЅРѕ С‡С‚РѕР±С‹ РЅРѕСЂРјР°Р»СЊ СЃРјРѕС‚СЂРµР»Р° РѕС‚ РїРµСЂРІРѕР№ СЏС‡РµР№РєРё РєРѕ РІС‚РѕСЂРѕР№
+	// Нужно чтобы нормаль смотрела от первой ячейки ко второй
 	if (scalarProductFast(n1, n2, n3, this->cells[0]->center[st_time][0] - xc,
 		this->cells[0]->center[st_time][1] - yc, this->cells[0]->center[st_time][2] - zc) > 0.0)
 	{
@@ -221,7 +424,7 @@ void Gran::Get_Random_pozition(Eigen::Vector3d& poz, Sensor* Sens)
 {
 	vector <double> sqv(2);
 
-	// Р’С‹С‡РёСЃР»СЏРµРј РїР»РѕС‰Р°РґСЊ РіСЂР°РЅРё
+	// Вычисляем площадь грани
 	double S = 0.0;
 	sqv[0] = triangleArea3D(this->yzels[0]->coord[0][0],
 		this->yzels[0]->coord[0][1], this->yzels[0]->coord[0][2],
@@ -441,12 +644,12 @@ bool Gran::Luch_iz_cross_approx(const Eigen::Vector3d& R, const Eigen::Vector3d&
 
 
 /**
- * РџСЂРѕРІРµСЂСЏРµС‚ РїРµСЂРµСЃРµС‡РµРЅРёРµ Р»СѓС‡Р° СЃ РіСЂР°РЅСЊСЋ (Р°Р»РіРѕСЂРёС‚Рј РњС‘Р»Р»РµСЂР° вЂ” РўСЂСѓРјР±РѕСЂР°).
+ * Проверяет пересечение луча с гранью (алгоритм Мёллера — Трумбора).
  *
- * @param orig РќР°С‡Р°Р»СЊРЅР°СЏ С‚РѕС‡РєР° Р»СѓС‡Р°.
- * @param Vel СЃРєРѕСЂРѕСЃС‚СЊ
- * @param t Р’РѕР·РІСЂР°С‰Р°РµС‚ РІСЂРµРјСЏ РґРѕ РїРµСЂРµСЃРµС‡РµРЅРёСЏ.
- * @return true, РµСЃР»Рё Р»СѓС‡ РїРµСЂРµСЃРµРєР°РµС‚ С‚СЂРµСѓРіРѕР»СЊРЅРёРє, РёРЅР°С‡Рµ false.
+ * @param orig Начальная точка луча.
+ * @param Vel скорость
+ * @param t Возвращает время до пересечения.
+ * @return true, если луч пересекает треугольник, иначе false.
  */
 bool Gran::Luch_crossing(const Eigen::Vector3d& orig, const Eigen::Vector3d& Vel, double& time)
 {
@@ -454,7 +657,7 @@ bool Gran::Luch_crossing(const Eigen::Vector3d& orig, const Eigen::Vector3d& Vel
 	{
 		cout << "Error 7543234305   " << this->yzels.size() << endl;
 		exit(-1);
-		// Р­С‚РѕС‚ Р°Р»РіРѕСЂРёС‚Рј СЃС‚СЂРѕРіРѕ РґР»СЏ С‡РµС‚С‹СЂС‘С…-СѓРіРѕР»СЊРЅС‹С… РіСЂР°РЅРµР№, РёРЅР°С‡Рµ РЅСѓР¶РµРЅ РґСЂСѓРіРѕР№ 
+		// Этот алгоритм строго для четырёх-угольных граней, иначе нужен другой 
 	}
 
 	auto yz1 = this->yzels[0];
@@ -511,13 +714,13 @@ bool Gran::Luch_crossing(const Eigen::Vector3d& orig, const Eigen::Vector3d& Vel
 }
 
 /**
- * РџСЂРѕРІРµСЂСЏРµС‚ РїРµСЂРµСЃРµС‡РµРЅРёРµ Р»СѓС‡Р° СЃ С‚СЂРµСѓРіРѕР»СЊРЅРёРєРѕРј (Р°Р»РіРѕСЂРёС‚Рј РњС‘Р»Р»РµСЂР° вЂ” РўСЂСѓРјР±РѕСЂР°).
+ * Проверяет пересечение луча с треугольником (алгоритм Мёллера — Трумбора).
  *
- * @param orig РќР°С‡Р°Р»СЊРЅР°СЏ С‚РѕС‡РєР° Р»СѓС‡Р° (Vector3f).
- * @param dir РќР°РїСЂР°РІР»РµРЅРёРµ Р»СѓС‡Р° (РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ РЅРѕСЂРјР°Р»РёР·РѕРІР°РЅРѕ, Vector3f).
- * @param v0, v1, v2 Р’РµСЂС€РёРЅС‹ С‚СЂРµСѓРіРѕР»СЊРЅРёРєР° (Vector3f).
- * @param t Р’РѕР·РІСЂР°С‰Р°РµС‚ РїР°СЂР°РјРµС‚СЂ РїРµСЂРµСЃРµС‡РµРЅРёСЏ (СЂР°СЃСЃС‚РѕСЏРЅРёРµ РѕС‚ orig РґРѕ С‚РѕС‡РєРё РїРµСЂРµСЃРµС‡РµРЅРёСЏ).
- * @return true, РµСЃР»Рё Р»СѓС‡ РїРµСЂРµСЃРµРєР°РµС‚ С‚СЂРµСѓРіРѕР»СЊРЅРёРє, РёРЅР°С‡Рµ false.
+ * @param orig Начальная точка луча (Vector3f).
+ * @param dir Направление луча (должно быть нормализовано, Vector3f).
+ * @param v0, v1, v2 Вершины треугольника (Vector3f).
+ * @param t Возвращает параметр пересечения (расстояние от orig до точки пересечения).
+ * @return true, если луч пересекает треугольник, иначе false.
  */
 bool Gran::rayTriangleIntersect(
 	const Eigen::Vector3d& orig, const Eigen::Vector3d& dir,
@@ -528,33 +731,33 @@ bool Gran::rayTriangleIntersect(
 
 	Eigen::Vector3d edge1 = v1 - v0;
 	Eigen::Vector3d edge2 = v2 - v0;
-	Eigen::Vector3d pvec = dir.cross(edge2);  // Р’РµРєС‚РѕСЂРЅРѕРµ РїСЂРѕРёР·РІРµРґРµРЅРёРµ D Г— E2
+	Eigen::Vector3d pvec = dir.cross(edge2);  // Векторное произведение D ? E2
 
-	double det = edge1.dot(pvec);  // РћРїСЂРµРґРµР»РёС‚РµР»СЊ (РґР»СЏ РїСЂРѕРІРµСЂРєРё РїР°СЂР°Р»Р»РµР»СЊРЅРѕСЃС‚Рё)
+	double det = edge1.dot(pvec);  // Определитель (для проверки параллельности)
 
-	// Р•СЃР»Рё Р»СѓС‡ РїР°СЂР°Р»Р»РµР»РµРЅ РїР»РѕСЃРєРѕСЃС‚Рё С‚СЂРµСѓРіРѕР»СЊРЅРёРєР° (РёР»Рё РїРѕС‡С‚Рё РїР°СЂР°Р»Р»РµР»РµРЅ)
+	// Если луч параллелен плоскости треугольника (или почти параллелен)
 	if (fabs(det) < EPSILON)
 		return false;
 
 	double inv_det = 1.0 / det;
 
-	// Р’РµРєС‚РѕСЂ РѕС‚ РІРµСЂС€РёРЅС‹ С‚СЂРµСѓРіРѕР»СЊРЅРёРєР° РґРѕ РЅР°С‡Р°Р»Р° Р»СѓС‡Р°
+	// Вектор от вершины треугольника до начала луча
 	Eigen::Vector3d tvec = orig - v0;
 
-	// Р’С‹С‡РёСЃР»СЏРµРј Р±Р°СЂРёС†РµРЅС‚СЂРёС‡РµСЃРєСѓСЋ РєРѕРѕСЂРґРёРЅР°С‚Сѓ u
+	// Вычисляем барицентрическую координату u
 	double u = tvec.dot(pvec) * inv_det;
 	if (u < 0.0 || u > 1.0)
 		return false;
 
-	// Р’РµРєС‚РѕСЂ РґР»СЏ РІС‹С‡РёСЃР»РµРЅРёСЏ v
+	// Вектор для вычисления v
 	Eigen::Vector3d qvec = tvec.cross(edge1);
 
-	// Р’С‹С‡РёСЃР»СЏРµРј Р±Р°СЂРёС†РµРЅС‚СЂРёС‡РµСЃРєСѓСЋ РєРѕРѕСЂРґРёРЅР°С‚Сѓ v
+	// Вычисляем барицентрическую координату v
 	double v = dir.dot(qvec) * inv_det;
 	if (v < 0.0 || u + v > 1.0)
 		return false;
 
-	// Р’С‹С‡РёСЃР»СЏРµРј РїР°СЂР°РјРµС‚СЂ t (СЂР°СЃСЃС‚РѕСЏРЅРёРµ РґРѕ РїРµСЂРµСЃРµС‡РµРЅРёСЏ)
+	// Вычисляем параметр t (расстояние до пересечения)
 	t = edge2.dot(qvec) * inv_det;
 
 	return t > 1e-6;

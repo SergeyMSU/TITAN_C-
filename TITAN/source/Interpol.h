@@ -1,10 +1,10 @@
 #pragma once
 #include "Header.h"
 
-typedef KKexact::Point_3 Point;
-typedef KKexact::Vector_3 Vector;
-typedef KKexact::Tetrahedron_3 Tetrahedron;
-typedef KKexact::Point_2 Point2;
+//typedef KKexact::Point_3 Point;
+//typedef KKexact::Vector_3 Vector;
+//typedef KKexact::Tetrahedron_3 Tetrahedron;
+//typedef KKexact::Point_2 Point2;
 
 
 

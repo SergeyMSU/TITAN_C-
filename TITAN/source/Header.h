@@ -16,6 +16,7 @@ class Surfaces;
 class Interpol;
 class Int_point;
 class MK_particle;
+enum class Type_Gran_surf;
 
 
 #define kv(x) ((x) * (x))
@@ -85,6 +86,11 @@ typedef Delaunay::Vertex_handle Vertex_handle;
 typedef Delaunay2::Vertex_handle Vertex_handle2;
 typedef Delaunay2::Face_handle Face_handle;
 typedef KKexact::FT FT;
+
+typedef KKexact::Point_3 Point;
+typedef KKexact::Vector_3 Vector;
+typedef KKexact::Tetrahedron_3 Tetrahedron;
+typedef KKexact::Point_2 Point2;
 
 
 #define sqrtpi_ 1.77245385

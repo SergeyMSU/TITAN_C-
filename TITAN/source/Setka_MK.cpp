@@ -139,6 +139,87 @@ void perturbVector(double& Vx, double& Vy, double& Vz, double noiseScale = 0.01)
 	Vz += noiseZ;
 }
 
+void Setka::Print_fH(short int zoneMK, Type_Gran_surf type, const double ex, const double ey, const double ez)
+{
+	if (this->MK_Grans.size() == 0)
+	{
+		this->Set_MK_Zone();
+	}
+
+	Gran* gr2 = nullptr;
+	double s1 = -1.0;
+	Eigen::Vector3d e;
+	e << ex, ey, ez;
+
+	for (const auto& gr1 : this->MK_Grans[zoneMK - 1])
+	{
+		if (gr1->type2 != type) continue;
+
+		Eigen::Vector3d v1;
+		v1 << gr1->center[0][0], gr1->center[0][1], gr1->center[0][2];
+		double d = e.dot(v1) / v1.norm() / e.norm();
+		if (d > s1)
+		{
+			s1 = d;
+			gr2 = gr1;
+		}
+	}
+
+	if (gr2 == nullptr)
+	{
+		cout << "Ne nashli gran" << endl;
+		return;
+	}
+
+	gr2->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
+	gr2->MK_Potok = 0.0;
+	// Выделяем место под AMR, сколько сортов водорода, столько и места
+	if (gr2->AMR.size() < this->phys_param->num_H)
+	{
+		gr2->AMR.resize(this->phys_param->num_H);
+		for (size_t i = 0; i < this->phys_param->num_H; i++)
+		{
+			gr2->AMR[i][0] = nullptr;
+			gr2->AMR[i][1] = nullptr;
+		}
+	}
+
+	short int ni = 1;  // Определяем выходящую функцию распределения
+	if (gr2->cells[0]->MK_zone == zoneMK) ni = 0;
+
+	short int ni2 = 0; // Определяем входящую функцию распределения
+	if (gr2->cells[0]->MK_zone == zoneMK) ni2 = 1;
+
+	// Загружаем все функции распределения на грани
+	for (short int ii = 0; ii <= 1; ii++)
+	{
+		for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
+		{
+			gr2->Read_AMR(ii, iH, false);
+		}
+	}
+
+	// Печатаем функции распределения на грани
+	for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
+	{
+		gr2->Print_AMR(iH);
+	}
+
+	// Удаляем все функции распределения на грани
+	for (short int ii = 0; ii <= 1; ii++)
+	{
+		for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
+		{
+			gr2->AMR[iH - 1][ii]->Delete();
+			delete gr2->AMR[iH - 1][ii];
+			gr2->AMR[iH - 1][ii] = nullptr;
+		}
+	}
+	gr2->AMR.clear();
+
+
+}
+
 void Setka::Set_MK_Zone(void)
 {
 	cout << "Start Set_MK_Zone" << endl;
@@ -308,11 +389,6 @@ void Setka::Set_MK_Zone(void)
 			this->MK_zone_H(i, j) = is_H;
 		}
 	}
-
-
-
-
-
 
 
 	// Посмотрим что получилось
