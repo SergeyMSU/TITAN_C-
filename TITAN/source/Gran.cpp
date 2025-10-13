@@ -93,15 +93,15 @@ void Gran::Print_AMR(short int nH)
 
 	double Vx, Vy, Vz;
 	double x, y, z;
-	int NN = 300;
+	int NN = 3000;
 	double VzL = -5.0;
 	double VzR = 5.0;
 	double dVz = (VzR - VzL) / NN;
-	int Nx = 100;
+	int Nx = 1000;
 	double VxL = -5.0;
 	double VxR = 5.0;
 	double dVx = (VxR - VxL) / Nx;
-	int Ny = 100;
+	int Ny = 1000;
 	double VyL = -5.0;
 	double VyR = 5.0;
 	double dVy = (VyR - VyL) / Ny;
@@ -115,74 +115,136 @@ void Gran::Print_AMR(short int nH)
 		}
 	}
 
+	boost::multi_array<double, 1> f1d(boost::extents[Nx]);
+	for (size_t i = 0; i < Nx; ++i)
+	{
+			f1d[i] = 0.0;
+	}
+
+	unsigned int i = 0;
+
+	//cout << "A1" << endl;
+
 	for (const auto& amr : this->AMR[nH - 1])
 	{
+		cells_amr.clear();
 		if (amr == nullptr)
 		{
 			cout << "Error ertert34tr34t45erfer" << endl;
 			return;
 		}
+		//cout << "B1" << endl;
 		amr->Get_all_cells(cells_amr);
+		//cout << "B2" << endl;
 
-		unsigned int i = 0;
 		for (const auto& cell : cells_amr)
 		{
 			cell->Get_Center(amr, center);
-			auto A = new Int_point(center[0], center[1], center[2]);
+			amr->Get_real_koordinate(center[0], center[1], center[2], Vx, Vy, Vz);
+			auto A = new Int_point(Vx, Vy, Vz);
 			A->parameters["f"] = cell->f;
-			points_1.push_back({ {center[0], center[1], center[2]}, i });
+			points_1.push_back({ {Vx, Vy, Vz}, i });
 			Cells_1.push_back(A);
 			i++;
 		}
 
+	}
 
-		// Делаем триангуляцию
-		Delone_1 = new Delaunay(points_1.begin(), points_1.end());
+	//cout << "A2" << endl;
 
-		// Триангулировали функцию распределения, теперь надо её проинтегрировать и вывести в файл
-		std::unordered_map<string, double> parameters;
+	// Делаем триангуляцию
+	Delone_1 = new Delaunay(points_1.begin(), points_1.end());
+	// Триангулировали функцию распределения, теперь надо её проинтегрировать и вывести в файл
 
-		// Печатаем 2Д карту
+	//cout << "A3" << endl;
 
+	// Инициализируем ограничивающую коробку "пустой"
+	CGAL::Bbox_3 bbox;
+
+	// Проходим по всем конечным вершинам триангуляции
+	for (Delaunay::Finite_vertices_iterator it = Delone_1->finite_vertices_begin();
+		it != Delone_1->finite_vertices_end(); ++it) {
+		// Получаем точку вершины и добавляем ее bbox в общий bbox
+		bbox = bbox + it->point().bbox();
+	}
+	VzL = bbox.zmin() / 2;
+	VzR = bbox.zmax() / 2;
+	dVz = (VzR - VzL) / NN;
+	VxL = bbox.xmin() / 2;
+	VxR = bbox.xmax() / 2;
+	dVx = (VxR - VxL) / Nx;
+	VyL = bbox.ymin() / 2;
+	VyR = bbox.ymax() / 2;
+	dVy = (VyR - VyL) / Ny;
+
+	//cout << "A4" << endl;
+
+	// Печатаем 2Д карту
+	if (true)
+	{
+		#pragma omp parallel for schedule(dynamic)
 		for (int k1 = 0; k1 < Nx; k1++)
 		{
-			Vx = VxL + (VxR - VxL) * (k1 + 0.5) / Nx;
+			std::unordered_map<string, double> parameters;
+			double Vx = VxL + (VxR - VxL) * (k1 + 0.5) / Nx;
+			double SS = 0.0;
 			for (int k2 = 0; k2 < Ny; k2++)
 			{
-				Vy = VyL + (VyR - VyL) * (k2 + 0.5) / Ny;
+				double Vy = VyL + (VyR - VyL) * (k2 + 0.5) / Ny;
 				double S = 0.0;
-				for (int k = 0; k < NN; k++)
+
+				for (int k = 0; k < 100; k++)
 				{
-					Vz = VzL + (VzR - VzL) * (k + 0.5) / NN;
-					amr->Get_lokal_koordinate(Vx, Vy, Vz, x, y, z);
-					if (Get_param_amr(x, y, z, parameters, Cells_1, Delone_1) == true)
+					Vz = VzL + (VzR - VzL) * (k + 0.5) / 100;
+					if (Get_param_amr(Vx, Vy, Vz, parameters, Cells_1, Delone_1) == true)
 					{
 						S += parameters["f"] * dVz;
 					}
 				}
+				if (S > 0.000001)
+				{
+					S = 0.0;
+					for (int k = 0; k < NN; k++)
+					{
+						double Vz = VzL + (VzR - VzL) * (k + 0.5) / NN;
+						if (Get_param_amr(Vx, Vy, Vz, parameters, Cells_1, Delone_1) == true)
+						{
+							S += parameters["f"] * dVz;
+						}
+					}
+				}
+
+				SS += S * dVy;
 				fff[k1][k2] += S;
 			}
+			f1d[k1] = SS;
 		}
-
-		delete Delone_1;
-		cells_amr.clear();
-		for (auto& cel : Cells_1)
-		{
-			delete cel;
-			cel = nullptr;
-		}
-		Cells_1.clear();
-		points_1.clear();
 	}
+
+	//cout << "A5" << endl;
+
+
+	delete Delone_1;
+	cells_amr.clear();
+	for (auto& cel : Cells_1)
+	{
+		delete cel;
+		cel = nullptr;
+	}
+	Cells_1.clear();
+	points_1.clear();
 
 	// ====== СОЗДАНИЕ ФАЙЛА И ПЕЧАТЬ МАССИВА ======
 
 	// Создаем имя файла на основе номера грани и nH
 	string filename = "AMR_result_" + to_string(this->number) + "_H" + to_string(nH) + ".txt";
+	string filename2 = "1d_AMR_result_" + to_string(this->number) + "_H" + to_string(nH) + ".txt";
 
 	// Открываем файл для записи
 	ofstream outfile;
+	ofstream outfile2;
 	outfile.open(filename);
+	outfile2.open(filename2);
 
 	if (!outfile.is_open()) {
 		cout << "Error: Cannot open file " << filename << " for writing" << endl;
@@ -193,6 +255,9 @@ void Gran::Print_AMR(short int nH)
 	outfile << "TITLE = AMR Distribution" << endl;
 	outfile << "VARIABLES = Vx, Vy, f" << endl;
 	outfile << "ZONE I = " << Nx << ", J = " << Ny << ", F = POINT" << endl;
+
+	outfile2 << "TITLE = AMR Distribution" << endl;
+	outfile2 << "VARIABLES = Vx, f" << endl;
 
 	// Печатаем массив с координатами
 	for (int k2 = 0; k2 < Ny; k2++)  // сначала по Y
@@ -206,11 +271,19 @@ void Gran::Print_AMR(short int nH)
 		}
 	}
 
+	for (int k1 = 0; k1 < Nx; k1++)  // потом по X
+	{
+		Vx = VxL + (VxR - VxL) * (k1 + 0.5) / Nx;
+
+		outfile2 << Vx << " " << f1d[k1] << endl;
+	}
+
 	// Закрываем файл
 	outfile.close();
+	outfile2.close();
 
 	// Открываем файл для записи информации
-	outfile.open("info_AMR_print.txt");
+	outfile.open("info_AMR_print.txt", std::ios::app);
 
 	outfile << "AMR data saved to file:  " << filename << endl;
 	outfile << "Gran centr: " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][1] << endl;

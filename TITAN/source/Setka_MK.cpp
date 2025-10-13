@@ -202,6 +202,7 @@ void Setka::Print_fH(short int zoneMK, Type_Gran_surf type, const double ex, con
 	// Печатаем функции распределения на грани
 	for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
 	{
+		cout << "Start print AMR:  iH = " << iH << endl;
 		gr2->Print_AMR(iH);
 	}
 
