@@ -748,6 +748,12 @@ void Setka::Set_MK_Zone(void)
 						this->MK_Grans[5].push_back(gr);
 						gr->MK_type.push_back(6);
 						gr->type == Type_Gran::Outer_Hard;
+						if (gr->cells[0]->MK_zone == 8)
+						{
+							gr->normal[0][0] = -gr->normal[0][0];
+							gr->normal[0][1] = -gr->normal[0][1];
+							gr->normal[0][2] = -gr->normal[0][2];
+						}
 					}
 				}
 
@@ -800,8 +806,6 @@ void Setka::Set_MK_Zone(void)
 
 	
 		
-	
-
 	for (size_t jj = 0; jj < 7; jj++)
 	{
 		cout << "MK_grans:  " << jj << "   size = " << this->MK_Grans[jj].size() << endl;
@@ -842,10 +846,6 @@ void Setka::Set_MK_Zone(void)
 			
 
 	}
-
-
-
-
 
 	cout << "END Set_MK_Zone" << endl;
 }
@@ -923,7 +923,7 @@ void Setka::MK_prepare(short int zone_MK)
 			}
 
 			auto gr = this->MK_Grans[zone_MK - 1][ijk];
-			gr->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
+			//gr->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
 			gr->MK_Potok = 0.0;
 
 			// Выделяем место под AMR, сколько сортов водорода, столько и места
@@ -1036,7 +1036,8 @@ void Setka::MK_prepare(short int zone_MK)
 
 					Eigen::Vector3d n;
 					n << -gr->AMR[3][ni2]->Vn[0], -gr->AMR[3][ni2]->Vn[1], -gr->AMR[3][ni2]->Vn[2];
-					// Так как нормаль должна быть внешняя к грани
+					// Так как нормаль должна быть внешняя к грани (а надо внутреннюю)
+
 					double sjv = Get_Spotok_inf(n);
 					gr->AMR[3][ni2]->SpotokV = sjv * gr->area[0];
 					#pragma omp critical (erfgwerweS) 
@@ -1172,7 +1173,7 @@ void Setka::MK_prepare(short int zone_MK)
 		double S = 0.0;
 		for (auto& gr : this->MK_Grans[zone_MK - 1])
 		{
-			gr->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
+			//gr->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
 			// Нужно вычислять поток только у входящей части функции распределения
 			short int ni = 0; // Определяем входящую функцию
 			if (gr->cells[0]->MK_zone == zone_MK)

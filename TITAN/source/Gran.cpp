@@ -418,6 +418,9 @@ void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 		this->AMR[nH - 1][ni]->Vn[1] = -this->normal[0][1];
 		this->AMR[nH - 1][ni]->Vn[2] = -this->normal[0][2];
 	}
+
+
+
 	this->AMR[nH - 1][ni]->Set_bazis();
 
 	// Заполняем параметры на AMR
