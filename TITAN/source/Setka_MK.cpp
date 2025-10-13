@@ -287,7 +287,14 @@ void Setka::Set_MK_Zone(void)
 			if (Centr[0] > 0)
 			{
 				cell->MK_zone_phi = 1;
-				cell->MK_zone = 6;
+				if (Centr[0] > this->phys_param->R_MK_Max)
+				{
+					cell->MK_zone = 8;         // Фиктивная зона (нужна для того, чтобы раздилить зону 6)
+				}
+				else
+				{
+					cell->MK_zone = 6;
+				}
 			}
 			else
 			{
@@ -304,6 +311,14 @@ void Setka::Set_MK_Zone(void)
 
 	this->MK_Grans.resize(7);
 	this->MK_Potoks.resize(7);
+	this->MK_Potoks_on_sort.resize(7);
+	for (short int i = 0; i < 7; ++i)
+	{
+		this->MK_Potoks_on_sort[i].resize(this->phys_param->num_H, 0.0);
+	}
+
+
+
 	for (short int i = 0; i < 7; ++i) this->MK_Potoks[i] = 0.0;
 	this->MK_zone_4.resize(7, 4);
 	this->MK_zone_4 <<  false, false, false, false,
@@ -315,6 +330,8 @@ void Setka::Set_MK_Zone(void)
 						false, false, false, false;
 	for (auto& cell : this->All_Cell)
 	{
+		if (cell->MK_zone == 8) continue;  // Фиктивная зона
+
 		int zone = this->determ_zone(cell, 0);
 
 		// Некоторые проверки для правильного определения зоны
@@ -448,7 +465,6 @@ void Setka::Set_MK_Zone(void)
 		this->MK_Grans[0].push_back(gr);
 		gr->MK_type.push_back(1);
 	}
-
 
 	// 2 зона
 	for (auto& gr : this->All_Gran)
@@ -644,39 +660,98 @@ void Setka::Set_MK_Zone(void)
 	}
 
 	// 6 зона
-	for (auto& gr : this->All_Gran)
+	// старый вариант до внешней границы
+	if (false)
 	{
-		Centr[0] = gr->center[0][0];
-		Centr[1] = gr->center[0][1];
-		Centr[2] = gr->center[0][2];
-
-		if (gr->type2 == Type_Gran_surf::BS)
+		for (auto& gr : this->All_Gran)
 		{
-			this->MK_Grans[5].push_back(gr);
-			gr->MK_type.push_back(6);
-		}
+			Centr[0] = gr->center[0][0];
+			Centr[1] = gr->center[0][1];
+			Centr[2] = gr->center[0][2];
 
-		if (gr->type == Type_Gran::Outer_Hard)
-		{
-			if (Centr[0] > 0)
+			if (gr->type2 == Type_Gran_surf::BS)
 			{
 				this->MK_Grans[5].push_back(gr);
 				gr->MK_type.push_back(6);
 			}
-		}
 
-		if (gr->cells.size() == 2)
-		{
-			if (gr->cells[0]->type == Type_cell::Zone_4 &&
-				gr->cells[1]->type == Type_cell::Zone_4)
+			if (gr->type == Type_Gran::Outer_Hard)
 			{
-				if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
+				if (Centr[0] > 0)
 				{
 					this->MK_Grans[5].push_back(gr);
 					gr->MK_type.push_back(6);
 				}
 			}
 
+			if (gr->cells.size() == 2)
+			{
+				if (gr->cells[0]->type == Type_cell::Zone_4 &&
+					gr->cells[1]->type == Type_cell::Zone_4)
+				{
+					if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
+					{
+						this->MK_Grans[5].push_back(gr);
+						gr->MK_type.push_back(6);
+					}
+				}
+
+			}
+		}
+	}
+	else
+	{
+		for (auto& gr : this->All_Gran)
+		{
+			Centr[0] = gr->center[0][0];
+			Centr[1] = gr->center[0][1];
+			Centr[2] = gr->center[0][2];
+
+			if (gr->type2 == Type_Gran_surf::BS)
+			{
+				this->MK_Grans[5].push_back(gr);
+				gr->MK_type.push_back(6);
+			}
+
+			if (gr->type == Type_Gran::Outer_Hard && gr->cells[0]->center[0][0] <= this->phys_param->R_MK_Max)
+			{
+				if (Centr[0] > 0)
+				{
+					this->MK_Grans[5].push_back(gr);
+					gr->MK_type.push_back(6);
+				}
+			}
+
+			if (gr->cells.size() == 2)
+			{
+				if (gr->cells[0]->type == Type_cell::Zone_4 &&
+					gr->cells[1]->type == Type_cell::Zone_4)
+				{
+					if (gr->cells[0]->center[0][0] * gr->cells[1]->center[0][0] < 0.0)
+					{
+						this->MK_Grans[5].push_back(gr);
+						gr->MK_type.push_back(6);
+					}
+				}
+
+			}
+
+			// Это те самые добавленные грани, которые возволяют сократить область моделирования
+			if (gr->cells.size() == 2)
+			{
+				if (gr->cells[0]->type == Type_cell::Zone_4 &&
+					gr->cells[1]->type == Type_cell::Zone_4)
+				{
+					if ( (gr->cells[0]->center[0][0] - this->phys_param->R_MK_Max) * 
+						(gr->cells[1]->center[0][0] - this->phys_param->R_MK_Max) < 0.0)
+					{
+						this->MK_Grans[5].push_back(gr);
+						gr->MK_type.push_back(6);
+						gr->type == Type_Gran::Outer_Hard;
+					}
+				}
+
+			}
 		}
 	}
 
@@ -723,6 +798,10 @@ void Setka::Set_MK_Zone(void)
 
 	}
 
+	
+		
+	
+
 	for (size_t jj = 0; jj < 7; jj++)
 	{
 		cout << "MK_grans:  " << jj << "   size = " << this->MK_Grans[jj].size() << endl;
@@ -755,6 +834,7 @@ void Setka::Set_MK_Zone(void)
 				{
 					cout << "ERROR 6435856408" << endl;
 					cout << jj << endl;
+					cout << i->center[0][0] << " " << i->center[0][1] << " " << i->center[0][2] << endl;
 					exit(-1);
 				}
 			}
@@ -822,6 +902,11 @@ void Setka::MK_prepare(short int zone_MK)
 
 		unsigned short int NNall = 0;
 		double S = 0.0;
+		vector<double> SS(this->phys_param->num_H);
+		for (short int iH = 0; iH < this->phys_param->num_H; iH++)
+		{
+			SS[iH] = 0.0;
+		}
 
 		unsigned int k1 = 0;
 
@@ -845,10 +930,12 @@ void Setka::MK_prepare(short int zone_MK)
 			if (gr->AMR.size() < this->phys_param->num_H)
 			{
 				gr->AMR.resize(this->phys_param->num_H);
+				gr->MK_Potok_on_sort.resize(this->phys_param->num_H);
 				for (size_t i = 0; i < this->phys_param->num_H; i++)
 				{
 					gr->AMR[i][0] = nullptr;
 					gr->AMR[i][1] = nullptr;
+					gr->MK_Potok_on_sort[i] = 0.0;
 				}
 			}
 
@@ -896,7 +983,6 @@ void Setka::MK_prepare(short int zone_MK)
 						}
 					}
 
-
 					if (ni2 == ii)
 					{
 						if (gr->AMR[iH - 1][ii] != nullptr)
@@ -926,15 +1012,19 @@ void Setka::MK_prepare(short int zone_MK)
 			{
 				if (gr->type == Type_Gran::Us)
 				{
+					short int sort_H = -1;
 					for (auto& ai : gr->AMR)
 					{
+						sort_H++;
 						ai[ni2]->Culk_SpotokV(gr->area[0]);
 
 						#pragma omp critical (erfgwerweS) 
 						{
 							S += ai[ni2]->SpotokV;
+							SS[sort_H] += ai[ni2]->SpotokV;
 						}
 						gr->MK_Potok += ai[ni2]->SpotokV;
+						gr->MK_Potok_on_sort[sort_H] += ai[ni2]->SpotokV;
 					}
 				}
 				else // Вручную посчитаем поток с границы расчётной области
@@ -952,8 +1042,10 @@ void Setka::MK_prepare(short int zone_MK)
 					#pragma omp critical (erfgwerweS) 
 					{
 						S += gr->AMR[3][ni2]->SpotokV;
+						SS[3] += gr->AMR[3][ni2]->SpotokV;
 					}
 					gr->MK_Potok += gr->AMR[3][ni2]->SpotokV;
+					gr->MK_Potok_on_sort[3] += gr->AMR[3][ni2]->SpotokV;
 				}
 			}
 
@@ -977,6 +1069,10 @@ void Setka::MK_prepare(short int zone_MK)
 		file1.close();
 		cout << "End: Zagruzka AMR" << endl;
 		this->MK_Potoks[zone_MK - 1] = S; // Входящий поток через всю границу зоны
+		for (short int iH = 0; iH < this->phys_param->num_H; iH++)
+		{
+			this->MK_Potoks_on_sort[zone_MK - 1][iH] = SS[iH]; // Входящий поток через всю границу зоны для каждого сорта
+		}
 	}
 
 	//pause_seconds(15);
@@ -1414,19 +1510,20 @@ void Setka::MK_go(short int zone_MK)
 			unsigned int sens_num1 = 2 * omp_get_thread_num();
 			unsigned int sens_num2 = 2 * omp_get_thread_num() + 1;
 
-			//this->Sensors[sens_num1]->MakeRandom();
-			//this->Sensors[sens_num1]->MakeRandom();
-			//this->Sensors[sens_num2]->MakeRandom();
-
 			short int ni = 0; // Номер "входящей" функции распределения
 			if (gr->cells[0]->MK_zone == zone_MK)
 			{
 				ni = 1;
 			}
-			double full_gran_potok = gr->MK_Potok;
+			
+			//double full_gran_potok = gr->MK_Potok;
+			double full_gran_potok = gr->MK_Potok_on_sort[nh_];
 
-
-			if (full_gran_potok < 0.0000001 * MK_Potoks[zone_MK - 1] / this->MK_Grans[zone_MK - 1].size())
+			// Критерий запуска частиц с грани
+			// Если полный поток через грань очень мал, то можно не разыгрывать
+			//if (full_gran_potok < 0.0000001 * MK_Potoks[zone_MK - 1] / this->MK_Grans[zone_MK - 1].size())
+			if (this->MK_Potoks_on_sort[zone_MK - 1][nh_] < 0.000001 || 
+				(full_gran_potok < 0.0001 * this->MK_Potoks_on_sort[zone_MK - 1][nh_] / this->MK_Grans[zone_MK - 1].size()))
 			{
 				continue;
 			}

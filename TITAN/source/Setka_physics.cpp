@@ -205,6 +205,7 @@ void Setka::Init_boundary_grans(void)
 		exit(-1);
 	}
 
+	this->All_boundary_Gran.clear();
 	// Находим граничные грани
 	size_t oh = 0;
 	size_t ih = 0;
@@ -1439,32 +1440,62 @@ int Setka::determ_zone(Cell* C, short int now)
 	double z = C->center[now][2];
 	double r = norm2(x, y, z);
 
-	if (C->parameters[now]["Q"] / rho < 50.0)
-	//if (C->type == Type_cell::Zone_1 || C->type == Type_cell::Zone_2)
+	// Геометрическое определение
+	if (true)
 	{
-		//if (M > 3.0 && r < 45)
-		if(C->type == Type_cell::Zone_1)
+		if (C->type == Type_cell::Zone_1 || C->type == Type_cell::Zone_2)
 		{
-			return 1;
+			if (C->type == Type_cell::Zone_1)
+			{
+				return 1;
+			}
+			else
+			{
+				return 2;
+			}
 		}
 		else
 		{
-			return 2;
+			if (true && C->type == Type_cell::Zone_4)
+			{
+				return 4;
+			}
+			else
+			{
+				return 3;
+			}
 		}
 	}
 	else
 	{
-		//if (M > 1 && x > 0.0)
-		if(true && C->type == Type_cell::Zone_4)
+		if (C->parameters[now]["Q"] / rho < 50.0)
+			//if (C->type == Type_cell::Zone_1 || C->type == Type_cell::Zone_2)
 		{
-			return 4;
+			//if (M > 3.0 && r < 45)
+			if (C->type == Type_cell::Zone_1)
+			{
+				return 1;
+			}
+			else
+			{
+				return 2;
+			}
 		}
 		else
 		{
-			return 3;
+			//if (M > 1 && x > 0.0)
+			if (true && C->type == Type_cell::Zone_4)
+			{
+				return 4;
+			}
+			else
+			{
+				return 3;
+			}
 		}
-
 	}
+
+
 
 	if (this->regim_otladki)
 	{

@@ -86,6 +86,7 @@ public:
 	Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>  H_komponent_in_zone;   // Какие компоненты водорода рождаются в каждой физической зоне (считается автоматически)
 	Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>  MK_zone_H;   // Для каждой зоны МК показывает какие H в ней рождаются (считается автоматически)
 	vector <double> MK_Potoks;  // Потоки через зоны (через вышеопределённые наборы граней)
+	vector <vector <double>> MK_Potoks_on_sort;  // Потоки через зоны для каждого сорта водорода
 
 
 
@@ -198,6 +199,8 @@ public:
 	// В каждой ячейке считает дивергенцию скорости
 
 	void Set_MK_Zone(void);
+	// Надо быть аккуратным, так как эта функция для Монте-Карло меняет типы граней
+	// Если потом считать МГД, нужно вызывать Init_boundary_grans() заново
 
 	void Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		short int now, short int zone);

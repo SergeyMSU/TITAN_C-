@@ -434,7 +434,6 @@ bool Gran::Have_zone_number(short int z)
 		if (i == z) return true;
 	}
 
-
 	return false;
 }
 
