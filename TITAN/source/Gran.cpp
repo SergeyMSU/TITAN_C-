@@ -37,11 +37,13 @@ std::array<double, 4> barycentric_coordinates_(const Point& P, const Tetrahedron
 }
 
 bool Get_param_amr(const double& x, const double& y, const double& z,
-	std::unordered_map<string, double>& parameters, std::vector <Int_point*>& Cells_1, Delaunay* Delone_1)
+	std::unordered_map<string, double>& parameters, std::vector <Int_point*>& Cells_1, Delaunay* Delone_1, 
+	const Cell_handle& prev_cell, Cell_handle& next_cell)
 {
 	Point query(x, y, z);
 	Cell_handle containing_cell;
-	containing_cell = Delone_1->locate(query);
+	containing_cell = Delone_1->locate(query, prev_cell);
+	next_cell = containing_cell;
 	if (Delone_1->is_infinite(containing_cell))
 	{
 		parameters["f"] = 0.0;
@@ -80,28 +82,45 @@ bool Get_param_amr(const double& x, const double& y, const double& z,
 
 
 
-void Gran::Print_AMR(short int nH)
+void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 {
 	std::vector<std::pair<Point, size_t>> points_1; // точки и их номера для построения триангуляции
-	std::vector <Int_point*> Cells_1;     // Точки в которых хранятся параметры
+	std::vector < std::vector <Int_point*>> ALL_Cells_1(Gran_for_print.size());     // Точки в которых хранятся параметры
 
 	std::vector<AMR_cell*> cells_amr;
 	std::array<double, 3> center;
 
-	Delaunay* Delone_1;
+	// Выделяем память под массив указателей
+	Delaunay** Delone_array = new Delaunay * [Gran_for_print.size()];
+	std::vector <double> koeff(Gran_for_print.size());
+
+	double SumS = 0.0;
+	// Инициализируем все указатели nullptr
+	for (size_t i = 0; i < Gran_for_print.size(); ++i) 
+	{
+		SumS += Gran_for_print[i]->area[0];
+		Delone_array[i] = nullptr;
+	}
+
+	for (size_t i = 0; i < Gran_for_print.size(); ++i)
+	{
+		koeff[i] = Gran_for_print[i]->area[0] / SumS;
+	}
+
+	//Delaunay* Delone_1;
 
 
 	double Vx, Vy, Vz;
 	double x, y, z;
-	int NN = 3000;
+	int NN = 2000;
 	double VzL = -5.0;
 	double VzR = 5.0;
 	double dVz = (VzR - VzL) / NN;
-	int Nx = 1000;
+	int Nx = 700;
 	double VxL = -5.0;
 	double VxR = 5.0;
 	double dVx = (VxR - VxL) / Nx;
-	int Ny = 1000;
+	int Ny = 700;
 	double VyL = -5.0;
 	double VyR = 5.0;
 	double dVy = (VyR - VyL) / Ny;
@@ -121,40 +140,45 @@ void Gran::Print_AMR(short int nH)
 			f1d[i] = 0.0;
 	}
 
-	unsigned int i = 0;
+	
 
 	//cout << "A1" << endl;
-
-	for (const auto& amr : this->AMR[nH - 1])
+	for (size_t j = 0; j < Gran_for_print.size(); ++j)
 	{
-		cells_amr.clear();
-		if (amr == nullptr)
-		{
-			cout << "Error ertert34tr34t45erfer" << endl;
-			return;
-		}
-		//cout << "B1" << endl;
-		amr->Get_all_cells(cells_amr);
-		//cout << "B2" << endl;
+		points_1.clear();
+		unsigned int i = 0;
 
-		for (const auto& cell : cells_amr)
+		for (const auto& amr : Gran_for_print[j]->AMR[nH - 1])
 		{
-			cell->Get_Center(amr, center);
-			amr->Get_real_koordinate(center[0], center[1], center[2], Vx, Vy, Vz);
-			auto A = new Int_point(Vx, Vy, Vz);
-			A->parameters["f"] = cell->f;
-			points_1.push_back({ {Vx, Vy, Vz}, i });
-			Cells_1.push_back(A);
-			i++;
+			cells_amr.clear();
+			if (amr == nullptr)
+			{
+				cout << "Error ertert34tr34t45erfer" << endl;
+				return;
+			}
+			//cout << "B1" << endl;
+			amr->Get_all_cells(cells_amr);
+			//cout << "B2" << endl;
+
+			for (const auto& cell : cells_amr)
+			{
+				cell->Get_Center(amr, center);
+				amr->Get_real_koordinate(center[0], center[1], center[2], Vx, Vy, Vz);
+				auto A = new Int_point(Vx, Vy, Vz);
+				A->parameters["f"] = cell->f;// / fabs(center[0]);
+				points_1.push_back({ {Vx, Vy, Vz}, i });
+				ALL_Cells_1[j].push_back(A);
+				i++;
+			}
+
 		}
 
+		//cout << "A2" << endl;
+
+		// Делаем триангуляцию
+		Delone_array[j] = new Delaunay(points_1.begin(), points_1.end());
+		// Триангулировали функцию распределения, теперь надо её проинтегрировать и вывести в файл
 	}
-
-	//cout << "A2" << endl;
-
-	// Делаем триангуляцию
-	Delone_1 = new Delaunay(points_1.begin(), points_1.end());
-	// Триангулировали функцию распределения, теперь надо её проинтегрировать и вывести в файл
 
 	//cout << "A3" << endl;
 
@@ -162,10 +186,13 @@ void Gran::Print_AMR(short int nH)
 	CGAL::Bbox_3 bbox;
 
 	// Проходим по всем конечным вершинам триангуляции
-	for (Delaunay::Finite_vertices_iterator it = Delone_1->finite_vertices_begin();
-		it != Delone_1->finite_vertices_end(); ++it) {
-		// Получаем точку вершины и добавляем ее bbox в общий bbox
-		bbox = bbox + it->point().bbox();
+	for (size_t j = 0; j < Gran_for_print.size(); ++j)
+	{
+		for (Delaunay::Finite_vertices_iterator it = Delone_array[j]->finite_vertices_begin();
+			it != Delone_array[j]->finite_vertices_end(); ++it) {
+			// Получаем точку вершины и добавляем ее bbox в общий bbox
+			bbox = bbox + it->point().bbox();
+		}
 	}
 	VzL = bbox.zmin() / 2;
 	VzR = bbox.zmax() / 2;
@@ -182,9 +209,13 @@ void Gran::Print_AMR(short int nH)
 	// Печатаем 2Д карту
 	if (true)
 	{
-		#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
 		for (int k1 = 0; k1 < Nx; k1++)
 		{
+			std::vector < Cell_handle> prev_cell(Gran_for_print.size());
+			std::vector < Cell_handle> next_cell(Gran_for_print.size());
+			for (short int i = 0; i < Gran_for_print.size(); i++) prev_cell[i] = Cell_handle();
+
 			std::unordered_map<string, double> parameters;
 			double Vx = VxL + (VxR - VxL) * (k1 + 0.5) / Nx;
 			double SS = 0.0;
@@ -196,49 +227,71 @@ void Gran::Print_AMR(short int nH)
 				for (int k = 0; k < 100; k++)
 				{
 					Vz = VzL + (VzR - VzL) * (k + 0.5) / 100;
-					if (Get_param_amr(Vx, Vy, Vz, parameters, Cells_1, Delone_1) == true)
+					for (size_t j = 0; j < Gran_for_print.size(); ++j)
 					{
-						S += parameters["f"] * dVz;
-					}
-				}
-				if (S > 0.000001)
-				{
-					S = 0.0;
-					for (int k = 0; k < NN; k++)
-					{
-						double Vz = VzL + (VzR - VzL) * (k + 0.5) / NN;
-						if (Get_param_amr(Vx, Vy, Vz, parameters, Cells_1, Delone_1) == true)
+						if (Get_param_amr(Vx, Vy, Vz, parameters, ALL_Cells_1[j], Delone_array[j], prev_cell[j], next_cell[j]) == true)
 						{
-							S += parameters["f"] * dVz;
+							prev_cell[j] = next_cell[j];
+							S += parameters["f"] * dVz * koeff[j];
 						}
 					}
 				}
+				
+				if (S > 0.000001)
+				{
+					S = 0.0;
+						for (int k = 0; k < NN; k++)
+						{
+							double Vz = VzL + (VzR - VzL) * (k + 0.5) / NN;
+							for (size_t j = 0; j < Gran_for_print.size(); ++j)
+							{
+								if (Get_param_amr(Vx, Vy, Vz, parameters, ALL_Cells_1[j], Delone_array[j], prev_cell[j], next_cell[j]) == true)
+								{
+									prev_cell[j] = next_cell[j];
+									S += parameters["f"] * dVz * koeff[j];
+								}
+							}
+						}
+					
+				}
+				
 
 				SS += S * dVy;
 				fff[k1][k2] += S;
 			}
 			f1d[k1] = SS;
 		}
+		
 	}
 
 	//cout << "A5" << endl;
 
 
-	delete Delone_1;
-	cells_amr.clear();
-	for (auto& cel : Cells_1)
+	//delete Delone_1;
+	// Освобождаем память
+	for (size_t i = 0; i < Gran_for_print.size(); ++i)
 	{
-		delete cel;
-		cel = nullptr;
+		delete Delone_array[i];
+		Delone_array[i] = nullptr;
 	}
-	Cells_1.clear();
+
+	cells_amr.clear();
+	for (size_t j = 0; j < Gran_for_print.size(); ++j)
+	{
+		for (auto& cel : ALL_Cells_1[j])
+		{
+			delete cel;
+			cel = nullptr;
+		}
+		ALL_Cells_1[j].clear();
+	}
 	points_1.clear();
 
 	// ====== СОЗДАНИЕ ФАЙЛА И ПЕЧАТЬ МАССИВА ======
 
 	// Создаем имя файла на основе номера грани и nH
-	string filename = "AMR_result_" + to_string(this->number) + "_H" + to_string(nH) + ".txt";
-	string filename2 = "1d_AMR_result_" + to_string(this->number) + "_H" + to_string(nH) + ".txt";
+	string filename = "AMR_result_" + to_string(Gran_for_print[0]->number) + "_H" + to_string(nH) + ".txt";
+	string filename2 = "1d_AMR_result_" + to_string(Gran_for_print[0]->number) + "_H" + to_string(nH) + ".txt";
 
 	// Открываем файл для записи
 	ofstream outfile;
@@ -286,7 +339,7 @@ void Gran::Print_AMR(short int nH)
 	outfile.open("info_AMR_print.txt", std::ios::app);
 
 	outfile << "AMR data saved to file:  " << filename << endl;
-	outfile << "Gran centr: " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][1] << endl;
+	outfile << "Gran centr: " << Gran_for_print[0]->center[0][0] << " " << Gran_for_print[0]->center[0][1] << " " << Gran_for_print[0]->center[0][1] << endl;
 }
 
 void Gran::Read_AMR(short int ni, short int nH, bool need_refine)

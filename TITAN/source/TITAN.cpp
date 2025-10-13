@@ -74,9 +74,9 @@ int main()
 
     if (true)
     {
-        //S1.Algoritm(2);
-        S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0);
-        S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0);
+        S1.Algoritm(2);
+        //S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
+        //S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
         cout << "AABB" << endl;
         /*S1.Print_SpSm(17.0, 0.0, 0.0);
         S1.Print_SpSm(20.0, 0.0, 0.0);

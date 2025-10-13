@@ -139,15 +139,17 @@ void perturbVector(double& Vx, double& Vy, double& Vz, double noiseScale = 0.01)
 	Vz += noiseZ;
 }
 
-void Setka::Print_fH(short int zoneMK, Type_Gran_surf type, const double ex, const double ey, const double ez)
+void Setka::Print_fH(short int zoneMK, Type_Gran_surf type, const double ex, const double ey, const double ez, const double dphi)
 {
 	if (this->MK_Grans.size() == 0)
 	{
 		this->Set_MK_Zone();
 	}
 
-	Gran* gr2 = nullptr;
-	double s1 = -1.0;
+	vector<Gran*> Gran_for_print;
+
+	//Gran* gr2 = nullptr;
+	//double s1 = -1.0;
 	Eigen::Vector3d e;
 	e << ex, ey, ez;
 
@@ -157,66 +159,74 @@ void Setka::Print_fH(short int zoneMK, Type_Gran_surf type, const double ex, con
 
 		Eigen::Vector3d v1;
 		v1 << gr1->center[0][0], gr1->center[0][1], gr1->center[0][2];
-		double d = e.dot(v1) / v1.norm() / e.norm();
-		if (d > s1)
+		double d = e.dot(v1) / v1.norm() / e.norm();   // Это косинус угла между гранями
+		if (acos(d) <= dphi)
 		{
-			s1 = d;
-			gr2 = gr1;
+			Gran_for_print.push_back(gr1);
+			//s1 = d;
+			//gr2 = gr1;
 		}
 	}
 
-	if (gr2 == nullptr)
+	if (Gran_for_print.size() == 0)
 	{
-		cout << "Ne nashli gran" << endl;
+		cout << "Ne nashli grans" << endl;
 		return;
 	}
 
-	gr2->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
-	gr2->MK_Potok = 0.0;
-	// Выделяем место под AMR, сколько сортов водорода, столько и места
-	if (gr2->AMR.size() < this->phys_param->num_H)
+	for (auto& gr2 : Gran_for_print)
 	{
-		gr2->AMR.resize(this->phys_param->num_H);
-		for (size_t i = 0; i < this->phys_param->num_H; i++)
+		gr2->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
+		gr2->MK_Potok = 0.0;
+		// Выделяем место под AMR, сколько сортов водорода, столько и места
+		if (gr2->AMR.size() < this->phys_param->num_H)
 		{
-			gr2->AMR[i][0] = nullptr;
-			gr2->AMR[i][1] = nullptr;
+			gr2->AMR.resize(this->phys_param->num_H);
+			for (size_t i = 0; i < this->phys_param->num_H; i++)
+			{
+				gr2->AMR[i][0] = nullptr;
+				gr2->AMR[i][1] = nullptr;
+			}
 		}
-	}
 
-	short int ni = 1;  // Определяем выходящую функцию распределения
-	if (gr2->cells[0]->MK_zone == zoneMK) ni = 0;
+		short int ni = 1;  // Определяем выходящую функцию распределения
+		if (gr2->cells[0]->MK_zone == zoneMK) ni = 0;
 
-	short int ni2 = 0; // Определяем входящую функцию распределения
-	if (gr2->cells[0]->MK_zone == zoneMK) ni2 = 1;
+		short int ni2 = 0; // Определяем входящую функцию распределения
+		if (gr2->cells[0]->MK_zone == zoneMK) ni2 = 1;
 
-	// Загружаем все функции распределения на грани
-	for (short int ii = 0; ii <= 1; ii++)
-	{
-		for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
+		// Загружаем все функции распределения на грани
+		for (short int ii = 0; ii <= 1; ii++)
 		{
-			gr2->Read_AMR(ii, iH, false);
+			for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
+			{
+				gr2->Read_AMR(ii, iH, false);
+			}
 		}
 	}
 
 	// Печатаем функции распределения на грани
 	for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
 	{
-		cout << "Start print AMR:  iH = " << iH << endl;
-		gr2->Print_AMR(iH);
+		cout << "Start print AMR:  iH = " << iH << "  grans: " << Gran_for_print.size() << endl;
+		Print_AMR(iH, Gran_for_print);
 	}
 
-	// Удаляем все функции распределения на грани
-	for (short int ii = 0; ii <= 1; ii++)
+
+	for (auto& gr2 : Gran_for_print)
 	{
-		for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
+		// Удаляем все функции распределения на грани
+		for (short int ii = 0; ii <= 1; ii++)
 		{
-			gr2->AMR[iH - 1][ii]->Delete();
-			delete gr2->AMR[iH - 1][ii];
-			gr2->AMR[iH - 1][ii] = nullptr;
+			for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
+			{
+				gr2->AMR[iH - 1][ii]->Delete();
+				delete gr2->AMR[iH - 1][ii];
+				gr2->AMR[iH - 1][ii] = nullptr;
+			}
 		}
+		gr2->AMR.clear();
 	}
-	gr2->AMR.clear();
 
 
 }
