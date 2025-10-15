@@ -753,6 +753,9 @@ void Setka::Set_MK_Zone(void)
 							gr->normal[0][0] = -gr->normal[0][0];
 							gr->normal[0][1] = -gr->normal[0][1];
 							gr->normal[0][2] = -gr->normal[0][2];
+							auto dfd = gr->cells[0];
+							gr->cells[0] = gr->cells[1];
+							gr->cells[1] = dfd;
 						}
 					}
 				}
