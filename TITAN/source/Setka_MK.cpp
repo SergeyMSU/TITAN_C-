@@ -747,15 +747,24 @@ void Setka::Set_MK_Zone(void)
 					{
 						this->MK_Grans[5].push_back(gr);
 						gr->MK_type.push_back(6);
-						gr->type == Type_Gran::Outer_Hard;
+						gr->type = Type_Gran::Outer_Hard;
 						if (gr->cells[0]->MK_zone == 8)
 						{
 							gr->normal[0][0] = -gr->normal[0][0];
 							gr->normal[0][1] = -gr->normal[0][1];
 							gr->normal[0][2] = -gr->normal[0][2];
-							auto dfd = gr->cells[0];
-							gr->cells[0] = gr->cells[1];
-							gr->cells[1] = dfd;
+							auto dfd = gr->cells[1];
+							gr->cells[1] = gr->cells[0];
+							gr->cells[0] = dfd;
+							
+							//gr->cells.clear();
+							//gr->cells.resize(1);
+							//gr->cells[0] = dfd;
+
+							// Здесь нужно полностью сымитировать граничную грань, поэтому надо сделать ей только одного соседа.
+							// При этом газовую динамику считать больше нельзя, нужно заново строить сетку.
+							//cout << "Num ef = " << gr->number << endl;
+							//exit(-1);
 						}
 					}
 				}
@@ -926,6 +935,9 @@ void Setka::MK_prepare(short int zone_MK)
 			}
 
 			auto gr = this->MK_Grans[zone_MK - 1][ijk];
+			//if (gr->number != 1537) continue;                                                          // !DELETE
+			//cout << "Center = " << gr->center[0][0] << " " <<
+			//	gr->center[0][1] << " " << gr->center[0][2] << endl;                                  // !DELETE
 			//gr->Culc_measure(0); // Вычисляем площадь грани (на всякий случай ещё раз)
 			gr->MK_Potok = 0.0;
 
@@ -947,6 +959,11 @@ void Setka::MK_prepare(short int zone_MK)
 
 			short int ni2 = 0; // Определяем входящую функцию распределения
 			if (gr->cells[0]->MK_zone == zone_MK) ni2 = 1;
+
+
+			//cout << "ni1, ni2 = " << ni << " " << ni2 << endl;                                                            // !DELETE
+			//cout << "sosed = " << gr->cells.size() << endl;                                                            // !DELETE
+			//cout << "Type_Gran = " << int(gr->type) << endl;                                                            // !DELETE
 
 
 			for(short int ii = 0; ii <= 1; ii++)
@@ -1041,6 +1058,7 @@ void Setka::MK_prepare(short int zone_MK)
 					n << -gr->AMR[3][ni2]->Vn[0], -gr->AMR[3][ni2]->Vn[1], -gr->AMR[3][ni2]->Vn[2];
 					// Так как нормаль должна быть внешняя к грани (а надо внутреннюю)
 
+					//cout << "POTOK = " << Get_Spotok_inf(n) << " " << Get_Spotok_inf(-n) << endl;                                        // !DELETE
 					double sjv = Get_Spotok_inf(n);
 					gr->AMR[3][ni2]->SpotokV = sjv * gr->area[0];
 					#pragma omp critical (erfgwerweS) 
@@ -1062,6 +1080,7 @@ void Setka::MK_prepare(short int zone_MK)
 			}
 
 		}
+		//exit(-1);                                                          // !DELETE
 		cout << "Izmelcheno  " << NNall << "  yacheek" << endl;
 		std::ofstream file1("info_AMR_size.txt", std::ios::app);
 		for (short int iH = 0; iH < 9; iH++)
