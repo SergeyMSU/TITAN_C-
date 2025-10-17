@@ -29,8 +29,8 @@ int main()
     S1.Init_boundary_grans();
     cout << "C " << endl;
 
-    S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
-    //S1.Download_cell_parameters("parameters_0057.bin");   // 107
+    //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
+    S1.Download_cell_parameters("parameters_0057.bin");   // 107
     //S1.Download_cell_parameters("parameters_0217.bin");   // 107
 
     //S1.PereInterpolate("For_intertpolate_219.bin", true);

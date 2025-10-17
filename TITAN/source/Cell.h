@@ -48,6 +48,9 @@ public:
 	vector<double> pui_Sm;   // (n)
 	Eigen::MatrixXd pui_Sp;   // (2, n)
 
+
+	Eigen::MatrixXd mas_pogl;      // (sort, n)    Массив поглощения
+
 	// Функции распределения пикапов
 	vector<double> f_pui_1;   // (n)
 	vector<double> f_pui_2;   // (n)
@@ -64,6 +67,14 @@ public:
 
 	//vector<double> pui_Sm;
 	//vector<double> pui_Sp;
+
+	void Init_mas_pogl(short int n, short int nH);  // Инициализация массива поглощения
+	void Delete_mas_pogl(); 
+	void write_mas_pogl_ToFile(Phys_param* phys_param);
+	void read_mas_pogl_FromFile(Phys_param* phys_param);
+	int pogl_mas_number(const double& Ve, const double& L, const double& R, short int n);
+	
+
 
 	void Init_pui_integral(short int n, short int zone);  // Инициализация интеграллов для розыгрыша pui
 	void Delete_pui_integral(void);
@@ -219,7 +230,7 @@ public:
 
 	void Tecplot_print_cell(void);
 
-	void MK_Add_particle(MK_particle& P, const double& time);
+	void MK_Add_particle(MK_particle& P, const double& time, Phys_param* phys_param);
 	void MK_Add_pui_source(MK_particle& P, const double& wr, const double& nu_ex, const double& mu,
 		const double& time, Phys_param* phys_param, short int zone, short int parent);
 

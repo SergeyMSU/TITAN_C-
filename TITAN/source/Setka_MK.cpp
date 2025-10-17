@@ -200,7 +200,7 @@ void Setka::Print_fH(short int zoneMK, Type_Gran_surf type, const double ex, con
 		{
 			for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
 			{
-				gr2->Read_AMR(ii, iH, false);
+				gr2->Read_AMR(ii, iH, this->phys_param, false);
 			}
 		}
 	}
@@ -980,7 +980,7 @@ void Setka::MK_prepare(short int zone_MK)
 								cout << "ERROR ergiegkjoeigjergeg" << endl;
 								exit(-1);
 							}
-							gr->Read_AMR(ii, iH, this->phys_param->refine_AMR);
+							gr->Read_AMR(ii, iH, this->phys_param, this->phys_param->refine_AMR);
 							gr->AMR[iH - 1][ni]->Fill_null();
 
 							#pragma omp critical (vixod) 
@@ -994,7 +994,7 @@ void Setka::MK_prepare(short int zone_MK)
 
 							if (this->phys_param->save_AMR == true)
 							{
-								gr->AMR[iH - 1][ii]->Save("data_AMR/" + name_f);
+								gr->AMR[iH - 1][ii]->Save(this->phys_param->AMR_folder + "/" + name_f);
 							}
 
 							gr->AMR[iH - 1][ii]->Delete();
@@ -1011,7 +1011,7 @@ void Setka::MK_prepare(short int zone_MK)
 							cout << "iH = " << iH << "   ii" << ii << endl;
 							exit(-1);
 						}
-						gr->Read_AMR(ii, iH, false);
+						gr->Read_AMR(ii, iH, this->phys_param, false);
 
 						if (gr->type == Type_Gran::Us)
 						{
@@ -1081,7 +1081,7 @@ void Setka::MK_prepare(short int zone_MK)
 
 		}
 		//exit(-1);                                                          // !DELETE
-		cout << "Izmelcheno  " << NNall << "  yacheek" << endl;
+		//cout << "Izmelcheno  " << NNall << "  yacheek" << endl;
 		std::ofstream file1("info_AMR_size.txt", std::ios::app);
 		for (short int iH = 0; iH < 9; iH++)
 		{
@@ -1117,7 +1117,7 @@ void Setka::MK_prepare(short int zone_MK)
 						{
 							string name_f = "func_grans_AMR_" + to_string(ii) + "_H" +
 								to_string(iH) + "_" + to_string(gr->number) + ".bin";
-							if (file_exists("data_AMR/" + name_f))
+							if (file_exists(this->phys_param->AMR_folder + "/" + name_f))
 							{
 								std::filesystem::remove(name_f);
 							}
@@ -1300,6 +1300,18 @@ void Setka::MK_prepare(short int zone_MK)
 		}
 	}
 
+	// —читаем и создадим массивы дл€ поглощени€  в €чейках
+	if (this->phys_param->culc_pogl == true)
+	{
+		for (auto& i : this->All_Cell)
+		{
+			if (i->MK_zone == zone_MK)
+			{
+				i->Init_mas_pogl(this->phys_param->pogl_n, this->phys_param->num_H);
+			}
+		}
+	}
+
 	cout << "END MK_prepare   zone_MK = " << zone_MK << endl;
 }
 
@@ -1378,7 +1390,7 @@ void Setka::MK_delete(short int zone_MK)
 
 						if (this->phys_param->save_AMR == true)
 						{
-							gr->AMR[iH - 1][ii]->Save("data_AMR/" + name_f);
+							gr->AMR[iH - 1][ii]->Save(this->phys_param->AMR_folder + "/" + name_f);
 						}
 
 						gr->AMR[iH - 1][ii]->Delete();
@@ -1421,6 +1433,18 @@ void Setka::MK_delete(short int zone_MK)
 				// ќсвобождаем пам€ть
 				i->pui_Sm.resize(0);
 				i->pui_Sp.resize(0, 0);
+			}
+		}
+	}
+
+	if (this->phys_param->culc_pogl == true)
+	{
+		for (auto& i : this->All_Cell)
+		{
+			if (i->MK_zone == zone_MK)
+			{
+				i->write_mas_pogl_ToFile(this->phys_param);
+				i->Delete_mas_pogl();
 			}
 		}
 	}
@@ -1468,7 +1492,7 @@ void Setka::MK_go(short int zone_MK)
 					{
 						ni = 0;
 					}
-					gr->Read_AMR(ni, j + 1, this->phys_param->refine_AMR);
+					gr->Read_AMR(ni, j + 1, this->phys_param, this->phys_param->refine_AMR);
 					gr->AMR[j][ni]->Fill_null();
 					N_vixod[j] += gr->AMR[j][ni]->Size();
 					N2[j]++;
@@ -1503,7 +1527,7 @@ void Setka::MK_go(short int zone_MK)
 				{
 					ni = 0;
 				}
-				gr->Read_AMR(ni, nh_ + 1, this->phys_param->refine_AMR);
+				gr->Read_AMR(ni, nh_ + 1, this->phys_param, this->phys_param->refine_AMR);
 				gr->AMR[nh_][ni]->Fill_null();
 				N_vixod[nh_] += gr->AMR[nh_][ni]->Size();
 				N2[nh_]++;
@@ -1562,12 +1586,12 @@ void Setka::MK_go(short int zone_MK)
 
 			if (gr->type == Type_Gran::Us)
 			{
-				gr->Read_AMR(ni, nh_ + 1, false);
+				gr->Read_AMR(ni, nh_ + 1, this->phys_param, false);
 				func->Culk_SpotokV(gr->area[0]);
 			}
 			else
 			{
-				gr->Read_AMR(ni, nh_ + 1, false);
+				gr->Read_AMR(ni, nh_ + 1, this->phys_param, false);
 				func->SpotokV = 0.0;
 				if (nh_ == 3) // “ак как поток есть только у атомов 4-го сорта
 				{
@@ -1816,7 +1840,7 @@ void Setka::MK_go(short int zone_MK)
 					to_string(nh_ + 1) + "_" + to_string(gr->number) + ".bin";
 				if (this->phys_param->save_AMR == true)
 				{
-					gr->AMR[nh_][ni]->Save("data_AMR/" + name_f);
+					gr->AMR[nh_][ni]->Save(this->phys_param->AMR_folder + "/" + name_f);
 				}
 				gr->AMR[nh_][ni]->Delete();
 				delete gr->AMR[nh_][ni];
@@ -1870,7 +1894,7 @@ void Setka::MK_go(short int zone_MK)
 						to_string(j + 1) + "_" + to_string(gr->number) + ".bin";
 					if (this->phys_param->save_AMR == true)
 					{
-						gr->AMR[j][ni]->Save("data_AMR/" + name_f);
+						gr->AMR[j][ni]->Save(this->phys_param->AMR_folder + "/" + name_f);
 					}
 					gr->AMR[j][ni]->Delete();
 					delete gr->AMR[j][ni];
@@ -2211,7 +2235,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				// «десь записываем необходимые моменты в €чейку ---------------------
 				if (this->phys_param->culc_cell_moments == true)
 				{
-					P.cel->MK_Add_particle(P, time);
+					P.cel->MK_Add_particle(P, time, this->phys_param);
 				}
 
 				short int zone = this->determ_zone(P.cel, 0);
@@ -2297,7 +2321,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				// «десь записываем необходимые моменты в €чейку ---------------------
 				if (this->phys_param->culc_cell_moments == true)
 				{
-					P.cel->MK_Add_particle(P, t_ex);
+					P.cel->MK_Add_particle(P, t_ex, this->phys_param);
 				}
 
 				if (this->phys_param->MK_source_S == true)
@@ -2874,6 +2898,62 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 	}
 
 }
+
+void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, const string& name)
+{
+	ofstream fout;
+	string name_f = "poglosh_" + name + ".txt";
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = u, f1, f2, f3, f4, ff" << endl;
+
+	Eigen::Vector3d e;
+	Eigen::Vector3d r;
+	Cell* A, *prev;
+	prev = nullptr;
+	Eigen::MatrixXd mas_pogl;      // (sort, n)    ћассив поглощени€
+	mas_pogl.resize(this->phys_param->num_H, this->phys_param->pogl_n);
+	mas_pogl.setZero();
+
+	e << ex, ey, ez;
+	double ee = e.norm();
+	e /= ee;
+
+	r = e * phys_param->R_0 * 1.1;
+	double dr = phys_param->R_0 / 5.0;
+	double dv = (this->phys_param->pogl_R - this->phys_param->pogl_L) / this->phys_param->pogl_n;
+
+	while (true)
+	{
+		r += e * dr;
+		A = Find_cell_point(r[0], r[1], r[2], 0, prev);
+
+		if (A == nullptr) break;
+
+		for (int i = 0; i < this->phys_param->num_H; i++)
+		{
+			for (int j = 0; j < this->phys_param->pogl_n; j++)
+			{
+				mas_pogl(i, j) += A->mas_pogl(i, j);
+			}
+		}
+	}
+
+	for (int j = 0; j < this->phys_param->pogl_n; j++)
+	{
+		fout << this->phys_param->pogl_L + dv * (j + 0.5) << " ";
+		double S = 0.0;
+		for (int i = 0; i < this->phys_param->num_H; i++)
+		{
+			mas_pogl(i, j) *= this->phys_param->par_n_H_LISM * this->phys_param->par_poglosh * dr / dv;
+			fout << exp(-mas_pogl(i, j)) << " ";
+			S += mas_pogl(i, j);
+		}
+		fout << exp(-S) << " " << endl;
+	}
+	
+	fout.close();
+}
+
 
 void Setka::Velosity_initial(Sensor* s, Eigen::Vector3d& V,
 	const Eigen::Vector3d& n, const Eigen::Vector3d& t, 

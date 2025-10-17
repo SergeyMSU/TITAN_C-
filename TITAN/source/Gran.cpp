@@ -342,7 +342,7 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 	outfile << "Gran centr: " << Gran_for_print[0]->center[0][0] << " " << Gran_for_print[0]->center[0][1] << " " << Gran_for_print[0]->center[0][1] << endl;
 }
 
-void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
+void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_refine)
 {
 	// nH - начинаетс€ с 1 !!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -369,10 +369,10 @@ void Gran::Read_AMR(short int ni, short int nH, bool need_refine)
 
 	string name_f = "func_grans_AMR_" + to_string(ni) + "_H" +
 		to_string(nH) + "_" + to_string(this->number) + ".bin";
-	if (file_exists("data_AMR/" + name_f) && this->type == Type_Gran::Us)
+	if (file_exists(ph_param->AMR_folder + "/" + name_f) && this->type == Type_Gran::Us)
 	{
 		// ¬ этом случае просто считываем AMR - сетку
-		this->AMR[nH - 1][ni]->Read("data_AMR/" + name_f);
+		this->AMR[nH - 1][ni]->Read(ph_param->AMR_folder + "/" + name_f);
 
 
 		if (need_refine == true)

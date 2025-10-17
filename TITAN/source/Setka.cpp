@@ -172,6 +172,7 @@ void Setka::Algoritm(short int alg)
 	// 5 - Добавить в ячейки значение моментов водорода из Монте-Карло
 	// 6 - Вычисление функции h0 для розыгрыша пикапов (она считается один раз для каждого сечения перезарядки)
 	// 7 - Вычисление всех интеграллов в ячейках для розыгрыша пикапов (частота и т.д.)
+	// 8 - Вычисление поглощения вдоль заданных лучей
 
 	cout << "Start Algoritm " << alg << endl;
 
@@ -197,6 +198,9 @@ void Setka::Algoritm(short int alg)
 
 		vector<short int> zones_number;
 		zones_number.push_back(6);
+		zones_number.push_back(4);
+		zones_number.push_back(2);
+		zones_number.push_back(1);
 		/*zones_number.push_back(2);
 		zones_number.push_back(1);
 		zones_number.push_back(3);
@@ -367,6 +371,32 @@ void Setka::Algoritm(short int alg)
 			//cout << "D" << endl;
 			A->Delete_f_pui();
 		}
+	}
+	else if (alg == 8)
+	{
+		cout << "Reading arrays from files" << endl;
+		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+		{
+			//cout << "A" << endl;
+			auto A = this->All_Cell[idx];
+			A->Init_mas_pogl(this->phys_param->pogl_n, this->phys_param->num_H);
+			//cout << "B" << endl;
+			A->read_mas_pogl_FromFile(this->phys_param);
+			//cout << "C" << endl;
+		}
+
+		cout << "Arrays read successfully" << endl;
+
+		mas_pogl_Culc(1.0, 0.0, 0.0, "upwind");
+
+		cout << "Removing arrays" << endl;
+
+		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+		{
+			auto A = this->All_Cell[idx];
+			A->Delete_mas_pogl();
+		}
+
 	}
 
 	cout << "End Algoritm " << alg << endl;

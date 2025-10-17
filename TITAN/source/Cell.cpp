@@ -1,4 +1,115 @@
-п»ї#include "Cell.h"
+#include "Cell.h"
+
+
+void Cell::Init_mas_pogl(short int n, short int nH)
+{
+	this->mas_pogl.resize(nH, n);
+	this->mas_pogl.setZero();
+}
+
+void Cell::Delete_mas_pogl()
+{
+	this->mas_pogl.resize(0, 0);
+}
+
+void Cell::write_mas_pogl_ToFile(Phys_param* phys_param)
+{
+	std::string filename = phys_param->pogl_folder + "/poglosh_" + to_string(this->number) + ".bin";
+
+
+	std::ofstream file(filename, std::ios::binary);
+	if (!file.is_open()) {
+		std::cerr << "Error ergeryr5y45tertgwergwtw " << filename << std::endl;
+		exit(-1);
+	}
+
+	try 
+	{
+
+		// Записываем размерности матрицы (rows и cols)
+		int rows = this->mas_pogl.rows();
+		int cols = this->mas_pogl.cols();
+		file.write(reinterpret_cast<const char*>(&rows), sizeof(rows));
+		file.write(reinterpret_cast<const char*>(&cols), sizeof(cols));
+
+		// Записываем данные mas_pogl
+		file.write(reinterpret_cast<const char*>(this->mas_pogl.data()),
+			rows * cols * sizeof(double));
+
+		int pvr = 1345;
+		file.write(reinterpret_cast<const char*>(&pvr), sizeof(pvr));
+
+
+		file.close();
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error  4y546uy46y65ye5y4" << e.what() << std::endl;
+		file.close();
+		exit(-1);
+	}
+}
+
+void Cell::read_mas_pogl_FromFile(Phys_param* phys_param)
+{
+	std::string filename = phys_param->pogl_folder + "/poglosh_" + to_string(this->number) + ".bin";
+
+	if (file_exists(filename) == false) return;
+
+	std::ifstream file(filename, std::ios::binary);
+	if (!file.is_open())
+	{
+		std::cerr << "Error tgrthrtgrthfth" << filename << std::endl;
+		exit(-10);
+	}
+
+	try {
+
+		// Читаем размерности матрицы
+		int rows, cols;
+		file.read(reinterpret_cast<char*>(&rows), sizeof(rows));
+		file.read(reinterpret_cast<char*>(&cols), sizeof(cols));
+
+		if (rows != this->mas_pogl.rows() || cols != this->mas_pogl.cols()) {
+			// Вариант 1: Выбросить исключение
+			cout << "Error  ergetrfgrewfwregwerg " << endl;
+			exit(-1);
+		}
+
+		// Читаем данные
+		file.read(reinterpret_cast<char*>(this->mas_pogl.data()),
+			rows * cols * sizeof(double));
+
+
+		int pvr;
+		file.read(reinterpret_cast<char*>(&pvr), sizeof(pvr));
+		if (pvr != 1345)
+		{
+			cout << "Error  efdwef34rfwefwerfewwfwf" << endl;
+			exit(-1);
+		}
+
+		file.close();
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error rthrtyhgrt45ty45t " << e.what() << std::endl;
+		file.close();
+		exit(-19);
+	}
+}
+
+int Cell::pogl_mas_number(const double& Ve, const double& L, const double& R, short int n)
+{
+	// Проверка на выход за границы
+	if (Ve < L) return 0; // левее левой границы
+	if (Ve >= R) return n - 1; // правее правой границы (или последняя ячейка)
+
+	// Вычисление номера ячейки
+	double cellWidth = (R - L) / n;
+	int index = static_cast<int>((Ve - L) / cellWidth);
+
+	// Обеспечиваем, что индекс в диапазоне [0, n-1]
+	return std::min(std::max(index, 0), n - 1);
+}
 
 
 void Cell::Init_pui_integral(short int n, short int zone)
@@ -46,7 +157,6 @@ void Cell::Delete_pui_integral(void)
 	this->E_integr_pui_2.resize(0);
 }
 
-
 void Cell::Init_f_pui(short int n, short int zone)
 {
 	this->f_pui_1.resize(n);
@@ -73,7 +183,6 @@ void Cell::Delete_f_pui(void)
 	this->f_pui_2.resize(0);
 }
 
-
 void Cell::Init_S(short int k, short int n)
 {
 	this->pui_Sm.resize(n);
@@ -98,7 +207,7 @@ void Cell::write_S_ToFile(void)
 	}
 
 	try {
-		// Р—Р°РїРёСЃС‹РІР°РµРј СЂР°Р·РјРµСЂС‹ РјР°С‚СЂРёС†
+		// Записываем размеры матриц
 		int rows = this->pui_Sp.rows();
 		int cols = this->pui_Sp.cols();
 		file.write(reinterpret_cast<const char*>(&rows), sizeof(rows));
@@ -108,11 +217,11 @@ void Cell::write_S_ToFile(void)
 		file.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 
-		// Р—Р°РїРёСЃС‹РІР°РµРј РґР°РЅРЅС‹Рµ pui_Sm
+		// Записываем данные pui_Sm
 		file.write(reinterpret_cast<const char*>(this->pui_Sm.data()),
 			size * sizeof(double));
 
-		// Р—Р°РїРёСЃС‹РІР°РµРј РґР°РЅРЅС‹Рµ pui_Sp
+		// Записываем данные pui_Sp
 		file.write(reinterpret_cast<const char*>(this->pui_Sp.data()),
 			rows * cols * sizeof(double));
 
@@ -124,7 +233,6 @@ void Cell::write_S_ToFile(void)
 		exit(-1);
 	}
 }
-
 
 void Cell::write_pui_integral_ToFile(void)
 {
@@ -139,7 +247,7 @@ void Cell::write_pui_integral_ToFile(void)
 	}
 
 	try {
-		// Р—Р°РїРёСЃС‹РІР°РµРј СЂР°Р·РјРµСЂС‹ РјР°С‚СЂРёС†
+		// Записываем размеры матриц
 		int size1 = this->F_integr_pui_1.size();
 		int size2 = this->F_integr_pui_2.size();
 		file.write(reinterpret_cast<const char*>(&size1), sizeof(size1));
@@ -195,7 +303,7 @@ void Cell::read_pui_integral_FromFile(void)
 	vector<double> E_integr_pui_1;   // (pui_F_n)
 
 	try {
-		// Р§РёС‚Р°РµРј СЂР°Р·РјРµСЂС‹ РјР°С‚СЂРёС†
+		// Читаем размеры матриц
 		int size1, size2;
 		file.read(reinterpret_cast<char*>(&size1), sizeof(size1));
 		file.read(reinterpret_cast<char*>(&size2), sizeof(size2));
@@ -248,7 +356,7 @@ void Cell::read_pui_integral_FromFile(void)
 
 void Cell::pui_integral_Culc(Phys_param* phys_param)
 {
-	// Р’С‹С‡РёСЃР»СЏРµРј СЃРЅР°С‡Р°Р»Р° РЅРѕСЂРјСѓ  \rho_w (СЃРј. РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ "PUI")
+	// Вычисляем сначала норму  \rho_w (см. документацию "PUI")
 	for (int ijk = 0; ijk < 2; ijk++)
 	{
 		if (ijk == 1 && F_integr_pui_2.size() == 0) continue;
@@ -287,7 +395,7 @@ void Cell::pui_integral_Culc(Phys_param* phys_param)
 		}
 
 
-		// Р”Р°Р»РµРµ РЅР°РґРѕ СЃС‡РёС‚Р°С‚СЊ С‡Р°СЃС‚РёС‚Сѓ РїРµСЂРµР·Р°СЂСЏРґРєРё Рё РёСЃС‚РѕС‡РЅРёРєРё РёРјРїСѓР»СЊСЃР° Рё СЌРЅРµСЂРіРёРё
+		// Далее надо считать частиту перезарядки и источники импульса и энергии
 		double the, u;
 		nn1 = 500;
 		short int nn2 = 90;
@@ -350,7 +458,7 @@ void Cell::write_pui_ToFile(void)
 	}
 
 	try {
-		// Р—Р°РїРёСЃС‹РІР°РµРј СЂР°Р·РјРµСЂС‹ РјР°С‚СЂРёС†
+		// Записываем размеры матриц
 		int size1 = this->f_pui_1.size();
 		int size2 = this->f_pui_2.size();
 		file.write(reinterpret_cast<const char*>(&size1), sizeof(size1));
@@ -385,14 +493,14 @@ void Cell::read_S_FromFile(void)
 	}
 
 	try {
-		// Р§РёС‚Р°РµРј СЂР°Р·РјРµСЂС‹ РјР°С‚СЂРёС†
+		// Читаем размеры матриц
 		int rows, cols, size;
 		file.read(reinterpret_cast<char*>(&rows), sizeof(rows));
 		file.read(reinterpret_cast<char*>(&cols), sizeof(cols));
 
 		file.read(reinterpret_cast<char*>(&size), sizeof(size));
 
-		// РџСЂРѕРІРµСЂСЏРµРј СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ СЂР°Р·РјРµСЂРѕРІ
+		// Проверяем соответствие размеров
 		if (rows != this->pui_Sp.rows() || cols != this->pui_Sp.cols())
 		{
 			std::cerr << "Error ejighieurgerg54t4t5"
@@ -402,11 +510,11 @@ void Cell::read_S_FromFile(void)
 			exit(-10);
 		}
 
-		// Р§РёС‚Р°РµРј РґР°РЅРЅС‹Рµ pui_Sm
+		// Читаем данные pui_Sm
 		file.read(reinterpret_cast<char*>(this->pui_Sm.data()),
 			size * sizeof(double));
 
-		// Р§РёС‚Р°РµРј РґР°РЅРЅС‹Рµ pui_Sp
+		// Читаем данные pui_Sp
 		file.read(reinterpret_cast<char*>(this->pui_Sp.data()),
 			rows * cols * sizeof(double));
 
@@ -434,7 +542,7 @@ void Cell::read_pui_FromFile(void)
 	}
 
 	try {
-		// Р§РёС‚Р°РµРј СЂР°Р·РјРµСЂС‹ РјР°С‚СЂРёС†
+		// Читаем размеры матриц
 		int size1, size2;
 		file.read(reinterpret_cast<char*>(&size1), sizeof(size1));
 		file.read(reinterpret_cast<char*>(&size2), sizeof(size2));
@@ -474,7 +582,7 @@ void Cell::print_SmSp(double Wmax, string nam)
 	double dx = Wmax / size;
 	for (int i = 0; i < size; ++i)
 	{
-		double center = (i + 0.5) * dx;  // С†РµРЅС‚СЂ СЏС‡РµР№РєРё
+		double center = (i + 0.5) * dx;  // центр ячейки
 		fout << center << " " << this->pui_Sm[i] << " " << this->pui_Sp(0, i) << " " << this->pui_Sp(1, i) << std::endl;
 	}
 
@@ -491,7 +599,7 @@ void Cell::print_pui(double Wmax, string nam)
 	double dx = Wmax / size;
 	for (int i = 0; i < size; ++i)
 	{
-		double center = (i + 0.5) * dx;  // С†РµРЅС‚СЂ СЏС‡РµР№РєРё
+		double center = (i + 0.5) * dx;  // центр ячейки
 		double f2 = 0.0;
 		if (this->f_pui_2.size() > i) f2 = this->f_pui_2[i];
 		fout << center << " " << this->f_pui_1[i] << " " << f2 << " " <<
@@ -562,12 +670,12 @@ double Cell::pui_get_f(const double& w, short int ii, const double& Wmax)
 		}
 	}
 
-	// РљРѕРѕСЂРґРёРЅР°С‚С‹ С†РµРЅС‚СЂРѕРІ СЏС‡РµРµРє
+	// Координаты центров ячеек
 	double left_center = (left_index + 0.5) * cell_size;
 	double right_center = (left_index + 1.5) * cell_size;
 
 	if (left_index == 0 && w < left_center) {
-		// Р­РєСЃС‚СЂР°РїРѕР»СЏС†РёСЏ РѕС‚ РїРµСЂРІРѕР№ СЏС‡РµР№РєРё
+		// Экстраполяция от первой ячейки
 		double next_center = (1.5) * cell_size;
 		if (ii == 0)
 		{
@@ -605,7 +713,7 @@ double Cell::pui_get_f(const double& w, short int ii, const double& Wmax)
 		}
 	}
 
-	// Р›РёРЅРµР№РЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ РјРµР¶РґСѓ С†РµРЅС‚СЂР°РјРё СЏС‡РµРµРє
+	// Линейная интерполяция между центрами ячеек
 	double t = (w - left_center) / (right_center - left_center);
 	if (ii == 0)
 	{
@@ -683,7 +791,7 @@ void Cell::Get_IDW_interpolation(const double& x, const double& y, const double&
 	}
 
 
-	// Р”РѕР±Р°РІРёРј С†РµРЅС‚СЂ СЏС‡РµР№РєРё
+	// Добавим центр ячейки
 	point2 << this->center[0][0],
 		this->center[0][1], this->center[0][2];
 	double dist = 0.0001 + (point - point2).norm();
@@ -745,7 +853,7 @@ double determinant4x4(const Eigen::Vector4d& a, const Eigen::Vector4d& b,
 bool isPointInsideTetrahedron(const Eigen::Vector3d& P, const Eigen::Vector3d& A, const Eigen::Vector3d& B, 
 	const Eigen::Vector3d& C, const Eigen::Vector3d& D) 
 {
-	// Р”РѕР±Р°РІР»СЏРµРј 4-СЋ РєРѕРѕСЂРґРёРЅР°С‚Сѓ (1) РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ 4Г—4 РјР°С‚СЂРёС†Р°РјРё
+	// Добавляем 4-ю координату (1) для работы с 4?4 матрицами
 	Eigen::Vector4d A4(A(0), A(1), A(2), 1.0);
 	Eigen::Vector4d B4(B(0), B(1), B(2), 1.0);
 	Eigen::Vector4d C4(C(0), C(1), C(2), 1.0);
@@ -778,18 +886,18 @@ bool isPointInsideTetrahedron(const Eigen::Vector3d& P, const Eigen::Vector3d& A
 
 bool Cell::Belong_point(const double& x, const double& y, const double& z, short int now, bool fast, Cell*& Next)
 {
-	// fast = false - РїСЂР°РІРёР»СЊРЅС‹Р№ Р°Р»РіРѕСЂРёС‚Рј
-	// fast = true - Р±С‹СЃС‚СЂС‹Р№ Р°Р»РіРѕСЂРёС‚Рј (РЅРѕ РёРјРµРµС‚ РїРѕРіСЂРµС€РЅРѕСЃС‚СЊ)
+	// fast = false - правильный алгоритм
+	// fast = true - быстрый алгоритм (но имеет погрешность)
 
-	Eigen::Vector3d P(x, y, z); // РўРѕС‡РєР°
-	Next = nullptr;  // Next - СЃР»РµРґСѓСЋС‰Р°СЏ СЏС‡РµР№РєР° РѕРїСЂРµРґРµР»СЏРµС‚СЃСЏ С‚РѕР»СЊРєРѕ РµСЃР»Рё fast == true
-	// Р°Р»РіРѕСЂРёС‚Рј РґР»СЏ fast == false РЅРµ РїРѕР·РІРѕР»СЏРµС‚ РЅР°Р№С‚Рё СЃР»РµРґСѓСЋС‰СѓСЋ СЏС‡РµР№РєСѓ
+	Eigen::Vector3d P(x, y, z); // Точка
+	Next = nullptr;  // Next - следующая ячейка определяется только если fast == true
+	// алгоритм для fast == false не позволяет найти следующую ячейку
 
 	//double xc = this->center[now][0];
 	//double yc = this->center[now][1];
 	//double zc = this->center[now][2];
 
-	// Р§РµСЃС‚РЅРѕРµ РѕРїСЂРµРґРµР»РµРЅРёРµ РїСЂРёРЅР°РґР»РµР¶РЅРѕСЃС‚Рё
+	// Честное определение принадлежности
 	if (fast == false)
 	{
 		Eigen::Vector3d A(this->center[now][0], this->center[now][1], this->center[now][2]);
@@ -800,7 +908,7 @@ bool Cell::Belong_point(const double& x, const double& y, const double& z, short
 			//double x1 = gr->center[now][0];
 			//double y1 = gr->center[now][1];
 			//double z1 = gr->center[now][2];
-			if (false) // СЃС‚Р°СЂС‹Р№ РІР°СЂРёР°РЅС‚, РіРґРµ РіСЂР°РЅСЊ = 4 С‚СЂРµСѓРіРѕР»СЊРЅРёРєР°
+			if (false) // старый вариант, где грань = 4 треугольника
 			{
 				B << gr->center[now][0], gr->center[now][1], gr->center[now][2];
 				int n_yz = gr->yzels.size();
@@ -814,7 +922,7 @@ bool Cell::Belong_point(const double& x, const double& y, const double& z, short
 					if (is_in == true) return true;
 				}
 			}
-			else // РіСЂР°РЅСЊ = 2 С‚СЂРµСѓРіРѕР»СЊРЅРёРєР°
+			else // грань = 2 треугольника
 			{
 				if (gr->yzels.size() != 4)
 				{
@@ -872,7 +980,7 @@ void Cell::Set_Cell_Geo_for_MK(void)
 	Eigen::Vector3d C;
 
 
-	// РЎС‡РёС‚Р°РµРј l_size   С…Р°СЂР°РєС‚РµСЂРЅС‹Р№ СЂР°Р·РјРµСЂ СЏС‡РµР№РєРё
+	// Считаем l_size   характерный размер ячейки
 	if (true)
 	{
 		double S = 0.0;
@@ -914,7 +1022,7 @@ void Cell::Culc_center(unsigned short int st_time)
 	yc = 0.0;
 	zc = 0.0;
 
-	// Р’С‹С‡РёСЃР»СЏРµРј С†РµРЅС‚СЂ РіСЂР°РЅРё
+	// Вычисляем центр грани
 	for (auto& i : this->yzels)
 	{
 		xc += i->coord[st_time][0];
@@ -931,12 +1039,12 @@ void Cell::Culc_center(unsigned short int st_time)
 
 void Cell::Culc_volume(unsigned short int st_time, unsigned short int method)
 {
-	// 0 - Р±С‹СЃС‚СЂС‹Р№ РІР°СЂРёР°РЅС‚ (РЅСѓР¶РЅС‹ РїРѕСЃС‡Р°РЅРЅС‹Рµ РїР»РѕС‰Р°РґРё РіСЂР°РЅРµР№ Рё РёС… С†РµРЅС‚СЂС‹)
-	// 1 - РјРµРґР»РµРЅРЅС‹Р№ РІР°СЂРёР°РЅС‚ (РЅСѓР¶РЅС‹ РїРѕСЃС‡РёС‚Р°РЅРЅС‹Рµ С‚РѕР»СЊРєРѕ С†РµРЅС‚СЂС‹ РіСЂР°РЅРµР№)
-	// РґР»СЏ СЂРѕРІРЅС‹С… РіСЂР°РЅРµР№ РѕР±Р° РјРµС‚РѕРґС‹ СЂР°Р±РѕС‚Р°СЋС‚ РѕРґРёРЅР°РєРѕРІРѕ, РЅРѕ С‡РµРј Р±РѕР»РµРµ РєСЂРёРІР°СЏ РіСЂР°РЅСЊ, 
-	// С‚РµРј Р±РѕР»СЊС€РµРµ СЂР°СЃС…РѕР¶РґРµРЅРёСЏ РїРѕР»СѓС‡Р°РµС‚СЃСЏ.
-	// РјРµРґР»РµРЅРЅС‹Р№ РІР°СЂРёР°РЅС‚ Р±РѕР»РµРµ РїСЂР°РІРёР»СЊРЅС‹Р№ (РЅРѕ СЌС‚Рѕ РЅРµ С‚РѕС‡РЅРѕ). 
-	// Р”СѓРјР°СЋ РІСЃРµРіРґР° РјРѕР¶РЅРѕ РІС‹Р±РёСЂР°С‚СЊ РІР°СЂРёР°РЅС‚ "0"
+	// 0 - быстрый вариант (нужны посчанные площади граней и их центры)
+	// 1 - медленный вариант (нужны посчитанные только центры граней)
+	// для ровных граней оба методы работают одинаково, но чем более кривая грань, 
+	// тем большее расхождения получается.
+	// медленный вариант более правильный (но это не точно). 
+	// Думаю всегда можно выбирать вариант "0"
 	if (method == 0)
 	{
 		double xg, yg, zg, h;
@@ -961,7 +1069,7 @@ void Cell::Culc_volume(unsigned short int st_time, unsigned short int method)
 		double V = 0.0;
 		for (auto& i : this->grans)
 		{
-			if (false) // СЃС‚Р°СЂС‹Р№ РІР°СЂРёР°РЅС‚ РіРґРµ РіСЂР°РЅСЊ = 4 С‚СЂРµСѓРіРѕР»СЊРЅРёРєР°
+			if (false) // старый вариант где грань = 4 треугольника
 			{
 				for (int j = 0; j < i->yzels.size(); j++)
 				{
@@ -1013,7 +1121,7 @@ double Cell ::func_R(unsigned short int i_time)
 
 void Cell::Tecplot_print_cell(void)
 {
-	// name - СЌС‚Рѕ РёРјСЏ Р»СѓС‡РµР№
+	// name - это имя лучей
 	ofstream fout;
 	string name_f = "Tecplot_cell_in_3D_.txt";
 
@@ -1039,56 +1147,74 @@ void Cell::Tecplot_print_cell(void)
 	fout.close();
 }
 
-void Cell::MK_Add_particle(MK_particle& P, const double& time)
+void Cell::MK_Add_particle(MK_particle& P, const double& time, Phys_param* phys_param)
 {
+	// Поглощение
+	if (this->mas_pogl.size() > 0)
+	{
+		double R = sqrt(kv(this->center[0][0]) +
+			kv(this->center[0][1]) +
+			kv(this->center[0][2]));
+		double Ve = (P.Vel[0] * this->center[0][0] +
+			P.Vel[1] * this->center[0][1] +
+			P.Vel[2] * this->center[0][2]) / R;
+		int ii = pogl_mas_number(Ve, phys_param->pogl_L, phys_param->pogl_R, phys_param->pogl_n);
 		this->mut.lock();
-
-		this->parameters[0]["MK_n_H"] += time * P.mu;
-
-		switch (P.sort)
-		{
-		case 1:
-			this->parameters[0]["MK_n_H1"] += time * P.mu;
-			break;
-		case 2:
-			this->parameters[0]["MK_n_H2"] += time * P.mu;
-			break;
-		case 3:
-			this->parameters[0]["MK_n_H3"] += time * P.mu;
-			break;
-		case 4:
-			this->parameters[0]["MK_n_H4"] += time * P.mu;
-			break;
-		case 5:
-			this->parameters[0]["MK_n_H5"] += time * P.mu;
-			break;
-		case 6:
-			this->parameters[0]["MK_n_H6"] += time * P.mu;
-			break;
-		case 7:
-			this->parameters[0]["MK_n_H7"] += time * P.mu;
-			break;
-		case 8:
-			this->parameters[0]["MK_n_H8"] += time * P.mu;
-			break;
-		case 9:
-			this->parameters[0]["MK_n_H9"] += time * P.mu;
-			break;
-		case 10:
-			this->parameters[0]["MK_n_H10"] += time * P.mu;
-			break;
-		default:
-			break;
-		}
-
+		this->mas_pogl(P.sort - 1, ii) += time * P.mu;
 		this->mut.unlock();
+	}
+
+
+
+	this->mut.lock();
+
+	this->parameters[0]["MK_n_H"] += time * P.mu;
+
+
+	switch (P.sort)
+	{
+	case 1:
+		this->parameters[0]["MK_n_H1"] += time * P.mu;
+		break;
+	case 2:
+		this->parameters[0]["MK_n_H2"] += time * P.mu;
+		break;
+	case 3:
+		this->parameters[0]["MK_n_H3"] += time * P.mu;
+		break;
+	case 4:
+		this->parameters[0]["MK_n_H4"] += time * P.mu;
+		break;
+	case 5:
+		this->parameters[0]["MK_n_H5"] += time * P.mu;
+		break;
+	case 6:
+		this->parameters[0]["MK_n_H6"] += time * P.mu;
+		break;
+	case 7:
+		this->parameters[0]["MK_n_H7"] += time * P.mu;
+		break;
+	case 8:
+		this->parameters[0]["MK_n_H8"] += time * P.mu;
+		break;
+	case 9:
+		this->parameters[0]["MK_n_H9"] += time * P.mu;
+		break;
+	case 10:
+		this->parameters[0]["MK_n_H10"] += time * P.mu;
+		break;
+	default:
+		break;
+	}
+
+	this->mut.unlock();
 }
 
 void Cell::MK_Add_pui_source(MK_particle& P, const double& wr, const double& nu_ex, const double& mu,
 	const double& time, Phys_param* phys_param, short int zone, short int parent)
 {
 	// zone = 1, 2, 3, 4
-	// parent - 0, 1, 2 РѕС‚ РєР°РіРѕ СЂРѕР¶РґС‘РЅ Р°С‚РѕРј? С‚РµРїР»РѕРІРѕР№ РїСЂРѕС‚РѕРЅ, pui1, pui2
+	// parent - 0, 1, 2 от каго рождён атом? тепловой протон, pui1, pui2
 
 	int index = static_cast<int>(wr / phys_param->pui_wR * phys_param->pui_nW);
 	if (index < 0)  index = 0;
@@ -1098,7 +1224,7 @@ void Cell::MK_Add_pui_source(MK_particle& P, const double& wr, const double& nu_
 	this->pui_Sm[index] += mu * time;
 	this->mut.unlock();
 
-	// РќР°РґРѕ РїРѕРЅСЏС‚СЊ, РІ РєР°РєРѕР№ S Р·Р°РїРёСЃС‹РІР°РµРј 
+	// Надо понять, в какой S записываем 
 	short int k = 0;
 	if (zone == 1)
 	{
@@ -1170,7 +1296,13 @@ void Cell::MK_calc_Sm(Phys_param* phys_param)
 
 void Cell::MK_normir_Moments(Phys_param* phys_param)
 {
-	// РќРѕСЂРјРёСЂСѓРµРј РЅР° РѕР±СЉС‘Рј СЏС‡РµР№РєРё РїР»РѕС‚РЅРѕСЃС‚Рё 
+
+	if (this->mas_pogl.size() > 0)
+	{
+		this->mas_pogl /= this->volume[0];
+	}
+
+	// Нормируем на объём ячейки плотности 
 	if (this->parameters[0].find("MK_n_H") != this->parameters[0].end())
 	{
 		this->parameters[0]["MK_n_H"] /= this->volume[0];

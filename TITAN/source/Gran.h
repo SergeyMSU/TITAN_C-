@@ -64,7 +64,7 @@ public:
 	friend void Print_AMR(short int nH, vector<Gran*>& Gran_for_print);
 	// Печатает в файл функции распределения на грани для водорода сорта nH
 	
-	void Read_AMR(short int ni, short int nH, bool need_refine = false);
+	void Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_refine = false);
 
 	bool Have_zone_number(short int z);
 	// Проверяет есть ли в векторе MK_type зона с номером z?
