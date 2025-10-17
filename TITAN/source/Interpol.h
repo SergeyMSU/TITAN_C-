@@ -75,5 +75,11 @@ public:
 		std::unordered_map<string, double>& parameters);
 	bool Get_BS(const double& x, const double& y, const double& z,
 		std::unordered_map<string, double>& parameters);
+
+	bool Get_real_cells(const double& x, const double& y, const double& z,
+		vector<int> num_cell, vector<double> koeff_cell, const Cell_handle& prev_cell, Cell_handle& next_cell);
+	// работает только дл€ razriv = false 
+	// ƒл€ данной точки возвращает набор из 4-х номеров €чеек в исходной сетке
+	// и набор из 4-х коэффициентов дл€ ручной интерпол€ции нужных переменных 
 };
 

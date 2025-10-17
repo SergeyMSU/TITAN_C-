@@ -433,6 +433,7 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
     return this->Get_param(x, y, z, parameters, prev_cell, next_cell, this_zone);
 }
 
+
 bool Interpol::Get_param(const double& x, const double& y, const double& z, 
     std::unordered_map<string, double>& parameters, const std::array<Cell_handle, 6>& prev_cell, std::array<Cell_handle, 6>& next_cell,
     short int& this_zone)
@@ -527,7 +528,7 @@ bool Interpol::Get_param(const double& x, const double& y, const double& z,
         goto know_zone;
     }
 
-    // ќпределили интерпол€ционную зону, теперт делаем интерпол€цию
+    // ќпределили интерпол€ционную зону, теперь делаем интерпол€цию
 know_zone:
     //cout << "A4" << endl;
     Point query(x, y, z);
@@ -724,6 +725,64 @@ know_zone:
     }
     
     //cout << "A9" << endl;
+    return true;
+}
+
+
+bool Interpol::Get_real_cells(const double& x, const double& y, const double& z,
+    vector<int> num_cell, vector<double> koeff_cell, const Cell_handle& prev_cell, Cell_handle& next_cell)
+{
+    if (this->razriv == false)
+    {
+        cout << "Error 9j4fuheuohfguweorghuiyesrhgesgr" << endl;
+        exit(-1);
+    }
+
+    double radius = norm2(x, y, z);
+    double radius2 = norm2(0.0, y, z);
+    if (radius < 0.1) return false;
+
+    // ќпределили интерпол€ционную зону, теперь делаем интерпол€цию
+know_zone:
+    //cout << "A4" << endl;
+    Point query(x, y, z);
+    Cell_handle containing_cell;
+    std::vector <Int_point*>* CCC = nullptr;
+    //cout << "A02" << endl;
+    
+    CCC = &this->Cells_1;
+    containing_cell = this->Delone_1->locate(query, prev_cell);
+    if (this->Delone_1->is_infinite(containing_cell))
+    {
+        return false;
+    }
+    next_cell = containing_cell;
+    
+    //cout << "A2" << endl;
+    // ѕолучаем вершины тетраэдра 
+    Point& p0 = containing_cell->vertex(0)->point();
+    Point& p1 = containing_cell->vertex(1)->point();
+    Point& p2 = containing_cell->vertex(2)->point();
+    Point& p3 = containing_cell->vertex(3)->point();
+
+    size_t i0 = containing_cell->vertex(0)->info();
+    size_t i1 = containing_cell->vertex(1)->info();
+    size_t i2 = containing_cell->vertex(2)->info();
+    size_t i3 = containing_cell->vertex(3)->info();
+
+    num_cell[0] = i0;
+    num_cell[1] = i1;
+    num_cell[2] = i2;
+    num_cell[3] = i3;
+
+    // ¬ычисл€ем барицентрические координаты 
+    auto coords = barycentric_coordinates(query, Tetrahedron(p0, p1, p2, p3));
+
+    koeff_cell[0] = coords[0];
+	koeff_cell[1] = coords[1];
+	koeff_cell[2] = coords[2];
+	koeff_cell[3] = coords[3];
+
     return true;
 }
 
