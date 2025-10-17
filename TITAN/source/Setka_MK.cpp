@@ -1452,11 +1452,11 @@ void Setka::MK_delete(short int zone_MK)
 	cout << "END MK_delete" << endl;
 }
 
-void Setka::MK_go(short int zone_MK)
+void Setka::MK_go(short int zone_MK, int N_per_gran)
 {
 	auto start = std::chrono::high_resolution_clock::now();
-	cout << "Start MK_go " << zone_MK << "   N_on_gran = " << this->phys_param->N_per_gran << endl;
-	int N_on_gran = this->phys_param->N_per_gran;   // Сколько запускаем частиц на грань в среднем
+	cout << "Start MK_go " << zone_MK << "   N_on_gran = " << N_per_gran << endl;
+	int N_on_gran = N_per_gran;   // Сколько запускаем частиц на грань в среднем
 	double mu_expect = 0.0;
 	mu_expect = this->MK_Potoks[zone_MK - 1] / 
 		(1.0 * N_on_gran * this->MK_Grans[zone_MK - 1].size());

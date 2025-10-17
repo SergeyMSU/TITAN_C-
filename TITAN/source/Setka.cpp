@@ -197,27 +197,28 @@ void Setka::Algoritm(short int alg)
 
 
 		vector<short int> zones_number;
-		zones_number.push_back(6);
-		zones_number.push_back(4);
-		zones_number.push_back(2);
-		zones_number.push_back(1);
-		/*zones_number.push_back(2);
-		zones_number.push_back(1);
-		zones_number.push_back(3);
-		zones_number.push_back(5);
-		zones_number.push_back(7);
-		zones_number.push_back(1);
-		zones_number.push_back(2);
-		zones_number.push_back(3);
-		zones_number.push_back(4);
-		zones_number.push_back(2);*/
+		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
+		zones_number.push_back(6); zones_n_koeff.push_back(2.5);
+		zones_number.push_back(4); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 
+		short int ijij = 0;
 		for (const auto& zone_play : zones_number)
 		{
 			cout << "Start zone = " << zone_play << endl;
 			this->MK_prepare(zone_play);
-			this->MK_go(zone_play);
+			this->MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]) );
 			this->MK_delete(zone_play);
+			ijij++;
 		}
 	}
 	else if (alg == 3)
