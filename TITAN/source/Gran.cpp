@@ -395,8 +395,16 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 	{
 		if (this->type == Type_Gran::Us)
 		{
-			this->AMR[nH - 1][ni]->AMR_resize(0.0, 20.0, -20.0, 20.0,
-				-20.0, 20.0, 3, 6, 6);
+			if (nH == 1)
+			{
+				this->AMR[nH - 1][ni]->AMR_resize(0.0, 50.0, -50.0, 50.0,
+					-50.0, 50.0, 3, 6, 6);
+			}
+			else
+			{
+				this->AMR[nH - 1][ni]->AMR_resize(0.0, 20.0, -20.0, 20.0,
+					-20.0, 20.0, 3, 6, 6);
+			}
 		}
 		else
 		{

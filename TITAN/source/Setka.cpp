@@ -194,6 +194,23 @@ void Setka::Algoritm(short int alg)
 		this->Tecplot_print_gran_with_condition(5);
 		this->Tecplot_print_gran_with_condition(6);
 
+		// Удаляем какие-то функции распределения
+		if (false)
+		{
+			for (auto& gr : this->All_Gran)
+			{
+				for (int ii = 0; ii <= 1; ii++)
+				{
+					string name_f = this->phys_param->AMR_folder + "/" + "func_grans_AMR_" + to_string(ii) + "_H" +
+						to_string(1) + "_" + to_string(gr->number) + ".bin";
+					if (std::filesystem::exists(name_f))
+					{
+						std::filesystem::remove(name_f);
+					}
+				}
+			}
+		}
+
 
 
 		vector<short int> zones_number;
@@ -209,7 +226,7 @@ void Setka::Algoritm(short int alg)
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
 
 		short int ijij = 0;
 		for (const auto& zone_play : zones_number)
