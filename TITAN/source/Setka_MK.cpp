@@ -2937,7 +2937,8 @@ void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, 
 			}
 		}
 
-		if (r.norm() > 30.0) break;
+		if (r[0] > this->phys_param->R_MK_Max) break;
+		//if (r[0] > 15.0) break;
 	}
 
 	for (int j = 0; j < this->phys_param->pogl_n; j++)
