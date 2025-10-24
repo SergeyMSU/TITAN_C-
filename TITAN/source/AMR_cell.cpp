@@ -491,6 +491,10 @@ void AMR_cell::Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi,
 				ff = this->f * center[0] + this->param["Bx"] * (x - center[0])
 					+ this->param["By"] * (y - center[1]) + this->param["Bz"] * (z - center[2]);
 			} while (Sens->MakeRandom() * this->param["Max"] > ff);
+
+			Vel[0] = x;
+			Vel[1] = y;
+			Vel[2] = z;
 		}
 
 		return;

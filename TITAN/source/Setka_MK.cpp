@@ -1721,6 +1721,8 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 							whach(poz(0));
 							whach(poz(1));
 							whach(poz(2));
+							whach(nh_);
+							whach(num);
 							whach(gr->normal[0][0]);
 							whach(gr->normal[0][1]);
 							whach(gr->normal[0][2]);
