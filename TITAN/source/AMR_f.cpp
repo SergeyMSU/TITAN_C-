@@ -695,6 +695,16 @@ unsigned int AMR_f::de_Refine(void)
 	return N_delete;
 }
 
+void AMR_f::Culc_gradients(void)
+{
+	std::vector<AMR_cell*> cells;
+	this->Get_all_cells(cells);
+	for (const auto& i : cells)
+	{
+		i->Culc_gradients(this->AMR_self);
+	}
+}
+
 unsigned int AMR_f::Refine(void)
 {
 	this->Sf = 0.0;

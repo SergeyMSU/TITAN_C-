@@ -1,4 +1,4 @@
-п»ї#include "AMR_cell.h"
+#include "AMR_cell.h"
 
 AMR_cell::AMR_cell()
 {
@@ -147,7 +147,7 @@ void AMR_cell::divide(AMR_f* AMR, unsigned short int n1, unsigned short int n2, 
 				this->cells[i][j][k] = A;
 				A->I_self = A;
 
-				A->f = this->f * center[0] / x;                        //  РџСЂРѕСЃС‚Рѕ СЃРЅРѕСЃРёРј Р·РЅР°С‡РµРЅРёРµ
+				A->f = this->f * center[0] / x;                        //  Просто сносим значение
 			}
 		}
 	}
@@ -187,6 +187,153 @@ AMR_cell* AMR_cell::find_cell(const double& x, const double& y, const double& z,
 			zL + index3 * dz, zL + (index3 + 1) * dz);
 	}
 }
+
+
+void AMR_cell::Culc_gradients(AMR_f* AMR)
+{
+	// Обнулим градиенты
+	this->param["Bx"] = 0.0;
+	this->param["By"] = 0.0;
+	this->param["Bz"] = 0.0;
+
+	std::array<double, 3> center;
+	std::array<double, 3> razmer;
+	std::array<double, 3> center1;
+	std::array<double, 3> center2;
+
+	this->Get_Center(AMR, center, razmer);
+
+	AMR_cell* S1;
+	AMR_cell* S2;
+	double B1, B2;
+
+	// !! Градианы только с одной стороны опасны тем, что функция может стать отрицательной, надо отдельно это проверять
+
+	// Bx
+	S1 = this->get_sosed(AMR, 0);
+	S2 = this->get_sosed(AMR, 1);
+	if (S1 != nullptr && S2 == nullptr)
+	{
+		S1->Get_Center(AMR, center1);
+		this->param["Bx"] = (S1->f * center1[0] - this->f * center[0]) / (center1[0] - center[0]);
+	}
+	else if (S1 == nullptr && S2 != nullptr)
+	{
+		S2->Get_Center(AMR, center2);
+		this->param["Bx"] = (this->f * center[0] - S2->f * center2[0]) / (center[0] - center2[0]);
+	}
+	else if (S1 != nullptr && S2 != nullptr)
+	{
+		S1->Get_Center(AMR, center1);
+		S2->Get_Center(AMR, center2);
+
+		B1 = (S1->f * center1[0] - this->f * center[0]) / (center1[0] - center[0]);
+		B2 = (this->f * center[0] - S2->f * center2[0]) / (center[0] - center2[0]);
+		this->param["Bx"] = minmod(B1, B2);
+	}
+
+	// By
+	S1 = this->get_sosed(AMR, 2);
+	S2 = this->get_sosed(AMR, 3);
+	if (S1 != nullptr && S2 == nullptr)
+	{
+		S1->Get_Center(AMR, center1);
+		this->param["By"] = (S1->f * center1[0] - this->f * center[0]) / (center1[1] - center[1]);
+	}
+	else if (S1 == nullptr && S2 != nullptr)
+	{
+		S2->Get_Center(AMR, center2);
+		this->param["By"] = (this->f * center[0] - S2->f * center2[0]) / (center[1] - center2[1]);
+	}
+	else if (S1 != nullptr && S2 != nullptr)
+	{
+		S1->Get_Center(AMR, center1);
+		S2->Get_Center(AMR, center2);
+
+		B1 = (S1->f * center1[0] - this->f * center[0]) / (center1[1] - center[1]);
+		B2 = (this->f * center[0] - S2->f * center2[0]) / (center[1] - center2[1]);
+		this->param["By"] = minmod(B1, B2);
+	}
+
+	// Bz
+	S1 = this->get_sosed(AMR, 4);
+	S2 = this->get_sosed(AMR, 5);
+	if (S1 != nullptr && S2 == nullptr)
+	{
+		S1->Get_Center(AMR, center1);
+		this->param["Bz"] = (S1->f * center1[0] - this->f * center[0]) / (center1[2] - center[2]);
+	}
+	else if (S1 == nullptr && S2 != nullptr)
+	{
+		S2->Get_Center(AMR, center2);
+		this->param["Bz"] = (this->f * center[0] - S2->f * center2[0]) / (center[2] - center2[2]);
+	}
+	else if (S1 != nullptr && S2 != nullptr)
+	{
+		S1->Get_Center(AMR, center1);
+		S2->Get_Center(AMR, center2);
+
+		B1 = (S1->f * center1[0] - this->f * center[0]) / (center1[2] - center[2]);
+		B2 = (this->f * center[0] - S2->f * center2[0]) / (center[2] - center2[2]);
+		this->param["Bz"] = minmod(B1, B2);
+	}
+
+	// Проверка на неотрицательность функции
+	// + Считаем максимальное значения
+	if (true)
+	{
+		double x, y, z;
+		double S = -1.0;
+		double SS = 0.0;     // Максимальное значение
+		unsigned int kk = 0;
+		while (S < 0.0)
+		{
+			kk++;
+			S = 1.0;
+			SS = 0.0;
+			for (int i = -1; i <= 1; i += 2) 
+			{
+				for (int j = -1; j <= 1; j += 2) 
+				{
+					for (int k = -1; k <= 1; k += 2) 
+					{
+						x = center[0] + i * (razmer[0] / 2.0);
+						y = center[1] + j * (razmer[1] / 2.0);
+						z = center[2] + k * (razmer[2] / 2.0);
+						
+						double ff = this->f * center[0] + this->param["Bx"] * (x - center[0])
+							+ this->param["By"] * (y - center[1]) + this->param["Bz"] * (z - center[2]);
+						S = min(S, ff);
+						SS = max(SS, ff);
+					}
+				}
+			}
+
+			if (S < 0.0)
+			{
+				this->param["Bx"] /= 2.0;
+				this->param["By"] /= 2.0;
+				this->param["Bz"] /= 2.0;
+			}
+
+			if (kk > 10)
+			{
+				if (this->f * center[0] < 0.0)
+				{
+					cout << "Error 839yt478geofrjewfre = " << this->f * center[0] << endl;
+				}
+				this->param["Bx"] = 0.0;
+				this->param["By"] = 0.0;
+				this->param["Bz"] = 0.0;
+				SS = this->f * center[0];
+				break;
+			}
+		}
+		this->param["Max"] = SS;
+	}
+}
+
+
 
 AMR_cell* AMR_cell::get_sosed(AMR_f* AMR, short int nn)
 {
@@ -304,16 +451,48 @@ void AMR_cell::Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi,
 		std::array<double, 3> center;
 		std::array<double, 3> razmer;
 		this->Get_Center(AMR, center, razmer);
-		//Vel[0] = (center[0] - razmer[0] / 2.0) +
-		//	Sens->MakeRandom() * (razmer[0]);
-		double L = center[0] - razmer[0] / 2.0;
-		double R = center[0] + razmer[0] / 2.0;
-		Vel[0] = sqrt(kv(L) + Sens->MakeRandom() * (kv(R) - kv(L)));
 
-		Vel[1] = (center[1] - razmer[1] / 2.0) +
-			Sens->MakeRandom() * (razmer[1]);
-		Vel[2] = (center[2] - razmer[2] / 2.0) +
-			Sens->MakeRandom() * (razmer[2]);
+		// Равномерный розыгрышь 
+		if (false)
+		{
+			Vel[0] = (center[0] - razmer[0] / 2.0) +
+				Sens->MakeRandom() * (razmer[0]);
+			Vel[1] = (center[1] - razmer[1] / 2.0) +
+				Sens->MakeRandom() * (razmer[1]);
+			Vel[2] = (center[2] - razmer[2] / 2.0) +
+				Sens->MakeRandom() * (razmer[2]);
+		}
+
+		// Розыгрышь с плотностью: Vx
+		if (false)
+		{
+			double L = center[0] - razmer[0] / 2.0;
+			double R = center[0] + razmer[0] / 2.0;
+			Vel[0] = sqrt(kv(L) + Sens->MakeRandom() * (kv(R) - kv(L)));
+
+			Vel[1] = (center[1] - razmer[1] / 2.0) +
+				Sens->MakeRandom() * (razmer[1]);
+			Vel[2] = (center[2] - razmer[2] / 2.0) +
+				Sens->MakeRandom() * (razmer[2]);
+		}
+
+		// Розыгрышь со вторым порядком методом отказов
+		if (true)
+		{
+			double x, y, z, ff;
+			do
+			{
+				x = (center[0] - razmer[0] / 2.0) +
+					Sens->MakeRandom() * (razmer[0]);
+				y = (center[1] - razmer[1] / 2.0) +
+					Sens->MakeRandom() * (razmer[1]);
+				z = (center[2] - razmer[2] / 2.0) +
+					Sens->MakeRandom() * (razmer[2]);
+				ff = this->f * center[0] + this->param["Bx"] * (x - center[0])
+					+ this->param["By"] * (y - center[1]) + this->param["Bz"] * (z - center[2]);
+			} while (Sens->MakeRandom() * this->param["Max"] > ff);
+		}
+
 		return;
 	}
 
@@ -598,14 +777,14 @@ void AMR_cell::Slice_plane(AMR_f* AMR, const double& a, const double& b, const d
 	}
 
 	// std::vector< std::array<double, 3> > all_point;
-	// РЎРµР№С‡Р°СЃ С‚СѓС‚ С…СЂР°РЅСЏС‚СЃСЏ РІСЃРµ РЅР°Р№РґРµРЅРЅС‹Рµ С‚РѕС‡РєРё, РєРѕС‚РѕСЂС‹Рµ РЅР°РґРѕ СЂР°СЃСЃРѕСЂС‚РёСЂРѕРІР°С‚СЊ РїРѕ РєСЂСѓРіСѓ
+	// Сейчас тут хранятся все найденные точки, которые надо рассортировать по кругу
 
 	if (all_point.size() < 3)
 	{
 		return;
 	}
 
-	// РќР°С…РѕРґРёРј РЅРѕСЂРјР°Р»СЊ Рє РїР»РѕСЃРєРѕСЃС‚Рё
+	// Находим нормаль к плоскости
 
 	std::array<double, 3> normal;
 	normal[0] = a;
@@ -630,10 +809,10 @@ void AMR_cell::Slice_plane(AMR_f* AMR, const double& a, const double& b, const d
 	centroid[1] /= all_point.size();
 	centroid[2] /= all_point.size();
 
-	// Р’С‹Р±РёСЂР°РµРј РїСЂРѕРёР·РІРѕР»СЊРЅРѕРµ РЅР°РїСЂР°РІР»РµРЅРёРµ РґР»СЏ СЃРѕСЂС‚РёСЂРѕРІРєРё (РЅР°РїСЂРёРјРµСЂ, РѕСЃСЊ OX РІ РїР»РѕСЃРєРѕСЃС‚Рё)
+	// Выбираем произвольное направление для сортировки (например, ось OX в плоскости)
 	std::array<double, 3> reference_dir;
 	if (std::abs(normal[0]) > 0.9) 
-	{ // Р•СЃР»Рё РЅРѕСЂРјР°Р»СЊ Р±Р»РёР·РєР° Рє OX, РІС‹Р±РёСЂР°РµРј OY
+	{ // Если нормаль близка к OX, выбираем OY
 		reference_dir = { 0.0, 1.0, 0.0 };
 	}
 	else 
@@ -641,21 +820,21 @@ void AMR_cell::Slice_plane(AMR_f* AMR, const double& a, const double& b, const d
 		reference_dir = { 1.0, 0.0, 0.0 };
 	}
 
-	// РќР°С…РѕРґРёРј РІРµРєС‚РѕСЂ РІ РїР»РѕСЃРєРѕСЃС‚Рё, РїРµСЂРїРµРЅРґРёРєСѓР»СЏСЂРЅС‹Р№ РЅРѕСЂРјР°Р»Рё
+	// Находим вектор в плоскости, перпендикулярный нормали
 	std::array<double, 3>  tangent_dir = {
 		reference_dir[1] * normal[2] - reference_dir[2] * normal[1],
 		reference_dir[2] * normal[0] - reference_dir[0] * normal[2],
 		reference_dir[0] * normal[1] - reference_dir[1] * normal[0]
 	};
 
-	// РЎРѕСЂС‚РёСЂСѓРµРј С‚РѕС‡РєРё РїРѕ СѓРіР»Сѓ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ tangent_dir
+	// Сортируем точки по углу относительно tangent_dir
 	std::sort(all_point.begin(), all_point.end(), [centroid, &tangent_dir]
 	(std::array<double, 3> aa, std::array<double, 3> bb) 
 	{
 		std::array<double, 3> vec_a = { aa[0] - centroid[0], aa[1] - centroid[1], aa[2] - centroid[2] };
 		std::array<double, 3> vec_b = { bb[0] - centroid[0], bb[1] - centroid[1], bb[2] - centroid[2] };;
 
-		// РЈРіРѕР» РјРµР¶РґСѓ vec_a Рё tangent_dir
+		// Угол между vec_a и tangent_dir
 		double dot_a = vec_a[0] * tangent_dir[0] + vec_a[1] * tangent_dir[1] + vec_a[2] * tangent_dir[2];
 		double cross_a =
 			tangent_dir[1] * vec_a[2] - tangent_dir[2] * vec_a[1] -
@@ -664,7 +843,7 @@ void AMR_cell::Slice_plane(AMR_f* AMR, const double& a, const double& b, const d
 
 		double angle_a = std::atan2(cross_a, dot_a);
 
-		// РЈРіРѕР» РјРµР¶РґСѓ vec_b Рё tangent_dir
+		// Угол между vec_b и tangent_dir
 		double dot_b = vec_b[0] * tangent_dir[0] + vec_b[1] * tangent_dir[1] + vec_b[2] * tangent_dir[2];
 		double cross_b =
 			tangent_dir[1] * vec_b[2] - tangent_dir[2] * vec_b[1] -
@@ -699,7 +878,7 @@ void AMR_cell::Save_cell(std::ofstream& out)
 	n = dims[2];
 	out.write(reinterpret_cast<const char*>(&n), sizeof(size_t));
 
-	// Р—Р°РїРёСЃС‹РІР°РµРј РІСЃРµ СЏС‡РµР№РєРё
+	// Записываем все ячейки
 	for (size_t i = 0; i < dims[0]; ++i)
 	{
 		for (size_t j = 0; j < dims[1]; ++j)
@@ -727,12 +906,12 @@ void AMR_cell::Read_cell(std::ifstream& in)
 		exit(-1);
 	}
 
-	// Р’С‹РґРµР»СЏРµРј РїР°РјСЏС‚СЊ РїРѕРґ РІР»РѕР¶РµРЅРЅС‹Р№ РјР°СЃСЃРёРІ
+	// Выделяем память под вложенный массив
 	this->cells.resize(boost::extents[dims[0]][dims[1]][dims[2]]);
 
 	if (dims[0] > 0 || dims[1] > 0 || dims[2] > 0) this->flags.is_divided = true;
 
-	// Р РµРєСѓСЂСЃРёРІРЅРѕ С‡РёС‚Р°РµРј РґРѕС‡РµСЂРЅРёРµ СЏС‡РµР№РєРё
+	// Рекурсивно читаем дочерние ячейки
 	for (size_t i = 0; i < dims[0]; ++i) 
 	{
 		for (size_t j = 0; j < dims[1]; ++j) 

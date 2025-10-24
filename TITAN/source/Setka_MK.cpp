@@ -1608,6 +1608,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 			{
 				gr->Read_AMR(ni, nh_ + 1, this->phys_param, false);
 				func->Culk_SpotokV(gr->area[0]);
+				func->Culc_gradients();                   // —читаем градиенты дл€ второго пор€дка (minmod)
 			}
 			else
 			{

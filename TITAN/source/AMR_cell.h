@@ -6,6 +6,10 @@ class AMR_cell
 public:
 	double f = 0.0;
 	double Spotok = 0.0; // Ёто поток в €чейке не умноженный на грань!
+	unordered_map<string, double> param;    // ¬спомогательные параметры в €чейке, например дл€ линейного сноса
+	// f = A + Bx (Vx - Vx0) + By (Vy - Vy0) + Bz (Vz - Vz0)
+	// Bx, By, Bz
+	// Max - максимальное значение линейной функции в €чейке (дл€ метода отказов)
 
 	AMR_cell* I_self;            // ”казатель на себ€
 
@@ -32,6 +36,10 @@ public:
 	double Get_SpotokV(void);
 	void Get_Moment(AMR_f* AMR, double & m, double& mu, double& mux, double& muu);
 	void Get_f(AMR_f* AMR, double& S);
+
+	void Culc_gradients(AMR_f* AMR);
+	// ¬ычисл€ет градианты дл€ данной €чейки, использу€ еЄ соседей
+	// задаютс€ Bx, By, Bz
 
 	void divide(AMR_f* AMR, unsigned short int n1, unsigned short int n2, unsigned short int n3); // –азделить €чейку
 
