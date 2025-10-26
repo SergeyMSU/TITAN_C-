@@ -231,6 +231,63 @@ void Setka::Print_fH(short int zoneMK, Type_Gran_surf type, const double ex, con
 
 }
 
+void Setka::Print_poglosh_in_cell(void)
+{
+	Eigen::Vector3d e;
+	e << 1.0, 0.0, 0.0;
+	Gran* gr2 = nullptr;
+	double s1 = -1.0;
+
+	for (const auto& gr1 : this->Gran_HP)
+	{
+		Eigen::Vector3d v1;
+		v1 << gr1->center[0][0], gr1->center[0][1], gr1->center[0][2];
+		double d = e.dot(v1) / v1.norm() / e.norm();   // Ёто косинус угла между гран€ми
+		if (d > s1)
+		{
+			s1 = d;
+			gr2 = gr1;
+		}
+	}
+
+	cout << "Gran center: " << gr2->center[0][0] << " " << gr2->center[0][1] << " " << gr2->center[0][2] << endl;
+
+	Cell* A;
+	Cell* B;
+
+	A = gr2->cells[0];
+	B = gr2->cells[1];
+
+	A->Init_mas_pogl(this->phys_param->pogl_n, this->phys_param->num_H);
+	A->read_mas_pogl_FromFile(this->phys_param);
+
+	B->Init_mas_pogl(this->phys_param->pogl_n, this->phys_param->num_H);
+	B->read_mas_pogl_FromFile(this->phys_param);
+
+	ofstream fout;
+	string name_f = "f_proekts_on_HP.txt";
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = u, f1L, f1R, f2L, f2R, f3L, f3R, f4L, f4R" << endl;
+	double dv = (this->phys_param->pogl_R - this->phys_param->pogl_L) / this->phys_param->pogl_n;
+
+	for (int j = 0; j < this->phys_param->pogl_n; j++)
+	{
+		fout << this->phys_param->pogl_L + dv * (j + 0.5) << " ";\
+
+		for (int i = 0; i < this->phys_param->num_H; i++)
+		{
+			fout << A->mas_pogl(i, j) << " " << B->mas_pogl(i, j) << " ";
+		}
+
+		fout << endl;
+	}
+
+	fout.close();
+
+	A->Delete_mas_pogl();
+	B->Delete_mas_pogl();
+}
+
 void Setka::Set_MK_Zone(void)
 {
 	cout << "Start Set_MK_Zone" << endl;
@@ -1094,7 +1151,7 @@ void Setka::MK_prepare(short int zone_MK)
 		this->MK_Potoks[zone_MK - 1] = S; // ¬ход€щий поток через всю границу зоны
 		for (short int iH = 0; iH < this->phys_param->num_H; iH++)
 		{
-			this->MK_Potoks_on_sort[zone_MK - 1][iH] = SS[iH]; // ¬ход€щий поток через всю границу зоны дл€ каждого сорта
+			this->MK_Potoks_on_sort[zone_MK - 1][iH] = SS[iH]; // ¬ход€щий поток через всю границу зоны отдельно дл€ каждого сорта
 		}
 	}
 
@@ -1637,7 +1694,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 
 			// –асчитываем число запускаемых частиц
 			unsigned int N_particle = max(static_cast<int>(func->SpotokV / mu_expect) + 1,
-				min(N_on_gran, 100));
+				min(N_on_gran, 1000));
 			double mu = func->SpotokV / N_particle; // ¬ес каждой частицы
 
 			#pragma omp critical (second) 
@@ -2941,7 +2998,8 @@ void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, 
 	double ee = e.norm();
 	e /= ee;
 
-	r = e * phys_param->R_0 * 1.1;
+	r = e * phys_param->R_0 * 1.1;  // 1.1
+	//r = e * 14.0;  // 1.1
 	double dr = phys_param->R_0 / 5.0;
 	double dv = (this->phys_param->pogl_R - this->phys_param->pogl_L) / this->phys_param->pogl_n;
 
@@ -2961,7 +3019,7 @@ void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, 
 		}
 
 		if (r[0] > this->phys_param->R_MK_Max) break;
-		//if (r[0] > 15.0) break;
+		//if (r[0] > 14.0) break;
 	}
 
 	for (int j = 0; j < this->phys_param->pogl_n; j++)
