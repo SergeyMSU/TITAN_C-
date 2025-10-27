@@ -176,6 +176,7 @@ public:
     bool refine_AMR;      // Нужно ли мельчить посчитанные функции распределения?
     unsigned int N_per_gran;  // Сколько в среднем частиц вылетает с каждой грани
     bool culc_cell_moments;    // Нужно ли считать моменты в ячейках?
+    bool culc_cell_source = false;    // Нужно ли считать источники по перезарядке в ячейках?
     bool de_refine_AMR;        // Нужно ли огрублять AMR сетку, если требуется?
     string MK_file;            // Фаил для сохранения моментов в ячейках
 
@@ -229,6 +230,30 @@ public:
 
     double Get_razmer(string par);  // Возвращает коэффициент для перевода 
     // параметра в размерные значения
+
+    double MK_int_1_f1(const double& x);
+
+    double MK_int_1_f2(const double& x);
+
+    double MK_int_1_f3(const double& x);
+
+    double MK_int_1(const double& x, const double& cp);
+
+    double MK_int_2_f1(const double& x);
+
+    double MK_int_2_f2(const double& x);
+
+    double MK_int_2_f3(const double& x);
+
+    double MK_int_2(const double& x, const double& cp);
+
+    double MK_int_3(const double& x, const double& cp);
+
+    double MK_int_3_f1(const double& x);
+
+    double MK_int_3_f2(const double& x);
+
+    double MK_int_3_f3(const double& x);
 
     // Разделение компонент плазмы
     void Plasma_components_1(const short int& zone,

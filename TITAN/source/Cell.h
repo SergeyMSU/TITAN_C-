@@ -230,6 +230,9 @@ public:
 
 	void Tecplot_print_cell(void);
 
+	void MK_Add_moment(MK_particle& P, const double& cp, const double& u, const double& mu_ex,
+		const double& u1, const double& u2, const double& u3, const double& skalar, Phys_param* phys_param);
+
 	void MK_Add_particle(MK_particle& P, const double& time, Phys_param* phys_param);
 	void MK_Add_pui_source(MK_particle& P, const double& wr, const double& nu_ex, const double& mu,
 		const double& time, Phys_param* phys_param, short int zone, short int parent);

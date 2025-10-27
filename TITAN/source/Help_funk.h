@@ -70,3 +70,7 @@ bool findIntersection(const std::array<double, 3>& P1, const std::array<double, 
 	const double& a, const double& b, const double& c, const double& d,
 	std::array<double, 3>& outIntersection);
 
+// Для перезарядки
+double Velosity_1(const double& u, const double& cp);
+double Velosity_2(const double& u, const double& cp);
+double Velosity_3(const double& u, const double& cp);

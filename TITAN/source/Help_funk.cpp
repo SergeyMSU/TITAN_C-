@@ -1,4 +1,4 @@
-п»ї#include "Help_funk.h"
+#include "Help_funk.h"
 #include "Yzel.h"
 
 
@@ -12,7 +12,7 @@ void pause_seconds(unsigned int n)
 
 bool file_exists(const std::string& filename) {
 	std::ifstream file(filename);
-	return file.good();  // РёР»Рё РїСЂРѕСЃС‚Рѕ return file.is_open();
+	return file.good();  // или просто return file.is_open();
 }
 
 double maxwell(const double& n_H, const double& cp, const double& u1,
@@ -56,8 +56,8 @@ double linear(const double& x1, const double& t1, const double& x2,
 	const double& t2, const double& x3, const double& t3, 
 	const double& y)
 {
-	//Р“Р»Р°РІРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ СЃ РїР°СЂР°РјРµС‚СЂР°РјРё 2
-	//РЎС‚СЂРѕРёРј Р»РёРЅРёРё РјРµР¶РґСѓ 1 Рё 2, 2 Рё 3, РїРѕС‚РѕРј РЅР°С…РѕРґРёРј РјРёРЅРјРѕРґРѕРј Р·РЅР°С‡РµРЅРёРµ РІ y
+	//Главное значение с параметрами 2
+	//Строим линии между 1 и 2, 2 и 3, потом находим минмодом значение в y
 	double d = minmod((t1 - t2) / (x1 - x2), (t2 - t3) / (x2 - x3));
 		return (d * (y - x2) + t2);
 }
@@ -150,7 +150,7 @@ bool areCellsEqual(const Gran& cell1, const Gran& cell2) {
 		return false;
 	}
 
-	// РЎРѕР·РґР°РµРј РјСѓР»СЊС‚РёРјРЅРѕР¶РµСЃС‚РІРѕ РґР»СЏ РєР°Р¶РґРѕРіРѕ РІРµРєС‚РѕСЂР°
+	// Создаем мультимножество для каждого вектора
 	std::unordered_multiset<Yzel*> set1(cell1.yzels.begin(), cell1.yzels.end());
 	std::unordered_multiset<Yzel*> set2(cell2.yzels.begin(), cell2.yzels.end());
 
@@ -164,7 +164,7 @@ bool areCellsEqual(const Gran* cell1, const Gran* cell2)
 		return false;
 	}
 
-	// РЎРѕР·РґР°РµРј РјСѓР»СЊС‚РёРјРЅРѕР¶РµСЃС‚РІРѕ РґР»СЏ РєР°Р¶РґРѕРіРѕ РІРµРєС‚РѕСЂР°
+	// Создаем мультимножество для каждого вектора
 	std::unordered_multiset<Yzel*> set1(cell1->yzels.begin(), cell1->yzels.end());
 	std::unordered_multiset<Yzel*> set2(cell2->yzels.begin(), cell2->yzels.end());
 
@@ -195,7 +195,7 @@ double triangleArea3D(
 	const double& x2, const double& y2, const double& z2,
 	const double& x3, const double& y3, const double& z3)
 {
-	// Р’С‹С‡РёСЃР»СЏРµРј РІРµРєС‚РѕСЂС‹ СЃС‚РѕСЂРѕРЅ
+	// Вычисляем векторы сторон
 	double v1x = x2 - x1;
 	double v1y = y2 - y1;
 	double v1z = z2 - z1;
@@ -204,30 +204,30 @@ double triangleArea3D(
 	double v2y = y3 - y1;
 	double v2z = z3 - z1;
 
-	// Р’С‹С‡РёСЃР»СЏРµРј РІРµРєС‚РѕСЂРЅРѕРµ РїСЂРѕРёР·РІРµРґРµРЅРёРµ
+	// Вычисляем векторное произведение
 	double cross_x = v1y * v2z - v1z * v2y;
 	double cross_y = v1z * v2x - v1x * v2z;
 	double cross_z = v1x * v2y - v1y * v2x;
 
-	// Р’С‹С‡РёСЃР»СЏРµРј РґР»РёРЅСѓ РІРµРєС‚РѕСЂР° РїСЂРѕРёР·РІРµРґРµРЅРёСЏ
+	// Вычисляем длину вектора произведения
 	double cross_magnitude = sqrt(cross_x * cross_x + cross_y * cross_y + cross_z * cross_z);
 
-	// РџР»РѕС‰Р°РґСЊ СЂР°РІРЅР° РїРѕР»РѕРІРёРЅРµ РґР»РёРЅС‹ РІРµРєС‚РѕСЂРЅРѕРіРѕ РїСЂРѕРёР·РІРµРґРµРЅРёСЏ
+	// Площадь равна половине длины векторного произведения
 	return 0.5 * cross_magnitude;
 }
 
 void get_bazis(const Eigen::Vector3d& n, Eigen::Vector3d& t, Eigen::Vector3d& m)
 {
-	// 1. Р’С‹Р±РёСЂР°РµРј РїСЂРѕРёР·РІРѕР»СЊРЅС‹Р№ РІРµРєС‚РѕСЂ 'a', РЅРµ РєРѕР»Р»РёРЅРµР°СЂРЅС‹Р№ СЃ 'n'
+	// 1. Выбираем произвольный вектор 'a', не коллинеарный с 'n'
 	Eigen::Vector3d a(1.0, 0.0, 0.0);
-	if (std::abs(n.dot(a)) > 0.9) {  // Р•СЃР»Рё n РїРѕС‡С‚Рё РїР°СЂР°Р»Р»РµР»РµРЅ (1,0,0), Р±РµСЂС‘Рј РґСЂСѓРіРѕР№ a
+	if (std::abs(n.dot(a)) > 0.9) {  // Если n почти параллелен (1,0,0), берём другой a
 		a = Eigen::Vector3d(0.0, 1.0, 0.0);
 	}
 
-	// 2. РќР°С…РѕРґРёРј t = (a Г— n) / |a Г— n|
+	// 2. Находим t = (a ? n) / |a ? n|
 	t = a.cross(n).normalized();
 
-	// 3. РќР°С…РѕРґРёРј m = n Г— t (СѓР¶Рµ РЅРѕСЂРјРёСЂРѕРІР°РЅ, С‚Р°Рє РєР°Рє n Рё t РѕСЂС‚РѕРіРѕРЅР°Р»СЊРЅС‹ Рё РµРґРёРЅРёС‡РЅС‹Рµ)
+	// 3. Находим m = n ? t (уже нормирован, так как n и t ортогональны и единичные)
 	m = n.cross(t);
 }
 
@@ -249,25 +249,25 @@ double scalarProductFast(
 }
 
 double tetrahedronVolume(
-	const double& x1, const double& y1, const double& z1,  // Р’РµСЂС€РёРЅР° A
-	const double& x2, const double& y2, const double& z2,  // Р’РµСЂС€РёРЅР° B
-	const double& x3, const double& y3, const double& z3,  // Р’РµСЂС€РёРЅР° C
-	const double& x4, const double& y4, const double& z4)  // Р’РµСЂС€РёРЅР° D
+	const double& x1, const double& y1, const double& z1,  // Вершина A
+	const double& x2, const double& y2, const double& z2,  // Вершина B
+	const double& x3, const double& y3, const double& z3,  // Вершина C
+	const double& x4, const double& y4, const double& z4)  // Вершина D
 {
-	// Р’С‹С‡РёСЃР»СЏРµРј РІРµРєС‚РѕСЂС‹ СЂС‘Р±РµСЂ РёР· РІРµСЂС€РёРЅС‹ A
-	double abx = x2 - x1, aby = y2 - y1, abz = z2 - z1;  // Р’РµРєС‚РѕСЂ AB
-	double acx = x3 - x1, acy = y3 - y1, acz = z3 - z1;  // Р’РµРєС‚РѕСЂ AC
-	double adx = x4 - x1, ady = y4 - y1, adz = z4 - z1;  // Р’РµРєС‚РѕСЂ AD
+	// Вычисляем векторы рёбер из вершины A
+	double abx = x2 - x1, aby = y2 - y1, abz = z2 - z1;  // Вектор AB
+	double acx = x3 - x1, acy = y3 - y1, acz = z3 - z1;  // Вектор AC
+	double adx = x4 - x1, ady = y4 - y1, adz = z4 - z1;  // Вектор AD
 
-	// Р’С‹С‡РёСЃР»СЏРµРј РІРµРєС‚РѕСЂРЅРѕРµ РїСЂРѕРёР·РІРµРґРµРЅРёРµ AB Г— AC
+	// Вычисляем векторное произведение AB ? AC
 	double cross_x = aby * acz - abz * acy;
 	double cross_y = abz * acx - abx * acz;
 	double cross_z = abx * acy - aby * acx;
 
-	// Р’С‹С‡РёСЃР»СЏРµРј СЃРєР°Р»СЏСЂРЅРѕРµ РїСЂРѕРёР·РІРµРґРµРЅРёРµ (AB Г— AC) В· AD
+	// Вычисляем скалярное произведение (AB ? AC) · AD
 	double dot_product = cross_x * adx + cross_y * ady + cross_z * adz;
 
-	// РћР±СЉС‘Рј СЂР°РІРµРЅ 1/6 РјРѕРґСѓР»СЏ СЌС‚РѕРіРѕ РїСЂРѕРёР·РІРµРґРµРЅРёСЏ
+	// Объём равен 1/6 модуля этого произведения
 	return std::abs(dot_product) / 6.0;
 }
 
@@ -312,12 +312,12 @@ void Sootnosheniya(const double& rho, const double& p, const double& rho_He,
 	double& rho_Th, double& rho_E, double& p_Th, double& p_Pui, 
 	double& T_Th, double& T_E)
 {
-	// Р¤СѓРЅРєС†РёСЏ, РѕРїСЂРµРґРµР»СЏСЋС‰Р°СЏ С‚РµРјРїРµСЂР°С‚СѓСЂС‹ Рё РєРѕРЅС†РµРЅС‚СЂР°С†РёРё РіРµР»РёСЏ, РїРёРєР°РїРѕРІ Рё С‚.Рґ.
-	// al - СЌС‚Рѕ Р·Р°СЂСЏРґ РіРµР»РёСЏ
-	// РµСЃР»Рё al = 1 С‚Рѕ РІРЅРµ РіРµР»РёРѕРїР°СѓР·С‹
-	// РµСЃР»Рё al = 2, С‚Рѕ РІРЅСѓС‚СЂРё РіРµР»РёРѕРїР°СѓР·С‹
-	// Th - С‚РµСЂРјР°Р»СЊРЅС‹Рµ РїСЂРѕС‚РѕРЅС‹, He - РіРµР»РёР№, Pui - РїРёРєР°РїС‹, E - СЌР»РµРєС‚СЂРѕРЅС‹
-	// Р±РµР· РїР°СЂР°РјРµС‚СЂРѕРІ, СЌС‚Рѕ РѕР±С‰РёРµ(С‚Рµ, С‡С‚Рѕ СЃС‡РёС‚Р°СЋС‚СЃСЏ РІ РњР“Р”)
+	// Функция, определяющая температуры и концентрации гелия, пикапов и т.д.
+	// al - это заряд гелия
+	// если al = 1 то вне гелиопаузы
+	// если al = 2, то внутри гелиопаузы
+	// Th - термальные протоны, He - гелий, Pui - пикапы, E - электроны
+	// без параметров, это общие(те, что считаются в МГД)
 	short int al;
 
 	if (zone <= 2)
@@ -354,26 +354,26 @@ bool findIntersection(const std::array<double, 3>& P1, const std::array<double, 
 	double D = a * P1[0] + b * P1[1] + c * P1[2] + d;
 	double N = a * (P2[0] - P1[0]) + b * (P2[1] - P1[1]) + c * (P2[2] - P1[2]);
 
-	// РћС‚СЂРµР·РѕРє РїР°СЂР°Р»Р»РµР»РµРЅ РїР»РѕСЃРєРѕСЃС‚Рё
+	// Отрезок параллелен плоскости
 	if (std::abs(N) < 1e-10)
 	{
 		if (std::abs(D) < 1e-10)
 		{
-			// РћС‚СЂРµР·РѕРє Р»РµР¶РёС‚ РІ РїР»РѕСЃРєРѕСЃС‚Рё (Р±РµСЃРєРѕРЅРµС‡РЅРѕ РјРЅРѕРіРѕ РїРµСЂРµСЃРµС‡РµРЅРёР№)
-			// РњРѕР¶РЅРѕ РІРµСЂРЅСѓС‚СЊ, РЅР°РїСЂРёРјРµСЂ, P1 РёР»Рё P2
+			// Отрезок лежит в плоскости (бесконечно много пересечений)
+			// Можно вернуть, например, P1 или P2
 			outIntersection = P1;
 			return true;
 		}
 		else
 		{
-			// РќРµС‚ РїРµСЂРµСЃРµС‡РµРЅРёСЏ
+			// Нет пересечения
 			return false;
 		}
 	}
 
 	double t = -D / N;
 
-	// РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ t в€€ [0, 1]
+	// Проверяем, что t ? [0, 1]
 	if (t >= 0.0 && t <= 1.0)
 	{
 		outIntersection[0] = P1[0] + t * (P2[0] - P1[0]);
@@ -383,7 +383,52 @@ bool findIntersection(const std::array<double, 3>& P1, const std::array<double, 
 	}
 	else
 	{
-		// РџРµСЂРµСЃРµС‡РµРЅРёРµ Р·Р° РїСЂРµРґРµР»Р°РјРё РѕС‚СЂРµР·РєР°
+		// Пересечение за пределами отрезка
 		return false;
+	}
+}
+
+double Velosity_1(const double& u, const double& cp)
+{
+	if (u < 0.00001)
+	{
+		return 2.0 * cp / sqrtpi_ + 2.0 * u * u / (3.0 * cp * sqrtpi_) - u * u * u * u / (15.0 * cp * cp * cp * sqrtpi_);
+	}
+	else
+	{
+		return  exp(-u * u / kv(cp)) * cp / sqrtpi_ + (u + kv(cp) / (2.0 * u)) * erf(u / cp);
+	}
+}
+
+double Velosity_2(const double& u, const double& cp)  // Считает на совсем скорость, а только её числитель (см. статью)
+{
+	if (u < 0.00001)
+	{
+		return (8.0 / 3.0) * kv(cp) * kv(cp) * const_pi * u +
+			(8.0 / 15.0) * kv(cp) * const_pi * u * u * u -
+			(4.0 / 105.0) * const_pi * kv(u) * kv(u) * u;
+	}
+	else
+	{
+		return  cp * cp * cp * const_pi * (exp(-u * u / kv(cp)) * cp * u * 2.0 * (kv(cp) +
+			2.0 * kv(u)) +//
+			sqrtpi_ * (4.0 * kv(u) * kv(u) +
+				4.0 * cp * cp * kv(u) - kv(cp) * kv(cp)) * erf(u / cp)) / (4.0 * u * u);
+	}
+}
+
+double Velosity_3(const double& u, const double& cp)
+{
+	if (u < 0.00001)
+	{
+		return 8.0 * cp / (3.0 * sqrtpi_) + 8.0 * u * u / (9.0 * cp * sqrtpi_) -
+			44.0 * u * u * u * u / (135.0 * cp * cp * cp * sqrtpi_);
+	}
+	else
+	{
+		return  exp(-u * u / kv(cp)) * cp * (5.0 * kv(cp) + 2.0 * kv(u)) /
+			(sqrtpi_ * (3.0 * kv(cp) + 2.0 * kv(u))) +//
+			(4.0 * kv(u) * kv(u) + 12.0 * cp * cp * kv(u) + 3.0 * kv(cp) * kv(cp)) *
+			erf(u / cp) / (2.0 * u * (3.0 * kv(cp) + 2.0 * kv(u)));
 	}
 }

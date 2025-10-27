@@ -37,50 +37,6 @@ bool findSphereIntersectionTime(
 	return false;  // Оба времени отрицательные (пересечение было в прошлом)
 }
 
-double Velosity_1(const double& u, const double& cp)
-{
-	if (u < 0.00001)
-	{
-		return 2.0 * cp / sqrtpi_ + 2.0 * u * u / (3.0 * cp * sqrtpi_) - u * u * u * u / (15.0 * cp * cp * cp * sqrtpi_);
-	}
-	else
-	{
-		return  exp(-u * u / kv(cp)) * cp / sqrtpi_ + (u + kv(cp) / (2.0 * u)) * erf(u / cp);
-	}
-}
-
-double Velosity_2(const double& u, const double& cp)  // Считает на совсем скорость, а только её числитель (см. статью)
-{
-	if (u < 0.00001)
-	{
-		return (8.0 / 3.0) * kv(cp) * kv(cp) * const_pi * u + 
-			(8.0 / 15.0) * kv(cp) * const_pi * u * u * u -
-			(4.0 / 105.0) * const_pi * kv(u) * kv(u) * u;
-	}
-	else
-	{
-		return  cp * cp * cp * const_pi * (exp(-u * u / kv(cp)) * cp * u * 2.0 * (kv(cp) +
-			2.0 * kv(u)) +//
-			sqrtpi_ * (4.0 * kv(u) * kv(u) + 
-				4.0 * cp * cp * kv(u) - kv(cp) * kv(cp)) * erf(u / cp)) / (4.0 * u * u);
-	}
-}
-
-double Velosity_3(const double& u, const double& cp)
-{
-	if (u < 0.00001)
-	{
-		return 8.0 * cp / (3.0 * sqrtpi_) + 8.0 * u * u / (9.0 * cp * sqrtpi_) - 
-			44.0 * u * u * u * u / (135.0 * cp * cp * cp * sqrtpi_);
-	}
-	else
-	{
-		return  exp(-u * u / kv(cp)) * cp * (5.0 * kv(cp) + 2.0 * kv(u)) / 
-			(sqrtpi_ * (3.0 * kv(cp) + 2.0 * kv(u))) +//
-			(4.0 * kv(u) * kv(u) + 12.0 * cp * cp * kv(u) + 3.0 * kv(cp) * kv(cp)) * 
-			erf(u / cp) / (2.0 * u * (3.0 * kv(cp) + 2.0 * kv(u)));
-	}
-}
 
 // Генерация случайного числа в диапазоне [-scale, +scale]
 double randomNoise(double scale) {
@@ -2147,6 +2103,8 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		// Находим время до выхода частицы из ячейки, а также через какую грань будет выход
 		bool b1 = false;
 		unsigned short int k1 = 0;
+
+		// Цикл на случай, если точка по какой-то причине не выходит из ячейки
 		while (b1 == false)
 		{
 			k1++;
@@ -2312,8 +2270,19 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		double skalar = u1 * P.Vel[0] + u2 * P.Vel[1] + u3 * P.Vel[2];
 		double Vel_norm = sqrt(kvv(P.Vel[0], P.Vel[1], P.Vel[2]));
 
-		double uz = Velosity_1(u, cp);
-		double nu_ex = ro * uz * this->phys_param->sigma(uz) / this->phys_param->par_Kn;
+		double nu_ex;
+		if (u / cp > 7.0)
+		{
+			double uz = Velosity_1(u, cp);
+			nu_ex = ro * uz * this->phys_param->sigma(uz) / this->phys_param->par_Kn;
+		}
+		else
+		{
+			nu_ex = (ro * this->phys_param->MK_int_1(u, cp)) / this->phys_param->par_Kn;  // Пробуем вычислять интеграллы численно
+		}
+
+		
+
 		double sig = Vel_norm / nu_ex;
 		I += l / sig;
 
@@ -2331,11 +2300,20 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 			if (I < P.KSI)
 			{
 				P.I_do = I;  // В этом случае перезарядки в ячейке не произошло
+
 				// Здесь записываем необходимые моменты в ячейку ---------------------
 				if (this->phys_param->culc_cell_moments == true)
 				{
 					P.cel->MK_Add_particle(P, time, this->phys_param);
 				}
+
+				if (this->phys_param->culc_cell_source == true)
+				{
+					double kappa = nu_ex * time;
+					double mu_ex = P.mu * (1.0 - exp(-kappa));   // Вес перезаряженного атома (фиктивная часть)
+					P.cel->MK_Add_moment(P, cp, u, mu_ex, u1, u2, u3, skalar, this->phys_param);
+				}
+
 
 				short int zone = this->determ_zone(P.cel, 0);
 				if (this->phys_param->MK_source_S == true)
@@ -2412,8 +2390,8 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 					}
 				}
 
-				double uz_M = Velosity_2(u, cp) / (uz * kv(cp) * cp * const_pi * sqrtpi_);
-				double uz_E = Velosity_3(u, cp);
+				//double uz_M = Velosity_2(u, cp) / (uz * kv(cp) * cp * const_pi * sqrtpi_);
+				//double uz_E = Velosity_3(u, cp);
 
 				short int zone = this->determ_zone(P.cel, 0);
 
@@ -2421,6 +2399,13 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				if (this->phys_param->culc_cell_moments == true)
 				{
 					P.cel->MK_Add_particle(P, t_ex, this->phys_param);
+				}
+
+				if (this->phys_param->culc_cell_source == true)
+				{
+					double kappa = nu_ex * t_ex;
+					double mu_ex = P.mu * (1.0 - exp(-kappa));   // Вес перезаряженного атома (фиктивная часть)
+					P.cel->MK_Add_moment(P, cp, u, mu_ex, u1, u2, u3, skalar, this->phys_param);
 				}
 
 				if (this->phys_param->MK_source_S == true)

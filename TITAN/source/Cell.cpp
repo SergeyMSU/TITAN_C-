@@ -1147,6 +1147,80 @@ void Cell::Tecplot_print_cell(void)
 	fout.close();
 }
 
+void Cell::MK_Add_moment(MK_particle& P, const double& cp, const double& u, const double& mu_ex,
+	const double& u1, const double& u2, const double& u3, const double& skalar, Phys_param* phys_param)
+{
+	string name_H;
+
+	// Определяем сорт водорода для записи моментов
+	switch (P.sort)
+	{
+	case 1:
+		name_H = "H1";
+		break;
+	case 2:
+		name_H = "H2";
+		break;
+	case 3:
+		name_H = "H3";
+		break;
+	case 4:
+		name_H = "H4";
+		break;
+	case 5:
+		name_H = "H5";
+		break;
+	case 6:
+		name_H = "H6";
+		break;
+	case 7:
+		name_H = "H7";
+		break;
+	case 8:
+		name_H = "H8";
+		break;
+	case 9:
+		name_H = "H9";
+		break;
+	case 10:
+		name_H = "H10";
+		break;
+	default:
+		cout << "ERROR NO SUCH MOMENT j9egrhg9u34980tuf9hwe9prggfewr" << endl;
+		exit(-1);
+		break;
+	}
+
+
+	if (u / cp > 7.0)
+	{
+		double uz = Velosity_1(u, cp);
+		double uz_M = Velosity_2(u, cp) / (uz * kv(cp) * cp * const_pi * sqrt_pi);
+		double uz_E = Velosity_3(u, cp);
+
+		this->mut.lock();
+		this->parameters[0]["MK_IVx_H"] -= mu_ex * uz_M * u1 / u;
+		this->parameters[0]["MK_IVy_H"] -= mu_ex * uz_M * u2 / u;
+		this->parameters[0]["MK_IVz_H"] -= mu_ex * uz_M * u3 / u;
+		this->parameters[0]["MK_IT_H"] += mu_ex * (-0.25 * (3.0 * kv(cp) + 2.0 * kv(u)) * (uz_E / uz) - uz_M * skalar / u);
+		this->mut.unlock();
+	}
+	else
+	{
+		double k1 = phys_param->MK_int_1(u, cp);
+		double k2 = phys_param->MK_int_2(u, cp);
+		double k3 = phys_param->MK_int_3(u, cp);
+
+		this->mut.lock();
+		this->parameters[0]["MK_IVx_H"] += mu_ex * (k2 / k1) * u1 / u;
+		this->parameters[0]["MK_IVy_H"] += mu_ex * (k2 / k1) * u2 / u;
+		this->parameters[0]["MK_IVz_H"] += mu_ex * (k2 / k1) * u3 / u;
+		this->parameters[0]["MK_IT_H"] += mu_ex * (-0.5 * k3 / k1 + k2 / k1 * skalar / u);
+		this->mut.unlock();
+	}
+
+}
+
 void Cell::MK_Add_particle(MK_particle& P, const double& time, Phys_param* phys_param)
 {
 	// Поглощение
@@ -1165,47 +1239,56 @@ void Cell::MK_Add_particle(MK_particle& P, const double& time, Phys_param* phys_
 	}
 
 
+	string name_H;
+
+	// Определяем сорт водорода для записи моментов
+	switch (P.sort)
+	{
+	case 1:
+		name_H = "H1";
+		break;
+	case 2:
+		name_H = "H2";
+		break;
+	case 3:
+		name_H = "H3";
+		break;
+	case 4:
+		name_H = "H4";
+		break;
+	case 5:
+		name_H = "H5";
+		break;
+	case 6:
+		name_H = "H6";
+		break;
+	case 7:
+		name_H = "H7";
+		break;
+	case 8:
+		name_H = "H8";
+		break;
+	case 9:
+		name_H = "H9";
+		break;
+	case 10:
+		name_H = "H10";
+		break;
+	default:
+		cout << "ERROR NO SUCH MOMENT j9egrhg9u34980tuf9hwe9prggfewr" << endl;
+		exit(-1);
+		break;
+	}
 
 	this->mut.lock();
 
 	this->parameters[0]["MK_n_H"] += time * P.mu;
 
-
-	switch (P.sort)
-	{
-	case 1:
-		this->parameters[0]["MK_n_H1"] += time * P.mu;
-		break;
-	case 2:
-		this->parameters[0]["MK_n_H2"] += time * P.mu;
-		break;
-	case 3:
-		this->parameters[0]["MK_n_H3"] += time * P.mu;
-		break;
-	case 4:
-		this->parameters[0]["MK_n_H4"] += time * P.mu;
-		break;
-	case 5:
-		this->parameters[0]["MK_n_H5"] += time * P.mu;
-		break;
-	case 6:
-		this->parameters[0]["MK_n_H6"] += time * P.mu;
-		break;
-	case 7:
-		this->parameters[0]["MK_n_H7"] += time * P.mu;
-		break;
-	case 8:
-		this->parameters[0]["MK_n_H8"] += time * P.mu;
-		break;
-	case 9:
-		this->parameters[0]["MK_n_H9"] += time * P.mu;
-		break;
-	case 10:
-		this->parameters[0]["MK_n_H10"] += time * P.mu;
-		break;
-	default:
-		break;
-	}
+	this->parameters[0]["MK_n_" + name_H] += time * P.mu;
+	this->parameters[0]["MK_Vx_" + name_H] += time * P.mu * P.Vel[0];
+	this->parameters[0]["MK_Vy_" + name_H] += time * P.mu * P.Vel[1];
+	this->parameters[0]["MK_Vz_" + name_H] += time * P.mu * P.Vel[2];
+	this->parameters[0]["MK_T_" + name_H] += time * P.mu * kvv(P.Vel[0], P.Vel[1], P.Vel[2]);
 
 	this->mut.unlock();
 }
@@ -1302,55 +1385,26 @@ void Cell::MK_normir_Moments(Phys_param* phys_param)
 		this->mas_pogl /= this->volume[0];
 	}
 
-	// Нормируем на объём ячейки плотности 
+	// Общие моменты
 	if (this->parameters[0].find("MK_n_H") != this->parameters[0].end())
 	{
 		this->parameters[0]["MK_n_H"] /= this->volume[0];
 	}
 
-	if (this->parameters[0].find("MK_n_H1") != this->parameters[0].end())
+	// Моменты по сортам водорода
+	vector<string> names_H = { "H1","H2","H3","H4","H5","H6","H7","H8","H9","H10" };
+	for (const auto& name : names_H)
 	{
-		this->parameters[0]["MK_n_H1"] /= this->volume[0];
-	}
+		if (this->parameters[0].find("MK_n_" + name) != this->parameters[0].end())
+		{
+			this->parameters[0]["MK_Vx_" + name] /= (this->parameters[0]["MK_n_" + name]);
+			this->parameters[0]["MK_Vy_" + name] /= (this->parameters[0]["MK_n_" + name]);
+			this->parameters[0]["MK_Vz_" + name] /= (this->parameters[0]["MK_n_" + name]);
+			this->parameters[0]["MK_T_" + name] = (2.0/3.0) * (this->parameters[0]["MK_n_" + name]/ this->parameters[0]["MK_n_" + name] - 
+				kvv(this->parameters[0]["MK_Vx_" + name], this->parameters[0]["MK_Vy_" + name], this->parameters[0]["MK_Vz_" + name]));
 
-	if (this->parameters[0].find("MK_n_H2") != this->parameters[0].end())
-	{
-		this->parameters[0]["MK_n_H2"] /= this->volume[0];
-	}
-
-	if (this->parameters[0].find("MK_n_H3") != this->parameters[0].end())
-	{
-		this->parameters[0]["MK_n_H3"] /= this->volume[0];
-	}
-
-	if (this->parameters[0].find("MK_n_H4") != this->parameters[0].end())
-	{
-		this->parameters[0]["MK_n_H4"] /= this->volume[0];
-	}
-
-	if (this->parameters[0].find("MK_n_H5") != this->parameters[0].end())
-	{
-		this->parameters[0]["MK_n_H5"] /= this->volume[0];
-	}
-
-	if (this->parameters[0].find("MK_n_H6") != this->parameters[0].end())
-	{
-		this->parameters[0]["MK_n_H6"] /= this->volume[0];
-	}
-
-	if (this->parameters[0].find("MK_n_H7") != this->parameters[0].end())
-	{
-		this->parameters[0]["MK_n_H7"] /= this->volume[0];
-	}
-
-	if (this->parameters[0].find("MK_n_H8") != this->parameters[0].end())
-	{
-		this->parameters[0]["MK_n_H8"] /= this->volume[0];
-	}
-
-	if (this->parameters[0].find("MK_n_H9") != this->parameters[0].end())
-	{
-		this->parameters[0]["MK_n_H9"] /= this->volume[0];
+			this->parameters[0]["MK_n_" + name] /= this->volume[0];
+		}
 	}
 
 

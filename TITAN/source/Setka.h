@@ -234,6 +234,9 @@ public:
 	// в другой программе начинать считать пуи не сначала а с какого-то момента
 
 	void Save_cell_MK_parameters(string filename);
+	// Записывает в файл все параметры в ячейках, которые есть в vector<string> MK_param; из Phys_param
+
+
 	void Download_cell_parameters(string filename);
 	void Download_cell_MK_parameters(string filename, short int zone_except);
 	// zone_except - какую зону исключить из считывания (чтобы не испортить новые посчитанные в ней значения)

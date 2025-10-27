@@ -4231,7 +4231,7 @@ void Setka::Save_cell_MK_parameters(string filename)
 
 	bool bb;
 
-	// Записываем для будующих считываний
+	// Записываем для будущих считываний
 	bb = false;
 	for (int i = 0; i < 1000; i++)
 	{

@@ -23,6 +23,7 @@ enum class Type_Gran_surf;
 #define pow3(x) ((x) * (x) * (x))
 #define pow4(x) ((x) * (x) * (x) * (x))
 #define pow5(x) ((x) * (x) * (x) * (x) * (x))
+#define pow6(x) ((x) * (x) * (x) * (x) * (x) * (x))
 #define kvg(x) (pow(x, 2.0 * this->phys_param->gamma))
 #define kyb(x) ((x) * (x) * (x))
 #define kvv(x, y, z) ((x) * (x) + (y) * (y) + (z) * (z))
@@ -95,6 +96,7 @@ typedef KKexact::Point_2 Point2;
 
 #define sqrtpi_ 1.77245385
 const double const_pi = 3.14159265358979323846;
+const double sqrt_pi = sqrt(const_pi);
 const double cpi4 = 4.0 * const_pi;
 const double cpi8 = 8.0 * const_pi;
 const double spi4 = sqrt(cpi4);
