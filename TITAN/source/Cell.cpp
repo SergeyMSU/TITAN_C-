@@ -1408,7 +1408,7 @@ void Cell::MK_normir_Moments(Phys_param* phys_param)
 			this->parameters[0]["MK_Vx_" + name] /= (this->parameters[0]["MK_n_" + name]);
 			this->parameters[0]["MK_Vy_" + name] /= (this->parameters[0]["MK_n_" + name]);
 			this->parameters[0]["MK_Vz_" + name] /= (this->parameters[0]["MK_n_" + name]);
-			this->parameters[0]["MK_T_" + name] = (2.0/3.0) * (this->parameters[0]["MK_n_" + name]/ this->parameters[0]["MK_n_" + name] - 
+			this->parameters[0]["MK_T_" + name] = (2.0/3.0) * (this->parameters[0]["MK_T_" + name]/ this->parameters[0]["MK_n_" + name] - 
 				kvv(this->parameters[0]["MK_Vx_" + name], this->parameters[0]["MK_Vy_" + name], this->parameters[0]["MK_Vz_" + name]));
 
 			this->parameters[0]["MK_n_" + name] /= this->volume[0];
