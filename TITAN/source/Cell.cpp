@@ -1391,6 +1391,14 @@ void Cell::MK_normir_Moments(Phys_param* phys_param)
 		this->parameters[0]["MK_n_H"] /= this->volume[0];
 	}
 
+	if (this->parameters[0].find("MK_IVx_H") != this->parameters[0].end())
+	{
+		this->parameters[0]["MK_IVx_H"] *= (phys_param->par_n_H_LISM/this->volume[0]);
+		this->parameters[0]["MK_IVy_H"] *= (phys_param->par_n_H_LISM/this->volume[0]);
+		this->parameters[0]["MK_IVz_H"] *= (phys_param->par_n_H_LISM/this->volume[0]);
+		this->parameters[0]["MK_IT_H"] *= (phys_param->par_n_H_LISM/this->volume[0]);
+	}
+
 	// Моменты по сортам водорода
 	vector<string> names_H = { "H1","H2","H3","H4","H5","H6","H7","H8","H9","H10" };
 	for (const auto& name : names_H)
