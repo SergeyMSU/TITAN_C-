@@ -1534,9 +1534,17 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 	auto start = std::chrono::high_resolution_clock::now();
 	cout << "Start MK_go " << zone_MK << "   N_on_gran = " << N_per_gran << endl;
 	int N_on_gran = N_per_gran;   // —колько запускаем частиц на грань в среднем
+	
 	double mu_expect = 0.0;
 	mu_expect = this->MK_Potoks[zone_MK - 1] / 
 		(1.0 * N_on_gran * this->MK_Grans[zone_MK - 1].size());
+
+	vector<double>mu_expect_per_sort(this->phys_param->num_H);
+	for (short int i = 0; i < this->phys_param->num_H; i++)
+	{
+		mu_expect_per_sort[i] = max(this->MK_Potoks_on_sort[zone_MK - 1][i], this->MK_Potoks[zone_MK - 1]/1000.0) /
+			(1.0 * N_on_gran * this->MK_Grans[zone_MK - 1].size());
+	}
 
 	cout << "All potok = " << this->MK_Potoks[zone_MK - 1] << endl;
 	//exit(-1);
@@ -1693,8 +1701,19 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 			}
 
 			// –асчитываем число запускаемых частиц
-			unsigned int N_particle = max(static_cast<int>(func->SpotokV / mu_expect) + 1,
+			
+			//unsigned int N_particle = max(static_cast<int>(func->SpotokV / mu_expect) + 1,
+			//	min(N_on_gran, 1000));
+
+
+			unsigned int N_particle = max(static_cast<int>(func->SpotokV / mu_expect_per_sort[nh_]) + 1,
 				min(N_on_gran, 1000));
+
+			// ћало ли какой там поток, всЄ-равно больше планируемого числа запускать не надо
+			if (N_particle > N_on_gran) N_particle = N_on_gran;
+
+
+
 			double mu = func->SpotokV / N_particle; // ¬ес каждой частицы
 
 			#pragma omp critical (second) 
