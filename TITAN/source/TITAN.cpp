@@ -74,7 +74,7 @@ int main()
 
     if (true)
     {
-        S1.Algoritm(2);
+        S1.Algoritm(8);
         //S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
         //S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
 
@@ -100,7 +100,7 @@ int main()
         S1.Print_pui(100.0, 0.0, 0.0);
         S1.Print_pui(200.0, 0.0, 0.0);*/
 
-        //return 0;
+        return 0;
     }
 
 

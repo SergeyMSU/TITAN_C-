@@ -408,9 +408,22 @@ void Setka::Algoritm(short int alg)
 			//cout << "C" << endl;
 		}
 
+		// —читываем моменты
+		if (this->phys_param->culc_cell_moments == true)
+		{
+			if (file_exists(this->phys_param->MK_file))
+			{
+				this->Download_cell_MK_parameters(this->phys_param->MK_file, 1000);
+			}
+		}
+
 		cout << "Arrays read successfully" << endl;
 
-		mas_pogl_Culc(1.0, 0.0, 0.0, "upwind");
+		mas_pogl_Culc( 1.0, 0.0, 0.0, "upwind");
+		mas_pogl_Culc( 0.0, 1.0, 0.0, "crosswind1");
+		mas_pogl_Culc( 0.0, 1.0, 1.0, "crosswind2");
+		mas_pogl_Culc( 0.0, 0.0, 1.0, "crosswind3");
+		mas_pogl_Culc(-1.0, 0.0, 0.0, "downwind");
 
 		cout << "Removing arrays" << endl;
 
