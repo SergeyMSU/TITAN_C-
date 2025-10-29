@@ -424,6 +424,9 @@ void Setka::Algoritm(short int alg)
 		mas_pogl_Culc( 0.0, 1.0, 1.0, "crosswind2");
 		mas_pogl_Culc( 0.0, 0.0, 1.0, "crosswind3");
 		mas_pogl_Culc(-1.0, 0.0, 0.0, "downwind");
+		mas_pogl_Culc(-1.0, 1.0, 0.0, "tail1");
+		mas_pogl_Culc(-1.0, 0.70710678, 0.70710678, "tail2");
+		mas_pogl_Culc(-1.0, 0.0, 1.0, "tail3");
 
 		cout << "Removing arrays" << endl;
 
