@@ -899,6 +899,7 @@ void AMR_cell::Save_cell(std::ofstream& out)
 void AMR_cell::Read_cell(std::ifstream& in)
 {
 	in.read(reinterpret_cast<char*>(&this->f), sizeof(double));
+	if (this->f < 0.0) this->f = 0.0;
 	in.read(reinterpret_cast<char*>(&this->level), sizeof(unsigned short int));
 
 	size_t dims[3];

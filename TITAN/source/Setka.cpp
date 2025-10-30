@@ -228,7 +228,7 @@ void Setka::Algoritm(short int alg)
 		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(7); zones_n_koeff.push_back(1.0);*/
 
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(3); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(4); zones_n_koeff.push_back(2.0);
@@ -440,8 +440,8 @@ void Setka::Algoritm(short int alg)
 	}
 	else if (alg == 9)
 	{
-		short int sortH = 1; // Какой сорт водорода будет менять?  1-4
-		double Diapazon = 70.0; // Какой новый диапазон функции
+		short int sortH = 2; // Какой сорт водорода будет менять?  1-4
+		double Diapazon = 50.0; // Какой новый диапазон функции
 
 		if (true)
 		{
