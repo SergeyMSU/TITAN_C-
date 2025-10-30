@@ -190,7 +190,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 	// Считаем движение HP
 	if (this->phys_param->move_HP == true)
 	{
-#pragma omp parallel for private(dsr, dsc, dsl)
+		#pragma omp parallel for private(dsr, dsc, dsl)
 		for (int i_step = 0; i_step < this->Gran_HP.size(); i_step++)
 		{
 			auto gr = this->Gran_HP[i_step];
@@ -365,7 +365,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 	// Считаем движение BS
 	if (this->phys_param->move_BS == true)
 	{
-#pragma omp parallel for private(dsr, dsc, dsl)
+		#pragma omp parallel for private(dsr, dsc, dsl)
 		for (int i_step = 0; i_step < this->Gran_BS.size(); i_step++)
 		{
 			auto gr = this->Gran_BS[i_step];
@@ -1211,6 +1211,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		}
 	}
 
+
 	// Вычисляем новые координаты узлов на поверхности
 	for (auto& yz : this->All_Yzel)
 	{
@@ -1269,6 +1270,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			yz->coord[now2][2] = A[2];
 		}
 	}
+
 
 	// Остальные узлы на HP (невыделяемой части) надо подвинуть
 	if (this->phys_param->move_HP == true)

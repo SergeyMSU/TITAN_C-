@@ -173,6 +173,7 @@ void Setka::Algoritm(short int alg)
 	// 6 - Вычисление функции h0 для розыгрыша пикапов (она считается один раз для каждого сечения перезарядки)
 	// 7 - Вычисление всех интеграллов в ячейках для розыгрыша пикапов (частота и т.д.)
 	// 8 - Вычисление поглощения вдоль заданных лучей
+	// 9 - перемасштабирование функций распредления водорода, без потери значений
 
 	cout << "Start Algoritm " << alg << endl;
 
@@ -215,19 +216,19 @@ void Setka::Algoritm(short int alg)
 
 		vector<short int> zones_number;
 		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
-		zones_number.push_back(6); zones_n_koeff.push_back(2.5); // 2.5
+		/*zones_number.push_back(6); zones_n_koeff.push_back(2.5); // 2.5
 		zones_number.push_back(4); zones_n_koeff.push_back(2.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);*/
 
 		/*zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(7); zones_n_koeff.push_back(1.0);*/
 
-		//zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(3); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(4); zones_n_koeff.push_back(2.0);
@@ -436,6 +437,99 @@ void Setka::Algoritm(short int alg)
 			A->Delete_mas_pogl();
 		}
 
+	}
+	else if (alg == 9)
+	{
+		short int sortH = 1; // Какой сорт водорода будет менять?  1-4
+		double Diapazon = 70.0; // Какой новый диапазон функции
+
+		if (true)
+		{
+			unsigned int in = 0;
+
+			#pragma omp parallel for schedule(dynamic)
+			for (size_t idx = 0; idx < this->All_Gran.size(); ++idx)
+			//for (auto& gr : this->All_Gran)
+			{
+				auto gr = this->All_Gran[idx];
+				#pragma omp critical (gergergerg4) 
+				{
+					in++;
+					if (in % 50000 == 0)
+					{
+						cout << "Gran: " << in << "  /  " << this->All_Gran.size() << endl;
+					}
+				}
+				for (int ii = 0; ii <= 1; ii++)
+				{
+					string name_f = this->phys_param->AMR_folder + "/" + "func_grans_AMR_" + to_string(ii) + "_H" +
+						to_string(sortH) + "_" + to_string(gr->number) + ".bin";
+					if (std::filesystem::exists(name_f))
+					{
+						// Выделяем место под AMR, сколько сортов водорода, столько и места
+						if (gr->AMR.size() < this->phys_param->num_H)
+						{
+							gr->AMR.resize(this->phys_param->num_H);
+							for (size_t i = 0; i < this->phys_param->num_H; i++)
+							{
+								gr->AMR[i][0] = nullptr;
+								gr->AMR[i][1] = nullptr;
+							}
+						}
+						
+						// Считываем AMR
+						gr->Read_AMR(ii, sortH, this->phys_param, false);
+						auto func = gr->AMR[sortH - 1][ii];
+
+						std::vector<AMR_cell*> cells_amr;
+						std::vector<std::pair<Point, size_t>> points; // точки и их номера для построения триангуляции
+						std::vector <Int_point*> ALL_Cells;     // Точки в которых хранятся параметры
+						std::array<double, 3> center;
+						Delaunay* Delone;
+						double Vx, Vy, Vz;
+						unsigned int i = 0;
+
+						func->Get_all_cells(cells_amr);
+						for (const auto& cell : cells_amr)
+						{
+							cell->Get_Center(func, center);
+							//func->Get_real_koordinate(center[0], center[1], center[2], Vx, Vy, Vz);
+							auto A = new Int_point(center[0], center[1], center[2]);
+							A->parameters["f"] = cell->f;
+							points.push_back({ {center[0], center[1], center[2]}, i });
+							ALL_Cells.push_back(A);
+							i++;
+						}
+
+						Delone = new Delaunay(points.begin(), points.end());
+
+						auto new_func = new AMR_f();
+						new_func->AMR_self = new_func;
+
+						new_func->AMR_resize(0.0, Diapazon, -Diapazon, Diapazon,                      // ЗДЕСЬ НАПИСАН ДИАПОЗОН ИЗМЕНЕНИЯ
+							-Diapazon, Diapazon, 3, 6, 6);
+
+						new_func->Copy_and_Refine(ALL_Cells, Delone);
+
+						//cout << "Copy_and_Refine:  " << func->Size() << "   " << new_func->Size() << endl;
+
+						func->Delete();
+						gr->AMR[sortH - 1][ii] = new_func;
+
+						delete Delone;
+						for (auto& i : ALL_Cells)
+						{
+							delete i;
+						}
+						ALL_Cells.clear();
+						std::filesystem::remove(name_f);
+						new_func->Save(name_f);
+
+						gr->AMR.clear();
+					}
+				}
+			}
+		}
 	}
 
 	cout << "End Algoritm " << alg << endl;
@@ -4520,7 +4614,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 	{
 		fout << ", " << nam;
 	}
-	fout << ", Mach, BB_8pi, rho_Th, p_Th, T_Th";
+	fout << ", Mach, Mach_Alf, BB_8pi, rho_Th, p_Th, T_Th";
 	fout << endl;
 
 	fout << "ZONE T=HP, ";
@@ -4671,11 +4765,17 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			double krho = 1.0;
 			if (razmer == true) krho = this->phys_param->Get_razmer("rho");
 
+			double Mach_alf = sqrt(parameters["rho"]) * norm2(parameters["Vx"], parameters["Vy"], parameters["Vz"]) /
+				sqrt(norm2(parameters["Bx"], parameters["By"], parameters["Bz"]) / (4.0 * const_pi));
 			double Mach = sqrt(parameters["rho"]) * norm2(parameters["Vx"], parameters["Vy"], parameters["Vz"]) /
 				sqrt(this->phys_param->gamma * parameters["p"]);
-			if (parameters["rho"] <= 0.0) Mach = 0.0;
+			if (parameters["rho"] <= 0.0)
+			{
+				Mach = 0.0;
+				Mach_alf = 0.0;
+			}
 
-			fout << " " << Mach << " "
+			fout << " " << Mach << " " << Mach_alf << " "
 				<< norm2(parameters["Bx"], parameters["By"], parameters["Bz"]) / (8.0 * const_pi) << 
 				" " << rho_Th * krho  << " " << p_Th * kp << " " << T_Th * kT;
 

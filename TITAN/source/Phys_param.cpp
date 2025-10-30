@@ -1023,6 +1023,16 @@ void Phys_param::chlld(unsigned short int n_state, // метод
     double cfL = (qp + qm) / 2.0;
     double ptL = p1 + b2L / 2.0;
 
+    
+    /*double cfL2 = sqrt((cL * cL + b21) / 2.0 + sqrt(kv(cL * cL + b21) / 4.0 - cL * cL * aaL * aaL));
+    if (fabs(cfL2 - cfL) > 0.00001)
+    {
+        cout << "DO = " << cfL << endl;
+        cout << "Posle = " << cfL2 << endl;
+        cout << "aa = " << aaL * aaL << "  " << b21 << endl;
+        exit(-1);
+    }*/
+
     double aaR = bR(0) / sqrt(r2);
     double b2R = bR.dot(bR);
     double b22 = b2R / r2;

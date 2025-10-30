@@ -695,6 +695,63 @@ unsigned int AMR_f::de_Refine(void)
 	return N_delete;
 }
 
+void AMR_f::Copy_and_Refine(std::vector<Int_point*>& Cells, Delaunay* Delone)
+{
+	std::vector<AMR_cell*> cells; 
+	std::array<double, 3> center;
+
+	std::unordered_map < string, double> parameters;
+	Cell_handle prev_cell = Cell_handle();
+	Cell_handle next_cell;
+	unsigned int K2 = 10000;
+	unsigned int kk = 0;
+
+	while (K2 > 1)
+	{
+		cells.clear();
+		this->Get_all_cells(cells);
+		kk++;
+		for (const auto& i : cells)
+		{
+			i->Get_Center(this->AMR_self, center);
+			Get_param_amr(center[0], center[1], center[2], parameters, Cells, Delone, prev_cell, next_cell);
+			prev_cell = next_cell;
+			i->f = parameters["f"];
+		}
+		K2 = this->Refine();
+		if (kk > 100)
+		{
+			cout << "kk > 100  " << kk << " " << K2 << endl;
+			break;
+		}
+	}
+
+	K2 = 10000;
+	kk = 0;
+	while (K2 > 1)
+	{
+		cells.clear();
+		this->Get_all_cells(cells);
+		kk++;
+		for (const auto& i : cells)
+		{
+			i->Get_Center(this->AMR_self, center);
+			Get_param_amr(center[0], center[1], center[2], parameters, Cells, Delone, prev_cell, next_cell);
+			prev_cell = next_cell;
+			i->f = parameters["f"];
+		}
+		K2 = this->de_Refine();
+		if (kk > 100)
+		{
+			cout << "kk > 100  " << kk << " " << K2 << endl;
+			break;
+		}
+	}
+
+
+
+}
+
 void AMR_f::Culc_gradients(void)
 {
 	std::vector<AMR_cell*> cells;

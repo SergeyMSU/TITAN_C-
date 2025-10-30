@@ -1549,6 +1549,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 
 	// Разыгрываем каждый сорт отдельно, так как для него нужны свои массивы
 	for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
+	//for (short int nh_ = 3; nh_ <= 3; ++nh_)
 	{
 		// Для каждого запускаемого сорта надо загрузить выходяющии функции распределения на всех гранях
 		// и входящую функуию только для текущей грани
@@ -1728,6 +1729,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 						{
 							cout << "Error  8765656431" << endl;
 							whach((int)gr->type);
+							whach(gr->number);
 							whach(gr->normal[0][0]);
 							whach(gr->normal[0][1]);
 							whach(gr->normal[0][2]);
@@ -1748,6 +1750,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 							gr->normal[0][0], gr->normal[0][1], gr->normal[0][2]) > 0.0)
 						{
 							cout << "Error  7411100090" << endl;
+							whach(gr->number);
 							whach(scalarProductFast(poz(0), poz(1), poz(2),
 								gr->normal[0][0], gr->normal[0][1], gr->normal[0][2]));
 							whach(poz(0));
@@ -1847,6 +1850,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 					P.coord[0] = P.cel->center[0][0];
 					P.coord[1] = P.cel->center[0][1];
 					P.coord[2] = P.cel->center[0][2];
+					whach(gr->number);
 				}
 
 

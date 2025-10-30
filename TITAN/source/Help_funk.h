@@ -74,3 +74,8 @@ bool findIntersection(const std::array<double, 3>& P1, const std::array<double, 
 double Velosity_1(const double& u, const double& cp);
 double Velosity_2(const double& u, const double& cp);
 double Velosity_3(const double& u, const double& cp);
+
+
+bool Get_param_amr(const double& x, const double& y, const double& z,
+	std::unordered_map<string, double>& parameters, std::vector <Int_point*>& Cells_1, Delaunay* Delone_1,
+	const Cell_handle& prev_cell, Cell_handle& next_cell);

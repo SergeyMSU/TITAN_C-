@@ -93,6 +93,9 @@ public:
 	unsigned int Refine(void);
 	unsigned int de_Refine(void);
 
+	void Copy_and_Refine(std::vector <Int_point*>& Cells, Delaunay* Delone);
+	// “екуща€ AMR функци€ заполн€ет свои центры €чеек на основе триангул€ции какой-то другой функции Cells и Delone
+
 
 	void Culc_gradients(void);
 	// ¬ каждой активной €чейке вычисл€ет градинты, использу€ соседей, дл€ последующего розыгрыша частиц со вторым пор€дком
