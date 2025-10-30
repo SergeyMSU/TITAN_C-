@@ -30,7 +30,7 @@ int main()
     cout << "C " << endl;
 
     //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
-    S1.Download_cell_parameters("parameters_0057.bin");   // 107
+    S1.Download_cell_parameters("parameters_0059.bin");   // 107
     //S1.Download_cell_parameters("parameters_0217.bin");   // 107
 
     //S1.PereInterpolate("For_intertpolate_219.bin", true);
@@ -72,7 +72,7 @@ int main()
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    if (true)
+    if (false)
     {
         S1.Algoritm(8);
         //S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
@@ -118,13 +118,13 @@ int main()
 
 
 
-    for (int i = 1; i <= 4 * 0; i++) // 6 * 2
+    for (int i = 1; i <= 6 * 12; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
 
-        S1.Go(false, 400, 1); // 400   1
-        S1.Go(true, 100, 1); // 400   1 
+        S1.Go(false, 50, 1); // 400   1
+        S1.Go(true, 666, 1); // 400   1 
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
 
@@ -158,7 +158,7 @@ int main()
         return 0;
     }
 
-    //S1.Save_cell_parameters("parameters_0230.bin");
+    S1.Save_cell_parameters("parameters_0060.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -169,8 +169,8 @@ int main()
     //S1.Save_for_interpolate("For_intertpolate_217.bin", true);
     //Interpol SS = Interpol("For_intertpolate_217.bin");
 
-    S1.Save_for_interpolate("For_intertpolate_137-.bin", false);
-    Interpol SS = Interpol("For_intertpolate_137-.bin");
+    S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
+    Interpol SS = Interpol("For_intertpolate_0059-.bin");
 
     cout << "AAA" << endl;
 
