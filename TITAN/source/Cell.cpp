@@ -18,8 +18,11 @@ void Cell::write_mas_pogl_ToFile(Phys_param* phys_param)
 
 
 	std::ofstream file(filename, std::ios::binary);
-	if (!file.is_open()) {
-		std::cerr << "Error ergeryr5y45tertgwergwtw " << filename << std::endl;
+	if (!file.is_open()) 
+	{
+		std::cerr << "Error ergeryr5y45tertgwergwtw  " << filename << std::endl;
+		std::cerr << "Error code: " << strerror(errno) << std::endl; // Добавьте эту строку
+		return;
 		exit(-1);
 	}
 
