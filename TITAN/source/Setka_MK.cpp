@@ -187,14 +187,23 @@ void Setka::Print_fH(short int zoneMK, Type_Gran_surf type, const double ex, con
 
 }
 
-void Setka::Print_poglosh_in_cell(void)
+void Setka::Print_f_proect_in_gran(short int nn)
 {
+	// nn == 1  TS
+	// nn == 2  HP
+	// nn == 3  BS
 	Eigen::Vector3d e;
 	e << 1.0, 0.0, 0.0;
 	Gran* gr2 = nullptr;
 	double s1 = -1.0;
 
-	for (const auto& gr1 : this->Gran_HP)
+	vector<Gran*>* List_Gran;
+
+	if (nn == 1) List_Gran = &this->Gran_TS;
+	if (nn == 2) List_Gran = &this->Gran_HP;
+	if (nn == 3) List_Gran = &this->Gran_BS;
+
+	for (const auto& gr1 : *List_Gran)
 	{
 		Eigen::Vector3d v1;
 		v1 << gr1->center[0][0], gr1->center[0][1], gr1->center[0][2];
@@ -206,7 +215,7 @@ void Setka::Print_poglosh_in_cell(void)
 		}
 	}
 
-	cout << "Gran center: " << gr2->center[0][0] << " " << gr2->center[0][1] << " " << gr2->center[0][2] << endl;
+	cout << "Print_f_proect_in_gran: Gran center: " << gr2->center[0][0] << " " << gr2->center[0][1] << " " << gr2->center[0][2] << endl;
 
 	Cell* A;
 	Cell* B;
@@ -221,7 +230,11 @@ void Setka::Print_poglosh_in_cell(void)
 	B->read_mas_pogl_FromFile(this->phys_param);
 
 	ofstream fout;
-	string name_f = "f_proekts_on_HP.txt";
+	string name_f;
+	if (nn == 1) name_f = "f_proekts_on_TS.txt";
+	if (nn == 2) name_f = "f_proekts_on_HP.txt";
+	if (nn == 3) name_f = "f_proekts_on_BS.txt";
+
 	fout.open(name_f);
 	fout << "TITLE = HP  VARIABLES = u, f1L, f1R, f2L, f2R, f3L, f3R, f4L, f4R" << endl;
 	double dv = (this->phys_param->pogl_R - this->phys_param->pogl_L) / this->phys_param->pogl_n;
@@ -242,6 +255,49 @@ void Setka::Print_poglosh_in_cell(void)
 
 	A->Delete_mas_pogl();
 	B->Delete_mas_pogl();
+}
+
+void Setka::Print_f_proect_in_cell(const double& x, const double& y, const double& z)
+{
+	Eigen::Vector3d e;
+	e << 1.0, 0.0, 0.0;
+	Gran* gr2 = nullptr;
+	double s1 = -1.0;
+
+	Cell* A = nullptr;
+	Cell* previos = nullptr;
+	
+	A = this->Find_cell_point(x, y, z, 0, previos);
+
+	if (A == nullptr) return;
+
+	cout << "Print_f_proect_in_cell: Cell center: " << A->center[0][0] << " " << A->center[0][1] << " " << A->center[0][2] << endl;
+
+	A->Init_mas_pogl(this->phys_param->pogl_n, this->phys_param->num_H);
+	A->read_mas_pogl_FromFile(this->phys_param);
+
+	ofstream fout;
+	string name_f = to_string(A->number) + "__" + to_string(x) + "_f_proekts_in_Cell.txt";
+
+	fout.open(name_f);
+	fout << "TITLE = HP  VARIABLES = u, f1, f2, f3, f4" << endl;
+	double dv = (this->phys_param->pogl_R - this->phys_param->pogl_L) / this->phys_param->pogl_n;
+
+	for (int j = 0; j < this->phys_param->pogl_n; j++)
+	{
+		fout << this->phys_param->pogl_L + dv * (j + 0.5) << " "; \
+
+			for (int i = 0; i < this->phys_param->num_H; i++)
+			{
+				fout << A->mas_pogl(i, j) << " ";
+			}
+
+		fout << endl;
+	}
+
+	fout.close();
+
+	A->Delete_mas_pogl();
 }
 
 void Setka::Set_MK_Zone(void)

@@ -462,9 +462,8 @@ void AMR_cell::Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi,
 			Vel[2] = (center[2] - razmer[2] / 2.0) +
 				Sens->MakeRandom() * (razmer[2]);
 		}
-
-		// Розыгрышь с плотностью: Vx
-		if (false)
+		// Розыгрышь с плотностью: Vx  -  точно нужен для ячеек вблизи нуля!
+		else if (center[0] - razmer[0] / 2.0 <= 0.0001)
 		{
 			double L = center[0] - razmer[0] / 2.0;
 			double R = center[0] + razmer[0] / 2.0;
@@ -475,9 +474,8 @@ void AMR_cell::Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi,
 			Vel[2] = (center[2] - razmer[2] / 2.0) +
 				Sens->MakeRandom() * (razmer[2]);
 		}
-
 		// Розыгрышь со вторым порядком методом отказов
-		if (true)
+		else if (true)
 		{
 			double x, y, z, ff;
 			do

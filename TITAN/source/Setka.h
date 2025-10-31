@@ -286,10 +286,12 @@ public:
 	// тип грани = type
 	// направление радиального вектора отличаетс€ от ex, ey, ez не более чем на угол dphi;
 
-	void Print_poglosh_in_cell(void);
+	void Print_f_proect_in_gran(short int nn);
 	// ѕечатает проекцию функции распределени€ в €чейке на лич зрени€ от солнца
 	// эти функции распределени€ нужны дл€ расчЄта поглощени€
 	// эта функци€ нужна дл€ проверки, что функци€ нормально переходит через поверхности
+
+	void Print_f_proect_in_cell(const double& x, const double& y, const double& z);
 
 
 	// ƒл€ Tecplot
