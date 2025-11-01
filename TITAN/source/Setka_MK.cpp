@@ -236,16 +236,36 @@ void Setka::Print_f_proect_in_gran(short int nn)
 	if (nn == 3) name_f = "f_proekts_on_BS.txt";
 
 	fout.open(name_f);
-	fout << "TITLE = HP  VARIABLES = u, f1L, f1R, f2L, f2R, f3L, f3R, f4L, f4R" << endl;
+	fout << "TITLE = HP  VARIABLES = u, f1L, f1R, f1L_fluid, f1Lmoment, f2L, f2R, f2L_fluid, f2Lmoment, f3L, f3R, f3L_fluid, f3Lmoment, f4L, f4R, f4L_fluid, f4Lmoment" << endl;
 	double dv = (this->phys_param->pogl_R - this->phys_param->pogl_L) / this->phys_param->pogl_n;
+
 
 	for (int j = 0; j < this->phys_param->pogl_n; j++)
 	{
-		fout << this->phys_param->pogl_L + dv * (j + 0.5) << " ";\
+		double VV = this->phys_param->pogl_L + dv * (j + 0.5);
+		fout << VV << " ";
 
 		for (int i = 0; i < this->phys_param->num_H; i++)
 		{
-			fout << A->mas_pogl(i, j) << " " << B->mas_pogl(i, j) << " ";
+			double u1 = A->parameters[0]["Vx_H" + to_string(i + 1)];
+			double u2 = A->parameters[0]["Vy_H" + to_string(i + 1)];
+			double u3 = A->parameters[0]["Vz_H" + to_string(i + 1)];
+			double n = A->parameters[0]["rho_H" + to_string(i + 1)];
+			double p = A->parameters[0]["p_H" + to_string(i + 1)];
+			double c = sqrt(2.0 * p / n);
+
+			double u1_MK = A->parameters[0]["MK_Vx_H" + to_string(i + 1)];
+			double u2_MK = A->parameters[0]["MK_Vy_H" + to_string(i + 1)];
+			double u3_MK = A->parameters[0]["MK_Vz_H" + to_string(i + 1)];
+			double n_MK = A->parameters[0]["MK_n_H" + to_string(i + 1)];
+			double p_MK = A->parameters[0]["MK_T_H" + to_string(i + 1)];
+			double c_MK = sqrt(p_MK);
+
+
+			fout << A->mas_pogl(i, j) * this->phys_param->par_n_H_LISM / dv << " " 
+				<< B->mas_pogl(i, j) * this->phys_param->par_n_H_LISM / dv << " " <<
+				n / (sqrt_pi * c) * exp(-kv(VV - u1) / kv(c)) * this->phys_param->par_n_H_LISM << " " <<
+				n_MK / (sqrt_pi * c_MK) * exp(-kv(VV - u1_MK) / kv(c_MK)) * this->phys_param->par_n_H_LISM << " ";
 		}
 
 		fout << endl;
@@ -280,16 +300,32 @@ void Setka::Print_f_proect_in_cell(const double& x, const double& y, const doubl
 	string name_f = to_string(A->number) + "__" + to_string(x) + "_f_proekts_in_Cell.txt";
 
 	fout.open(name_f);
-	fout << "TITLE = HP  VARIABLES = u, f1, f2, f3, f4" << endl;
+	fout << "TITLE = HP  VARIABLES = u, f1, f1_fluid, f1_moment, f2, f2_fluid, f2_moment, f3, f3_fluid, f3_moment, f4, f4_fluid, f4_moment" << endl;
 	double dv = (this->phys_param->pogl_R - this->phys_param->pogl_L) / this->phys_param->pogl_n;
 
 	for (int j = 0; j < this->phys_param->pogl_n; j++)
 	{
-		fout << this->phys_param->pogl_L + dv * (j + 0.5) << " "; \
+		double VV = this->phys_param->pogl_L + dv * (j + 0.5);
+		fout << VV << " "; 
 
 			for (int i = 0; i < this->phys_param->num_H; i++)
 			{
-				fout << A->mas_pogl(i, j) << " ";
+				double u1 = A->parameters[0]["Vx_H" + to_string(i + 1)];
+				double u2 = A->parameters[0]["Vy_H" + to_string(i + 1)];
+				double u3 = A->parameters[0]["Vz_H" + to_string(i + 1)];
+				double n = A->parameters[0]["rho_H" + to_string(i + 1)];
+				double p = A->parameters[0]["p_H" + to_string(i + 1)];
+				double c = sqrt(2.0 * p / n);
+
+				double u1_MK = A->parameters[0]["MK_Vx_H" + to_string(i + 1)];
+				double u2_MK = A->parameters[0]["MK_Vy_H" + to_string(i + 1)];
+				double u3_MK = A->parameters[0]["MK_Vz_H" + to_string(i + 1)];
+				double n_MK = A->parameters[0]["MK_n_H" + to_string(i + 1)];
+				double p_MK = A->parameters[0]["MK_T_H" + to_string(i + 1)];
+				double c_MK = sqrt(p_MK);
+				fout << A->mas_pogl(i, j) * this->phys_param->par_n_H_LISM / dv << " " <<
+					n / (sqrt_pi * c) * exp(-kv(VV - u1) / kv(c)) * this->phys_param->par_n_H_LISM << " " <<
+					n_MK / (sqrt_pi * c_MK) * exp(-kv(VV - u1_MK) / kv(c_MK)) * this->phys_param->par_n_H_LISM << " ";
 			}
 
 		fout << endl;

@@ -84,8 +84,13 @@ int main()
         S1.Print_f_proect_in_gran(3);
 
         S1.Print_f_proect_in_cell(10.0, 0.0, 0.0);
+        S1.Print_f_proect_in_cell(15.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(20.0, 0.0, 0.0);
-        S1.Print_f_proect_in_cell(40.0, 0.0, 0.0);*/
+        S1.Print_f_proect_in_cell(25.0, 0.0, 0.0);
+        S1.Print_f_proect_in_cell(30.0, 0.0, 0.0);
+        S1.Print_f_proect_in_cell(35.0, 0.0, 0.0);
+        S1.Print_f_proect_in_cell(40.0, 0.0, 0.0);
+        S1.Print_f_proect_in_cell(45.0, 0.0, 0.0);*/
 
         cout << "AABB" << endl;
         /*S1.Print_SpSm(17.0, 0.0, 0.0);
