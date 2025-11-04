@@ -76,6 +76,8 @@ int main()
     {
         // Планировал запустить дальше перестройку сорта 2, потом зоны 2, 4, 6
         S1.Algoritm(2);
+        //S1.Algoritm(8);
+        //S1.Algoritm(5);
         //S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
         //S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
 
@@ -90,6 +92,8 @@ int main()
         S1.Print_f_proect_in_cell(30.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(35.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(40.0, 0.0, 0.0);
+        S1.Print_f_proect_in_cell(70.0, 0.0, 0.0);
+        S1.Print_f_proect_in_cell(80.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(45.0, 0.0, 0.0);*/
 
         cout << "AABB" << endl;
