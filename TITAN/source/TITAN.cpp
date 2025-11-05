@@ -72,11 +72,11 @@ int main()
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    if (true)
+    if (false)
     {
         // Планировал запустить дальше перестройку сорта 2, потом зоны 2, 4, 6
-        S1.Algoritm(2);
-        /*S1.Algoritm(8);
+        //S1.Algoritm(2);
+        S1.Algoritm(8);
         S1.Algoritm(5);
         S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
         S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
@@ -95,7 +95,7 @@ int main()
         S1.Print_f_proect_in_cell(40.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(70.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(80.0, 0.0, 0.0);
-        S1.Print_f_proect_in_cell(45.0, 0.0, 0.0);*/
+        S1.Print_f_proect_in_cell(45.0, 0.0, 0.0);
 
         cout << "AABB" << endl;
         /*S1.Print_SpSm(17.0, 0.0, 0.0);
@@ -118,7 +118,7 @@ int main()
         S1.Print_pui(100.0, 0.0, 0.0);
         S1.Print_pui(200.0, 0.0, 0.0);*/
 
-        //return 0;
+        return 0;
     }
 
 
@@ -136,17 +136,17 @@ int main()
 
 
 
-    for (int i = 1; i <= 0; i++) // 6 * 2   12 * 5
+    for (int i = 1; i <= 6 * 8; i++) // 6 * 2   12 * 5
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
 
-        S1.Go(true, 600, 1); // 400   1
+        //S1.Go(true, 600, 1); // 400   1
         cout << "All time = " << S1.phys_param->ALL_Time << endl;
         cout << "All time (in days) = " << S1.phys_param->ALL_Time / 0.00142358 << endl;
         cout << "All time (in years) = " << S1.phys_param->ALL_Time / 0.519607 << endl;
-        //S1.Go(false, 400, 1); // 400   1
-        //S1.Go(true, 100, 1); // 400   1 
+        S1.Go(false, 400, 1); // 400   1
+        S1.Go(true, 100, 1); // 400   1 
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
 
@@ -160,7 +160,7 @@ int main()
         S1.Tecplot_print_all_gran_in_surface("BS");
 
         // Печать результатов
-        if (true)
+        if (false)
         {
             S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
             Interpol SS = Interpol("For_intertpolate_0059-.bin");

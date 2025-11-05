@@ -7,10 +7,10 @@ short int Gran::Get_method()
 	// 2 - HLLC
 	// 3 - HLLD
 
-	if (this->type2 != Type_Gran_surf::Us) return 3;
-	return 0;
+	//if (this->type2 != Type_Gran_surf::Us) return 3;
+	//return 0;
 
-	//return 3;
+	return 3;
 }
 
 
@@ -243,7 +243,7 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 	outfile << "ZONE I = " << Nx << ", J = " << Ny << ", F = POINT" << endl;
 
 	outfile2 << "TITLE = AMR Distribution" << endl;
-	outfile2 << "VARIABLES = Vx, f" << endl;
+	outfile2 << "VARIABLES = Vx, f, f_maxwell" << endl;
 
 	// Печатаем массив с координатами
 	for (int k2 = 0; k2 < Ny; k2++)  // сначала по Y
@@ -252,7 +252,6 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 		{
 			Vx = VxL + (VxR - VxL) * (k1 + 0.5) / Nx;
 			Vy = VyL + (VyR - VyL) * (k2 + 0.5) / Ny;
-
 			outfile << Vx << " " << Vy << " " << fff[k1][k2] << endl;
 		}
 	}
@@ -260,8 +259,11 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 	for (int k1 = 0; k1 < Nx; k1++)  // потом по X
 	{
 		Vx = VxL + (VxR - VxL) * (k1 + 0.5) / Nx;
-
-		outfile2 << Vx << " " << f1d[k1] << endl;
+		double u1 = -2.54327;
+		double n = 1.0;
+		double c = 1.0;
+		outfile2 << Vx << " " << f1d[k1] << " " <<
+			n / (sqrt_pi * c) * exp(-kv(Vx - u1) / kv(c))  << endl;
 	}
 
 	// Закрываем файл

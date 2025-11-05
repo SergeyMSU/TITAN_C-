@@ -1641,7 +1641,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	cout << "Vibor area" << endl;
 	// Если хотим отдельно считать внутреннюю и наружнюю области
-	if (false)
+	if (true)
 	{
 		if (is_inner_area == true)
 		{
@@ -1729,7 +1729,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		//omp_set_num_threads(1); // 32
 		
 		// Обновляем граничное условие
-		if (true)
+		if (false)
 		{
 			this->Init_physics_with_time(this->phys_param->ALL_Time);
 		}

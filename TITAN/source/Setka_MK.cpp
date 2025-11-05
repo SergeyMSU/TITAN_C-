@@ -104,8 +104,8 @@ void Setka::Print_fH(short int zoneMK, Type_Gran_surf type, const double ex, con
 
 	vector<Gran*> Gran_for_print;
 
-	//Gran* gr2 = nullptr;
-	//double s1 = -1.0;
+	Gran* gr2 = nullptr;
+	double s1 = -1.0;
 	Eigen::Vector3d e;
 	e << ex, ey, ez;
 
@@ -118,11 +118,20 @@ void Setka::Print_fH(short int zoneMK, Type_Gran_surf type, const double ex, con
 		double d = e.dot(v1) / v1.norm() / e.norm();   // Это косинус угла между гранями
 		if (acos(d) <= dphi)
 		{
-			Gran_for_print.push_back(gr1);
+			//Gran_for_print.push_back(gr1);
+
 			//s1 = d;
 			//gr2 = gr1;
 		}
+
+		if (d > s1)
+		{
+			s1 = d;
+			gr2 = gr1;
+		}
 	}
+
+	Gran_for_print.push_back(gr2);
 
 	if (Gran_for_print.size() == 0)
 	{
@@ -1640,8 +1649,8 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 	unsigned int k1 = 0;
 
 	// Разыгрываем каждый сорт отдельно, так как для него нужны свои массивы
-	for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
-	//for (short int nh_ = 3; nh_ <= 3; ++nh_)
+	//for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
+	for (short int nh_ = 3; nh_ <= 3; ++nh_)
 	{
 		// Для каждого запускаемого сорта надо загрузить выходяющии функции распределения на всех гранях
 		// и входящую функуию только для текущей грани
@@ -2351,6 +2360,13 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 		ro = rho_Th;
 		cp = sqrt(2.0 * p_Th / rho_Th);
+
+
+		ro = 1.0;
+		cp = 1.0;
+		vx = this->phys_param->Velosity_inf;
+		vy = 0.0;
+		vz = 0.0;
 		
 
 		// ---------------------------------------------------------------
