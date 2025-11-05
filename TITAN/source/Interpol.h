@@ -35,16 +35,16 @@ public:
 	boost::multi_array<Int_point*, 2> Cells_HP_2;
 
 
-	Delaunay* Delone_1;
-	Delaunay* Delone_2;
-	Delaunay* Delone_3;
-	Delaunay* Delone_4;
-	Delaunay* Delone_5;
-	Delaunay* Delone_6;
+	Delaunay* Delone_1 = nullptr;
+	Delaunay* Delone_2 = nullptr;
+	Delaunay* Delone_3 = nullptr;
+	Delaunay* Delone_4 = nullptr;
+	Delaunay* Delone_5 = nullptr;
+	Delaunay* Delone_6 = nullptr;
 
-	Delaunay2* Delone_TS;
-	Delaunay2* Delone_BS;
-	Delaunay2* Delone_HP_1;
+	Delaunay2* Delone_TS = nullptr;
+	Delaunay2* Delone_BS = nullptr;
+	Delaunay2* Delone_HP_1 = nullptr;
 
 	vector<string> param_names;  // Названия всех хранящихся переменных
 

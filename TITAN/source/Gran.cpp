@@ -317,7 +317,7 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 
 			if (N < Nmax)
 			{
-				this->AMR[nH - 1][ni]->Refine();
+				this->AMR[nH - 1][ni]->Refine(nH);
 			}
 			else
 			{

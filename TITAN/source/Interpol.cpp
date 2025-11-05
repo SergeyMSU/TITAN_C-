@@ -372,6 +372,7 @@ Interpol::Interpol(string name)
 
 Interpol::~Interpol()
 {
+    cout << "Start ~Interpol()" << endl;
     for (auto it = this->Cells_HP_2.data(); it != this->Cells_HP_2.data() + this->Cells_HP_2.num_elements(); ++it)
     {
         delete* it;
@@ -396,16 +397,18 @@ Interpol::~Interpol()
     clearVector(Cells_BS);
     clearVector(Cells_HP_1);
 
+
     // Удаляем объекты Delaunay
-    delete Delone_1;
-    delete Delone_2;
-    delete Delone_3;
-    delete Delone_4;
-    delete Delone_5;
-    delete Delone_6;
-    delete Delone_TS;
-    delete Delone_BS;
-    delete Delone_HP_1;
+    if (Delone_1 != nullptr) delete Delone_1;
+    if (Delone_2 != nullptr) delete Delone_2;
+    if (Delone_3 != nullptr) delete Delone_3;
+    if (Delone_4 != nullptr) delete Delone_4;
+    if (Delone_5 != nullptr) delete Delone_5;
+    if (Delone_6 != nullptr) delete Delone_6;
+    if (Delone_TS != nullptr) delete Delone_TS;
+    if (Delone_BS != nullptr) delete Delone_BS;
+    if (Delone_HP_1 != nullptr) delete Delone_HP_1;
+
 
     // Обнуляем указатели (опционально, но хорошая практика)
     Delone_1 = nullptr;
@@ -418,7 +421,9 @@ Interpol::~Interpol()
     Delone_BS = nullptr;
     Delone_HP_1 = nullptr;
 
+
     this->param_names.clear();
+    cout << "End ~Interpol()" << endl;
 }
 
 // Вычисление объёма тетраэдра

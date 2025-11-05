@@ -481,7 +481,7 @@ void AMR_f::Fill_maxwel_inf(const double& Vinf)
 			//cel->f = maxwell(1.0, 1.0, Vinf, 0.0, 0.0, ee[0], ee[1], ee[2]);
 		}
 
-		NN = this->Refine();
+		NN = this->Refine(0);
 		Nall = cells.size();
 	}
 
@@ -544,7 +544,7 @@ void AMR_f::Fill_test(void)
 	}
 }
 
-unsigned int AMR_f::de_Refine(void)
+unsigned int AMR_f::de_Refine(short int H_n)
 {
 	// —начала нужно дл€ всех €чеек (даже разделЄнных) посчитать значени€ переменных
 	size_t dim1 = this->cells.shape()[0];
@@ -623,6 +623,29 @@ unsigned int AMR_f::de_Refine(void)
 		if (mu * 100.0 / this->Sfu > procent) parent->flags.is_signif = true;
 		if (mux * 100.0 / this->Sfux > procent) parent->flags.is_signif = true;
 		if (muu * 100.0 / this->Sfuu > procent) parent->flags.is_signif = true;
+
+
+		// —пециальное разбиение вокруг проблемной точки
+		parent->Get_Center(this->AMR_self, center, razmer);
+		if (true && (H_n == 3 || H_n == 4))
+		{
+			double LL = center[0] - razmer[0] / 2.0;
+			double RR = center[0] + razmer[0] / 2.0;
+			if (center[0] < -5.0 && center[0] > -7.0 && razmer[0] > 0.3)
+			{
+				parent->flags.need_devide_x = false;
+			}
+			else if (LL < -5.0 && LL > -7.0 && razmer[0] > 0.3)
+			{
+				parent->flags.need_devide_x = false;
+			}
+			else if (RR < -5.0 && RR > -7.0 && razmer[0] > 0.3)
+			{
+				parent->flags.need_devide_x = false;
+			}
+			continue;
+		}
+
 
 		if (parent->flags.is_signif == false)
 		{
@@ -718,7 +741,7 @@ void AMR_f::Copy_and_Refine(std::vector<Int_point*>& Cells, Delaunay* Delone)
 			prev_cell = next_cell;
 			i->f = parameters["f"];
 		}
-		K2 = this->Refine();
+		K2 = this->Refine(0);
 		if (kk > 100)
 		{
 			cout << "kk > 100  " << kk << " " << K2 << endl;
@@ -762,8 +785,9 @@ void AMR_f::Culc_gradients(void)
 	}
 }
 
-unsigned int AMR_f::Refine(void)
+unsigned int AMR_f::Refine(short int H_n)
 {
+	// H_n может понадобитьс€ дл€ особого мельчени€ разных сортов
 	this->Sf = 0.0;
 	this->Sfu = 0.0;
 	this->Sfux = 0.0;
@@ -809,7 +833,7 @@ unsigned int AMR_f::Refine(void)
 		if (muu * 100.0 / this->Sfuu > procent) i->flags.is_signif = true;
 
 		// —пециальное разбиение вокруг проблемной точки
-		if (true)
+		if (true && (H_n == 3 || H_n == 4))
 		{
 			double LL = center[0] - razmer[0] / 2.0;
 			double RR = center[0] + razmer[0] / 2.0;

@@ -90,8 +90,8 @@ public:
 	void Fill_null(void);
 	// Заполняем значищие ячейки нулём
 
-	unsigned int Refine(void);
-	unsigned int de_Refine(void);
+	unsigned int Refine(short int H_n = 0);
+	unsigned int de_Refine(short int H_n = 0);
 
 	void Copy_and_Refine(std::vector <Int_point*>& Cells, Delaunay* Delone);
 	// Текущая AMR функция заполняет свои центры ячеек на основе триангуляции какой-то другой функции Cells и Delone

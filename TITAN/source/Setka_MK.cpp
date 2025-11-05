@@ -1456,7 +1456,7 @@ void Setka::MK_delete(short int zone_MK)
 
 				for (short int iH = 1; iH <= gr->AMR.size(); iH++)
 				{
-					int iki = gr->AMR[iH - 1][ni]->de_Refine();
+					int iki = gr->AMR[iH - 1][ni]->de_Refine(iH);
 
 #pragma omp critical (third) 
 					{
@@ -1984,7 +1984,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 				gr->AMR[nh_][ni]->Normir_velocity_volume(gr->area[0]);
 				if (this->phys_param->de_refine_AMR == true)
 				{
-					gr->AMR[nh_][ni]->de_Refine();
+					gr->AMR[nh_][ni]->de_Refine(nh_ + 1);
 				}
 
 				string name_f = "func_grans_AMR_" + to_string(ni) + "_H" +
@@ -2039,7 +2039,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 					gr->AMR[j][ni]->Normir_velocity_volume(gr->area[0]);
 					if (this->phys_param->de_refine_AMR == true)
 					{
-						gr->AMR[j][ni]->de_Refine();
+						gr->AMR[j][ni]->de_Refine(j + 1);
 					}
 					string name_f = "func_grans_AMR_" + to_string(ni) + "_H" +
 						to_string(j + 1) + "_" + to_string(gr->number) + ".bin";
