@@ -372,14 +372,52 @@ Interpol::Interpol(string name)
 
 Interpol::~Interpol()
 {
-    delete Delone_1;
-    for (auto& i : this->Cells_1)
+    for (auto it = this->Cells_HP_2.data(); it != this->Cells_HP_2.data() + this->Cells_HP_2.num_elements(); ++it)
     {
-        delete i;
+        delete* it;
     }
 
-    this->Cells_1.clear();
-    this->points_1.clear();
+    // Функция для очистки вектора указателей
+    auto clearVector = [](auto& vec) {
+        for (auto ptr : vec) {
+            delete ptr;
+        }
+        vec.clear();
+        };
+
+    // Очищаем все векторы с Int_point*
+    clearVector(Cells_1);
+    clearVector(Cells_2);
+    clearVector(Cells_3);
+    clearVector(Cells_4);
+    clearVector(Cells_5);
+    clearVector(Cells_6);
+    clearVector(Cells_TS);
+    clearVector(Cells_BS);
+    clearVector(Cells_HP_1);
+
+    // Удаляем объекты Delaunay
+    delete Delone_1;
+    delete Delone_2;
+    delete Delone_3;
+    delete Delone_4;
+    delete Delone_5;
+    delete Delone_6;
+    delete Delone_TS;
+    delete Delone_BS;
+    delete Delone_HP_1;
+
+    // Обнуляем указатели (опционально, но хорошая практика)
+    Delone_1 = nullptr;
+    Delone_2 = nullptr;
+    Delone_3 = nullptr;
+    Delone_4 = nullptr;
+    Delone_5 = nullptr;
+    Delone_6 = nullptr;
+    Delone_TS = nullptr;
+    Delone_BS = nullptr;
+    Delone_HP_1 = nullptr;
+
     this->param_names.clear();
 }
 

@@ -218,6 +218,8 @@ public:
 	void Init_physics(void); // Заполняет начальные значения параметров в ячейках и граничные на гранях
 	// Предлагается задавать граничные условия на гранях (должно быть проще это обрабатывать)
 
+	void Init_physics_with_time(const double& time);
+
 	void Init_TVD(void);
 	// Инициализация соседей грани для ТВД процедуры
 
@@ -295,6 +297,9 @@ public:
 
 
 	// Для Tecplot
+
+	void Print_parameters_in_some_point(void);
+
 	void Tecplot_print_all_yzel_in_3D(string name);
 	// Печатает все узлы (но по слоям, чтобы можно было удобно их просмотреть)
 

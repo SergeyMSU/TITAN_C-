@@ -646,6 +646,93 @@ void Setka::Init_physics(void)
 	}
 }
 
+void Setka::Init_physics_with_time(const double& time)
+{
+	this->Calculating_measure(0);
+	this->Calculating_measure(1);
+	double x, y, z, r, the;
+	Eigen::Vector3d vec, cc, vv;
+	double BR, BPHI, V1, V2, V3, mV;
+
+
+	// Задаём граничные условия (на граничных гранях)
+	if (true)
+	{
+		for (auto& i : this->All_boundary_Gran)
+		{
+			if (i->type == Type_Gran::Inner_Hard)
+			{
+				x = i->center[0][0];
+				y = i->center[0][1];
+				z = i->center[0][2];
+				r = norm2(x, y, z);
+
+				vec << x, y, z;
+
+				cc = this->phys_param->Matr2 * vec;
+				the = acos(cc(2) / r);
+
+				the = -the + const_pi / 2.0;   // Т.к.в данных по СВ на 1 а.е.угол от - 90 до 90 у Алексашова
+
+				mV = this->phys_param->Get_v_0(the / const_pi * 180.0);
+
+				if (time < 0.0427075)  // 1 месяц
+				{
+					mV = mV * sqrt(1.3);
+				}
+
+				i->parameters["Vx"] = mV * vec(0) / r;
+				i->parameters["Vy"] = mV * vec(1) / r;
+				i->parameters["Vz"] = mV * vec(2) / r;
+			}
+		}
+	}
+
+	// Для первых ячеек задаём магнитное поле
+	if (true)
+	{
+		for (auto& i : this->All_Cell)
+		{
+			if (i->is_TVD == true) continue;
+
+			x = i->center[0][0];
+			y = i->center[0][1];
+			z = i->center[0][2];
+			r = norm2(x, y, z);
+
+			vec << x, y, z;
+
+			cc = this->phys_param->Matr2 * vec;
+			the = acos(cc(2) / r);
+
+			BR = -this->phys_param->B_0 * kv(this->phys_param->R_0 / r);
+			BPHI = -BR * sin(the) * (r / this->phys_param->R_0);
+
+			dekard_skorost(cc(2), cc(0), cc(1), BR, BPHI, 0.0, V3, V1, V2);
+
+			vv << V1, V2, V3;
+
+			cc = this->phys_param->Matr * vv;
+
+			i->parameters[0]["Bx"] = cc(0);
+			i->parameters[0]["By"] = cc(1);
+			i->parameters[0]["Bz"] = cc(2);
+
+
+			for (short unsigned int j = 1; j < i->parameters.size(); j++)
+			{
+				i->parameters[j] = i->parameters[0];
+			}
+		}
+	}
+
+	for (auto& i : this->All_Cell)
+	{
+		i->parameters[1] = i->parameters[0];
+	}
+}
+
+
 void Setka::Init_TVD(void)
 {
 	// Эта функция работает после определения нормалей, центра грани и центров ячеек
@@ -1554,7 +1641,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	cout << "Vibor area" << endl;
 	// Если хотим отдельно считать внутреннюю и наружнюю области
-	if (true)
+	if (false)
 	{
 		if (is_inner_area == true)
 		{
@@ -1609,9 +1696,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	Cell* A, B;
 
-
-	double time = 0.00001;  // Текущий шаг по времени
-	double loc_time = 0.00001;  // Текущий шаг по времени
+	double time = this->phys_param->prev_step_time;  // Текущий шаг по времени
+	double loc_time = this->phys_param->prev_step_time;  // Текущий шаг по времени
 
 	double xc_min = 0.0, yc_min = 0.0, zc_min = 0.0;
 	string name_min_time = "___";
@@ -1619,7 +1705,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	for (unsigned int step = 1; step <= steps; step++)
 	{
-		if (step % 50 == 0 || step == 3)
+		if (step % 100 == 0 || step == 10)
 		{
 			cout << "Global step = " << step << endl;
 			whach(time);
@@ -1634,12 +1720,21 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		now2 = now1;
 		now1 = (now1 + 1)%2;
 
+		this->phys_param->prev_step_time = time;
 		time = loc_time;
 		loc_time = 100000000.0;
 
 		
 
 		//omp_set_num_threads(1); // 32
+		
+		// Обновляем граничное условие
+		if (true)
+		{
+			this->Init_physics_with_time(this->phys_param->ALL_Time);
+		}
+
+		this->phys_param->ALL_Time += time;
 		
 
 		// Считаем скорости граней и сразу передвигаем опорные узлы

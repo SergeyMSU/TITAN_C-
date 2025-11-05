@@ -807,7 +807,33 @@ unsigned int AMR_f::Refine(void)
 		if (mu * 100.0 / this->Sfu > procent) i->flags.is_signif = true;
 		if (mux * 100.0 / this->Sfux > procent) i->flags.is_signif = true;
 		if (muu * 100.0 / this->Sfuu > procent) i->flags.is_signif = true;
+
+		// Специальное разбиение вокруг проблемной точки
+		if (true)
+		{
+			double LL = center[0] - razmer[0] / 2.0;
+			double RR = center[0] + razmer[0] / 2.0;
+			if (center[0] < -5.0 && center[0] > -7.0 && razmer[0] > 0.3)
+			{
+				i->flags.need_devide_x = true;
+			}
+			else if(LL < -5.0 && LL > -7.0 && razmer[0] > 0.3)
+			{
+				i->flags.need_devide_x = true;
+			}
+			else if (RR < -5.0 && RR > -7.0 && razmer[0] > 0.3)
+			{
+				i->flags.need_devide_x = true;
+			}
+
+		}
+
 	}
+
+
+	
+
+
 
 	procent = this->procent_devide;
 	for (const auto& i : cells)
@@ -818,44 +844,116 @@ unsigned int AMR_f::Refine(void)
 
 		if (i->flags.is_signif == false) continue;
 
-		auto A = i->get_sosed(this->AMR_self, 0);
-		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
-		{
-			i->flags.need_devide_x = true;
-			A->flags.need_devide_x = true;
-		}
-		A = i->get_sosed(this->AMR_self, 1);
-		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
-		{
-			i->flags.need_devide_x = true;
-			A->flags.need_devide_x = true;
-		}
-		
+		// Добавил, чтобы ячеки вблизи несущественных имели размер не больше 0.3
+		// Это чтобы было хорошо видно границу несущественных
 
-		A = i->get_sosed(this->AMR_self, 2);
-		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+		auto A = i->get_sosed(this->AMR_self, 0);
+		if (A != nullptr)
 		{
-			i->flags.need_devide_y = true;
-			A->flags.need_devide_y = true;
+			if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+			{
+				i->flags.need_devide_x = true;
+				A->flags.need_devide_x = true;
+			}
+			else if (false)//(A->flags.is_signif == false)
+			{
+				i->Get_Center(this->AMR_self, center, razmer);
+				if (razmer[0] > 0.3)
+				{
+					i->flags.need_devide_x = true;
+				}
+			}
 		}
-		A = i->get_sosed(this->AMR_self, 3);
-		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+
+		A = i->get_sosed(this->AMR_self, 1);
+		if (A != nullptr)
 		{
-			i->flags.need_devide_y = true;
-			A->flags.need_devide_y = true;
+			if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+			{
+				i->flags.need_devide_x = true;
+				A->flags.need_devide_x = true;
+			}
+			else if (false)//(A->flags.is_signif == false)
+			{
+				i->Get_Center(this->AMR_self, center, razmer);
+				if (razmer[0] > 0.3)
+				{
+					i->flags.need_devide_x = true;
+				}
+			}
+		}
+
+		
+		A = i->get_sosed(this->AMR_self, 2);
+		if (A != nullptr)
+		{
+			if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+			{
+				i->flags.need_devide_y = true;
+				A->flags.need_devide_y = true;
+			}
+			else if (false)//(A->flags.is_signif == false)
+			{
+				i->Get_Center(this->AMR_self, center, razmer);
+				if (razmer[1] > 0.3)
+				{
+					i->flags.need_devide_x = true;
+				}
+			}
+		}
+
+		A = i->get_sosed(this->AMR_self, 3);
+		if (A != nullptr)
+		{
+			if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+			{
+				i->flags.need_devide_y = true;
+				A->flags.need_devide_y = true;
+			}
+			else if (false)//(A->flags.is_signif == false)
+			{
+				i->Get_Center(this->AMR_self, center, razmer);
+				if (razmer[1] > 0.3)
+				{
+					i->flags.need_devide_x = true;
+				}
+			}
 		}
 
 		A = i->get_sosed(this->AMR_self, 4);
-		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+		if (A != nullptr)
 		{
-			i->flags.need_devide_z = true;
-			A->flags.need_devide_z = true;
+			if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+			{
+				i->flags.need_devide_z = true;
+				A->flags.need_devide_z = true;
+			}
+			else if (false)//(A->flags.is_signif == false)
+			{
+				i->Get_Center(this->AMR_self, center, razmer);
+				if (razmer[2] > 0.3)
+				{
+					i->flags.need_devide_x = true;
+				}
+			}
 		}
+
 		A = i->get_sosed(this->AMR_self, 5);
-		if (A != nullptr) if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+		if (A != nullptr)
 		{
-			i->flags.need_devide_z = true;
-			A->flags.need_devide_z = true;
+			if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+			{
+				i->flags.need_devide_z = true;
+				A->flags.need_devide_z = true;
+			}
+			else if (false)//(A->flags.is_signif == false)
+			{
+				i->Get_Center(this->AMR_self, center, razmer);
+				if (razmer[2] > 0.3)
+				{
+					i->flags.need_devide_x = true;
+				}
+			}
 		}
 	}
 

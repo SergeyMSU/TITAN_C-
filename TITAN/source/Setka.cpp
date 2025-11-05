@@ -3438,6 +3438,30 @@ void Setka::Print_pui(double x, double y, double z)
 	A->Delete_f_pui();
 }
 
+void Setka::Print_parameters_in_some_point(void)
+{
+	Cell* A = nullptr;
+	Cell* previos = nullptr;
+
+	for (double x = 1.0; x <= 200.0; x += 5.0)
+	{
+		// Формируем имя файла с текущим значением x
+		std::string filename = "time_data_" + std::to_string(x) + ".txt";
+
+		// Открываем файл в режиме дозаписи
+		std::ofstream file(filename, std::ios::app);
+
+		A = this->Find_cell_point(x, 0.0, 0.0, 0, previos);
+
+		if (file.is_open() && A != nullptr)
+		{
+			file << this->phys_param->ALL_Time << " " << A->parameters[0]["rho"] << " " <<
+				A->parameters[0]["Vx"] << " " << A->parameters[0]["Bx"] << " " <<
+				A->parameters[0]["By"] << " " << A->parameters[0]["Bz"] << " " << std::endl;
+		}
+	}
+}
+
 void Setka::Tecplot_print_all_yzel_in_3D(string name)
 {
 	// name - это имя сетки

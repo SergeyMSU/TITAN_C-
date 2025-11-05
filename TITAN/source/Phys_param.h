@@ -91,7 +91,8 @@ public:
         unordered_map<string, double>&)> Plasma_components;
 
 
-
+    double ALL_Time = 0.0;            // Общее время решения задачи
+    double prev_step_time = 0.000001;            // Общее время решения задачи
     double Velosity_inf = -2.54327;   // Значение скорости смеси на бесконечности
     double B_inf = 8.91006;           // Значение МОДУЛЯ магнитного поля на бесконечности
     double alphaB_inf = 0.6981317;     // угол в радианах - Направление магнитного поля на бесконечности

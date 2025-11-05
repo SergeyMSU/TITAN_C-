@@ -72,11 +72,11 @@ int main()
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    if (true)
+    if (false)
     {
         // Планировал запустить дальше перестройку сорта 2, потом зоны 2, 4, 6
         S1.Algoritm(2);
-        /*S1.Algoritm(8);
+        S1.Algoritm(8);
         S1.Algoritm(5);
         S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
         S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
@@ -95,7 +95,7 @@ int main()
         S1.Print_f_proect_in_cell(40.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(70.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(80.0, 0.0, 0.0);
-        S1.Print_f_proect_in_cell(45.0, 0.0, 0.0);*/
+        S1.Print_f_proect_in_cell(45.0, 0.0, 0.0);
 
         cout << "AABB" << endl;
         /*S1.Print_SpSm(17.0, 0.0, 0.0);
@@ -136,21 +136,50 @@ int main()
 
 
 
-    for (int i = 1; i <= 0; i++) // 6 * 2
+    for (int i = 1; i <= 12 * 5; i++) // 6 * 2
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
 
-        S1.Go(false, 400, 1); // 400   1
-        S1.Go(true, 100, 1); // 400   1 
+        S1.Go(true, 600, 1); // 400   1
+        cout << "All time = " << S1.phys_param->ALL_Time << endl;
+        cout << "All time (in days) = " << S1.phys_param->ALL_Time / 0.00142358 << endl;
+        cout << "All time (in years) = " << S1.phys_param->ALL_Time / 0.519607 << endl;
+        //S1.Go(false, 400, 1); // 400   1
+        //S1.Go(true, 100, 1); // 400   1 
         S1.Smooth_head_HP3();
         S1.Smooth_head_TS3();
 
+        //S1.Print_parameters_in_some_point();
+
         S1.Tecplot_print_cell_plane_parameters();
         S1.Tecplot_print_all_lush_in_2D();
+
         S1.Tecplot_print_all_gran_in_surface("TS");
         S1.Tecplot_print_all_gran_in_surface("HP");
         S1.Tecplot_print_all_gran_in_surface("BS");
+
+        // Печать результатов
+        if (true)
+        {
+            S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
+            Interpol SS = Interpol("For_intertpolate_0059-.bin");
+
+            S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+                Eigen::Vector3d(1.0, 0.0, 0.0), "_(1, 0, 0)_" + to_string(S1.phys_param->ALL_Time) + "_", 500.0);
+
+            S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+                Eigen::Vector3d(cos(const_pi/18.0), sin(const_pi / 18.0), 0.0), "_(10 deg, 0)_" + to_string(S1.phys_param->ALL_Time) + "_", 500.0);
+
+            S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+                Eigen::Vector3d(-1.0, 0.0, 0.0), "_(-1, 0, 0)_" + to_string(S1.phys_param->ALL_Time) + "_", 500.0);
+
+            S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+                Eigen::Vector3d(0.0, 1.0, 0.0), "_(0, 1, 0)_" + to_string(S1.phys_param->ALL_Time) + "_", 500.0);
+
+            S1.Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_" + to_string(S1.phys_param->ALL_Time) + "_");
+        }
+
         //S1.Go(true, 100, 1);
         //S1.Tecplot_print_cell_plane_parameters();
 
@@ -176,7 +205,7 @@ int main()
         return 0;
     }
 
-    //S1.Save_cell_parameters("parameters_0060.bin");
+    S1.Save_cell_parameters("parameters_0061.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
