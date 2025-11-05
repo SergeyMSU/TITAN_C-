@@ -76,12 +76,13 @@ int main()
     {
         // Планировал запустить дальше перестройку сорта 2, потом зоны 2, 4, 6
         S1.Algoritm(2);
-        //S1.Algoritm(8);
-        //S1.Algoritm(5);
-        //S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
-        //S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
+        /*S1.Algoritm(8);
+        S1.Algoritm(5);
+        S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
+        S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
+        S1.Print_fH(2, Type_Gran_surf::TS, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
 
-        /*S1.Print_f_proect_in_gran(1);
+        S1.Print_f_proect_in_gran(1);
         S1.Print_f_proect_in_gran(2);
         S1.Print_f_proect_in_gran(3);
 

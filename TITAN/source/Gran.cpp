@@ -141,7 +141,7 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 	// Печатаем 2Д карту
 	if (true)
 	{
-#pragma omp parallel for schedule(dynamic)
+		#pragma omp parallel for schedule(dynamic)
 		for (int k1 = 0; k1 < Nx; k1++)
 		{
 			std::vector < Cell_handle> prev_cell(Gran_for_print.size());
@@ -222,6 +222,7 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 	// ====== СОЗДАНИЕ ФАЙЛА И ПЕЧАТЬ МАССИВА ======
 
 	// Создаем имя файла на основе номера грани и nH
+	cout << "Print AMR: " << Gran_for_print[0]->number << " " << Gran_for_print[0]->center[0][0] << endl;
 	string filename = "AMR_result_" + to_string(Gran_for_print[0]->number) + "_H" + to_string(nH) + ".txt";
 	string filename2 = "1d_AMR_result_" + to_string(Gran_for_print[0]->number) + "_H" + to_string(nH) + ".txt";
 
@@ -306,13 +307,13 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 		// В этом случае просто считываем AMR - сетку
 		this->AMR[nH - 1][ni]->Read(ph_param->AMR_folder + "/" + name_f);
 
-		if (nH == 4) this->AMR[nH - 1][ni]->procent_signif = 0.1;  // Эксперементально понижаем существенный процент
+		//if (nH == 4) this->AMR[nH - 1][ni]->procent_signif = 0.1;  // Эксперементально понижаем существенный процент
 
 		if (need_refine == true)
 		{
 			unsigned int N = this->AMR[nH - 1][ni]->Size();
 			unsigned int Nmax = 3000;
-			if (nH == 4) Nmax = 4000;  // Эксперементально
+			//if (nH == 4) Nmax = 4000;  // Эксперементально
 
 			if (N < Nmax)
 			{

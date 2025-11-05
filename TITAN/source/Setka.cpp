@@ -218,9 +218,12 @@ void Setka::Algoritm(short int alg)
 		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
 		
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+
 
 		/*zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
@@ -418,6 +421,7 @@ void Setka::Algoritm(short int alg)
 		cout << "Arrays read successfully" << endl;
 
 		mas_pogl_Culc( 1.0, 0.0, 0.0, "upwind");
+		mas_pogl_Culc( 1.0, 0.1, 0.0, "sim_upwind");
 		mas_pogl_Culc( 0.0, 1.0, 0.0, "crosswind1");
 		mas_pogl_Culc( 0.0, 1.0, 1.0, "crosswind2");
 		mas_pogl_Culc( 0.0, 0.0, 1.0, "crosswind3");
