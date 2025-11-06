@@ -97,7 +97,8 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 				cell->Get_Center(amr, center);
 				amr->Get_real_koordinate(center[0], center[1], center[2], Vx, Vy, Vz);
 				auto A = new Int_point(Vx, Vy, Vz);
-				A->parameters["f"] = cell->f;// / fabs(center[0]);
+				//A->parameters["f"] = cell->f;                           // Так строим саму функцию распределения
+				A->parameters["f"] = cell->f * fabs(center[0]);           // Так строим поток функции
 				points_1.push_back({ {Vx, Vy, Vz}, i });
 				ALL_Cells_1[j].push_back(A);
 				i++;
@@ -263,7 +264,8 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 		double n = 1.0;
 		double c = 1.0;
 		outfile2 << Vx << " " << f1d[k1] << " " <<
-			n / (sqrt_pi * c) * exp(-kv(Vx - u1) / kv(c))  << endl;
+			// n / (sqrt_pi * c) * exp(-kv(Vx - u1) / kv(c))  << endl;
+			fabs(Vx) * n / (sqrt_pi * c) * exp(-kv(Vx - u1) / kv(c))  << endl;
 	}
 
 	// Закрываем файл
@@ -343,7 +345,7 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 			{
 				this->AMR[nH - 1][ni]->AMR_resize(0.0, 20.0, -20.0, 20.0,
 					-20.0, 20.0, 3, 6, 6);
-				if (nH == 4) this->AMR[nH - 1][ni]->procent_signif = 0.1; // Эксперементально понижаем существенный процент
+				//if (nH == 4) this->AMR[nH - 1][ni]->procent_signif = 0.1; // Эксперементально понижаем существенный процент
 			}
 		}
 		else

@@ -354,6 +354,8 @@ void Setka::Set_MK_Zone(void)
 	this->Cell_Center->MK_zone_r = 1;
 	this->Cell_Center->MK_zone_phi = 0;
 
+	bool new_bound = false;   // Нужно ли подвинуть внешнюю гарницу ближе?
+
 	// Задаём зону для каждой ячейки
 	for (auto& cell : this->All_Cell)
 	{
@@ -401,7 +403,7 @@ void Setka::Set_MK_Zone(void)
 			if (Centr[0] > 0)
 			{
 				cell->MK_zone_phi = 1;
-				if (Centr[0] > this->phys_param->R_MK_Max)
+				if (new_bound)//(Centr[0] > this->phys_param->R_MK_Max)
 				{
 					cell->MK_zone = 8;         // Фиктивная зона (нужна для того, чтобы раздилить зону 6)
 				}
@@ -775,7 +777,7 @@ void Setka::Set_MK_Zone(void)
 
 	// 6 зона
 	// старый вариант до внешней границы
-	if (false)
+	if (!new_bound)
 	{
 		for (auto& gr : this->All_Gran)
 		{
@@ -850,7 +852,7 @@ void Setka::Set_MK_Zone(void)
 
 			}
 
-			// Это те самые добавленные грани, которые возволяют сократить область моделирования
+			// Это те самые добавленные грани, которые позволяют сократить область моделирования
 			if (gr->cells.size() == 2)
 			{
 				if (gr->cells[0]->type == Type_cell::Zone_4 &&
@@ -1650,7 +1652,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 
 	// Разыгрываем каждый сорт отдельно, так как для него нужны свои массивы
 	//for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
-	for (short int nh_ = 3; nh_ <= 3; ++nh_)
+	for (short int nh_ = 3; nh_ <= 3; ++nh_)                                                // DELETE
 	{
 		// Для каждого запускаемого сорта надо загрузить выходяющии функции распределения на всех гранях
 		// и входящую функуию только для текущей грани
@@ -1684,6 +1686,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 		for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
 		{
 			auto& gr = this->MK_Grans[zone_MK - 1][idx];
+			
 			Eigen::Vector3d n;
 			Eigen::Vector3d t;
 			Eigen::Vector3d m;
@@ -1691,11 +1694,15 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 			#pragma omp critical (first) 
 			{
 				k1++;
-				if (k1 % 500 == 0)
+				if (k1 % 50 == 0)
 				{
 					cout << "Gran = " << k1 << "    Iz: " << this->MK_Grans[zone_MK - 1].size() << "  sort " << nh_ + 1 << endl;
 				}
 			}
+
+			if (gr->type != Type_Gran::Outer_Hard) continue;                             // DELETE
+
+
 			// Выбираем конкретный номер датчика случайных чисел
 			unsigned int sens_num1 = 2 * omp_get_thread_num();
 			unsigned int sens_num2 = 2 * omp_get_thread_num() + 1;
@@ -2409,7 +2416,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 
 		if (vtoroy_shans == false)
 		{
-			if (I < P.KSI)
+			if (true)// (I < P.KSI)
 			{
 				P.I_do = I;  // В этом случае перезарядки в ячейке не произошло
 

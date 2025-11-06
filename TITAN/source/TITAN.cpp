@@ -30,8 +30,9 @@ int main()
     cout << "C " << endl;
 
     //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
-    //S1.Download_cell_parameters("parameters_0060.bin");   // 107
-    S1.Download_cell_parameters("parameters_promeg_1112.bin");   // 107
+    S1.Download_cell_parameters("parameters_0060.bin");   // 107
+    //S1.Download_cell_parameters("parameters_0061.bin");   // 107
+    //S1.Download_cell_parameters("parameters_promeg_1112.bin");   // 107
     //S1.Download_cell_parameters("parameters_0217.bin");   // 107
 
     //S1.PereInterpolate("For_intertpolate_219.bin", true);
@@ -73,11 +74,11 @@ int main()
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    if (false)
+    if (true)
     {
         // Планировал запустить дальше перестройку сорта 2, потом зоны 2, 4, 6
-        //S1.Algoritm(2);
-        S1.Algoritm(8);
+        S1.Algoritm(2);
+        /*S1.Algoritm(8);
         S1.Algoritm(5);
         S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
         S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
@@ -96,7 +97,7 @@ int main()
         S1.Print_f_proect_in_cell(40.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(70.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(80.0, 0.0, 0.0);
-        S1.Print_f_proect_in_cell(45.0, 0.0, 0.0);
+        S1.Print_f_proect_in_cell(45.0, 0.0, 0.0);*/
 
         cout << "AABB" << endl;
         /*S1.Print_SpSm(17.0, 0.0, 0.0);
@@ -186,7 +187,7 @@ int main()
 
         //S1.Init_physics();
 
-        if (i % 12 == 0)
+        if (i % 3 == 0)
         {
             string namn = "parameters_promeg_11" + to_string(i) + ".bin";
             S1.Save_cell_parameters(namn);
@@ -206,7 +207,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0061.bin");
+    S1.Save_cell_parameters("parameters_0062.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
