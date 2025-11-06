@@ -30,7 +30,8 @@ int main()
     cout << "C " << endl;
 
     //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
-    S1.Download_cell_parameters("parameters_0060.bin");   // 107
+    //S1.Download_cell_parameters("parameters_0060.bin");   // 107
+    S1.Download_cell_parameters("parameters_promeg_1112.bin");   // 107
     //S1.Download_cell_parameters("parameters_0217.bin");   // 107
 
     //S1.PereInterpolate("For_intertpolate_219.bin", true);
@@ -136,7 +137,7 @@ int main()
 
 
 
-    for (int i = 1; i <= 6 * 8; i++) // 6 * 2   12 * 5
+    for (int i = 1; i <= 6 * 3; i++) // 6 * 2   12 * 5
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
