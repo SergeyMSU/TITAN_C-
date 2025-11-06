@@ -30,8 +30,8 @@ int main()
     cout << "C " << endl;
 
     //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
-    S1.Download_cell_parameters("parameters_0060.bin");   // 107
-    //S1.Download_cell_parameters("parameters_0061.bin");   // 107
+    //S1.Download_cell_parameters("parameters_0060.bin");   // 107
+    S1.Download_cell_parameters("parameters_0063.bin");   // 107
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");   // 107
     //S1.Download_cell_parameters("parameters_0217.bin");   // 107
 
@@ -74,17 +74,17 @@ int main()
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    if (true)
+    if (false)
     {
         // Планировал запустить дальше перестройку сорта 2, потом зоны 2, 4, 6
-        S1.Algoritm(2);
-        /*S1.Algoritm(8);
+        //S1.Algoritm(2);
+        S1.Algoritm(8);
         S1.Algoritm(5);
         S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
-        S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
-        S1.Print_fH(2, Type_Gran_surf::TS, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
+        //S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
+        //S1.Print_fH(2, Type_Gran_surf::TS, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
 
-        S1.Print_f_proect_in_gran(1);
+        /*S1.Print_f_proect_in_gran(1);
         S1.Print_f_proect_in_gran(2);
         S1.Print_f_proect_in_gran(3);
 
@@ -138,7 +138,7 @@ int main()
 
 
 
-    for (int i = 1; i <= 6 * 3; i++) // 6 * 2   12 * 5
+    for (int i = 1; i <= 12 * 8; i++) // 6 * 2   12 * 5
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -187,7 +187,7 @@ int main()
 
         //S1.Init_physics();
 
-        if (i % 3 == 0)
+        if (i % 12 == 0)
         {
             string namn = "parameters_promeg_11" + to_string(i) + ".bin";
             S1.Save_cell_parameters(namn);
@@ -207,7 +207,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0062.bin");
+    S1.Save_cell_parameters("parameters_0064.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

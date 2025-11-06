@@ -10,6 +10,17 @@ short int Gran::Get_method()
 	//if (this->type2 != Type_Gran_surf::Us) return 3;
 	//return 0;
 
+	if (this->type2 == Type_Gran_surf::Us)
+	{
+		for (auto& i : this->yzels)
+		{
+			if (i->type == Type_yzel::HP || i->type == Type_yzel::TS)
+			{
+				return 0;
+			}
+		}
+	}
+
 	return 3;
 }
 
@@ -45,16 +56,16 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 	double Vx, Vy, Vz;
 	double x, y, z;
 	int NN = 2000;
-	double VzL = -5.0;
-	double VzR = 5.0;
+	double VzL = -10.0;
+	double VzR = 10.0;
 	double dVz = (VzR - VzL) / NN;
-	int Nx = 700;
-	double VxL = -5.0;
-	double VxR = 5.0;
+	int Nx = 2000;
+	double VxL = -10.0;
+	double VxR = 10.0;
 	double dVx = (VxR - VxL) / Nx;
-	int Ny = 700;
-	double VyL = -5.0;
-	double VyR = 5.0;
+	int Ny = 2000;
+	double VyL = -10.0;
+	double VyR = 10.0;
 	double dVy = (VyR - VyL) / Ny;
 
 	boost::multi_array<double, 2> fff(boost::extents[Nx][Ny]);
@@ -94,11 +105,19 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 
 			for (const auto& cell : cells_amr)
 			{
+				double u1 = -2.54327;
+				double n = 1.0;
+				double c = 1.0;
+
 				cell->Get_Center(amr, center);
 				amr->Get_real_koordinate(center[0], center[1], center[2], Vx, Vy, Vz);
 				auto A = new Int_point(Vx, Vy, Vz);
-				//A->parameters["f"] = cell->f;                           // Так строим саму функцию распределения
-				A->parameters["f"] = cell->f * fabs(center[0]);           // Так строим поток функции
+				//A->parameters["f"] = cell->f;                                     // Так строим саму функцию распределения
+				//A->parameters["f"] = cell->f * fabs(center[0]);                     // Так строим поток функции
+				//A->parameters["f"] = n / (sqrt_pi * c) * exp(-kv(Vx - u1) / kv(c)); // Так строим поток функции
+				A->parameters["f"] = n / pow3(sqrt_pi * c) * exp(-(kv(Vx - u1) + kv(Vy) + kv(Vz))/ kv(c)); // Так строим поток функции
+
+
 				points_1.push_back({ {Vx, Vy, Vz}, i });
 				ALL_Cells_1[j].push_back(A);
 				i++;
@@ -224,6 +243,7 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 
 	// Создаем имя файла на основе номера грани и nH
 	cout << "Print AMR: " << Gran_for_print[0]->number << " " << Gran_for_print[0]->center[0][0] << endl;
+	cout << "normal: " << Gran_for_print[0]->normal[0][0] << " " << Gran_for_print[0]->normal[0][1] << " " << Gran_for_print[0]->normal[0][2] << endl;
 	string filename = "AMR_result_" + to_string(Gran_for_print[0]->number) + "_H" + to_string(nH) + ".txt";
 	string filename2 = "1d_AMR_result_" + to_string(Gran_for_print[0]->number) + "_H" + to_string(nH) + ".txt";
 
@@ -261,11 +281,15 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 	{
 		Vx = VxL + (VxR - VxL) * (k1 + 0.5) / Nx;
 		double u1 = -2.54327;
+		double u2 = 0.0;
+		double u3 = 0.0;
+		double v1, v2, v3;
+		Gran_for_print[0]->AMR[3][0]->Get_lokal_koordinate(u1, u2, u3, v1, v2, v3);
 		double n = 1.0;
 		double c = 1.0;
-		outfile2 << Vx << " " << f1d[k1] << " " <<
+		outfile2 << Vx << " " << fabs(Vx) * f1d[k1] << " " <<
 			// n / (sqrt_pi * c) * exp(-kv(Vx - u1) / kv(c))  << endl;
-			fabs(Vx) * n / (sqrt_pi * c) * exp(-kv(Vx - u1) / kv(c))  << endl;
+			fabs(Vx) * n / (sqrt_pi * c) * exp((-kv(Vx - v1)) / kv(c)) << endl;
 	}
 
 	// Закрываем файл
