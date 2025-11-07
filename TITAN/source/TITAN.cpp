@@ -138,7 +138,7 @@ int main()
 
 
 
-    for (int i = 1; i <= 17; i++) // 6 * 2   12 * 5
+    for (int i = 1; i <= 10; i++) // 6 * 2   12 * 5
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
