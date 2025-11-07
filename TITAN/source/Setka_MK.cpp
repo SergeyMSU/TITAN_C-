@@ -245,7 +245,7 @@ void Setka::Print_f_proect_in_gran(short int nn)
 	if (nn == 3) name_f = "f_proekts_on_BS.txt";
 
 	fout.open(name_f);
-	fout << "TITLE = HP  VARIABLES = u, f1L, f1R, f1L_fluid, f1Lmoment, f2L, f2R, f2L_fluid, f2Lmoment, f3L, f3R, f3L_fluid, f3Lmoment, f4L, f4R, f4L_fluid, f4Lmoment" << endl;
+	fout << "TITLE = HP  VARIABLES = u, f1L, f1R, f1L_fluid, f1Lmoment, f2L, f2R, f2L_fluid, f2Lmoment, f3L, f3R, f3L_fluid, f3Lmoment, f4L, f4R, f4L_fluid, f4Lmoment, ff_inf" << endl;
 	double dv = (this->phys_param->pogl_R - this->phys_param->pogl_L) / this->phys_param->pogl_n;
 
 
@@ -270,12 +270,15 @@ void Setka::Print_f_proect_in_gran(short int nn)
 			double p_MK = A->parameters[0]["MK_T_H" + to_string(i + 1)];
 			double c_MK = sqrt(p_MK);
 
+			if (c_MK < 0.00000000001) c_MK = 1.0;
 
 			fout << A->mas_pogl(i, j) * this->phys_param->par_n_H_LISM / dv << " " 
 				<< B->mas_pogl(i, j) * this->phys_param->par_n_H_LISM / dv << " " <<
 				n / (sqrt_pi * c) * exp(-kv(VV - u1) / kv(c)) * this->phys_param->par_n_H_LISM << " " <<
 				n_MK / (sqrt_pi * c_MK) * exp(-kv(VV - u1_MK) / kv(c_MK)) * this->phys_param->par_n_H_LISM << " ";
 		}
+
+		fout << 3.0 / (sqrt_pi * 1.0) * exp((-kv(VV - this->phys_param->Velosity_inf)) / kv(1.0));
 
 		fout << endl;
 	}
@@ -354,7 +357,7 @@ void Setka::Set_MK_Zone(void)
 	this->Cell_Center->MK_zone_r = 1;
 	this->Cell_Center->MK_zone_phi = 0;
 
-	bool new_bound = false;   // Нужно ли подвинуть внешнюю гарницу ближе?
+	bool new_bound = true;   // Нужно ли подвинуть внешнюю гарницу ближе?
 
 	// Задаём зону для каждой ячейки
 	for (auto& cell : this->All_Cell)
@@ -403,7 +406,7 @@ void Setka::Set_MK_Zone(void)
 			if (Centr[0] > 0)
 			{
 				cell->MK_zone_phi = 1;
-				if (new_bound)//(Centr[0] > this->phys_param->R_MK_Max)
+				if (new_bound & Centr[0] > this->phys_param->R_MK_Max)
 				{
 					cell->MK_zone = 8;         // Фиктивная зона (нужна для того, чтобы раздилить зону 6)
 				}
@@ -1657,7 +1660,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 		// Для каждого запускаемого сорта надо загрузить выходяющии функции распределения на всех гранях
 		// и входящую функуию только для текущей грани
 
-		cout << "Start download_2  for sort " << nh_ << endl;
+		cout << "Start download_2  for sort " << nh_ + 1 << endl;
 		// 1. Загружаем выходящие функции распределения данного сорта аодорода для всех граней 
 		// если они ещё не хагружены на предыдущем шаге
 		if (this->MK_zone_H(zone_MK - 1, nh_) == false)
@@ -1678,7 +1681,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 				N2[nh_]++;
 			}
 		}
-		cout << "End download_2  for sort " << nh_ << endl;
+		cout << "End download_2  for sort " << nh_ + 1 << endl;
 
 		// 2. Теперь бежим по граням и делаем основной алгоритм
 		k1 = 0;
@@ -1700,7 +1703,8 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 				}
 			}
 
-			if (gr->type != Type_Gran::Outer_Hard) continue;                             // DELETE
+			if (gr->type2 != Type_Gran_surf::BS) continue;                             // DELETE
+			//if (gr->type != Type_Gran::Outer_Hard) continue;                             // DELETE
 
 
 			// Выбираем конкретный номер датчика случайных чисел

@@ -30,8 +30,8 @@ int main()
     cout << "C " << endl;
 
     //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
-    //S1.Download_cell_parameters("parameters_0060.bin");   // 107
-    S1.Download_cell_parameters("parameters_promeg_1184.bin");   // 107
+    S1.Download_cell_parameters("parameters_0060.bin");   // 107
+    //S1.Download_cell_parameters("parameters_promeg_1184.bin");   // 107
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");   // 107
     //S1.Download_cell_parameters("parameters_0217.bin");   // 107
 
@@ -74,13 +74,13 @@ int main()
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    if (false)
+    if (true)
     {
         // Планировал запустить дальше перестройку сорта 2, потом зоны 2, 4, 6
-        //S1.Algoritm(2);
-        S1.Algoritm(8);
-        S1.Algoritm(5);
-        S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
+        S1.Algoritm(2);
+        //S1.Algoritm(8);
+        //S1.Algoritm(5);
+        //S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
         //S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
         //S1.Print_fH(2, Type_Gran_surf::TS, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
 

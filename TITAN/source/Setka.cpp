@@ -217,7 +217,8 @@ void Setka::Algoritm(short int alg)
 		vector<short int> zones_number;
 		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
 		
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(1); zones_n_koeff.push_back(1.0);
