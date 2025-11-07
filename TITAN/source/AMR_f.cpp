@@ -81,6 +81,7 @@ void AMR_f::Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& 
 					double A2 = Vel[0] * this->Vn[2] + Vel[1] * this->Vt[2] +
 						Vel[2] * this->Vm[2];
 
+
 					Vel[0] = A0;
 					Vel[1] = A1;
 					Vel[2] = A2;
@@ -785,6 +786,53 @@ void AMR_f::Culc_gradients(void)
 	}
 }
 
+void AMR_f::Clean_low()
+{
+	// ‘ункци€ чистит значени€ в €чейках, котрые в 3 раза меньше несущественных значений
+	this->Sf = 0.0;
+	this->Sfu = 0.0;
+	this->Sfux = 0.0;
+	this->Sfuu = 0.0;
+
+	std::vector<AMR_cell*> cells;
+	std::array<double, 3> center;
+	std::array<double, 3> razmer;
+
+	this->Get_all_cells(cells);
+	double V, u, m = 0.0, mu = 0.0, muu = 0.0, mux = 0.0;
+
+	//cout << "All_cells_do = " << cells.size() << endl;
+
+	for (const auto& i : cells)
+	{
+		i->Get_Center(this->AMR_self, center, razmer);
+		V = razmer[0] * razmer[1] * razmer[2];
+		u = norm2(center[0], center[1], center[2]);
+		this->Sf += V * i->f;
+		this->Sfu += V * i->f * u;
+		this->Sfux += V * i->f * center[0];
+		this->Sfuu += V * i->f * kv(u);
+	}
+
+	double procent = this->procent_signif/100.0;
+	for (const auto& i : cells)
+	{
+		i->flags.is_signif = false;
+		i->Get_Center(this->AMR_self, center, razmer);
+		V = razmer[0] * razmer[1] * razmer[2];
+		u = norm2(center[0], center[1], center[2]);
+		m = V * i->f;
+		mu = V * i->f * u;
+		mux = V * i->f * center[0];
+		muu = V * i->f * kv(u);
+
+		if (m * 100.0 / this->Sf < procent) i->f = 0.0;
+		if (mu * 100.0 / this->Sfu < procent) i->f = 0.0;
+		if (mux * 100.0 / this->Sfux < procent) i->f = 0.0;
+		if (muu * 100.0 / this->Sfuu < procent) i->f = 0.0;
+	}
+}
+
 unsigned int AMR_f::Refine(short int H_n)
 {
 	// H_n может понадобитьс€ дл€ особого мельчени€ разных сортов
@@ -815,6 +863,13 @@ unsigned int AMR_f::Refine(short int H_n)
 
 	if (this->Sf < 1e-8 || this->Sfu < 1e-8 || this->Sfuu < 1e-8 || this->Sfux < 1e-8) return 0;
 
+	for (const auto& i : cells)
+	{
+		i->flags.need_devide_x = false;
+		i->flags.need_devide_y = false;
+		i->flags.need_devide_z = false;
+	}
+
 	double procent = this->procent_signif;
 	for (const auto& i : cells)
 	{
@@ -833,7 +888,7 @@ unsigned int AMR_f::Refine(short int H_n)
 		if (muu * 100.0 / this->Sfuu > procent) i->flags.is_signif = true;
 
 		// —пециальное разбиение вокруг проблемной точки
-		if (true && (H_n == 3 || H_n == 4))
+		if (false)
 		{
 			double LL = center[0] - razmer[0] / 2.0;
 			double RR = center[0] + razmer[0] / 2.0;
@@ -849,22 +904,24 @@ unsigned int AMR_f::Refine(short int H_n)
 			{
 				i->flags.need_devide_x = true;
 			}
+		}
 
+		// ≈сли €чека не пуста€, то еЄ размеры не могут быть больне 0.5 (чтобы нормально отделить нулевые области от ненулевых
+		if (i->f > 0.0)
+		{
+			if(razmer[0] > 0.5)  i->flags.need_devide_x = true;
+			if(razmer[1] > 0.5)  i->flags.need_devide_y = true;
+			if(razmer[2] > 0.5)  i->flags.need_devide_z = true;
 		}
 
 	}
 
-
-	
-
-
-
 	procent = this->procent_devide;
 	for (const auto& i : cells)
 	{
-		i->flags.need_devide_x = false;
+		/*i->flags.need_devide_x = false;
 		i->flags.need_devide_y = false;
-		i->flags.need_devide_z = false;
+		i->flags.need_devide_z = false;*/
 
 		if (i->flags.is_signif == false) continue;
 
@@ -906,8 +963,7 @@ unsigned int AMR_f::Refine(short int H_n)
 				}
 			}
 		}
-
-		
+	
 		A = i->get_sosed(this->AMR_self, 2);
 		if (A != nullptr)
 		{
@@ -979,7 +1035,16 @@ unsigned int AMR_f::Refine(short int H_n)
 				}
 			}
 		}
+
+
+		// —лишком маленькие €чейки больше делить не надо
+		i->Get_Center(this->AMR_self, center, razmer);
+		if (razmer[0] < 0.05) i->flags.need_devide_x = false;
+		if (razmer[1] < 0.05) i->flags.need_devide_y = false;
+		if (razmer[2] < 0.05) i->flags.need_devide_z = false;
 	}
+
+	
 
 	short int k1 = 1;
 	short int k2 = 1;

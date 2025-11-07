@@ -12,7 +12,7 @@ public:
 	double zL;
 	double zR;
 
-	double procent_signif = 0.3;  // 0.3;
+	double procent_signif = 0.03;  // 0.3
 	double procent_devide = 1.0;  // 1.0;
 
 	array<double, 3> Vn;
@@ -98,7 +98,8 @@ public:
 
 
 	void Culc_gradients(void);
-	// ¬ каждой активной €чейке вычисл€ет градинты, использу€ соседей, дл€ последующего розыгрыша частиц со вторым пор€дком
+	void Clean_low();
+	// ¬ каждой активной €чейке вычисл€ет градиенты, использу€ соседей, дл€ последующего розыгрыша частиц со вторым пор€дком
 
 	void Save(string namef);
 	void Read(string namef);

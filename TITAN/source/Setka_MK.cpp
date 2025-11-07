@@ -1654,8 +1654,8 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 	unsigned int k1 = 0;
 
 	// Разыгрываем каждый сорт отдельно, так как для него нужны свои массивы
-	//for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
-	for (short int nh_ = 3; nh_ <= 3; ++nh_)                                                // DELETE
+	for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
+	//for (short int nh_ = 3; nh_ <= 3; ++nh_)                                                // DELETE
 	{
 		// Для каждого запускаемого сорта надо загрузить выходяющии функции распределения на всех гранях
 		// и входящую функуию только для текущей грани
@@ -1703,7 +1703,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 				}
 			}
 
-			if (gr->type2 != Type_Gran_surf::BS) continue;                             // DELETE
+			//if (gr->type2 != Type_Gran_surf::BS) continue;                             // DELETE
 			//if (gr->type != Type_Gran::Outer_Hard) continue;                             // DELETE
 
 
@@ -1970,6 +1970,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 				P.I_do = 0.0;
 
 				//cout << "FLY" << endl;
+
 
 				this->MK_fly_immit(P, zone_MK, this->Sensors[sens_num2]); // Запускаем частицу в полёт   // !! Не написана
 				//exit(-1);
@@ -2373,11 +2374,11 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		cp = sqrt(2.0 * p_Th / rho_Th);
 
 
-		ro = 1.0;
+		/*ro = 1.0;
 		cp = 1.0;
 		vx = this->phys_param->Velosity_inf;
 		vy = 0.0;
-		vz = 0.0;
+		vz = 0.0;*/
 		
 
 		// ---------------------------------------------------------------
@@ -2418,9 +2419,11 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		}
 
 
+
+
 		if (vtoroy_shans == false)
 		{
-			if (true)// (I < P.KSI)
+			if (I < P.KSI)
 			{
 				P.I_do = I;  // В этом случае перезарядки в ячейке не произошло
 

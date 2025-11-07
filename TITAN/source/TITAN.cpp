@@ -84,11 +84,11 @@ int main()
         //S1.Print_fH(4, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
         //S1.Print_fH(2, Type_Gran_surf::TS, 1.0, 0.0, 0.0, 5.0 * const_pi / 180.0);
 
-        /*S1.Print_f_proect_in_gran(1);
-        S1.Print_f_proect_in_gran(2);
-        S1.Print_f_proect_in_gran(3);
+        //S1.Print_f_proect_in_gran(1);
+        //S1.Print_f_proect_in_gran(2);
+        //S1.Print_f_proect_in_gran(3);
 
-        S1.Print_f_proect_in_cell(10.0, 0.0, 0.0);
+        /*S1.Print_f_proect_in_cell(10.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(15.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(20.0, 0.0, 0.0);
         S1.Print_f_proect_in_cell(25.0, 0.0, 0.0);
