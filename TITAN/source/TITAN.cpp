@@ -31,7 +31,7 @@ int main()
 
     //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
     //S1.Download_cell_parameters("parameters_0060.bin");   // 107
-    S1.Download_cell_parameters("parameters_0063.bin");   // 107
+    S1.Download_cell_parameters("parameters_promeg_1184.bin");   // 107
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");   // 107
     //S1.Download_cell_parameters("parameters_0217.bin");   // 107
 
@@ -138,7 +138,7 @@ int main()
 
 
 
-    for (int i = 1; i <= 12 * 8; i++) // 6 * 2   12 * 5
+    for (int i = 1; i <= 17; i++) // 6 * 2   12 * 5
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
