@@ -927,6 +927,7 @@ void AMR_cell::Read_cell(std::ifstream& in)
 	if (dims[0] > 1000 || dims[1] > 1000 || dims[2] > 1000)
 	{
 		cout << "ERROR  ertygru685467ujtuy3terdg" << endl;
+		cout << dims[0] << " " << dims[1] << " " << dims[2] << endl;
 		exit(-1);
 	}
 

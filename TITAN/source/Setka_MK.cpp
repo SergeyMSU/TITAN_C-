@@ -1697,7 +1697,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 			#pragma omp critical (first) 
 			{
 				k1++;
-				if (k1 % 50 == 0)
+				if (k1 % 500 == 0)
 				{
 					cout << "Gran = " << k1 << "    Iz: " << this->MK_Grans[zone_MK - 1].size() << "  sort " << nh_ + 1 << endl;
 				}

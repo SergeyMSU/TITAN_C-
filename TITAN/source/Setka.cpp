@@ -187,13 +187,16 @@ void Setka::Algoritm(short int alg)
 		this->Set_MK_Zone();
 
 		//Проверим зоны
-		this->Tecplot_print_gran_with_condition(0);
-		this->Tecplot_print_gran_with_condition(1);
-		this->Tecplot_print_gran_with_condition(2);
-		this->Tecplot_print_gran_with_condition(3);
-		this->Tecplot_print_gran_with_condition(4);
-		this->Tecplot_print_gran_with_condition(5);
-		this->Tecplot_print_gran_with_condition(6);
+		if (false)
+		{
+			this->Tecplot_print_gran_with_condition(0);
+			this->Tecplot_print_gran_with_condition(1);
+			this->Tecplot_print_gran_with_condition(2);
+			this->Tecplot_print_gran_with_condition(3);
+			this->Tecplot_print_gran_with_condition(4);
+			this->Tecplot_print_gran_with_condition(5);
+			this->Tecplot_print_gran_with_condition(6);
+		}
 
 		// Удаляем какие-то функции распределения
 		if (false)
@@ -217,12 +220,19 @@ void Setka::Algoritm(short int alg)
 		vector<short int> zones_number;
 		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
 		
+		cout << "Start zones_number push_back" << endl;
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);

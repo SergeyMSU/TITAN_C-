@@ -348,13 +348,13 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 			{
 				this->AMR[nH - 1][ni]->Refine(nH);
 			}
-			else
+			/*else
 			{
 				cout << "Warning:  AMR = " << N << endl;
 				cout << "Info: nH >  " << Nmax << "   =  " << nH << "   gran -> " << this->center[0][0] << " " << this->center[0][1] << " " <<
 					this->center[0][2] << endl;
 				cout << "gran number = " << this->number << endl;
-			}
+			}*/
 		}
 
 		//this->AMR[nH - 1][ni]->Clean_low();
