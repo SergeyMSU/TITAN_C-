@@ -21,8 +21,8 @@ void AMR_f::Culk_SpotokV(const double& Squ)
 		//this->Get_real_koordinate(center[0], center[1], center[2],
 		//	Vx, Vy, Vz);
 		//i->Spotok = V * i->f * fabs(Vx);
-		i->Spotok = V * i->f * fabs(center[0]);
-		this->SpotokV += i->Spotok;
+		i->setSpotok(V * i->getF() * fabs(center[0]));
+		this->SpotokV += i->getSpotok();
 	}
 
 	this->SpotokV *= Squ;
@@ -38,7 +38,7 @@ void AMR_f::Culk_SpotokV(const double& Squ)
 			for (size_t k = 0; k < nz; ++k)
 			{
 				AMR_cell* cell = this->cells[i][j][k];
-				cell->Spotok = cell->Get_SpotokV();
+				cell->setSpotok(cell->Get_SpotokV());
 			}
 		}
 	}
@@ -47,10 +47,30 @@ void AMR_f::Culk_SpotokV(const double& Squ)
 
 }
 
+void AMR_f::Partially_free_space(void)
+{
+	const auto& shape = this->cells.shape();
+	const size_t nx = shape[0];
+	const size_t ny = shape[1];
+	const size_t nz = shape[2];
+
+	for (size_t i = 0; i < nx; ++i)
+	{
+		for (size_t j = 0; j < ny; ++j)
+		{
+			for (size_t k = 0; k < nz; ++k)
+			{
+				AMR_cell* cell = this->cells[i][j][k];
+				cell->Cell_partially_free_space();
+			}
+		}
+	}
+}
+
 void AMR_f::Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens)
 {
 	// Squ - площадь грани
-	// Vel - возвращаемая скорость частицы
+	// Vel - разыгрываемая скорость частицы
 	// Sens - датчик случайных чисел
 
 	double ksi = Sens->MakeRandom() * this->SpotokV;
@@ -61,7 +81,6 @@ void AMR_f::Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& 
 	const size_t ny = shape[1];
 	const size_t nz = shape[2];
 	
-	
 	for (size_t i = 0; i < nx; ++i)
 	{
 		for (size_t j = 0; j < ny; ++j)
@@ -69,9 +88,9 @@ void AMR_f::Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& 
 			for (size_t k = 0; k < nz; ++k)
 			{
 				AMR_cell* cell = this->cells[i][j][k];
-				if (SS + cell->Spotok * Squ > ksi)
+				if (SS + cell->getSpotok() * Squ > ksi)
 				{
-					// Нам нужна эта ячейка
+					// Эта ячейка нам подходит
 					cell->Get_random_velosity_in_cell(AMR, ksi - SS, Squ, Vel, Sens);
 
 					double A0 = Vel[0] * this->Vn[0] + Vel[1] * this->Vt[0] +
@@ -89,7 +108,7 @@ void AMR_f::Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& 
 				}
 				else
 				{
-					SS += cell->Spotok * Squ;
+					SS += cell->getSpotok() * Squ;
 				}
 			}
 		}
@@ -103,7 +122,6 @@ void AMR_f::Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& 
 	whach(ksi);
 	whach(this->SpotokV);
 	exit(-1);
-
 }
 
 AMR_f::AMR_f()
@@ -312,7 +330,7 @@ void AMR_f::Add_particle(const double& Vx, const double& Vy, const double& Vz, c
 
 	this->mut.lock();
 	//cell->f += mu/Vnn;
-	cell->f += mu;    // Умножил предыдущюю на Vnn, потом отнормирую обратно на среднее
+	cell->setF(cell->getF() + mu);    // Убираем нормировку на Vnn, будем нормировать потоком на границе
 	this->mut.unlock();
 }
 
@@ -331,8 +349,8 @@ void AMR_f::Normir_velocity_volume(const double& squ)
 	{
 		cel->Get_Center(this->AMR_self, center, razmer);
 		//cel->f /= (razmer[0] * razmer[1] * razmer[2] * squ);
-		cel->f /= (razmer[0] * razmer[1] * razmer[2] * squ * center[0]); 
-		// Отнормировал ещё на скорость Vx (пытаюсь увеличить порядок точности)
+		cel->setF(cel->getF() / (razmer[0] * razmer[1] * razmer[2] * squ * center[0])); 
+		// нормировка еще и на элемент Vx (деления источника заново выведены)
 	}
 }
 
@@ -374,7 +392,7 @@ AMR_cell* AMR_f::find_cell(const double& x, const double& y, const double& z)
 
 	auto A = this->cells[index1][index2][index3];
 
-	if (A->flags.is_divided == false)
+	if (A->isDivided() == false)
 	{
 		return A;
 	}
@@ -400,7 +418,7 @@ void AMR_f::Get_all_cells(vector<AMR_cell*>& cells)
 			for (size_t k = 0; k < nz; ++k)
 			{
 				AMR_cell* cell = this->cells[i][j][k];
-				if (cell->flags.is_divided == false) {
+				if (cell->isDivided() == false) {
 					cells.push_back(cell);
 				}
 				else
@@ -478,7 +496,7 @@ void AMR_f::Fill_maxwel_inf(const double& Vinf)
 				center[0] + razmer[0] / 2.0, center[1] - razmer[1] / 2.0,
 				center[1] + razmer[1] / 2.0, center[2] - razmer[2] / 2.0,
 				center[2] + razmer[2] / 2.0, Vinf);
-			cel->f = S / center[0] / (razmer[0] * razmer[1] * razmer[2]);
+			cel->setF(S / center[0] / (razmer[0] * razmer[1] * razmer[2]));
 			//cel->f = maxwell(1.0, 1.0, Vinf, 0.0, 0.0, ee[0], ee[1], ee[2]);
 		}
 
@@ -496,7 +514,7 @@ void AMR_f::Fill_null(void)
 
 	for (auto& i : cells)
 	{
-		i->f = 0.0;
+		i->setF(0.0);
 	}
 }
 
@@ -541,7 +559,7 @@ void AMR_f::Fill_test(void)
 		double s9 = maxwell(1.0, cp1, u1, 0.0, 0.0, (a + b)/2, (c + d)/2, (e + f)/2) +
 			10 * maxwell(1.0, cp2, u2, 0.0, 0.0, (a + b) / 2, (c + d) / 2, (e + f) / 2);
 
-		i->f = s9;
+		i->setF(s9);
 	}
 }
 
@@ -565,7 +583,7 @@ unsigned int AMR_f::de_Refine(short int H_n)
 				cell->Get_Center(this->AMR_self, center, razmer);
 				double SS = 0.0;
 				cell->Get_f(this->AMR_self, SS);
-				cell->f = SS / (razmer[0] * razmer[1] * razmer[2] * center[0]);
+				cell->setF(SS / (razmer[0] * razmer[1] * razmer[2] * center[0]));
 			}
 		}
 	}
@@ -588,10 +606,10 @@ unsigned int AMR_f::de_Refine(short int H_n)
 		i->Get_Center(this->AMR_self, center, razmer);
 		V = razmer[0] * razmer[1] * razmer[2];
 		u = norm2(center[0], center[1], center[2]);
-		this->Sf += V * i->f;
-		this->Sfu += V * i->f * u;
-		this->Sfux += V * i->f * center[0];
-		this->Sfuu += V * i->f * kv(u);
+		this->Sf += V * i->getF();
+		this->Sfu += V * i->getF() * u;
+		this->Sfux += V * i->getF() * center[0];
+		this->Sfuu += V * i->getF() * kv(u);
 	}
 
 	if (this->Sf < 1e-8 || this->Sfu < 1e-8 ||
@@ -605,7 +623,7 @@ unsigned int AMR_f::de_Refine(short int H_n)
 	{
 		parent = i->parent;
 		if (parent == nullptr) continue;
-		parent->flags.need_devide_x = false;
+		parent->setNeedDevideX(false);
 	}
 
 	for (const auto& i : cells)
@@ -617,13 +635,13 @@ unsigned int AMR_f::de_Refine(short int H_n)
 		mux = 0.0;
 		parent = i->parent;
 		if (parent == nullptr) continue;
-		if (parent->flags.need_devide_x == true) continue;
-		parent->flags.is_signif = false;
+		if (parent->needDevideX() == true) continue;
+		parent->setIsSignif(false);
 		parent->Get_Moment(this->AMR_self, m, mu, mux, muu);
-		if (m * 100.0 / this->Sf > procent) parent->flags.is_signif = true;
-		if (mu * 100.0 / this->Sfu > procent) parent->flags.is_signif = true;
-		if (mux * 100.0 / this->Sfux > procent) parent->flags.is_signif = true;
-		if (muu * 100.0 / this->Sfuu > procent) parent->flags.is_signif = true;
+		if (m * 100.0 / this->Sf > procent) parent->setIsSignif(true);
+		if (mu * 100.0 / this->Sfu > procent) parent->setIsSignif(true);
+		if (mux * 100.0 / this->Sfux > procent) parent->setIsSignif(true);
+		if (muu * 100.0 / this->Sfuu > procent) parent->setIsSignif(true);
 
 
 		// Специальное разбиение вокруг проблемной точки
@@ -634,23 +652,23 @@ unsigned int AMR_f::de_Refine(short int H_n)
 			double RR = center[0] + razmer[0] / 2.0;
 			if (center[0] < -5.0 && center[0] > -7.0 && razmer[0] > 0.3)
 			{
-				parent->flags.need_devide_x = false;
+				parent->setNeedDevideX(false);
 			}
 			else if (LL < -5.0 && LL > -7.0 && razmer[0] > 0.3)
 			{
-				parent->flags.need_devide_x = false;
+				parent->setNeedDevideX(false);
 			}
 			else if (RR < -5.0 && RR > -7.0 && razmer[0] > 0.3)
 			{
-				parent->flags.need_devide_x = false;
+				parent->setNeedDevideX(false);
 			}
 			continue;
 		}
 
 
-		if (parent->flags.is_signif == false)
+		if (parent->isSignif() == false)
 		{
-			parent->flags.need_devide_x = true;
+			parent->setNeedDevideX(true);
 			parents.push_back(parent);
 			continue;
 		}
@@ -662,7 +680,7 @@ unsigned int AMR_f::de_Refine(short int H_n)
 		for (short int il = 0; il < 6; il++)
 		{
 			auto A = parent->get_sosed(this->AMR_self, il);
-			if (A != nullptr) if (fabs(parent->f - A->f) * 100.0 / parent->f > procent)
+			if (A != nullptr) if (fabs(parent->getF() - A->getF()) * 100.0 / parent->getF() > procent)
 			{
 				bkl = true;
 				break;
@@ -673,7 +691,7 @@ unsigned int AMR_f::de_Refine(short int H_n)
 
 
 		// Если дошли до сюда, то можно удалять ячейки
-		parent->flags.need_devide_x = true;
+		parent->setNeedDevideX(true);
 		parents.push_back(parent);
 		continue;
 	}
@@ -688,12 +706,12 @@ unsigned int AMR_f::de_Refine(short int H_n)
 	for (const auto& i : parents)
 	{
 		if(i == nullptr) continue;
-		if(i->flags.is_divided == false) continue;
-		if (i->flags.need_devide_x == false) continue;
+		if(i->isDivided() == false) continue;
+		if (i->needDevideX() == false) continue;
 
-		i->flags.need_devide_x = false;
+		i->setNeedDevideX(false);
 		// В этом случае можно удалять дочерние ячейки
-		i->flags.is_divided = false;
+		i->setIsDivided(false);
 		//i->Get_Center(this->AMR_self, center, razmer);
 		//cout << center[0] << " " << center[1] << " " << center[2] << endl;
 		dim1 = i->cells.shape()[0];
@@ -740,7 +758,7 @@ void AMR_f::Copy_and_Refine(std::vector<Int_point*>& Cells, Delaunay* Delone)
 			i->Get_Center(this->AMR_self, center);
 			Get_param_amr(center[0], center[1], center[2], parameters, Cells, Delone, prev_cell, next_cell);
 			prev_cell = next_cell;
-			i->f = parameters["f"];
+			i->setF(parameters["f"]);
 		}
 		K2 = this->Refine(0);
 		if (kk > 100)
@@ -762,7 +780,7 @@ void AMR_f::Copy_and_Refine(std::vector<Int_point*>& Cells, Delaunay* Delone)
 			i->Get_Center(this->AMR_self, center);
 			Get_param_amr(center[0], center[1], center[2], parameters, Cells, Delone, prev_cell, next_cell);
 			prev_cell = next_cell;
-			i->f = parameters["f"];
+			i->setF(parameters["f"]);
 		}
 		K2 = this->de_Refine();
 		if (kk > 100)
@@ -808,28 +826,28 @@ void AMR_f::Clean_low()
 		i->Get_Center(this->AMR_self, center, razmer);
 		V = razmer[0] * razmer[1] * razmer[2];
 		u = norm2(center[0], center[1], center[2]);
-		this->Sf += V * i->f;
-		this->Sfu += V * i->f * u;
-		this->Sfux += V * i->f * center[0];
-		this->Sfuu += V * i->f * kv(u);
+		this->Sf += V * i->getF();
+		this->Sfu += V * i->getF() * u;
+		this->Sfux += V * i->getF() * center[0];
+		this->Sfuu += V * i->getF() * kv(u);
 	}
 
 	double procent = this->procent_signif/100.0;
 	for (const auto& i : cells)
 	{
-		i->flags.is_signif = false;
+		i->setIsSignif(false);
 		i->Get_Center(this->AMR_self, center, razmer);
 		V = razmer[0] * razmer[1] * razmer[2];
 		u = norm2(center[0], center[1], center[2]);
-		m = V * i->f;
-		mu = V * i->f * u;
-		mux = V * i->f * center[0];
-		muu = V * i->f * kv(u);
+		m = V * i->getF();
+		mu = V * i->getF() * u;
+		mux = V * i->getF() * center[0];
+		muu = V * i->getF() * kv(u);
 
-		if (m * 100.0 / this->Sf < procent) i->f = 0.0;
-		if (mu * 100.0 / this->Sfu < procent) i->f = 0.0;
-		if (mux * 100.0 / this->Sfux < procent) i->f = 0.0;
-		if (muu * 100.0 / this->Sfuu < procent) i->f = 0.0;
+		if (m * 100.0 / this->Sf < procent) i->setF(0.0);
+		if (mu * 100.0 / this->Sfu < procent) i->setF(0.0);
+		if (mux * 100.0 / this->Sfux < procent) i->setF(0.0);
+		if (muu * 100.0 / this->Sfuu < procent) i->setF(0.0);
 	}
 }
 
@@ -855,37 +873,37 @@ unsigned int AMR_f::Refine(short int H_n)
 		i->Get_Center(this->AMR_self, center, razmer);
 		V = razmer[0] * razmer[1] * razmer[2];
 		u = norm2(center[0], center[1], center[2]);
-		this->Sf += V * i->f;
-		this->Sfu += V * i->f * u;
-		this->Sfux += V * i->f * center[0];
-		this->Sfuu += V * i->f * kv(u);
+		this->Sf += V * i->getF();
+		this->Sfu += V * i->getF() * u;
+		this->Sfux += V * i->getF() * center[0];
+		this->Sfuu += V * i->getF() * kv(u);
 	}
 
 	if (this->Sf < 1e-8 || this->Sfu < 1e-8 || this->Sfuu < 1e-8 || this->Sfux < 1e-8) return 0;
 
 	for (const auto& i : cells)
 	{
-		i->flags.need_devide_x = false;
-		i->flags.need_devide_y = false;
-		i->flags.need_devide_z = false;
+		i->setNeedDevideX(false);
+		i->setNeedDevideY(false);
+		i->setNeedDevideZ(false);
 	}
 
 	double procent = this->procent_signif;
 	for (const auto& i : cells)
 	{
-		i->flags.is_signif = false;
+		i->setIsSignif(false);
 		i->Get_Center(this->AMR_self, center, razmer);
 		V = razmer[0] * razmer[1] * razmer[2];
 		u = norm2(center[0], center[1], center[2]);
-		m = V * i->f;
-		mu = V * i->f * u;
-		mux = V * i->f * center[0];
-		muu = V * i->f * kv(u);
+		m = V * i->getF();
+		mu = V * i->getF() * u;
+		mux = V * i->getF() * center[0];
+		muu = V * i->getF() * kv(u);
 
-		if (m * 100.0 / this->Sf > procent) i->flags.is_signif = true;
-		if (mu * 100.0 / this->Sfu > procent) i->flags.is_signif = true;
-		if (mux * 100.0 / this->Sfux > procent) i->flags.is_signif = true;
-		if (muu * 100.0 / this->Sfuu > procent) i->flags.is_signif = true;
+		if (m * 100.0 / this->Sf > procent) i->setIsSignif(true);
+		if (mu * 100.0 / this->Sfu > procent) i->setIsSignif(true);
+		if (mux * 100.0 / this->Sfux > procent) i->setIsSignif(true);
+		if (muu * 100.0 / this->Sfuu > procent) i->setIsSignif(true);
 
 		// Специальное разбиение вокруг проблемной точки
 		if (false)
@@ -894,24 +912,24 @@ unsigned int AMR_f::Refine(short int H_n)
 			double RR = center[0] + razmer[0] / 2.0;
 			if (center[0] < -5.0 && center[0] > -7.0 && razmer[0] > 0.3)
 			{
-				i->flags.need_devide_x = true;
+				i->setNeedDevideX(true);
 			}
 			else if(LL < -5.0 && LL > -7.0 && razmer[0] > 0.3)
 			{
-				i->flags.need_devide_x = true;
+				i->setNeedDevideX(true);
 			}
 			else if (RR < -5.0 && RR > -7.0 && razmer[0] > 0.3)
 			{
-				i->flags.need_devide_x = true;
+				i->setNeedDevideX(true);
 			}
 		}
 
 		// Если ячека не пустая, то её размеры не могут быть больне 0.5 (чтобы нормально отделить нулевые области от ненулевых
-		if (i->f > 0.0)
+		if (i->getF() > 0.0)
 		{
-			if(razmer[0] > 0.5)  i->flags.need_devide_x = true;
-			if(razmer[1] > 0.5)  i->flags.need_devide_y = true;
-			if(razmer[2] > 0.5)  i->flags.need_devide_z = true;
+			if(razmer[0] > 0.5)  i->setNeedDevideX(true);
+			if(razmer[1] > 0.5)  i->setNeedDevideY(true);
+			if(razmer[2] > 0.5)  i->setNeedDevideZ(true);
 		}
 
 	}
@@ -923,7 +941,7 @@ unsigned int AMR_f::Refine(short int H_n)
 		i->flags.need_devide_y = false;
 		i->flags.need_devide_z = false;*/
 
-		if (i->flags.is_signif == false) continue;
+		if (i->isSignif() == false) continue;
 
 		// Добавил, чтобы ячеки вблизи несущественных имели размер не больше 0.3
 		// Это чтобы было хорошо видно границу несущественных
@@ -931,17 +949,17 @@ unsigned int AMR_f::Refine(short int H_n)
 		auto A = i->get_sosed(this->AMR_self, 0);
 		if (A != nullptr)
 		{
-			if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+			if (fabs(i->getF() - A->getF()) * 100.0 / i->getF() > procent)
 			{
-				i->flags.need_devide_x = true;
-				A->flags.need_devide_x = true;
+				i->setNeedDevideX(true);
+				A->setNeedDevideX(true);
 			}
 			else if (false)//(A->flags.is_signif == false)
 			{
 				i->Get_Center(this->AMR_self, center, razmer);
 				if (razmer[0] > 0.3)
 				{
-					i->flags.need_devide_x = true;
+					i->setNeedDevideX(true);
 				}
 			}
 		}
@@ -949,17 +967,17 @@ unsigned int AMR_f::Refine(short int H_n)
 		A = i->get_sosed(this->AMR_self, 1);
 		if (A != nullptr)
 		{
-			if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+			if (fabs(i->getF() - A->getF()) * 100.0 / i->getF() > procent)
 			{
-				i->flags.need_devide_x = true;
-				A->flags.need_devide_x = true;
+				i->setNeedDevideX(true);
+				A->setNeedDevideX(true);
 			}
 			else if (false)//(A->flags.is_signif == false)
 			{
 				i->Get_Center(this->AMR_self, center, razmer);
 				if (razmer[0] > 0.3)
 				{
-					i->flags.need_devide_x = true;
+					i->setNeedDevideX(true);
 				}
 			}
 		}
@@ -967,17 +985,17 @@ unsigned int AMR_f::Refine(short int H_n)
 		A = i->get_sosed(this->AMR_self, 2);
 		if (A != nullptr)
 		{
-			if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+			if (fabs(i->getF() - A->getF()) * 100.0 / i->getF() > procent)
 			{
-				i->flags.need_devide_y = true;
-				A->flags.need_devide_y = true;
+				i->setNeedDevideY(true);
+				A->setNeedDevideY(true);
 			}
 			else if (false)//(A->flags.is_signif == false)
 			{
 				i->Get_Center(this->AMR_self, center, razmer);
 				if (razmer[1] > 0.3)
 				{
-					i->flags.need_devide_x = true;
+					i->setNeedDevideX(true);
 				}
 			}
 		}
@@ -985,17 +1003,17 @@ unsigned int AMR_f::Refine(short int H_n)
 		A = i->get_sosed(this->AMR_self, 3);
 		if (A != nullptr)
 		{
-			if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+			if (fabs(i->getF() - A->getF()) * 100.0 / i->getF() > procent)
 			{
-				i->flags.need_devide_y = true;
-				A->flags.need_devide_y = true;
+				i->setNeedDevideY(true);
+				A->setNeedDevideY(true);
 			}
 			else if (false)//(A->flags.is_signif == false)
 			{
 				i->Get_Center(this->AMR_self, center, razmer);
 				if (razmer[1] > 0.3)
 				{
-					i->flags.need_devide_x = true;
+					i->setNeedDevideX(true);
 				}
 			}
 		}
@@ -1003,17 +1021,17 @@ unsigned int AMR_f::Refine(short int H_n)
 		A = i->get_sosed(this->AMR_self, 4);
 		if (A != nullptr)
 		{
-			if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+			if (fabs(i->getF() - A->getF()) * 100.0 / i->getF() > procent)
 			{
-				i->flags.need_devide_z = true;
-				A->flags.need_devide_z = true;
+				i->setNeedDevideZ(true);
+				A->setNeedDevideZ(true);
 			}
 			else if (false)//(A->flags.is_signif == false)
 			{
 				i->Get_Center(this->AMR_self, center, razmer);
 				if (razmer[2] > 0.3)
 				{
-					i->flags.need_devide_x = true;
+					i->setNeedDevideX(true);
 				}
 			}
 		}
@@ -1021,17 +1039,17 @@ unsigned int AMR_f::Refine(short int H_n)
 		A = i->get_sosed(this->AMR_self, 5);
 		if (A != nullptr)
 		{
-			if (fabs(i->f - A->f) * 100.0 / i->f > procent)
+			if (fabs(i->getF() - A->getF()) * 100.0 / i->getF() > procent)
 			{
-				i->flags.need_devide_z = true;
-				A->flags.need_devide_z = true;
+				i->setNeedDevideZ(true);
+				A->setNeedDevideZ(true);
 			}
 			else if (false)//(A->flags.is_signif == false)
 			{
 				i->Get_Center(this->AMR_self, center, razmer);
 				if (razmer[2] > 0.3)
 				{
-					i->flags.need_devide_x = true;
+					i->setNeedDevideX(true);
 				}
 			}
 		}
@@ -1039,9 +1057,9 @@ unsigned int AMR_f::Refine(short int H_n)
 
 		// Слишком маленькие ячейки больше делить не надо
 		i->Get_Center(this->AMR_self, center, razmer);
-		if (razmer[0] < 0.05) i->flags.need_devide_x = false;
-		if (razmer[1] < 0.05) i->flags.need_devide_y = false;
-		if (razmer[2] < 0.05) i->flags.need_devide_z = false;
+		if (razmer[0] < 0.05) i->setNeedDevideX(false);
+		if (razmer[1] < 0.05) i->setNeedDevideY(false);
+		if (razmer[2] < 0.05) i->setNeedDevideZ(false);
 	}
 
 	
@@ -1052,7 +1070,7 @@ unsigned int AMR_f::Refine(short int H_n)
 	unsigned int NN = 0;
 	for (const auto& i : cells)
 	{
-		if (i->flags.need_devide_x == true)
+		if (i->needDevideX() == true)
 		{
 			k1 = 2;
 		}
@@ -1061,7 +1079,7 @@ unsigned int AMR_f::Refine(short int H_n)
 			k1 = 1;
 		}
 
-		if (i->flags.need_devide_y == true)
+		if (i->needDevideY() == true)
 		{
 			k2 = 2;
 		}
@@ -1070,7 +1088,7 @@ unsigned int AMR_f::Refine(short int H_n)
 			k2 = 1;
 		}
 
-		if (i->flags.need_devide_z == true)
+		if (i->needDevideZ() == true)
 		{
 			k3 = 2;
 		}
@@ -1259,7 +1277,7 @@ void AMR_f::Print_all_center_Tecplot(AMR_f* AMR, const string& name)
 	for (auto& j : cells)
 	{
 		j->Get_Center(this->AMR_self, center);
-		fout << center[0] << " " << center[1] << " " << center[2] << " " << j->f << endl;
+		fout << center[0] << " " << center[1] << " " << center[2] << " " << j->getF() << endl;
 	}
 
 	fout.close();
@@ -1393,7 +1411,7 @@ void AMR_f::Print_1D_Tecplot(AMR_f* AMR, const double& VV)
 		}
 		else
 		{
-			fout << x << " " << A->f << " " << ff << endl;
+			fout << x << " " << A->getF() << " " << ff << endl;
 		}
 	}
 

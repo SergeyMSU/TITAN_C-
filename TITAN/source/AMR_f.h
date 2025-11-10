@@ -44,6 +44,8 @@ public:
 	// Считает поток функции распределения через границу
 	// Также вычисляет поток в родительских (разделённых) ячейках
 
+	void Partially_free_space(void);
+
 	void Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens);
 
 	AMR_f();

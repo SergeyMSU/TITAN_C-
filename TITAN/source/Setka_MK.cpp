@@ -1643,6 +1643,8 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 					gr->AMR[j][ni]->Fill_null();
 					N_vixod[j] += gr->AMR[j][ni]->Size();
 					N2[j]++;
+
+					//gr->AMR[j][ni]->Partially_free_space();
 				}
 			}
 		}

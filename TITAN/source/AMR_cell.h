@@ -1,16 +1,29 @@
 #pragma once
 #include "Header.h"
 
-class AMR_cell
+// Структура для данных активных ячеек
+struct ActiveCellData 
 {
-public:
 	double f = 0.0;
 	double Spotok = 0.0; // Это поток в ячейке не умноженный на грань!
 	unordered_map<string, double> param;    // Вспомогательные параметры в ячейке, например для линейного сноса
 	// f = A + Bx (Vx - Vx0) + By (Vy - Vy0) + Bz (Vz - Vz0)
 	// Bx, By, Bz
 	// Max - максимальное значение линейной функции в ячейке (для метода отказов)
+	
+	struct {
+		unsigned is_signif : 1;      // 1 бит // Сущестывенная ячейка, та, которую можно делить, если надо 
+	// определяется по процентру плотности к всему объёму
+		unsigned need_devide_x : 1;  // 1 бит  // Нужно ли её делить вдоль x?
+		unsigned need_devide_y : 1;  // 1 бит  // Нужно ли её делить вдоль y?
+		unsigned need_devide_z : 1;  // 1 бит  // Нужно ли её делить вдоль z?
+	} active_flags;
+};
 
+
+class AMR_cell
+{
+public:
 	AMR_cell* I_self;            // Указатель на себя
 
 	uint8_t level = 0;
@@ -21,21 +34,111 @@ public:
 
 	struct Flags {
 		unsigned is_divided : 1;     // 1 бит  // Разделена ли ячейка
-		unsigned is_signif : 1;      // 1 бит // Сущестывенная ячейка, та, которую можно делить, если надо 
-	// определяется по процентру плотности к всему объёму
-		unsigned need_devide_x : 1;  // 1 бит  // Нужно ли её делить вдоль x?
-		unsigned need_devide_y : 1;  // 1 бит  // Нужно ли её делить вдоль y?
-		unsigned need_devide_z : 1;  // 1 бит  // Нужно ли её делить вдоль z?
-	} flags;  // Размер: 1 байт (вместо 5!)
+	} flags;  // Размер: 1 байт
 
 	boost::multi_array<AMR_cell*, 3> cells;  // Ячейки - дети
 
+	// Данные активных ячеек (может быть nullptr для неактивных ячеек)
+	std::unique_ptr<ActiveCellData> active_data;
 
 	AMR_cell();
+
+	// Функции для работы с данными активных ячеек
+	void ensure_active_data();  // Создать active_data если его нет
+	void clear_active_data();   // Очистить active_data для освобождения памяти
+	bool has_active_data() const { return active_data != nullptr; }
+	
+	// Геттеры и сеттеры для безопасного доступа к данным
+	double getF() const 
+	{ 
+		if (active_data)
+		{
+			return active_data->f;
+		}
+		else
+		{
+			cout << "Error 8934yt807goueyw4hfgiuehgf873egg" << endl;
+			return 0.0;
+		}
+	}
+	void setF(double value) { ensure_active_data(); active_data->f = value; }
+	
+	double getSpotok() const 
+	{ 
+		if (active_data)
+		{
+			return active_data->Spotok;
+		}
+		else
+		{
+			cout << "Error ergert34t43r5t3345t3" << endl;
+			return 0.0;
+		}
+	}
+	void setSpotok(double value) { ensure_active_data(); active_data->Spotok = value; }
+	
+	bool isSignif() const
+	{ 
+		if (active_data)
+		{
+			return active_data->active_flags.is_signif;
+		}
+		else
+		{
+			cout << "Error etrhgrtyhr6y456yt46" << endl;
+			return false;
+		}
+	}
+	void setIsSignif(bool value) { ensure_active_data(); active_data->active_flags.is_signif = value; }
+	
+	bool needDevideX() const 
+	{ 
+		if (active_data)
+		{
+			return active_data->active_flags.need_devide_x;
+		}
+		else
+		{
+			cout << "Error etrhgrety45t45y56yh" << endl;
+			return false;
+		}
+	}
+	void setNeedDevideX(bool value) { ensure_active_data(); active_data->active_flags.need_devide_x = value; }
+	
+	bool needDevideY() const { return active_data ? active_data->active_flags.need_devide_y : false; }
+	void setNeedDevideY(bool value) { ensure_active_data(); active_data->active_flags.need_devide_y = value; }
+	
+	bool needDevideZ() const { return active_data ? active_data->active_flags.need_devide_z : false; }
+	void setNeedDevideZ(bool value) { ensure_active_data(); active_data->active_flags.need_devide_z = value; }
+	
+	bool isDivided() const { return flags.is_divided; }
+	void setIsDivided(bool value) { flags.is_divided = value; }
+	
+	unordered_map<string, double>& getParam() 
+	{ 
+		if (active_data)
+		{
+			return active_data->param;
+		}
+		else
+		{
+			cout << "Error 564y56y3gregegr" << endl;
+			exit(-1);
+		}
+	}
+	/*const unordered_map<string, double>& getParam() const 
+	{ 
+		static unordered_map<string, double> empty_map;
+		return active_data ? active_data->param : empty_map; 
+	}*/
 
 	double Get_SpotokV(void);
 	void Get_Moment(AMR_f* AMR, double & m, double& mu, double& mux, double& muu);
 	void Get_f(AMR_f* AMR, double& S);
+
+
+	void Cell_partially_free_space(void);
+	// Освобождает место для ячеек, которые являются неактивными
 
 	void Culc_gradients(AMR_f* AMR);
 	// Вычисляет градианты для данной ячейки, используя её соседей

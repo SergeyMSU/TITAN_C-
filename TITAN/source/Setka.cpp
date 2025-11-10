@@ -222,7 +222,7 @@ void Setka::Algoritm(short int alg)
 		
 		cout << "Start zones_number push_back" << endl;
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		/*zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
@@ -232,7 +232,8 @@ void Setka::Algoritm(short int alg)
 		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);*/
+
 		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
@@ -510,7 +511,7 @@ void Setka::Algoritm(short int alg)
 							cell->Get_Center(func, center);
 							//func->Get_real_koordinate(center[0], center[1], center[2], Vx, Vy, Vz);
 							auto A = new Int_point(center[0], center[1], center[2]);
-							A->parameters["f"] = cell->f;
+							A->parameters["f"] = cell->getF();
 							points.push_back({ {center[0], center[1], center[2]}, i });
 							ALL_Cells.push_back(A);
 							i++;

@@ -2,16 +2,23 @@
 
 AMR_cell::AMR_cell()
 {
-	this->f = 0.0;
 	this->level = 0;
-
-
 	this->flags.is_divided = false;
-	this->flags.is_signif = false;
-	this->flags.need_devide_x = false;
-	this->flags.need_devide_y = false;
-	this->flags.need_devide_z = false;
+	// active_data создается при инициализации.
+	this->ensure_active_data();
+}
 
+void AMR_cell::ensure_active_data()
+{
+	if (!active_data) 
+	{
+		active_data = std::make_unique<ActiveCellData>();
+	}
+}
+
+void AMR_cell::clear_active_data()
+{
+	active_data.reset();
 }
 
 void AMR_cell::Get_Moment(AMR_f* AMR, double& m, double& mu, double& mux, double& muu)
@@ -23,10 +30,10 @@ void AMR_cell::Get_Moment(AMR_f* AMR, double& m, double& mu, double& mux, double
 		this->Get_Center(AMR, center, razmer);
 		double V = razmer[0] * razmer[1] * razmer[2];
 		double u = norm2(center[0], center[1], center[2]);
-		m += V * this->f;
-		mu += V * this->f * u;
-		mux += V * this->f * center[0];
-		muu += V * this->f * kv(u);
+		m += V * this->getF();
+		mu += V * this->getF() * u;
+		mux += V * this->getF() * center[0];
+		muu += V * this->getF() * kv(u);
 		return;
 	}
 	else
@@ -61,12 +68,12 @@ void AMR_cell::Get_f(AMR_f* AMR, double& S)
 
 	if (this->flags.is_divided == false)
 	{
-		S += V * this->f * center[0];
+		S += V * this->getF() * center[0];
 		return;
 	}
 	else
 	{
-		this->f = 0.0;
+		this->setF(0.0);
 		double SS = 0.0;
 		const size_t dim1 = this->cells.shape()[0];
 		const size_t dim2 = this->cells.shape()[1];
@@ -81,22 +88,50 @@ void AMR_cell::Get_f(AMR_f* AMR, double& S)
 					AMR_cell* cell = cells[i][j][k];
 					double SS = 0.0;
 					cell->Get_f(AMR, SS);
-					this->f += SS;
+					this->setF(this->getF() + SS);
 				}
 			}
 		}
-		S += this->f;
-		this->f /= (V * center[0]);
+		S += this->getF();
+		this->setF(this->getF() / (V * center[0]));
 	}
 
 	return;
+}
+
+void AMR_cell::Cell_partially_free_space(void)
+{
+	if (this->flags.is_divided == false)
+	{
+		return;
+	}
+	else
+	{
+		this->clear_active_data();
+
+		const size_t dim1 = this->cells.shape()[0];
+		const size_t dim2 = this->cells.shape()[1];
+		const size_t dim3 = this->cells.shape()[2];
+
+		for (size_t i = 0; i < dim1; ++i)
+		{
+			for (size_t j = 0; j < dim2; ++j)
+			{
+				for (size_t k = 0; k < dim3; ++k)
+				{
+					AMR_cell* cell = cells[i][j][k];
+					cell->Cell_partially_free_space();
+				}
+			}
+		}
+	}
 }
 
 double AMR_cell::Get_SpotokV(void)
 {
 	if (this->flags.is_divided == false)
 	{
-		return this->Spotok;
+		return this->getSpotok();
 	}
 	else
 	{
@@ -116,7 +151,7 @@ double AMR_cell::Get_SpotokV(void)
 				}
 			}
 		}
-		this->Spotok = SS;
+		this->setSpotok(SS);
 		return SS;
 	}
 
@@ -147,11 +182,13 @@ void AMR_cell::divide(AMR_f* AMR, unsigned short int n1, unsigned short int n2, 
 				this->cells[i][j][k] = A;
 				A->I_self = A;
 
-				A->f = this->f * center[0] / x;                        //  Просто сносим значение
+				A->setF(this->getF() * center[0] / x);                        //  Просто сносим значение
 			}
 		}
 	}
 
+	// После разделения можно очистить данные активной ячейки
+	//this->clear_active_data();
 }
 
 AMR_cell* AMR_cell::find_cell(const double& x, const double& y, const double& z, const double& xL,
@@ -192,9 +229,9 @@ AMR_cell* AMR_cell::find_cell(const double& x, const double& y, const double& z,
 void AMR_cell::Culc_gradients(AMR_f* AMR)
 {
 	// Обнулим градиенты
-	this->param["Bx"] = 0.0;
-	this->param["By"] = 0.0;
-	this->param["Bz"] = 0.0;
+	this->getParam()["Bx"] = 0.0;
+	this->getParam()["By"] = 0.0;
+	this->getParam()["Bz"] = 0.0;
 
 	std::array<double, 3> center;
 	std::array<double, 3> razmer;
@@ -215,21 +252,21 @@ void AMR_cell::Culc_gradients(AMR_f* AMR)
 	if (S1 != nullptr && S2 == nullptr)
 	{
 		S1->Get_Center(AMR, center1);
-		this->param["Bx"] = (S1->f - this->f) / (center1[0] - center[0]);
+		this->getParam()["Bx"] = (S1->getF() - this->getF()) / (center1[0] - center[0]);
 	}
 	else if (S1 == nullptr && S2 != nullptr)
 	{
 		S2->Get_Center(AMR, center2);
-		this->param["Bx"] = (this->f - S2->f) / (center[0] - center2[0]);
+		this->getParam()["Bx"] = (this->getF() - S2->getF()) / (center[0] - center2[0]);
 	}
 	else if (S1 != nullptr && S2 != nullptr)
 	{
 		S1->Get_Center(AMR, center1);
 		S2->Get_Center(AMR, center2);
 
-		B1 = (S1->f - this->f) / (center1[0] - center[0]);
-		B2 = (this->f - S2->f) / (center[0] - center2[0]);
-		this->param["Bx"] = minmod(B1, B2);
+		B1 = (S1->getF() - this->getF()) / (center1[0] - center[0]);
+		B2 = (this->getF() - S2->getF()) / (center[0] - center2[0]);
+		this->getParam()["Bx"] = minmod(B1, B2);
 	}
 
 	// By
@@ -238,21 +275,21 @@ void AMR_cell::Culc_gradients(AMR_f* AMR)
 	if (S1 != nullptr && S2 == nullptr)
 	{
 		S1->Get_Center(AMR, center1);
-		this->param["By"] = (S1->f - this->f) / (center1[1] - center[1]);
+		this->getParam()["By"] = (S1->getF() - this->getF()) / (center1[1] - center[1]);
 	}
 	else if (S1 == nullptr && S2 != nullptr)
 	{
 		S2->Get_Center(AMR, center2);
-		this->param["By"] = (this->f - S2->f) / (center[1] - center2[1]);
+		this->getParam()["By"] = (this->getF() - S2->getF()) / (center[1] - center2[1]);
 	}
 	else if (S1 != nullptr && S2 != nullptr)
 	{
 		S1->Get_Center(AMR, center1);
 		S2->Get_Center(AMR, center2);
 
-		B1 = (S1->f- this->f) / (center1[1] - center[1]);
-		B2 = (this->f - S2->f) / (center[1] - center2[1]);
-		this->param["By"] = minmod(B1, B2);
+		B1 = (S1->getF()- this->getF()) / (center1[1] - center[1]);
+		B2 = (this->getF() - S2->getF()) / (center[1] - center2[1]);
+		this->getParam()["By"] = minmod(B1, B2);
 	}
 
 	// Bz
@@ -261,36 +298,36 @@ void AMR_cell::Culc_gradients(AMR_f* AMR)
 	if (S1 != nullptr && S2 == nullptr)
 	{
 		S1->Get_Center(AMR, center1);
-		this->param["Bz"] = (S1->f - this->f) / (center1[2] - center[2]);
+		this->getParam()["Bz"] = (S1->getF() - this->getF()) / (center1[2] - center[2]);
 	}
 	else if (S1 == nullptr && S2 != nullptr)
 	{
 		S2->Get_Center(AMR, center2);
-		this->param["Bz"] = (this->f - S2->f) / (center[2] - center2[2]);
+		this->getParam()["Bz"] = (this->getF() - S2->getF()) / (center[2] - center2[2]);
 	}
 	else if (S1 != nullptr && S2 != nullptr)
 	{
 		S1->Get_Center(AMR, center1);
 		S2->Get_Center(AMR, center2);
 
-		B1 = (S1->f - this->f) / (center1[2] - center[2]);
-		B2 = (this->f - S2->f) / (center[2] - center2[2]);
-		this->param["Bz"] = minmod(B1, B2);
+		B1 = (S1->getF() - this->getF()) / (center1[2] - center[2]);
+		B2 = (this->getF() - S2->getF()) / (center[2] - center2[2]);
+		this->getParam()["Bz"] = minmod(B1, B2);
 	}
 
 	// Проверка на неотрицательность функции
-	// + Считаем максимальное значения
+	// + читаем максимальное значения
 	if (true)
 	{
 		double x, y, z;
 		double S = -1.0;
-		double SS = 0.0;     // Максимальное значение
+		double SS = 0.0;      // Максимальное значение
 		unsigned int kk = 0;
 		while (S < 0.0)
 		{
 			kk++;
 			S = 1.0;
-			SS = this->f * (center[0] + (razmer[0] / 2.0));
+			SS = this->getF() * (center[0] + (razmer[0] / 2.0));
 			for (short int i = -1; i <= 1; i += 2) 
 			{
 				for (short int j = -1; j <= 1; j += 2)
@@ -301,8 +338,8 @@ void AMR_cell::Culc_gradients(AMR_f* AMR)
 						y = center[1] + j * (razmer[1] / 2.0);
 						z = center[2] + k * (razmer[2] / 2.0);
 						
-						double ff = (this->f + this->param["Bx"] * (x - center[0])
-							+ this->param["By"] * (y - center[1]) + this->param["Bz"] * (z - center[2])) * x;
+						double ff = (this->getF() + this->getParam().at("Bx") * (x - center[0])
+							+ this->getParam().at("By") * (y - center[1]) + this->getParam().at("Bz") * (z - center[2])) * x;
 						S = min(S, ff);
 						SS = max(SS, ff);
 					}
@@ -310,15 +347,15 @@ void AMR_cell::Culc_gradients(AMR_f* AMR)
 			}
 
 			// Проверяем потенциальный максимум функции
-			if (this->param["Bx"] < 0.00001)
+			if (this->getParam().at("Bx") < 0.00001)
 			{
-				x = (this->param["Bx"] * center[0] - this->f) / (2.0 * this->param["Bx"]);
+				x = (this->getParam().at("Bx") * center[0] - this->getF()) / (2.0 * this->getParam().at("Bx"));
 				if (x >= center[0] - (razmer[0] / 2.0) && x <= center[0] + (razmer[0] / 2.0))
 				{
 					y = center[1];
 					z = center[2];
-					double ff = (this->f + this->param["Bx"] * (x - center[0])
-						+ this->param["By"] * (y - center[1]) + this->param["Bz"] * (z - center[2])) * x;
+					double ff = (this->getF() + this->getParam().at("Bx") * (x - center[0])
+						+ this->getParam().at("By") * (y - center[1]) + this->getParam().at("Bz") * (z - center[2])) * x;
 					S = min(S, ff);
 					SS = max(SS, ff);
 				}
@@ -328,25 +365,25 @@ void AMR_cell::Culc_gradients(AMR_f* AMR)
 
 			if (S < 0.0)
 			{
-				this->param["Bx"] /= 2.0;
-				this->param["By"] /= 2.0;
-				this->param["Bz"] /= 2.0;
+				this->getParam()["Bx"] /= 2.0;
+				this->getParam()["By"] /= 2.0;
+				this->getParam()["Bz"] /= 2.0;
 			}
 
 			if (kk > 10)
 			{
-				if (this->f < 0.0)
+				if (this->getF() < 0.0)
 				{
-					cout << "Error 839yt478geofrjewfre = " << this->f << endl;
+					cout << "Error 839yt478geofrjewfre = " << this->getF() << endl;
 				}
-				this->param["Bx"] = 0.0;
-				this->param["By"] = 0.0;
-				this->param["Bz"] = 0.0;
-				SS = this->f;
+				this->getParam()["Bx"] = 0.0;
+				this->getParam()["By"] = 0.0;
+				this->getParam()["Bz"] = 0.0;
+				SS = this->getF();
 				break;
 			}
 		}
-		this->param["Max"] = SS;
+		this->getParam()["Max"] = SS;
 	}
 }
 
@@ -451,13 +488,13 @@ void AMR_cell::Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi,
 				for (size_t k = 0; k < dim3; ++k)
 				{
 					AMR_cell* cell = cells[i][j][k];
-					if (SS + cell->Spotok * Squ > ksi)
+					if (SS + cell->getSpotok() * Squ > ksi)
 					{
 						return cell->Get_random_velosity_in_cell(AMR, ksi - SS, Squ, Vel, Sens);
 					}
 					else
 					{
-						SS += cell->Spotok * Squ;
+						SS += cell->getSpotok() * Squ;
 					}
 				}
 			}
@@ -503,9 +540,9 @@ void AMR_cell::Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi,
 					Sens->MakeRandom() * (razmer[1]);
 				z = (center[2] - razmer[2] / 2.0) +
 					Sens->MakeRandom() * (razmer[2]);
-				ff = (this->f + this->param["Bx"] * (x - center[0])
-					+ this->param["By"] * (y - center[1]) + this->param["Bz"] * (z - center[2])) * x;
-			} while (Sens->MakeRandom() * this->param["Max"] > ff);
+				ff = (this->getF() + this->getParam().at("Bx") * (x - center[0])
+					+ this->getParam().at("By") * (y - center[1]) + this->getParam().at("Bz") * (z - center[2])) * x;
+			} while (Sens->MakeRandom() * this->getParam().at("Max") > ff);
 
 			Vel[0] = x;
 			Vel[1] = y;
@@ -522,8 +559,8 @@ void AMR_cell::Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi,
 	cout << "Error 0900061211 " << endl;
 	whach(SS);
 	whach(ksi);
-	whach(this->Spotok * Squ);
-	whach(this->Spotok);
+	whach(this->getSpotok() * Squ);
+	whach(this->getSpotok());
 	whach(Squ);
 	exit(-1);
 }
@@ -885,7 +922,7 @@ void AMR_cell::Slice_plane(AMR_f* AMR, const double& a, const double& b, const d
 
 void AMR_cell::Save_cell(std::ofstream& out)
 {
-	double h = this->f;
+	double h = this->getF();
 	if (this->flags.is_divided == true) h = 0.0;
 	out.write(reinterpret_cast<const char*>(&h), sizeof(double));
 
@@ -917,8 +954,11 @@ void AMR_cell::Save_cell(std::ofstream& out)
 
 void AMR_cell::Read_cell(std::ifstream& in)
 {
-	in.read(reinterpret_cast<char*>(&this->f), sizeof(double));
-	if (this->f < 0.0) this->f = 0.0;
+	double f_value;
+	in.read(reinterpret_cast<char*>(&f_value), sizeof(double));
+	if (f_value < 0.0) f_value = 0.0;
+	this->setF(f_value);
+	
 	in.read(reinterpret_cast<char*>(&this->level), sizeof(unsigned short int));
 
 	size_t dims[3];
