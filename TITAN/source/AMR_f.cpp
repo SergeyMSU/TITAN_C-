@@ -666,7 +666,7 @@ unsigned int AMR_f::de_Refine(short int H_n)
 
 		// Специальное разбиение вокруг проблемной точки
 		parent->Get_Center(this->AMR_self, center, razmer);
-		if (true && (H_n == 3 || H_n == 4))
+		if (false && (H_n == 3 || H_n == 4))
 		{
 			double LL = center[0] - razmer[0] / 2.0;
 			double RR = center[0] + razmer[0] / 2.0;
@@ -685,6 +685,20 @@ unsigned int AMR_f::de_Refine(short int H_n)
 			continue;
 		}
 
+		// Если ячека не пустая, то её размеры не могут быть больше 0.5 (чтобы нормально отделить нулевые области от ненулевых
+		if (parent->getF() > 0.0000000001)
+		{
+			double dd = 2.0;
+			if (H_n == 4)  dd = 0.7;
+			if (H_n == 3)  dd = 0.7;
+			if (H_n == 2)  dd = 3.0;
+			if (H_n == 1)  dd = 2.0;
+			if (razmer[0] > dd || razmer[1] > dd || razmer[2] > dd)
+			{
+				parent->setNeedDevideX(false);
+				continue;
+			}
+		}
 
 		if (parent->isSignif() == false)
 		{
@@ -710,7 +724,7 @@ unsigned int AMR_f::de_Refine(short int H_n)
 		if (bkl == true) continue;
 
 
-		// Если дошли до сюда, то можно удалять ячейки
+		// Если дошли до сюда, то можно удалять дочерние ячейки
 		parent->setNeedDevideX(true);
 		parents.push_back(parent);
 		continue;
@@ -945,12 +959,12 @@ unsigned int AMR_f::Refine(short int H_n)
 		}
 
 		// Если ячека не пустая, то её размеры не могут быть больне 0.5 (чтобы нормально отделить нулевые области от ненулевых
-		if (i->getF() > 0.0)
+		if (i->getF() > 0.0000000001)
 		{
 			double dd = 2.0;
-			if (H_n == 4)  dd = 0.5;
-			if (H_n == 3)  dd = 0.5;
-			if (H_n == 2)  dd = 2.0;
+			if (H_n == 4)  dd = 0.7;
+			if (H_n == 3)  dd = 0.7;
+			if (H_n == 2)  dd = 3.0;
 			if (H_n == 1)  dd = 2.0;
 			if(razmer[0] > dd)  i->setNeedDevideX(true);
 			if(razmer[1] > dd)  i->setNeedDevideY(true);
