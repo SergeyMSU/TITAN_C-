@@ -51,6 +51,9 @@ int main()
 
     S1.auto_set_luch_geo_parameter(0);
 
+
+    return 0;
+
     //S1.Smooth_head_HP2(); // Ручное сглаживание
     //S1.Smooth_HP1(); // Ручное сглаживание
 
@@ -74,7 +77,7 @@ int main()
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    if (true)
+    if (false)
     {
         // Планировал запустить дальше перестройку сорта 2, потом зоны 2, 4, 6
         S1.Algoritm(2);
@@ -120,7 +123,7 @@ int main()
         S1.Print_pui(100.0, 0.0, 0.0);
         S1.Print_pui(200.0, 0.0, 0.0);*/
 
-        //return 0;
+        return 0;
     }
 
 

@@ -348,6 +348,12 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 			{
 				this->AMR[nH - 1][ni]->Refine(nH);
 			}
+
+			if (nH == 4 && kvv(this->center[0][1], 0.0, this->center[0][2]) < 200.0 && this->type2 == Type_Gran_surf::BS)
+			{
+				cout << "Do = " << N << "    Posle = " << this->AMR[nH - 1][ni]->Size() << endl;
+			}
+
 			/*else
 			{
 				cout << "Warning:  AMR = " << N << endl;

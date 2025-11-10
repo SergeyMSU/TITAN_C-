@@ -12,7 +12,7 @@ public:
 	double zL;
 	double zR;
 
-	double procent_signif = 0.03;  // 0.3
+	double procent_signif = 0.1;  // 0.3
 	double procent_devide = 1.0;  // 1.0;
 
 	array<double, 3> Vn;
@@ -111,6 +111,9 @@ public:
 
 	unsigned int Size(void);
 
+	// Функция анализа использования памяти
+	void Analyze_memory_usage(bool detailed_output = true);
+
 
 	void Print_info(void);
 
@@ -124,5 +127,15 @@ public:
 
 	void Delete(void);
 	// Удаляет сетку, очищает память и т.д.
+
+private:
+	// Вспомогательные функции для анализа памяти
+	void analyze_cell_memory_recursive(AMR_cell* cell, size_t& total_cells, size_t& active_cells, 
+		size_t& divided_cells, size_t& leaf_cells, size_t& memory_base_data, 
+		size_t& memory_active_data, size_t& memory_child_arrays, size_t& memory_param_maps, 
+		size_t& param_map_entries, int depth, int& max_depth);
+	
+	size_t estimate_unordered_map_memory(const unordered_map<string, double>& map);
+	size_t estimate_multi_array_memory(const boost::multi_array<AMR_cell*, 3>& arr);
 };
 

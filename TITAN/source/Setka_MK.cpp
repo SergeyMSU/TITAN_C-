@@ -1132,6 +1132,13 @@ void Setka::MK_prepare(short int zone_MK)
 						}
 						gr->Read_AMR(ii, iH, this->phys_param, false);
 
+						/*if (iH == 4 && gr->type2 == Type_Gran_surf::BS && kvv(gr->center[0][1], gr->center[0][2], 0.0) < 200.0)
+						{
+							gr->AMR[iH - 1][ii]->Re_Partially_free_space();
+							gr->AMR[iH - 1][ii]->Analyze_memory_usage(true);
+							exit(-1);
+						}*/
+
 						if (gr->type == Type_Gran::Us)
 						{
 							#pragma omp critical (vxod) 

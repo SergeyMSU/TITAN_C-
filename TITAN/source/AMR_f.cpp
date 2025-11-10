@@ -1469,3 +1469,202 @@ void AMR_f::Delete(void)
 	this->cells.resize(boost::extents[0][0][0]);
 }
 
+void AMR_f::Analyze_memory_usage(bool detailed_output)
+{
+	size_t total_cells = 0;
+	size_t active_cells = 0;
+	size_t divided_cells = 0;
+	size_t leaf_cells = 0;
+	size_t memory_base_data = 0;
+	size_t memory_active_data = 0;
+	size_t memory_child_arrays = 0;
+	size_t memory_param_maps = 0;
+	size_t param_map_entries = 0;
+	int max_depth = 0;
+
+	cout << "=== ANALIZ ISPOLZOVANIYA PAMYATI AMR_f ===" << endl;
+	cout << "Nachinayu analiz struktury AMR..." << endl;
+
+	// Анализируем корневые ячейки
+	const auto& shape = this->cells.shape();
+	const size_t nx = shape[0];
+	const size_t ny = shape[1];
+	const size_t nz = shape[2];
+
+	// Память самого объекта AMR_f
+	size_t amr_f_base_size = sizeof(AMR_f);
+	size_t amr_f_containers_size = 0;
+	
+	// Оценка памяти контейнеров AMR_f
+	amr_f_containers_size += estimate_multi_array_memory(this->cells);
+	amr_f_containers_size += estimate_unordered_map_memory(this->parameters);
+	
+	for (size_t i = 0; i < nx; ++i)
+	{
+		for (size_t j = 0; j < ny; ++j)
+		{
+			for (size_t k = 0; k < nz; ++k)
+			{
+				if (this->cells[i][j][k] != nullptr) 
+				{
+					analyze_cell_memory_recursive(this->cells[i][j][k], total_cells, active_cells,
+						divided_cells, leaf_cells, memory_base_data, memory_active_data,
+						memory_child_arrays, memory_param_maps, param_map_entries, 0, max_depth);
+				}
+			}
+		}
+	}
+
+	// Вывод результатов
+	cout << "\n=== OBSHCHAYA STATISTIKA ===" << endl;
+	cout << "Vsego yacheek: " << total_cells << endl;
+	cout << "Aktivnyh yacheek (nerazdelyonnykh): " << leaf_cells << endl;
+	cout << "Razdelyonnykh yacheek: " << divided_cells << endl;
+	cout << "Yacheek s aktivnymi dannymi: " << active_cells << endl;
+	cout << "Maksimalnaya glubina dereva: " << max_depth << endl;
+
+	cout << "\n=== ISPOLZOVANIE PAMYATI ===" << endl;
+	
+	// Память AMR_f
+	cout << "Bazovyy obyekt AMR_f: " << amr_f_base_size << " bayt" << endl;
+	cout << "Konteynery AMR_f: " << amr_f_containers_size << " bayt" << endl;
+	
+	// Память ячеек
+	cout << "Bazovye dannye yacheek: " << memory_base_data << " bayt" << endl;
+	cout << "Aktivnye dannye yacheek: " << memory_active_data << " bayt" << endl;
+	cout << "Massivy dochernikh yacheek: " << memory_child_arrays << " bayt" << endl;
+	cout << "Konteynery param (unordered_map): " << memory_param_maps << " bayt" << endl;
+	
+	size_t total_cells_memory = memory_base_data + memory_active_data + memory_child_arrays + memory_param_maps;
+	size_t total_memory = amr_f_base_size + amr_f_containers_size + total_cells_memory;
+	
+	cout << "\nItogo pamyati yacheek: " << total_cells_memory << " bayt (" << total_cells_memory / 1024.0 / 1024.0 << " MB)" << endl;
+	cout << "OBSHCHAYA PAMYAT: " << total_memory << " bayt (" << total_memory / 1024.0 / 1024.0 << " MB)" << endl;
+
+	cout << "\n=== ANALIZ EFFEKTIVNOSTI ===" << endl;
+	if (total_cells > 0) {
+		cout << "Sredniy razmer yacheyki: " << (double)total_cells_memory / total_cells << " bayt" << endl;
+		cout << "Protsent aktivnykh yacheek: " << (double)active_cells / total_cells * 100.0 << "%" << endl;
+		cout << "Protsent pamyati na aktivnye dannye: " << (double)memory_active_data / total_cells_memory * 100.0 << "%" << endl;
+		cout << "Protsent pamyati na param konteynery: " << (double)memory_param_maps / total_cells_memory * 100.0 << "%" << endl;
+	}
+
+	if (param_map_entries > 0) {
+		cout << "Srednee kolichestvo parametrov na yacheyku s aktivnymi dannymi: " << (double)param_map_entries / active_cells << endl;
+		cout << "Sredniy razmer odnogo param konteyner: " << (double)memory_param_maps / active_cells << " bayt" << endl;
+	}
+
+	cout << "\n=== REKOMENDATSII PO OPTIMIZATSII ===" << endl;
+	
+	if (memory_param_maps > memory_active_data / 2) {
+		cout << "!!! KRITICHNO: Konteynery param zanimayut slishkom mnogo pamyati!" << endl;
+		cout << "   Rekomendatsiya: Zamenit unordered_map na strukturu s fiksirovannymi polyami" << endl;
+		cout << "   Potentsialnaya ekonomiya: ~" << memory_param_maps * 0.8 / 1024.0 / 1024.0 << " MB" << endl;
+	}
+
+	if ((double)memory_child_arrays / total_cells_memory > 0.3) {
+		cout << "!!! Massivy dochernikh yacheek zanimayut mnogo pamyati" << endl;
+		cout << "   Rekomendatsiya: Optimizirovat boost::multi_array ili ispolzovat vector" << endl;
+	}
+
+	if ((double)active_cells / total_cells < 0.5) {
+		cout << "!!! Nizkiy protsent aktivnykh yacheek" << endl;
+		cout << "   Rekomendatsiya: Rassmotret bolee agressivnuyu ochistku neaktivnykh dannykh" << endl;
+	}
+
+	if (detailed_output && total_cells > 0) {
+		cout << "\n=== DETALNAYA INFORMATSIYA ===" << endl;
+		cout << "Razmer bazovoy struktury AMR_cell: " << sizeof(AMR_cell) << " bayt" << endl;
+		cout << "Razmer ActiveCellData: " << sizeof(ActiveCellData) << " bayt" << endl;
+		cout << "Razmer unique_ptr<ActiveCellData>: " << sizeof(std::unique_ptr<ActiveCellData>) << " bayt" << endl;
+		cout << "Razmer boost::multi_array<AMR_cell*, 3>: " << sizeof(boost::multi_array<AMR_cell*, 3>) << " bayt" << endl;
+	}
+
+	cout << "\n=== ANALIZ ZAVERSHYON ===" << endl;
+}
+
+void AMR_f::analyze_cell_memory_recursive(AMR_cell* cell, size_t& total_cells, size_t& active_cells, 
+	size_t& divided_cells, size_t& leaf_cells, size_t& memory_base_data, 
+	size_t& memory_active_data, size_t& memory_child_arrays, size_t& memory_param_maps, 
+	size_t& param_map_entries, int depth, int& max_depth)
+{
+	if (cell == nullptr) return;
+
+	total_cells++;
+	max_depth = std::max(max_depth, depth);
+
+	// Базовый размер структуры AMR_cell
+	memory_base_data += sizeof(AMR_cell);
+
+	// Проверяем, есть ли активные данные
+	if (cell->has_active_data()) {
+		active_cells++;
+		memory_active_data += sizeof(ActiveCellData);
+		
+		// Анализируем param контейнер
+		const auto& param_map = cell->getParam();
+		param_map_entries += param_map.size();
+		memory_param_maps += estimate_unordered_map_memory(param_map);
+	}
+
+	// Анализируем дочерние ячейки
+	if (cell->isDivided()) {
+		divided_cells++;
+		
+		// Память на multi_array дочерних ячеек
+		const auto& child_cells = cell->cells;
+		memory_child_arrays += estimate_multi_array_memory(child_cells);
+		
+		// Рекурсивно анализируем дочерние ячейки
+		const auto& shape = child_cells.shape();
+		for (size_t i = 0; i < shape[0]; ++i) {
+			for (size_t j = 0; j < shape[1]; ++j) {
+				for (size_t k = 0; k < shape[2]; ++k) {
+					analyze_cell_memory_recursive(child_cells[i][j][k], total_cells, active_cells,
+						divided_cells, leaf_cells, memory_base_data, memory_active_data,
+						memory_child_arrays, memory_param_maps, param_map_entries, depth + 1, max_depth);
+				}
+			}
+		}
+	} else {
+		leaf_cells++;
+	}
+}
+
+size_t AMR_f::estimate_unordered_map_memory(const unordered_map<string, double>& map)
+{
+	size_t total_size = sizeof(unordered_map<string, double>);
+	
+	// Оценка памяти для bucket array
+	total_size += map.bucket_count() * sizeof(void*);
+	
+	// Оценка памяти для элементов
+	for (const auto& pair : map) {
+		// Размер узла hash table (примерно)
+		total_size += sizeof(void*) * 3; // next, hash, bucket pointers
+		total_size += sizeof(pair);
+		
+		// Память строки (с учётом SSO - Small String Optimization)
+		if (pair.first.size() > 15) { // Типичный порог SSO
+			total_size += pair.first.capacity();
+		}
+	}
+	
+	return total_size;
+}
+
+size_t AMR_f::estimate_multi_array_memory(const boost::multi_array<AMR_cell*, 3>& arr)
+{
+	size_t total_size = sizeof(boost::multi_array<AMR_cell*, 3>);
+	
+	// Память для данных массива
+	const auto& shape = arr.shape();
+	size_t elements = shape[0] * shape[1] * shape[2];
+	total_size += elements * sizeof(AMR_cell*);
+	
+	// Дополнительные метаданные boost::multi_array
+	total_size += sizeof(shape) + 64; // примерная оценка overhead
+	
+	return total_size;
+}
+

@@ -328,8 +328,8 @@ public:
 	// Печатает лучи в 2Д плоскости, но есть временной параметр, меняя который получаем лучи в разных плоскостях
 	// т.е. просматриваем фактически всю сетку (кроме части в головной и хвостовой области)
 	void Tecplot_print_plane_lush(int plane); // как предыдущая, но печатает в конкретной плоскости
-	void Tecplot_print_plane_surfase(int plane); // как предыдущая, но печатает в конкретной плоскости
-	void Tecplot_print_All_surfase_in_2D(); // как предыдущая, но печатает в конкретной плоскости
+	void Tecplot_print_plane_surfase(int plane); 
+	void Tecplot_print_All_surfase_in_2D(); 
 
 	// ГРАНИ
 	void Tecplot_print_all_gran_in_cell(); // печатает все грани в 3Д (можно перелистывать их в текплоте)
