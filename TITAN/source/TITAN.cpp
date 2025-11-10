@@ -120,7 +120,7 @@ int main()
         S1.Print_pui(100.0, 0.0, 0.0);
         S1.Print_pui(200.0, 0.0, 0.0);*/
 
-        return 0;
+        //return 0;
     }
 
 
@@ -138,7 +138,7 @@ int main()
 
 
 
-    for (int i = 1; i <= 10; i++) // 6 * 2   12 * 5
+    for (int i = 1; i <= 0; i++) // 6 * 2   12 * 5
     {
         auto start = std::chrono::high_resolution_clock::now();
         cout << "IIIII = " << i << endl;
@@ -207,7 +207,7 @@ int main()
         return 0;
     }
 
-    S1.Save_cell_parameters("parameters_0064.bin");
+    //S1.Save_cell_parameters("parameters_0064.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -400,10 +400,6 @@ int main()
 
     S1.~Setka();
     std::cout << "Setka delete\n";
-
-
-    SS.~Interpol();
-    std::cout << "Interpol delete\n";
 
 
 }

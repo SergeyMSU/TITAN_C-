@@ -1644,7 +1644,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 					N_vixod[j] += gr->AMR[j][ni]->Size();
 					N2[j]++;
 
-					//gr->AMR[j][ni]->Partially_free_space();
+					gr->AMR[j][ni]->Partially_free_space();
 				}
 			}
 		}
@@ -1655,7 +1655,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 	unsigned int ALL_N = 0;  // Общее число запущенных в итоге частиц
 	unsigned int k1 = 0;
 
-	// Разыгрываем каждый сорт отдельно, так как для него нужны свои массивы
+	// 2. Разыгрываем каждый сорт отдельно, так как для него нужны свои массивы
 	for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
 	//for (short int nh_ = 3; nh_ <= 3; ++nh_)                                                // DELETE
 	{
@@ -1663,8 +1663,8 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 		// и входящую функуию только для текущей грани
 
 		cout << "Start download_2  for sort " << nh_ + 1 << endl;
-		// 1. Загружаем выходящие функции распределения данного сорта аодорода для всех граней 
-		// если они ещё не хагружены на предыдущем шаге
+		// 3. Загружаем выходящие функции распределения данного сорта аодорода для всех граней 
+		// если они ещё не загружены на предыдущем шаге
 		if (this->MK_zone_H(zone_MK - 1, nh_) == false)
 		{
 			for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
@@ -1681,11 +1681,13 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 				gr->AMR[nh_][ni]->Fill_null();
 				N_vixod[nh_] += gr->AMR[nh_][ni]->Size();
 				N2[nh_]++;
+
+				gr->AMR[nh_][ni]->Partially_free_space();
 			}
 		}
 		cout << "End download_2  for sort " << nh_ + 1 << endl;
 
-		// 2. Теперь бежим по граням и делаем основной алгоритм
+		// 4. Теперь бежим по граням и делаем основной алгоритм
 		k1 = 0;
 		#pragma omp parallel for schedule(dynamic)
 		for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
@@ -1987,7 +1989,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 		}
 	
 
-		// 3. Теперь надо сохранить ненужные выходящие функции распределения, но предварительно нормировать их
+		// 8. Теперь надо сохранить ненужные выходящие функции распределения, но предварительно нормировать их
 		// Ненужные функции распределения, это функции сорта nh_, при условии, что этот сорт не рождается в области
 		// Сохраняем, удаляем, но перед этим нормируем
 		cout << "Start delete_1  for sort " << nh_ + 1 << endl;
@@ -2003,6 +2005,9 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 				{
 					ni = 0;
 				}
+
+				// Здесь надо дял функции загрузить обратно ненужные массивы переменных
+				gr->AMR[nh_][ni]->Re_Partially_free_space();
 
 				gr->AMR[nh_][ni]->Normir_velocity_volume(gr->area[0]);
 				if (this->phys_param->de_refine_AMR == true)
@@ -2039,7 +2044,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 
 
 
-	// Теперь нормируем оставшиеся функции распределения, сохраняем и удаляем
+	// 9. Теперь нормируем оставшиеся функции распределения, сохраняем и удаляем
 	if (true)
 	{
 		cout << "Start save_1" << endl;
@@ -2058,6 +2063,8 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 					{
 						ni = 0;
 					}
+
+					gr->AMR[j][ni]->Re_Partially_free_space();
 
 					gr->AMR[j][ni]->Normir_velocity_volume(gr->area[0]);
 					if (this->phys_param->de_refine_AMR == true)

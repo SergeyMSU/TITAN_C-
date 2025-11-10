@@ -1206,6 +1206,12 @@ void Cell::MK_Add_moment(MK_particle& P, const double& cp, const double& u, cons
 		this->parameters[0]["MK_IVy_H"] -= mu_ex * uz_M * u2 / u;
 		this->parameters[0]["MK_IVz_H"] -= mu_ex * uz_M * u3 / u;
 		this->parameters[0]["MK_IT_H"] += mu_ex * (-0.25 * (3.0 * kv(cp) + 2.0 * kv(u)) * (uz_E / uz) - uz_M * skalar / u);
+
+		this->parameters[0]["MK_IVx_" + name_H] -= mu_ex * uz_M * u1 / u;
+		this->parameters[0]["MK_IVy_" + name_H] -= mu_ex * uz_M * u2 / u;
+		this->parameters[0]["MK_IVz_" + name_H] -= mu_ex * uz_M * u3 / u;
+		this->parameters[0]["MK_IT_" + name_H] += mu_ex * (-0.25 * (3.0 * kv(cp) + 2.0 * kv(u)) * (uz_E / uz) - uz_M * skalar / u);
+
 		this->mut.unlock();
 	}
 	else
@@ -1219,6 +1225,11 @@ void Cell::MK_Add_moment(MK_particle& P, const double& cp, const double& u, cons
 		this->parameters[0]["MK_IVy_H"] += mu_ex * (k2 / k1) * u2 / u;
 		this->parameters[0]["MK_IVz_H"] += mu_ex * (k2 / k1) * u3 / u;
 		this->parameters[0]["MK_IT_H"] += mu_ex * (-0.5 * k3 / k1 + k2 / k1 * skalar / u);
+
+		this->parameters[0]["MK_IVx_" + name_H] += mu_ex * (k2 / k1) * u1 / u;
+		this->parameters[0]["MK_IVy_" + name_H] += mu_ex * (k2 / k1) * u2 / u;
+		this->parameters[0]["MK_IVz_" + name_H] += mu_ex * (k2 / k1) * u3 / u;
+		this->parameters[0]["MK_IT_" + name_H] += mu_ex * (-0.5 * k3 / k1 + k2 / k1 * skalar / u);
 		this->mut.unlock();
 	}
 

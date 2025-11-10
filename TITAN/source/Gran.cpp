@@ -341,7 +341,7 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 		{
 			unsigned int N = this->AMR[nH - 1][ni]->Size();
 			unsigned int Nmax = 3000;
-			if (nH == 4) Nmax = 7000;  // Ёксперементально
+			if (nH == 4) Nmax = 6000;  // Ёксперементально
 			if (nH == 3) Nmax = 4000;  // Ёксперементально
 
 			if (N < Nmax)

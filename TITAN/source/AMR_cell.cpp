@@ -127,6 +127,34 @@ void AMR_cell::Cell_partially_free_space(void)
 	}
 }
 
+void AMR_cell::Re_Cell_partially_free_space(void)
+{
+	if (this->flags.is_divided == false)
+	{
+		return;
+	}
+	else
+	{
+		this->ensure_active_data();
+
+		const size_t dim1 = this->cells.shape()[0];
+		const size_t dim2 = this->cells.shape()[1];
+		const size_t dim3 = this->cells.shape()[2];
+
+		for (size_t i = 0; i < dim1; ++i)
+		{
+			for (size_t j = 0; j < dim2; ++j)
+			{
+				for (size_t k = 0; k < dim3; ++k)
+				{
+					AMR_cell* cell = cells[i][j][k];
+					cell->Re_Cell_partially_free_space();
+				}
+			}
+		}
+	}
+}
+
 double AMR_cell::Get_SpotokV(void)
 {
 	if (this->flags.is_divided == false)

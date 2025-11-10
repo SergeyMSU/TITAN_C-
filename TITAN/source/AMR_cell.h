@@ -140,6 +140,9 @@ public:
 	void Cell_partially_free_space(void);
 	// ќсвобождает место дл€ €чеек, которые €вл€ютс€ неактивными
 
+	void Re_Cell_partially_free_space(void);
+	
+
 	void Culc_gradients(AMR_f* AMR);
 	// ¬ычисл€ет градианты дл€ данной €чейки, использу€ еЄ соседей
 	// задаютс€ Bx, By, Bz

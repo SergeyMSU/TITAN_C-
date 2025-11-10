@@ -46,6 +46,9 @@ public:
 
 	void Partially_free_space(void);
 
+	void Re_Partially_free_space(void);
+	// Обратная функция к предыдущей
+
 	void Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens);
 
 	AMR_f();

@@ -67,6 +67,26 @@ void AMR_f::Partially_free_space(void)
 	}
 }
 
+void AMR_f::Re_Partially_free_space(void)
+{
+	const auto& shape = this->cells.shape();
+	const size_t nx = shape[0];
+	const size_t ny = shape[1];
+	const size_t nz = shape[2];
+
+	for (size_t i = 0; i < nx; ++i)
+	{
+		for (size_t j = 0; j < ny; ++j)
+		{
+			for (size_t k = 0; k < nz; ++k)
+			{
+				AMR_cell* cell = this->cells[i][j][k];
+				cell->Re_Cell_partially_free_space();
+			}
+		}
+	}
+}
+
 void AMR_f::Get_random_velosity(AMR_f* AMR, const double& Squ, Eigen::Vector3d& Vel, Sensor* Sens)
 {
 	// Squ - площадь грани
@@ -1150,6 +1170,7 @@ void AMR_f::Save(string namef)
 		}
 	}
 
+	out.close();
 }
 
 void AMR_f::Read(string namef)
