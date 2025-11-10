@@ -12,7 +12,7 @@ public:
 	double zL;
 	double zR;
 
-	double procent_signif = 0.1;  // 0.3
+	double procent_signif = 0.3;  // 0.3
 	double procent_devide = 1.0;  // 1.0;
 
 	array<double, 3> Vn;

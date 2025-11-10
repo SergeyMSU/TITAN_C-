@@ -947,9 +947,14 @@ unsigned int AMR_f::Refine(short int H_n)
 		// Если ячека не пустая, то её размеры не могут быть больне 0.5 (чтобы нормально отделить нулевые области от ненулевых
 		if (i->getF() > 0.0)
 		{
-			if(razmer[0] > 0.5)  i->setNeedDevideX(true);
-			if(razmer[1] > 0.5)  i->setNeedDevideY(true);
-			if(razmer[2] > 0.5)  i->setNeedDevideZ(true);
+			double dd = 2.0;
+			if (H_n == 4)  dd = 0.5;
+			if (H_n == 3)  dd = 0.5;
+			if (H_n == 2)  dd = 2.0;
+			if (H_n == 1)  dd = 2.0;
+			if(razmer[0] > dd)  i->setNeedDevideX(true);
+			if(razmer[1] > dd)  i->setNeedDevideY(true);
+			if(razmer[2] > dd)  i->setNeedDevideZ(true);
 		}
 
 	}

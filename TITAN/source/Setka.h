@@ -350,5 +350,9 @@ public:
 		const double& c, const double& d,
 		string name, bool razmer = false);
 	// Плоскость   a x + b y + c z + d = 0;
+
+	void Tecplot_print_2D_setka(const double& a, const double& b,
+		const double& c, const double& d,
+		string name);
 };
 

@@ -52,7 +52,7 @@ int main()
     S1.auto_set_luch_geo_parameter(0);
 
 
-    return 0;
+    //return 0;
 
     //S1.Smooth_head_HP2(); // Ручное сглаживание
     //S1.Smooth_HP1(); // Ручное сглаживание
@@ -70,14 +70,17 @@ int main()
 
     S1.Tecplot_print_cell_plane_parameters();
     S1.Tecplot_print_all_lush_in_2D();
-    S1.Tecplot_print_all_cell_in_3D();
+    S1.Tecplot_print_2D_setka(0.0, 0.0, 1.0, -0.00001, "setka_2d_(0, 0, 1, 0)_");
+    S1.Tecplot_print_2D_setka(0.0, 1.0, 0.0, -0.00001, "setka_2d_(0, 1, 0, 0)_");
+    S1.Tecplot_print_2D_setka(0.0, 1.0, 1.0, -0.00001, "setka_2d_(0, 1, 1, 0)_");
+    //S1.Tecplot_print_all_cell_in_3D();
 
     //S1.Print_SpSm(20.0, 0.0, 0.0);
     //S1.Print_SpSm(10.0, 0.0, 0.0);
     //S1.Print_SpSm(40.0, 0.0, 0.0);
     //return 0;
 
-    if (false)
+    if (true)
     {
         // Планировал запустить дальше перестройку сорта 2, потом зоны 2, 4, 6
         S1.Algoritm(2);

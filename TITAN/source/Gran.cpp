@@ -340,18 +340,26 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 		if (need_refine == true)
 		{
 			unsigned int N = this->AMR[nH - 1][ni]->Size();
-			unsigned int Nmax = 3000;
-			if (nH == 4) Nmax = 6000;  // Ёксперементально
-			if (nH == 3) Nmax = 4000;  // Ёксперементально
+			unsigned int Nmax = 300000;
+
+			if (nH == 4) this->AMR[nH - 1][ni]->procent_signif = 0.2;
+			if (nH == 3) this->AMR[nH - 1][ni]->procent_signif = 0.3;
+			if (nH == 2) this->AMR[nH - 1][ni]->procent_signif = 0.4;
+			if (nH == 1) this->AMR[nH - 1][ni]->procent_signif = 0.4;
+
+
+			//if (nH == 4) Nmax = 6000;  // Ёксперементально
+			//if (nH == 3) Nmax = 4000;  // Ёксперементально
 
 			if (N < Nmax)
 			{
 				this->AMR[nH - 1][ni]->Refine(nH);
 			}
 
-			if (nH == 4 && kvv(this->center[0][1], 0.0, this->center[0][2]) < 200.0 && this->type2 == Type_Gran_surf::BS)
+			if (kvv(this->center[0][1], 0.0, this->center[0][2]) < 30.0)
 			{
-				cout << "Do = " << N << "    Posle = " << this->AMR[nH - 1][ni]->Size() << endl;
+				cout << "x = " << this->center[0][0] << "   nH = " << nH << "     Do = " << 
+					N << "    Posle = " << this->AMR[nH - 1][ni]->Size() << endl;
 			}
 
 			/*else
@@ -370,7 +378,7 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 	{
 		if (this->type == Type_Gran::Us)
 		{
-			if (nH == 1)
+			if (nH == 1 || nH == 2)
 			{
 				this->AMR[nH - 1][ni]->AMR_resize(0.0, 50.0, -50.0, 50.0,
 					-50.0, 50.0, 3, 6, 6);
