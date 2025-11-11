@@ -34,7 +34,7 @@ public:
 	std::vector <Int_point*> Cells_HP_1;     // Точки в которых хранятся параметры
 	boost::multi_array<Int_point*, 2> Cells_HP_2;
 
-
+	mutex mut_Delone_1;
 	Delaunay* Delone_1 = nullptr;
 	Delaunay* Delone_2 = nullptr;
 	Delaunay* Delone_3 = nullptr;

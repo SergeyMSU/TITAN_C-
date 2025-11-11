@@ -581,11 +581,15 @@ know_zone:
     if (my_zone == 1 || this->razriv == false)
     {
         CCC = &this->Cells_1;
+
+        this->mut_Delone_1.lock();
         containing_cell = this->Delone_1->locate(query, prev_cell[0]);
+        this->mut_Delone_1.unlock();
+
         if (this->Delone_1->is_infinite(containing_cell))
         {
-            //cout << "Delone Infinit" << endl;
-            //return false;
+            //cout << "Delone Infinit  " << x << " " << y << " " << z << endl;
+            return false;
             // Находим ближайшую вершину
             Vertex_handle nearest_vertex = this->Delone_1->nearest_vertex(query);
             containing_cell = nearest_vertex->cell();  // Берём любой смежный треугольник

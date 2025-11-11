@@ -649,7 +649,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		// ¬изуализаци€ новой сетки дл€ проверки   [опционально]
-		if (false)
+		if (true)
 		{
 			Smc.Tecplot_print_all_lush_in_2D();
 			Smc.Tecplot_print_2D_setka(0.0, 0.0, 1.0, -0.00001, "Smc_setka_2d_(0, 0, 1, 0)_");
@@ -659,6 +659,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			Smc.Tecplot_print_all_gran_in_surface("HP");
 			Smc.Tecplot_print_all_gran_in_surface("BS");
 		}
+
 
 		cout << "Set MK zone" << endl;
 		// ќпределим зоны дл€ ћ 
@@ -683,10 +684,24 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
 
 		short int ijij = 0;
 		for (const auto& zone_play : zones_number)
@@ -3242,6 +3257,14 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 					macros3(da3, 5.0);
 				}
 
+				if (true)
+				{
+					b1 = i->Yzels_opor[3];
+					double the_ = polar_angle(b1->coord[0][0], norm2(0.0, b1->coord[0][1], b1->coord[0][2]));
+					// Ёто надо переделать, чтобы было от угла
+					d1 = d1 * 3.0 * (1.0 + the_/3.0);      // ”величиваем ширину €чейки вокруг BS     // NEW DELETE
+				}
+
 				// da4
 				if (i->parameters.find("da4") == i->parameters.end() || i->parameters["da4"] > 0.05)
 				{
@@ -3302,6 +3325,15 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 
 					macros3(ba3, 1.0);
 				}
+
+				if (true)
+				{
+					b1 = i->Yzels_opor[3];
+					double the_ = polar_angle(b1->coord[0][0], norm2(0.0, b1->coord[0][1], b1->coord[0][2]));
+					// Ёто надо переделать, чтобы было от угла
+					d1 = d1 * 3.0 * (1.0 + the_ / 3.0);      // ”величиваем ширину €чейки вокруг BS     // NEW DELETE
+				}
+
 				// ba4
 				if (i->parameters.find("ba4") == i->parameters.end() || i->parameters["ba4"] > 0.05)
 				{

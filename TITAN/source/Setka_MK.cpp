@@ -2348,10 +2348,13 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 				cout << "Poteryal D" << endl;
 				cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 				cout << P.Vel[0] << " " << P.Vel[1] << " " << P.Vel[2] << endl;
-				return;
+				cout << coord_do[0] << " " << coord_do[1] << " " << coord_do[2] << endl;
+				cout << P.cel->center[0][0] << " " << P.cel->center[0][1] << " " << P.cel->center[0][2] << endl;
+				//return;
 				//cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 				//whach(P.cel->number);
-				//exit(-1);
+				P.cel->Tecplot_print_cell();
+				exit(-1);
 			}
 		}
 
@@ -2391,7 +2394,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 		
 
 		// ≈сли нет интерпол€ции
-		if (true)//(Interpol == nullptr)
+		if (Interpol == nullptr)
 		{
 			ro = P.cel->parameters[0]["rho"];
 			p = P.cel->parameters[0]["p"];
@@ -2423,7 +2426,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 			cp = sqrt(2.0 * p_Th / rho_Th);
 
 			// ѕосто€нные пол€ дл€ тестировани€
-			if (true)  
+			if (false)  
 			{
 				ro = 1.0;
 				cp = 1.0;
@@ -2480,54 +2483,89 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 				y_ = P.coord[1] + (st + 0.5) * time / N_step * P.Vel[1];
 				z_ = P.coord[2] + (st + 0.5) * time / N_step * P.Vel[2];
 
+				//cout << "A1" << endl;
+
 				bsfw = Interpol->Get_param(x_, y_, z_, param, prev_cell, next_cell);
-				for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // ќбновл€ем предыдущую €чейку
+				
 				if (bsfw == false)
 				{
-					cout << "Error wr4tr34trfe45t34t3f34rf34r" << endl;
+					/*cout << "Error wr4tr34trfe45t34t3f34rf34r" << endl;
 					cout << x_ << " " << y_ << " " << z_ << endl;
 					cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 					cout << P.Vel[0] << " " << P.Vel[1] << " " << P.Vel[2] << endl;
-					exit(-2);
+					exit(-2);*/
+					ro = 1.0;
+					cp = 1.0;
+					vx = this->phys_param->Velosity_inf;
+					vy = 0.0;
+					vz = 0.0;
 				}
-
-				
-				ro = param["rho"];
-
-				if (ro <= 0.0 || ro > 5.0)
+				else
 				{
-					cout << "error erwgwvetwefcgrtervgbevrc" << endl;
-					cout << ro << endl;
-					exit(-1);
+					for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // ќбновл€ем предыдущую €чейку
+
+					ro = param["rho"];
+
+					if (ro <= 0.5 || ro > 5.0)
+					{
+						cout << "error erwgwvetwefcgrtervgbevrc" << endl;
+						cout << ro << endl;
+						exit(-1);
+					}
+
+					p = param["p"];
+					rho_He = param["rho_He"];
+					vx = param["Vx"];			// —корости плазмы в €чейке
+					vy = param["Vy"];
+					vz = param["Vz"];
+
+					this->phys_param->Plasma_components_1((int)(P.cel->type), param, param2); // Ёто без пикапов
+
+					rho_Th = param2["rho_Th"];
+					p_Th = param2["p_Th"];
+
+					if (rho_Th <= 1e-8) rho_Th = 1e-8;
+					if (p_Th <= 1e-8 / 2.0) p_Th = 1e-8 / 2.0;
+
+					if (rho_Th > 5.0)
+					{
+						cout << "error ergewfaewwsghrgseerg" << endl;
+						cout << ro << endl;
+						exit(-1);
+					}
+
+					ro = rho_Th;
+					cp = sqrt(2.0 * p_Th / rho_Th);
+
+
+					if (ro > 3.0 || ro < 0.2)
+					{
+						std::cout << "ERROR ertg4et43t3t3t " << std::endl;
+						cout << cp << " " << ro << endl;
+						exit(-1);
+					}
+
+					if (cp > 5.0 || cp < 0.2)
+					{
+						std::cout << "ERROR werg4w5et45t4w5y4ygy " << std::endl;
+						cout << cp << " " << ro << endl;
+						exit(-1);
+					}
+
+					if (std::isnan(cp) || std::isnan(ro) || std::isnan(rho_He) || rho_He <= 0.0 || cp > 100000000.0)
+					{
+						std::cout << "ERROR erverfsdrvfsrdvff " << std::endl;
+						cout << cp << " " << ro << endl;
+						exit(-1);
+					}
+
 				}
 
-				p = param["p"];
-				rho_He = param["rho_He"];
-				vx = param["Vx"];			// —корости плазмы в €чейке
-				vy = param["Vy"];
-				vz = param["Vz"];
+				//cout << "A2" << endl;
 
 				vx_sr += vx / N_step;
 				vy_sr += vy / N_step;
 				vz_sr += vz / N_step;
-
-				this->phys_param->Plasma_components_1((int)(P.cel->type), param, param2); // Ёто без пикапов
-
-				rho_Th = param2["rho_Th"];
-				p_Th = param2["p_Th"];
-
-				if (rho_Th <= 1e-8) rho_Th = 1e-8;
-				if (p_Th <= 1e-8 / 2.0) p_Th = 1e-8 / 2.0;
-
-				if (rho_Th > 5.0)
-				{
-					cout << "error ergewfaewwsghrgseerg" << endl;
-					cout << ro << endl;
-					exit(-1);
-				}
-
-				ro = rho_Th;
-				cp = sqrt(2.0 * p_Th / rho_Th);
 
 				u = sqrt(kvv(P.Vel[0] - vx, P.Vel[1] - vy, P.Vel[2] - vz));
 				u1 = vx - P.Vel[0];
@@ -2555,6 +2593,8 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 				sig = Vel_norm / nu_ex;     // локальна€ sig на каждом участке интегрировани€
 				ss += dl / sig;
 			}
+
+			//cout << "A3" << endl;
 
 			sig = l / ss;   // Ќека€ средн€€ sigma по перезар€дке
 		}
