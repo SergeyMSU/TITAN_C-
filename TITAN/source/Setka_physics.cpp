@@ -4349,9 +4349,9 @@ void Setka::Save_cell_MK_parameters(string filename)
 		{
 			if (i->parameters[0].find(pair) == i->parameters[0].end())
 			{
-				cout << "Error 8765509090" << endl;
-				cout << pair << endl;
-				cout << "-------------------" << endl;
+				//cout << "Error 8765509090" << endl;
+				//cout << pair << endl;
+				//cout << "-------------------" << endl;
 				i->parameters[0][pair] = 0.0;
 			}
 

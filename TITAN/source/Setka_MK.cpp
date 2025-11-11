@@ -2391,7 +2391,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 		
 
 		// Если нет интерполяции
-		if (Interpol == nullptr)
+		if (true)//(Interpol == nullptr)
 		{
 			ro = P.cel->parameters[0]["rho"];
 			p = P.cel->parameters[0]["p"];
@@ -2423,13 +2423,17 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 			cp = sqrt(2.0 * p_Th / rho_Th);
 
 			// Постоянные поля для тестирования
-			if (false)  
+			if (true)  
 			{
 				ro = 1.0;
 				cp = 1.0;
 				vx = this->phys_param->Velosity_inf;
 				vy = 0.0;
 				vz = 0.0;
+
+				vx_sr = vx;
+				vy_sr = vy;
+				vz_sr = vz;
 			}
 
 			// Найдём время до перезарядки
@@ -2489,6 +2493,14 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 
 				
 				ro = param["rho"];
+
+				if (ro <= 0.0 || ro > 5.0)
+				{
+					cout << "error erwgwvetwefcgrtervgbevrc" << endl;
+					cout << ro << endl;
+					exit(-1);
+				}
+
 				p = param["p"];
 				rho_He = param["rho_He"];
 				vx = param["Vx"];			// Скорости плазмы в ячейке
@@ -2506,6 +2518,13 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 
 				if (rho_Th <= 1e-8) rho_Th = 1e-8;
 				if (p_Th <= 1e-8 / 2.0) p_Th = 1e-8 / 2.0;
+
+				if (rho_Th > 5.0)
+				{
+					cout << "error ergewfaewwsghrgseerg" << endl;
+					cout << ro << endl;
+					exit(-1);
+				}
 
 				ro = rho_Th;
 				cp = sqrt(2.0 * p_Th / rho_Th);
