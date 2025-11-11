@@ -2506,12 +2506,6 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 
 					ro = param["rho"];
 
-					if (ro <= 0.5 || ro > 5.0)
-					{
-						cout << "error erwgwvetwefcgrtervgbevrc" << endl;
-						cout << ro << endl;
-						exit(-1);
-					}
 
 					p = param["p"];
 					rho_He = param["rho_He"];
@@ -2527,7 +2521,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 					if (rho_Th <= 1e-8) rho_Th = 1e-8;
 					if (p_Th <= 1e-8 / 2.0) p_Th = 1e-8 / 2.0;
 
-					if (rho_Th > 5.0)
+					if (rho_Th > 5000.0)
 					{
 						cout << "error ergewfaewwsghrgseerg" << endl;
 						cout << ro << endl;
@@ -2538,21 +2532,8 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 					cp = sqrt(2.0 * p_Th / rho_Th);
 
 
-					if (ro > 3.0 || ro < 0.2)
-					{
-						std::cout << "ERROR ertg4et43t3t3t " << std::endl;
-						cout << cp << " " << ro << endl;
-						exit(-1);
-					}
 
-					if (cp > 5.0 || cp < 0.2)
-					{
-						std::cout << "ERROR werg4w5et45t4w5y4ygy " << std::endl;
-						cout << cp << " " << ro << endl;
-						exit(-1);
-					}
-
-					if (std::isnan(cp) || std::isnan(ro) || std::isnan(rho_He) || rho_He <= 0.0 || cp > 100000000.0)
+					if (std::isnan(cp) || std::isnan(ro) || std::isnan(rho_He) || cp > 100000000.0)
 					{
 						std::cout << "ERROR erverfsdrvfsrdvff " << std::endl;
 						cout << cp << " " << ro << endl;

@@ -649,7 +649,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		// Визуализация новой сетки для проверки   [опционально]
-		if (true)
+		if (false)
 		{
 			Smc.Tecplot_print_all_lush_in_2D();
 			Smc.Tecplot_print_2D_setka(0.0, 0.0, 1.0, -0.00001, "Smc_setka_2d_(0, 0, 1, 0)_");
@@ -665,8 +665,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		// Определим зоны для МК
 		Smc.Set_MK_Zone();
 
-		//Проверим зоны
-		if (true)
+		//Проверим зоны   [опционально]
+		if (false)
 		{
 			Smc.Tecplot_print_gran_with_condition(0);
 			Smc.Tecplot_print_gran_with_condition(1);
@@ -681,9 +681,6 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
 
 		cout << "Start zones_number push_back" << endl;
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
