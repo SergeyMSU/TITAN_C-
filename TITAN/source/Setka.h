@@ -90,10 +90,10 @@ public:
 
 
 
-	Setka();
+	Setka(string name_setka_2d, string name_setka_krug, int N_phi_);
 	~Setka();
 
-	void Algoritm(short int alg);
+	void Algoritm(short int alg, Setka* Smain);
 
 	void Winslow_method(void);  // Реализован winslow метод для триангуляции круга (можно для любой фигуры адаптировать)
 
@@ -109,7 +109,7 @@ public:
 
 	void Find_Yzel_Sosed_for_BS(void);
 	
-	void New_initial();  // Функция начального построения сетки из файлов 2Д сетки и триангуляции круга
+	void New_initial(string name_setka_2d, string name_setka_krug);  // Функция начального построения сетки из файлов 2Д сетки и триангуляции круга
 	void New_connect();  // Функция начального построения сетки: создания граней и связывания ячеек
 	
 	void New_append_surfaces();  // Определяем грани на поверхностях разрыва
@@ -143,6 +143,7 @@ public:
 	// Считывает файл поверхностей (в формате старой программы на фортране)
 
 	void Move_to_surf(Surfaces* Surf);
+	void Move_to_surf(Interpol* Surf);
 
 	void Smooth_head_TS(void);
 	// Сглаживание TS в головной области.
@@ -253,8 +254,8 @@ public:
 	// Монте карло ***********************************************************
 	void MK_prepare(short int zone_MK); // Настройка всего для Монте-Карло
 	void MK_delete(short int zone_MK); 
-	void MK_go(short int zone_MK, int N_per_gran);      // Запуск всех частиц
-	void MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens);  // Запуск частицы, имитационный метод
+	void MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol);      // Запуск всех частиц
+	void MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interpol* Interpol);  // Запуск частицы, имитационный метод
 	void M_K_Change_Velosity(Sensor* sens, const double& Ur, const double& Uthe,
 		const double& Uphi, const double& Vr, const double& Vthe,
 		const double& Vphi, double& Wr, double& Wthe, double& Wphi, const double& cp);

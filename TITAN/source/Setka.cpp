@@ -75,13 +75,13 @@ namespace fs = std::filesystem; // Создаем псевдоним для удобства
 
 using namespace std;
 
-Setka::Setka()
+Setka::Setka(string name_setka_2d, string name_setka_krug, int N_phi_)
 {
 	this->Surf1 = nullptr;
 	this->geo = new Geo_param();
 	this->phys_param = new Phys_param();
 	Luch::geo = this->geo;
-	this->geo->Nphi = 60;     // &INIT&
+	this->geo->Nphi = N_phi_;     // &INIT&
 	// ! Это число зависит от сетки триангуляции круга (сколько там вращений по углу она подразумевает)
 	//cout << "AAAAAAAAAAAAAAAAAAAAA " << endl;
 	this->All_name_luch["A_Luch"] = &this->A_Luch;
@@ -102,7 +102,7 @@ Setka::Setka()
 
 	this->Cell_Center = new Cell;
 
-	this->New_initial();                     // Начальное создание узлов и ячеек
+	this->New_initial(name_setka_2d, name_setka_krug);                     // Начальное создание узлов и ячеек
 	this->New_connect();                     // Начальное создание граней и связывание их с ячейками
 	// Также добавляет соседей для каждой ячеки
 
@@ -164,24 +164,95 @@ Setka::~Setka()
 
 }
 
-void Setka::Algoritm(short int alg)
+void Setka::Algoritm(short int alg, Setka* Smain)
 {
-	// 2 - Монте-Карло
-	// 3 - Вычисление f_pui по посчитанным S+ S-
-	// 4 - Вычисление n_pui  и  T_pui  по рассчитанным f_pui
-	// 5 - Добавить в ячейки значение моментов водорода из Монте-Карло
-	// 6 - Вычисление функции h0 для розыгрыша пикапов (она считается один раз для каждого сечения перезарядки)
-	// 7 - Вычисление всех интеграллов в ячейках для розыгрыша пикапов (частота и т.д.)
-	// 8 - Вычисление поглощения вдоль заданных лучей
-	// 9 - перемасштабирование функций распредления водорода, без потери значений
+	// 1  - Плазма МГД
+	// 2  - Монте-Карло (для основной сетки)
+	// 3  - Вычисление f_pui по посчитанным S+ S-
+	// 4  - Вычисление n_pui  и  T_pui  по рассчитанным f_pui
+	// 5  - Добавить в ячейки значение моментов водорода из Монте-Карло
+	// 6  - Вычисление функции h0 для розыгрыша пикапов (она считается один раз для каждого сечения перезарядки)
+	// 7  - Вычисление всех интеграллов в ячейках для розыгрыша пикапов (частота и т.д.)
+	// 8  - Вычисление поглощения вдоль заданных лучей
+	// 9  - перемасштабирование функций распредления водорода, без потери значений
+	// 10 - Монте-Карло (новая реализация через вспомогательную сетку)
 
-	cout << "Start Algoritm " << alg << endl;
+	cout << "Start Algoritm: " << alg << endl;
 
 	this->Test_geometr();
 	this->Calculating_measure(0);
 	this->Calculating_measure(1);
 
-	if (alg == 2)
+	if (alg == 1)
+	{
+		this->Find_Yzel_Sosed_for_BS();
+
+		this->Smooth_angle_HP();
+		this->Smooth_head_HP3();
+		this->Smooth_head_TS3();
+
+		for (int i = 1; i <= 0; i++) // 6 * 2   12 * 5
+		{
+			auto start = std::chrono::high_resolution_clock::now();
+			cout << "IIIII = " << i << endl;
+
+			//S1.Go(true, 600, 1); // 400   1
+			cout << "All time = " << this->phys_param->ALL_Time << endl;
+			cout << "All time (in days) = " << this->phys_param->ALL_Time / 0.00142358 << endl;
+			cout << "All time (in years) = " << this->phys_param->ALL_Time / 0.519607 << endl;
+			this->Go(false, 400, 1); // 400   1
+			this->Go(true, 100, 1); // 400   1 
+			this->Smooth_head_HP3();
+			this->Smooth_head_TS3();
+
+			//S1.Print_parameters_in_some_point();
+
+			this->Tecplot_print_cell_plane_parameters();
+			this->Tecplot_print_all_lush_in_2D();
+
+			this->Tecplot_print_all_gran_in_surface("TS");
+			this->Tecplot_print_all_gran_in_surface("HP");
+			this->Tecplot_print_all_gran_in_surface("BS");
+
+			// Печать результатов
+			if (false)
+			{
+				this->Save_for_interpolate("For_intertpolate_0059-.bin", false);
+				Interpol SS = Interpol("For_intertpolate_0059-.bin");
+
+				this->Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+					Eigen::Vector3d(1.0, 0.0, 0.0), "_(1, 0, 0)_" + to_string(this->phys_param->ALL_Time) + "_", 500.0);
+
+				this->Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+					Eigen::Vector3d(cos(const_pi / 18.0), sin(const_pi / 18.0), 0.0), "_(10 deg, 0)_" + to_string(this->phys_param->ALL_Time) + "_", 500.0);
+
+				this->Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+					Eigen::Vector3d(-1.0, 0.0, 0.0), "_(-1, 0, 0)_" + to_string(this->phys_param->ALL_Time) + "_", 500.0);
+
+				this->Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+					Eigen::Vector3d(0.0, 1.0, 0.0), "_(0, 1, 0)_" + to_string(this->phys_param->ALL_Time) + "_", 500.0);
+
+				this->Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_" + to_string(this->phys_param->ALL_Time) + "_");
+			}
+
+			//this->Go(true, 100, 1);
+			//this->Tecplot_print_cell_plane_parameters();
+
+			//this->Init_physics();
+
+			if (i % 12 == 0)
+			{
+				string namn = "parameters_promeg_11" + to_string(i) + ".bin";
+				this->Save_cell_parameters(namn);
+			}
+
+			auto end = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+			std::cout << "Execution time: " << duration.count() / 1000.0 / 60.0 << " minutes" << std::endl;
+		}
+	}
+	else if (alg == 2)
 	{
 		// Определим зоны для МК
 		this->Set_MK_Zone();
@@ -250,7 +321,7 @@ void Setka::Algoritm(short int alg)
 		{
 			cout << "Start zone = " << zone_play << endl;
 			this->MK_prepare(zone_play);
-			this->MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]) );
+			this->MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), nullptr);
 			this->MK_delete(zone_play);
 			ijij++;
 		}
@@ -542,6 +613,91 @@ void Setka::Algoritm(short int alg)
 				}
 			}
 		}
+	}
+	else if (alg == 10)
+	{
+		cout << "Create Setka Smc" << endl;
+		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
+		Setka Smc = Setka("SDK_40_2D_Setka.bin", "SDK_40_krug_setka.bin", 40);
+
+		cout << "Create SI_main" << endl;
+		// Из основной сетки создаём интерполяционную сетку
+		this->Save_for_interpolate("For_intertpolate_work.bin", false);
+		Interpol SI_main = Interpol("For_intertpolate_work.bin");
+
+		cout << "Move Setka Smc" << endl;
+		// Двигаем поверхности вспомогательной сетки к поверхностям основной
+		Smc.Move_to_surf(&SI_main);
+
+		// Точно задаём положение внутренней границы сетки
+		Smc.geo->R0 = Smc.phys_param->R_0;
+
+		// Автоматически подстраиваем геометрические параметры сетки (сгущение и т.д.) под новые поверхности
+		Smc.auto_set_luch_geo_parameter(0);
+
+		// Настраиваем новую сетку (также как и основную)   [обязательно]
+		if (true)
+		{
+			// Считаем объёмы, площади и другие геометрические характеристики
+			Smc.Calculating_measure(0);
+			Smc.Calculating_measure(1);
+
+			// Задаём граничные грани
+			Smc.Init_boundary_grans();
+
+			Smc.Test_geometr();
+		}
+
+		// Визуализация новой сетки для проверки   [опционально]
+		if (false)
+		{
+			Smc.Tecplot_print_all_lush_in_2D();
+			Smc.Tecplot_print_2D_setka(0.0, 0.0, 1.0, -0.00001, "Smc_setka_2d_(0, 0, 1, 0)_");
+			Smc.Tecplot_print_2D_setka(0.0, 1.0, 0.0, -0.00001, "Smc_setka_2d_(0, 1, 0, 0)_");
+			Smc.Tecplot_print_2D_setka(0.0, 1.0, 1.0, -0.00001, "Smc_setka_2d_(0, 1, 1, 0)_");
+			Smc.Tecplot_print_all_gran_in_surface("TS");
+			Smc.Tecplot_print_all_gran_in_surface("HP");
+			Smc.Tecplot_print_all_gran_in_surface("BS");
+		}
+
+		cout << "Set MK zone" << endl;
+		// Определим зоны для МК
+		Smc.Set_MK_Zone();
+
+		//Проверим зоны
+		if (true)
+		{
+			Smc.Tecplot_print_gran_with_condition(0);
+			Smc.Tecplot_print_gran_with_condition(1);
+			Smc.Tecplot_print_gran_with_condition(2);
+			Smc.Tecplot_print_gran_with_condition(3);
+			Smc.Tecplot_print_gran_with_condition(4);
+			Smc.Tecplot_print_gran_with_condition(5);
+			Smc.Tecplot_print_gran_with_condition(6);
+		}
+
+		vector<short int> zones_number;
+		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
+
+		cout << "Start zones_number push_back" << endl;
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+
+		short int ijij = 0;
+		for (const auto& zone_play : zones_number)
+		{
+			cout << "Start zone = " << zone_play << endl;
+			Smc.MK_prepare(zone_play);
+			Smc.MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), &SI_main);
+			Smc.MK_delete(zone_play);
+			ijij++;
+		}
+
 	}
 
 	cout << "End Algoritm " << alg << endl;
@@ -1230,7 +1386,331 @@ void Setka::Move_to_surf(Surfaces* Surf)
 	cout << "End: Move_to_surf" << endl;
 }
 
-void Setka::New_initial()
+void Setka::Move_to_surf(Interpol* Surf)
+{
+	double x, y, z, phi, the, r, rr;
+	cout << "Start: Move_to_surf" << endl;
+	std::unordered_map<string, double> param;
+	double R_BS; // положение внешней ударной волны (для движение B E D лучей)
+	for (int st = 0; st < 15; st++)
+	{
+		for (auto& i : this->A_Luch)
+		{
+			for (auto& j : i)
+			{
+				x = j->Yzels_opor[1]->coord[0][0];
+				y = j->Yzels_opor[1]->coord[0][1];
+				z = j->Yzels_opor[1]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				the = polar_angle(x, sqrt(kv(y) + kv(z)));
+				phi = polar_angle(y, z);
+
+
+
+				Surf->Get_TS(x, y, z, param);
+				rr = param["r"];
+
+				j->Yzels_opor[1]->coord[0][0] *= rr / r;
+				j->Yzels_opor[1]->coord[0][1] *= rr / r;
+				j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "0989898653   errjr" << endl;
+				}
+
+
+				x = j->Yzels_opor[2]->coord[0][0];
+				y = j->Yzels_opor[2]->coord[0][1];
+				z = j->Yzels_opor[2]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				
+
+				Surf->Get_HP(x, y, z, param);
+				rr = param["r"];
+
+				j->Yzels_opor[2]->coord[0][0] *= rr / r;
+				j->Yzels_opor[2]->coord[0][1] *= rr / r;
+				j->Yzels_opor[2]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "9443563295   errjr" << endl;
+				}
+
+				x = j->Yzels_opor[3]->coord[0][0];
+				y = j->Yzels_opor[3]->coord[0][1];
+				z = j->Yzels_opor[3]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				the = polar_angle(x, sqrt(kv(y) + kv(z)));
+				phi = polar_angle(y, z);
+
+
+				Surf->Get_BS(x, y, z, param);
+				rr = param["r"];
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "5794671565   errjr" << endl;
+				}
+
+				j->Yzels_opor[3]->coord[0][0] *= rr / r;
+				j->Yzels_opor[3]->coord[0][1] *= rr / r;
+				j->Yzels_opor[3]->coord[0][2] *= rr / r;
+
+			}
+		}
+
+		for (auto& j : this->A2_Luch)
+		{
+			x = j->Yzels_opor[1]->coord[0][0];
+			y = j->Yzels_opor[1]->coord[0][1];
+			z = j->Yzels_opor[1]->coord[0][2];
+			r = sqrt(kvv(x, y, z));
+			the = polar_angle(x, sqrt(kv(y) + kv(z)));
+			phi = polar_angle(y, z);
+
+
+
+			Surf->Get_TS(x, y, z, param);
+			rr = param["r"];
+
+			j->Yzels_opor[1]->coord[0][0] *= rr / r;
+			j->Yzels_opor[1]->coord[0][1] *= rr / r;
+			j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+			if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+			{
+				cout << "0989898653   errjr" << endl;
+			}
+
+
+			x = j->Yzels_opor[2]->coord[0][0];
+			y = j->Yzels_opor[2]->coord[0][1];
+			z = j->Yzels_opor[2]->coord[0][2];
+			r = sqrt(kvv(x, y, z));
+
+
+			Surf->Get_HP(x, y, z, param);
+			rr = param["r"];
+
+			j->Yzels_opor[2]->coord[0][0] *= rr / r;
+			j->Yzels_opor[2]->coord[0][1] *= rr / r;
+			j->Yzels_opor[2]->coord[0][2] *= rr / r;
+
+			if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+			{
+				cout << "9443563295   errjr" << endl;
+			}
+
+			x = j->Yzels_opor[3]->coord[0][0];
+			y = j->Yzels_opor[3]->coord[0][1];
+			z = j->Yzels_opor[3]->coord[0][2];
+			r = sqrt(kvv(x, y, z));
+			the = polar_angle(x, sqrt(kv(y) + kv(z)));
+			phi = polar_angle(y, z);
+
+
+			Surf->Get_BS(x, y, z, param);
+			rr = param["r"];
+
+			if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+			{
+				cout << "5794671565   errjr" << endl;
+			}
+
+			j->Yzels_opor[3]->coord[0][0] *= rr / r;
+			j->Yzels_opor[3]->coord[0][1] *= rr / r;
+			j->Yzels_opor[3]->coord[0][2] *= rr / r;
+
+		}
+
+		for (auto& i : this->B_Luch)
+		{
+			for (auto& j : i)
+			{
+				x = j->Yzels_opor[1]->coord[0][0];
+				y = j->Yzels_opor[1]->coord[0][1];
+				z = j->Yzels_opor[1]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				the = polar_angle(x, sqrt(kv(y) + kv(z)));
+				phi = polar_angle(y, z);
+
+				Surf->Get_TS(x, y, z, param);
+				rr = param["r"];
+
+				j->Yzels_opor[1]->coord[0][0] *= rr / r;
+				j->Yzels_opor[1]->coord[0][1] *= rr / r;
+				j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "0989898653   errjr" << endl;
+				}
+
+
+				x = j->Yzels_opor[2]->coord[0][0];
+				y = j->Yzels_opor[2]->coord[0][1];
+				z = j->Yzels_opor[2]->coord[0][2];
+
+				Surf->Get_HP(x, y, z, param);
+				rr = param["r"];
+
+				r = sqrt(kvv(0.0, y, z));
+				j->Yzels_opor[2]->coord[0][1] *= rr / r;
+				j->Yzels_opor[2]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "6510292073   errjr" << endl;
+				}
+
+			}
+		}
+
+		for (auto& i : this->C_Luch)
+		{
+			for (auto& j : i)
+			{
+				x = j->Yzels_opor[1]->coord[0][0];
+				y = j->Yzels_opor[1]->coord[0][1];
+				z = j->Yzels_opor[1]->coord[0][2];
+				r = sqrt(kvv(x, y, z));
+				the = polar_angle(x, sqrt(kv(y) + kv(z)));
+				phi = polar_angle(y, z);
+
+				Surf->Get_TS(x, y, z, param);
+				rr = param["r"];
+
+				j->Yzels_opor[1]->coord[0][0] *= rr / r;
+				j->Yzels_opor[1]->coord[0][1] *= rr / r;
+				j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "0989898653   errjr" << endl;
+				}
+			}
+		}
+
+		for (auto& j : this->C2_Luch)
+		{
+			x = j->Yzels_opor[1]->coord[0][0];
+			y = j->Yzels_opor[1]->coord[0][1];
+			z = j->Yzels_opor[1]->coord[0][2];
+			r = sqrt(kvv(x, y, z));
+			the = polar_angle(x, sqrt(kv(y) + kv(z)));
+			phi = polar_angle(y, z);
+
+
+			Surf->Get_TS(x, y, z, param);
+			rr = param["r"];
+
+			j->Yzels_opor[1]->coord[0][0] *= rr / r;
+			j->Yzels_opor[1]->coord[0][1] *= rr / r;
+			j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+			if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+			{
+				cout << "0989898653   errjr" << endl;
+			}
+		}
+
+		for (auto& i : this->D_Luch)
+		{
+			x = i[0]->Yzels_opor[1]->coord[0][0];
+			y = i[0]->Yzels_opor[1]->coord[0][1];
+			z = i[0]->Yzels_opor[1]->coord[0][2];
+			r = sqrt(kvv(0.0, y, z));
+			phi = polar_angle(y, z);
+
+			Surf->Get_HP(x, y, z, param);
+			rr = param["r"];
+
+			for (auto& j : i)
+			{
+				x = j->Yzels_opor[1]->coord[0][0];
+				y = j->Yzels_opor[1]->coord[0][1];
+				z = j->Yzels_opor[1]->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+				//phi = polar_angle(y, z);
+				//rr = Surf->Get_HP(phi, x, 1);
+
+				j->Yzels_opor[1]->coord[0][1] *= rr / r;
+				j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+			}
+		}
+
+		for (auto& i : this->E_Luch)
+		{
+			for (auto& j : i)
+			{
+				x = j->Yzels_opor[1]->coord[0][0];
+				y = j->Yzels_opor[1]->coord[0][1];
+				z = j->Yzels_opor[1]->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+				phi = polar_angle(y, z);
+
+				Surf->Get_HP(x, y, z, param);
+				rr = param["r"];
+
+				j->Yzels_opor[1]->coord[0][1] *= rr / r;
+				j->Yzels_opor[1]->coord[0][2] *= rr / r;
+
+				if (r < 0.0001 || rr < 0.0001 || std::isnan(rr) || std::fpclassify(rr) == FP_SUBNORMAL)
+				{
+					cout << "6510292073   errjr" << endl;
+				}
+			}
+		}
+
+		// Двигаем BS для B E D лучей
+		for (int i = 0; i < this->B_Luch.size(); i++)
+		{
+			R_BS = this->A_Luch[i].back()->Yzels_opor[3]->func_R(0);
+			for (auto& j : this->B_Luch[i])
+			{
+				y = j->Yzels_opor[3]->coord[0][1];
+				z = j->Yzels_opor[3]->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+
+				j->Yzels_opor[3]->coord[0][1] *= R_BS / r;
+				j->Yzels_opor[3]->coord[0][2] *= R_BS / r;
+			}
+
+			for (auto& j : this->E_Luch[i])
+			{
+				y = j->Yzels_opor[2]->coord[0][1];
+				z = j->Yzels_opor[2]->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+
+				j->Yzels_opor[2]->coord[0][1] *= R_BS / r;
+				j->Yzels_opor[2]->coord[0][2] *= R_BS / r;
+			}
+
+			for (auto& j : this->D_Luch[i])
+			{
+				y = j->Yzels_opor[2]->coord[0][1];
+				z = j->Yzels_opor[2]->coord[0][2];
+				r = sqrt(kvv(0.0, y, z));
+
+				j->Yzels_opor[2]->coord[0][1] *= R_BS / r;
+				j->Yzels_opor[2]->coord[0][2] *= R_BS / r;
+			}
+		}
+
+		for (auto& i : this->All_Luch)
+		{
+			i->dvigenie(0);
+		}
+
+	}
+
+	cout << "End: Move_to_surf" << endl;
+}
+
+void Setka::New_initial(string name_setka_2d, string name_setka_krug)
 {
 	cout << "---START New_initial---" << endl;
 
@@ -1239,7 +1719,7 @@ void Setka::New_initial()
 	vector<Yzel*> Yz_;
 
 	// Считываем файл 2Д сетки
-	ifstream ffin("SDK1_2D_Setka.bin", ios::binary | ios::in);
+	ifstream ffin(name_setka_2d, ios::binary | ios::in);
 	//ifstream ffin("SDK2_2D_Setka.bin", ios::binary | ios::in);
 	if (!ffin)
 	{
@@ -1507,7 +1987,7 @@ void Setka::New_initial()
 	}
 
 	// Считываем файл круга
-	ifstream fin("SDK1_krug_setka.bin", ios::binary | ios::in);
+	ifstream fin(name_setka_krug, ios::binary | ios::in);
 	if (!fin)
 	{
 		cout << "Net takogo fajla (fajl setki v krugu)" << endl;

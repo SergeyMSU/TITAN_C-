@@ -3566,7 +3566,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	// TS
 	if (true)
 	{
-		size = this->Gran_TS.size() * 5;
+		size = this->Gran_TS.size() * 7;
 		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 		std::ofstream outfile("TS_interpol.txt");
 
@@ -3636,7 +3636,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			}
 
 			// Симметрия - theta
-			phi_1 = phi_1 + 2 * const_pi;
+			phi_1 = phi_1 + 2 * const_pi;  // вернул
 			the_1 = -the_1;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -3653,7 +3653,43 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
+			// Симметрия - theta  phi
+			phi_1 = phi_1 + 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
+
+			// Симметрия - theta  phi
+			phi_1 = phi_1 - 2 * const_pi; // вернул
+			phi_1 = phi_1 - 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
+
 			// Симметрия - theta
+			phi_1 = phi_1 + 2 * const_pi; // вернул
 			the_1 = -the_1;
 			the_1 = 2 * const_pi - the_1;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));

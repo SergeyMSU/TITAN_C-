@@ -584,7 +584,12 @@ know_zone:
         containing_cell = this->Delone_1->locate(query, prev_cell[0]);
         if (this->Delone_1->is_infinite(containing_cell))
         {
-            return false;
+            //cout << "Delone Infinit" << endl;
+            //return false;
+            // Находим ближайшую вершину
+            Vertex_handle nearest_vertex = this->Delone_1->nearest_vertex(query);
+            containing_cell = nearest_vertex->cell();  // Берём любой смежный треугольник
+            query = nearest_vertex->point();
         }
         next_cell[0] = containing_cell;
     }

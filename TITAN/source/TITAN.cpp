@@ -10,81 +10,71 @@ int main()
 {
     cout << "Start Programm" << endl;
 
-    
-    //auto phys_param = new Phys_param();
-    //phys_param->raspad_testing();
-    //return 0;
+    // Создаём основную сетку из файлов вспомогательных сеток
+    Setka S1 = Setka("SDK1_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
 
-    Setka S1 = Setka();
-
-    S1.Read_old_surface("ASurf_Save00591.bin");
-    S1.Move_to_surf(S1.Surf1);
-
-    S1.auto_set_luch_geo_parameter(0);
-    cout << "A " << endl;
-    S1.Calculating_measure(0);
-    cout << "B " << endl;
-    S1.Calculating_measure(1);
-    cout << "B2 " << endl;
-    
-    S1.Init_boundary_grans();
-    cout << "C " << endl;
-
-    //S1.Download_cell_parameters("parameters_0137.bin");   // 107   119
-    S1.Download_cell_parameters("parameters_0060.bin");   // 107
-    //S1.Download_cell_parameters("parameters_promeg_1184.bin");   // 107
-    //S1.Download_cell_parameters("parameters_promeg_1112.bin");   // 107
-    //S1.Download_cell_parameters("parameters_0217.bin");   // 107
-
-    //S1.PereInterpolate("For_intertpolate_219.bin", true);
-
-    // 19 стартовая точка от которой две параллели с пикапами и без
-    // 32 с пикапами
-    // 62 включи TVD
-    // 76 перед тем, как отключить все ТВД и все костыли
-
-    S1.geo->R0 = S1.phys_param->R_0;
-
-    // 23 полностью установленное решение без Пикапов (у контакта есть артефакт нужно сглаживание по
-    // углу увеличить)
-
-    cout << "C2 " << endl;
-
-    S1.auto_set_luch_geo_parameter(0);
-
-
-    //return 0;
-
-    //S1.Smooth_head_HP2(); // Ручное сглаживание
-    //S1.Smooth_HP1(); // Ручное сглаживание
-
-    S1.Init_TVD();
-    cout << "D2 " << endl;
-
-    S1.Init_physics();
-    //S1.PereInterpolate("For_intertpolate_219.bin", false);
-
-    cout << "E " << endl;
-
-    //S1.Smooth_head_TS2();
-    //S1.Smooth_head_HP2();
-
-    S1.Tecplot_print_cell_plane_parameters();
-    S1.Tecplot_print_all_lush_in_2D();
-    S1.Tecplot_print_2D_setka(0.0, 0.0, 1.0, -0.00001, "setka_2d_(0, 0, 1, 0)_");
-    S1.Tecplot_print_2D_setka(0.0, 1.0, 0.0, -0.00001, "setka_2d_(0, 1, 0, 0)_");
-    S1.Tecplot_print_2D_setka(0.0, 1.0, 1.0, -0.00001, "setka_2d_(0, 1, 1, 0)_");
-    //S1.Tecplot_print_all_cell_in_3D();
-
-    //S1.Print_SpSm(20.0, 0.0, 0.0);
-    //S1.Print_SpSm(10.0, 0.0, 0.0);
-    //S1.Print_SpSm(40.0, 0.0, 0.0);
-    //return 0;
-
+    // Обязательный блок настройки основной сетки
     if (true)
     {
+        // Считаем старый файл поверхностей что-бы приблизительно подвинуть их в нужное место
+        S1.Read_old_surface("ASurf_Save00591.bin");
+
+        // Теперь передвигаем сетку к поверхностям
+        S1.Move_to_surf(S1.Surf1);
+
+        // Автоматически подстраиваем геометрические параметры сетки (сгущение и т.д.) под новые поверхности
+        S1.auto_set_luch_geo_parameter(0);
+
+        // Считаем объёмы, площади и другие геометрические характеристики
+        S1.Calculating_measure(0);
+        S1.Calculating_measure(1);
+
+        // Задаём граничные грани
+        S1.Init_boundary_grans();
+    }
+
+    // Считываем физические параметры и геометрическое положение узлов из файла (предыдущего расчёта)
+    S1.Download_cell_parameters("parameters_0060.bin");
+
+    // Ещё один блок обязательной настройки
+    if (true)
+    {
+        // Точно задаём положение внутренней границы сетки
+        S1.geo->R0 = S1.phys_param->R_0;
+
+        // Автоматически подстраиваем геометрические параметры сетки под новые положения узлов
+        S1.auto_set_luch_geo_parameter(0);
+
+        // Инициализируем TVD (находим соседей и т.д.)
+        S1.Init_TVD();
+    }
+
+    // Задаём начальные и граничные условия
+    S1.Init_physics();
+
+    // Блок начальной визулизации сетки для проверки корректного построения
+    if (true)
+    {
+        S1.Tecplot_print_cell_plane_parameters();
+        S1.Tecplot_print_all_lush_in_2D();
+        S1.Tecplot_print_2D_setka(0.0, 0.0, 1.0, -0.00001, "init_setka_2d_(0, 0, 1, 0)_");
+        S1.Tecplot_print_2D_setka(0.0, 1.0, 0.0, -0.00001, "init_setka_2d_(0, 1, 0, 0)_");
+        S1.Tecplot_print_2D_setka(0.0, 1.0, 1.0, -0.00001, "init_setka_2d_(0, 1, 1, 0)_");
+        S1.Tecplot_print_all_gran_in_surface("TS");
+        S1.Tecplot_print_all_gran_in_surface("HP");
+        S1.Tecplot_print_all_gran_in_surface("BS");
+    }
+
+    // Выбор основного алгоритма расчёта (в данной функции представлены все варианты расчёта: атомы, мгд и т.д.), см. саму функцию
+    S1.Algoritm(10, &S1);
+
+    return 0;
+
+    // Далее следует всё, что касается визуализации сетки
+    if (false)
+    {
         // Планировал запустить дальше перестройку сорта 2, потом зоны 2, 4, 6
-        S1.Algoritm(2);
+        //S1.Algoritm(2);
         //S1.Algoritm(8);
         //S1.Algoritm(5);
         //S1.Print_fH(4, Type_Gran_surf::BS, 1.0, 0.0, 0.0, 5.0 * const_pi/180.0);
@@ -131,88 +121,6 @@ int main()
     }
 
 
-    S1.Tecplot_print_all_gran_in_surface("TS");
-    S1.Tecplot_print_all_gran_in_surface("HP");
-    S1.Tecplot_print_all_gran_in_surface("BS");
-
-    
-
-    S1.Find_Yzel_Sosed_for_BS();
-
-    S1.Smooth_angle_HP();
-    S1.Smooth_head_HP3();
-    S1.Smooth_head_TS3();
-
-
-
-    for (int i = 1; i <= 0; i++) // 6 * 2   12 * 5
-    {
-        auto start = std::chrono::high_resolution_clock::now();
-        cout << "IIIII = " << i << endl;
-
-        //S1.Go(true, 600, 1); // 400   1
-        cout << "All time = " << S1.phys_param->ALL_Time << endl;
-        cout << "All time (in days) = " << S1.phys_param->ALL_Time / 0.00142358 << endl;
-        cout << "All time (in years) = " << S1.phys_param->ALL_Time / 0.519607 << endl;
-        S1.Go(false, 400, 1); // 400   1
-        S1.Go(true, 100, 1); // 400   1 
-        S1.Smooth_head_HP3();
-        S1.Smooth_head_TS3();
-
-        //S1.Print_parameters_in_some_point();
-
-        S1.Tecplot_print_cell_plane_parameters();
-        S1.Tecplot_print_all_lush_in_2D();
-
-        S1.Tecplot_print_all_gran_in_surface("TS");
-        S1.Tecplot_print_all_gran_in_surface("HP");
-        S1.Tecplot_print_all_gran_in_surface("BS");
-
-        // Печать результатов
-        if (false)
-        {
-            S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
-            Interpol SS = Interpol("For_intertpolate_0059-.bin");
-
-            S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
-                Eigen::Vector3d(1.0, 0.0, 0.0), "_(1, 0, 0)_" + to_string(S1.phys_param->ALL_Time) + "_", 500.0);
-
-            S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
-                Eigen::Vector3d(cos(const_pi/18.0), sin(const_pi / 18.0), 0.0), "_(10 deg, 0)_" + to_string(S1.phys_param->ALL_Time) + "_", 500.0);
-
-            S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
-                Eigen::Vector3d(-1.0, 0.0, 0.0), "_(-1, 0, 0)_" + to_string(S1.phys_param->ALL_Time) + "_", 500.0);
-
-            S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
-                Eigen::Vector3d(0.0, 1.0, 0.0), "_(0, 1, 0)_" + to_string(S1.phys_param->ALL_Time) + "_", 500.0);
-
-            S1.Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_" + to_string(S1.phys_param->ALL_Time) + "_");
-        }
-
-        //S1.Go(true, 100, 1);
-        //S1.Tecplot_print_cell_plane_parameters();
-
-        //S1.Init_physics();
-
-        if (i % 12 == 0)
-        {
-            string namn = "parameters_promeg_11" + to_string(i) + ".bin";
-            S1.Save_cell_parameters(namn);
-        }
-
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
-        std::cout << "Execution time: " << duration.count()/1000.0/60.0 << " minutes" << std::endl;
-    }
-
-
-    if (false)
-    {
-        S1.~Setka();
-        std::cout << "Setka delete\n";
-        return 0;
-    }
 
     //S1.Save_cell_parameters("parameters_0064.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
@@ -229,141 +137,6 @@ int main()
     Interpol SS = Interpol("For_intertpolate_0059-.bin");
 
     cout << "AAA" << endl;
-
-    if (false)
-    {
-        // Начальная инициализация
-        std::unordered_map<string, double> param;
-        std::array<Cell_handle, 6> prev_cell;
-        std::array<Cell_handle, 6> next_cell;
-        for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
-
-        SS.Get_param(10.0, 0.0, 0.0, param, prev_cell, next_cell);     // Интерполируем переменные
-        for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // Обновляем предыдущую ячейку
-
-
-        cout << "BBB" << endl;
-        for (const auto& [key, value] : param) {
-            std::cout << key << ":  " << value << '\n';
-        }
-
-        cout << "SSSSS" << endl;
-
-        std::unordered_map<string, double> param2;
-
-        SS.Get_HP(10.0, 0.0, 0.0, param2);
-
-        for (const auto& [key, value] : param2) 
-        {
-            std::cout << key << ":  " << value << '\n';
-        }
-        return 0.0;
-
-    }
-
-    if (false) // Проверка интерполятора
-    {
-        // Начальная инициализация
-        std::unordered_map<string, double> param;
-        std::array<Cell_handle, 6> prev_cell;
-        std::array<Cell_handle, 6> next_cell;
-        for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
-
-        std::unordered_map<string, double> parameters;
-        // Открываем файл для записи
-        std::ofstream outfile("angles.txt");
-        if (!outfile.is_open()) {
-            return 1;
-        }
-        const int N = 500;         // Количество шагов
-        const double step = const_pi / N;  // Размер шага
-
-        if (false)
-        {
-            // Основной цикл
-            for (double angle = 0.0; angle <= const_pi / 2.0 + 1e-6; angle += step)
-            {
-                for (double r = 10.0; r < 300.0; r += 0.01)
-                {
-                    double x = r * cos(angle);
-                    double y = r * sin(angle);
-                    double z = 0.0;
-                    short int zoon = 0;
-                    // Записываем в файл
-                    SS.Get_param(x, y, z, parameters, zoon);
-                    if (zoon == 3)
-                    {
-                        outfile << x << " " << y << std::endl;
-                        break;
-                    }
-                }
-            }
-
-            // Закрываем файл
-            outfile.close();
-        }
-
-        // Открываем файл для записи
-        outfile = std::ofstream("angles2.txt");
-        if (!outfile.is_open()) {
-            return 1;
-        }
-
-        // Основной цикл
-        cout << "AA1" << endl;
-        for (double angle = 0.0; angle <= const_pi/2; angle += step)
-        {
-            //cout << "angle = " << angle << endl;
-            double x = cos(angle);
-            double y = sin(angle);
-            double z = 0.0;
-            short int zoon = 0;
-            // Записываем в файл
-            SS.Get_HP(x, y, z, parameters);
-            double r = parameters["r"];
-            outfile << r * cos(angle) << " " << r * sin(angle) << std::endl;
-        }
-        cout << "AA3" << endl;
-
-        // Закрываем файл
-        outfile.close();
-
-        //std::unordered_map<string, double> param;
-        SS.Get_TS(13.94, 0.0, 0.0, param);
-        for (const auto& [key, value] : param) {
-            std::cout << key << ":  " << value << '\n';
-        }
-        cout << "A " << endl;
-
-
-        outfile = std::ofstream("2D.txt");
-
-        for (double x = -200.0; x < 400.0; x = x + 0.4)
-        {
-            for (double y = -400.0; y < 400.0; y = y + 0.3)
-            {
-                bool vv = SS.Get_param(x, y, 0.0, parameters, prev_cell, next_cell);
-                if (vv == false) continue;
-                outfile << x << " " << y << " " << parameters["rho"] << std::endl;
-            }
-        }
-
-        outfile.close();
-
-        SS.Get_param(0.00001, -350, 0.0, parameters, prev_cell, next_cell);
-        for (const auto& [key, value] : parameters) {
-            std::cout << key << ":  " << value << '\n';
-        }
-        cout << "B1 " << endl;
-
-        SS.Get_param(-0.00001, -350, 0.0, parameters, prev_cell, next_cell);
-        for (const auto& [key, value] : parameters) {
-            std::cout << key << ":  " << value << '\n';
-        }
-        cout << "B2 " << endl;
-        exit(-1);
-    }
-
 
     S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
         Eigen::Vector3d(1.0, 0.0, 0.0), "_(1, 0, 0)_", 500.0);
@@ -401,13 +174,5 @@ int main()
     S1.Tecplot_print_all_gran_in_surface("HP");
     S1.Tecplot_print_all_gran_in_surface("BS");
     //S1.Tecplot_print_all_yzel_with_condition();
-
-
-    std::cout << "Hello World!\n";
-
-    S1.~Setka();
-    std::cout << "Setka delete\n";
-
-
 }
 

@@ -1578,7 +1578,7 @@ void Setka::MK_delete(short int zone_MK)
 	cout << "END MK_delete" << endl;
 }
 
-void Setka::MK_go(short int zone_MK, int N_per_gran)
+void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol)
 {
 	// Как работает алгоритм пошагово:
 	// 1) Загружаются выходящие функции распределения только для сортов, которые рождаются в данной области
@@ -1696,8 +1696,9 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 
 		// 4. Теперь бежим по граням и делаем основной алгоритм
 		k1 = 0;
-		#pragma omp parallel for schedule(dynamic)
+		#pragma omp parallel for schedule(dynamic)                                                   // DELETE
 		for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
+		//for (size_t idx = 2700; idx < 2701; ++idx)
 		{
 			auto& gr = this->MK_Grans[zone_MK - 1][idx];
 			
@@ -1708,7 +1709,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 			#pragma omp critical (first) 
 			{
 				k1++;
-				if (k1 % 500 == 0)
+				if (k1 % 100 == 0)
 				{
 					cout << "Gran = " << k1 << "    Iz: " << this->MK_Grans[zone_MK - 1].size() << "  sort " << nh_ + 1 << endl;
 				}
@@ -1802,7 +1803,8 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 			}
 
 			// Запускаем каждую частицу
-			for (unsigned int num = 0; num < N_particle; ++num)
+			for (unsigned int num = 0; num < N_particle; ++num)                                                  // DELETE
+			//for (unsigned int num = 0; num < 1; ++num)                                                  // DELETE
 			{
 				MK_particle P = MK_particle();
 				if (ni == 0)
@@ -1845,6 +1847,14 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 				// Некоторые проверки разыгрынной скорости частицы
 				if (this->regim_otladki)
 				{
+					if (std::isnan(poz[0])) 
+					{
+						std::cout << "ERROR erg34t34t34f " << std::endl;
+						cout << poz[0] << " " << poz[1] << " " << poz[2] << endl;
+						exit(-1);
+					}
+
+
 					if (ni == 0)
 					{
 						if (scalarProductFast(poz(0), poz(1), poz(2),
@@ -1983,7 +1993,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 				//cout << "FLY" << endl;
 
 
-				this->MK_fly_immit(P, zone_MK, this->Sensors[sens_num2]); // Запускаем частицу в полёт   // !! Не написана
+				this->MK_fly_immit(P, zone_MK, this->Sensors[sens_num2], Interpol); // Запускаем частицу в полёт   // !! Не написана
 				//exit(-1);
 				//cout << "END" << endl;
 			}
@@ -1995,6 +2005,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 			
 		}
 	
+		//exit(-1);                                         // DELETE
 
 		// 8. Теперь надо сохранить ненужные выходящие функции распределения, но предварительно нормировать их
 		// Ненужные функции распределения, это функции сорта nh_, при условии, что этот сорт не рождается в области
@@ -2168,7 +2179,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran)
 	std::cout << "MK all time: " << duration.count() / 1000.0 / 60.0 << " minutes" << std::endl;
 }
 
-void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
+void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interpol* Interpol)
 {
 	/*cout << "______Start_MK_fly_immit___________" << endl;
 	whach(P.coord[0]);
@@ -2190,6 +2201,11 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 	bool vtoroy_shans = false;
 	bool vtoroy_shans2 = false;
 
+
+	std::array<Cell_handle, 6> prev_cell;
+	std::array<Cell_handle, 6> next_cell;
+	for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
+
 	// Главный цикл по ячейкам
 	// Выйти из него можно только если частица достигнет конца области
 	while (true)
@@ -2199,7 +2215,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		coord_do[1] = P.coord[1];
 		coord_do[2] = P.coord[2];
 
-		//cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
+		//cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;                // DELETE
 		if (P.cel->MK_zone != zone_MK)
 		{
 			cout << "Error 8767567487" << endl;
@@ -2361,69 +2377,185 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 		// ****************************************************************************
 
 		// Получаем параметры плазмы в ячейке ----------------------------
-		double ro = P.cel->parameters[0]["rho"];
-		double p = P.cel->parameters[0]["p"];
-		double rho_He = P.cel->parameters[0]["rho_He"];
-		double cp;// = sqrt(P.cel->parameters[0]["p"] / ro);
-		double vx = P.cel->parameters[0]["Vx"];			// Скорости плазмы в ячейке
-		double vy = P.cel->parameters[0]["Vy"];
-		double vz = P.cel->parameters[0]["Vz"];
 
-		double rho_Th, p_Th;
-		
-		//Sootnosheniya(ro, p, rho_He, 0.0, 0.0, (int)(P.cel->type),
-		//	rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
+		double ro, p, rho_He, cp, vx, vy, vz, rho_Th, p_Th;
 		unordered_map<string, double> param;
+		unordered_map<string, double> param2;
+		double u, u1, u2, u3, skalar, nu_ex, sig;
+		double cp_sr = 0.0, u_sr = 0.0, u1_sr = 0.0, u2_sr = 0.0, u3_sr = 0.0, skalar_sr = 0.0;    // Средние параметры в ячейке при пролёте
+		double vx_sr = 0.0, vy_sr = 0.0, vz_sr = 0.0;
 
-		this->phys_param->Plasma_components_1((int)(P.cel->type), P.cel->parameters[0], param); // Это без пикапов
-
-		
-		//this->phys_param->Plasma_components((int)(P.cel->type), P.cel->parameters[0], param);
-
-		rho_Th = param["rho_Th"];
-		p_Th = param["p_Th"];
-
-		if (rho_Th <= 1e-8) rho_Th = 1e-8;
-		if (p_Th <= 1e-8 / 2.0) p_Th = 1e-8 / 2.0;
-
-		ro = rho_Th;
-		cp = sqrt(2.0 * p_Th / rho_Th);
-
-
-		/*ro = 1.0;
-		cp = 1.0;
-		vx = this->phys_param->Velosity_inf;
-		vy = 0.0;
-		vz = 0.0;*/
-		
-
-		// ---------------------------------------------------------------
-
-		// Найдём время до перезарядки
-
-		double l = sqrt(kvv(time * P.Vel[0], time * P.Vel[1], time * P.Vel[2]));
 		double I = P.I_do;
-		double u = sqrt(kvv(P.Vel[0] - vx, P.Vel[1] - vy, P.Vel[2] - vz));
-		double u1 = vx - P.Vel[0];
-		double u2 = vy - P.Vel[1];
-		double u3 = vz - P.Vel[2];
-		double skalar = u1 * P.Vel[0] + u2 * P.Vel[1] + u3 * P.Vel[2];
-		double Vel_norm = sqrt(kvv(P.Vel[0], P.Vel[1], P.Vel[2]));
-
-		double nu_ex;
-		if (u / cp > 7.0)
-		{
-			double uz = Velosity_1(u, cp);
-			nu_ex = ro * uz * this->phys_param->sigma(uz) / this->phys_param->par_Kn;
-		}
-		else
-		{
-			nu_ex = (ro * this->phys_param->MK_int_1(u, cp)) / this->phys_param->par_Kn;  // Пробуем вычислять интеграллы численно
-		}
-
+		double l = sqrt(kvv(time * P.Vel[0], time * P.Vel[1], time * P.Vel[2]));    // Расстояние, которое атом потенциально пролетает внутри ячейки
+		double Vel_norm = sqrt(kvv(P.Vel[0], P.Vel[1], P.Vel[2]));                  // Модуль скорости атома
 		
 
-		double sig = Vel_norm / nu_ex;
+		// Если нет интерполяции
+		if (Interpol == nullptr)
+		{
+			ro = P.cel->parameters[0]["rho"];
+			p = P.cel->parameters[0]["p"];
+			rho_He = P.cel->parameters[0]["rho_He"];
+			 // cp;// = sqrt(P.cel->parameters[0]["p"] / ro);
+			vx = P.cel->parameters[0]["Vx"];			// Скорости плазмы в ячейке
+			vy = P.cel->parameters[0]["Vy"];
+			vz = P.cel->parameters[0]["Vz"];
+
+			vx_sr = vx;
+			vy_sr = vy;
+			vz_sr = vz;
+
+			//Sootnosheniya(ro, p, rho_He, 0.0, 0.0, (int)(P.cel->type),
+			//	rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
+
+			this->phys_param->Plasma_components_1((int)(P.cel->type), P.cel->parameters[0], param); // Это без пикапов
+
+
+			//this->phys_param->Plasma_components((int)(P.cel->type), P.cel->parameters[0], param);
+
+			rho_Th = param["rho_Th"];
+			p_Th = param["p_Th"];
+
+			if (rho_Th <= 1e-8) rho_Th = 1e-8;
+			if (p_Th <= 1e-8 / 2.0) p_Th = 1e-8 / 2.0;
+
+			ro = rho_Th;
+			cp = sqrt(2.0 * p_Th / rho_Th);
+
+			// Постоянные поля для тестирования
+			if (false)  
+			{
+				ro = 1.0;
+				cp = 1.0;
+				vx = this->phys_param->Velosity_inf;
+				vy = 0.0;
+				vz = 0.0;
+			}
+
+			// Найдём время до перезарядки
+
+			
+			u = sqrt(kvv(P.Vel[0] - vx, P.Vel[1] - vy, P.Vel[2] - vz));
+			u1 = vx - P.Vel[0];
+			u2 = vy - P.Vel[1];
+			u3 = vz - P.Vel[2];
+			skalar = u1 * P.Vel[0] + u2 * P.Vel[1] + u3 * P.Vel[2];
+
+			cp_sr = cp; 
+			u_sr = u; 
+			u1_sr = u1; 
+			u2_sr = u2; 
+			u3_sr = u3; 
+			skalar_sr = skalar;
+
+			if (u / cp > 7.0)
+			{
+				double uz = Velosity_1(u, cp);
+				nu_ex = ro * uz * this->phys_param->sigma(uz) / this->phys_param->par_Kn;
+			}
+			else
+			{
+				nu_ex = (ro * this->phys_param->MK_int_1(u, cp)) / this->phys_param->par_Kn;  // Пробуем вычислять интеграллы численно
+			}
+
+			sig = Vel_norm / nu_ex;
+
+		}
+		else // Если есть интерполяция
+		{
+			short int N_step = 1;  // Число шагов в ячейке
+			double x_, y_, z_, dl, ss;
+
+			ss = 0.0;
+			dl = l / N_step;
+			bool bsfw;
+
+			for (short int st = 0; st < N_step; st++)
+			{
+				x_ = P.coord[0] + (st + 0.5) * time / N_step * P.Vel[0];
+				y_ = P.coord[1] + (st + 0.5) * time / N_step * P.Vel[1];
+				z_ = P.coord[2] + (st + 0.5) * time / N_step * P.Vel[2];
+
+				bsfw = Interpol->Get_param(x_, y_, z_, param, prev_cell, next_cell);
+				for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // Обновляем предыдущую ячейку
+				if (bsfw == false)
+				{
+					cout << "Error wr4tr34trfe45t34t3f34rf34r" << endl;
+					cout << x_ << " " << y_ << " " << z_ << endl;
+					cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
+					cout << P.Vel[0] << " " << P.Vel[1] << " " << P.Vel[2] << endl;
+					exit(-2);
+				}
+
+				
+				ro = param["rho"];
+				p = param["p"];
+				rho_He = param["rho_He"];
+				vx = param["Vx"];			// Скорости плазмы в ячейке
+				vy = param["Vy"];
+				vz = param["Vz"];
+
+				vx_sr += vx / N_step;
+				vy_sr += vy / N_step;
+				vz_sr += vz / N_step;
+
+				this->phys_param->Plasma_components_1((int)(P.cel->type), param, param2); // Это без пикапов
+
+				rho_Th = param2["rho_Th"];
+				p_Th = param2["p_Th"];
+
+				if (rho_Th <= 1e-8) rho_Th = 1e-8;
+				if (p_Th <= 1e-8 / 2.0) p_Th = 1e-8 / 2.0;
+
+				ro = rho_Th;
+				cp = sqrt(2.0 * p_Th / rho_Th);
+
+				u = sqrt(kvv(P.Vel[0] - vx, P.Vel[1] - vy, P.Vel[2] - vz));
+				u1 = vx - P.Vel[0];
+				u2 = vy - P.Vel[1];
+				u3 = vz - P.Vel[2];
+				skalar = u1 * P.Vel[0] + u2 * P.Vel[1] + u3 * P.Vel[2];
+
+				cp_sr += cp / N_step;
+				u_sr += u / N_step;
+				u1_sr += u1 / N_step;
+				u2_sr += u2 / N_step;
+				u3_sr += u3 / N_step;
+				skalar_sr += skalar / N_step;
+
+				if (u / cp > 7.0)
+				{
+					double uz = Velosity_1(u, cp);
+					nu_ex = ro * uz * this->phys_param->sigma(uz) / this->phys_param->par_Kn;
+				}
+				else
+				{
+					nu_ex = (ro * this->phys_param->MK_int_1(u, cp)) / this->phys_param->par_Kn;  // Пробуем вычислять интеграллы численно
+				}
+
+				sig = Vel_norm / nu_ex;     // локальная sig на каждом участке интегрирования
+				ss += dl / sig;
+			}
+
+			sig = l / ss;   // Некая средняя sigma по перезарядке
+		}
+
+
+		if (std::isnan(cp_sr) || std::isnan(u1_sr))
+		{
+			std::cout << "ERROR frewrtgewr4 e4tewfwerfwf " << std::endl;
+			cout << cp_sr << " " << u1_sr << endl;
+			exit(-1);
+		}
+
+		if (cp_sr > 10000000000.0)
+		{
+			std::cout << "ERROR egewgegegf egrerfegrvefg " << std::endl;
+			cout << cp_sr << " " << u1_sr << endl;
+			exit(-1);
+		}
+
+
 		I += l / sig;
 
 
@@ -2433,8 +2565,6 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 			cout << "Error 1654875068" << endl;
 			exit(-1);
 		}
-
-
 
 
 		if (vtoroy_shans == false)
@@ -2453,7 +2583,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				{
 					double kappa = nu_ex * time;
 					double mu_ex = P.mu * (1.0 - exp(-kappa));   // Вес перезаряженного атома (фиктивная часть)
-					P.cel->MK_Add_moment(P, cp, u, mu_ex, u1, u2, u3, skalar, this->phys_param);
+					P.cel->MK_Add_moment(P, cp_sr, u_sr, mu_ex, u1_sr, u2_sr, u3_sr, skalar_sr, this->phys_param);
 				}
 
 
@@ -2547,12 +2677,12 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				{
 					double kappa = nu_ex * t_ex;
 					double mu_ex = P.mu * (1.0 - exp(-kappa));   // Вес перезаряженного атома (фиктивная часть)
-					P.cel->MK_Add_moment(P, cp, u, mu_ex, u1, u2, u3, skalar, this->phys_param);
+					P.cel->MK_Add_moment(P, cp_sr, u_sr, mu_ex, u1_sr, u2_sr, u3_sr, skalar_sr, this->phys_param);
 				}
 
 				if (this->phys_param->MK_source_S == true)
 				{
-					P.cel->MK_Add_pui_source(P, u, nu_ex, P.mu, t_ex, this->phys_param, zone, 0);
+					P.cel->MK_Add_pui_source(P, u_sr, nu_ex, P.mu, t_ex, this->phys_param, zone, 0);
 				}
 				// -------------------------------------------------------------------
 
@@ -2561,14 +2691,14 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens)
 				double Vr, Vphi, Vthe;
 				double Wr, Wthe, Wphi;
 				spherical_skorost(P.coord[0], P.coord[1], P.coord[2],
-					vx, vy, vz, Ur, Uphi, Uthe);
+					vx_sr, vy_sr, vz_sr, Ur, Uphi, Uthe);
 				spherical_skorost(P.coord[0], P.coord[1], P.coord[2],
 					P.Vel[0], P.Vel[1], P.Vel[2], Vr, Vphi, Vthe);
-				this->M_K_Change_Velosity(Sens, Ur / cp, Uthe / cp, Uphi / cp,
-					Vr / cp, Vthe / cp, Vphi / cp, Wr, Wthe, Wphi, cp);
-				Wr *= cp;
-				Wthe *= cp;
-				Wphi *= cp;
+				this->M_K_Change_Velosity(Sens, Ur / cp_sr, Uthe / cp_sr, Uphi / cp_sr,
+					Vr / cp_sr, Vthe / cp_sr, Vphi / cp_sr, Wr, Wthe, Wphi, cp_sr);
+				Wr *= cp_sr;
+				Wthe *= cp_sr;
+				Wphi *= cp_sr;
 
 				dekard_skorost(P.coord[0], P.coord[1], P.coord[2],
 					Wr, Wphi, Wthe, P.Vel[0], P.Vel[1], P.Vel[2]);
