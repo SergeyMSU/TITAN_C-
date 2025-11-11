@@ -9,7 +9,8 @@ void Setka::Intitial_read(void)
 	double b, b1, b2;
 
 	ifstream fout;
-	fout.open("Sergey_100.k");
+	//fout.open("Sergey_100.k");
+	fout.open("Sergey_40.k");
 
 	if (fout.is_open() == false)
 	{
@@ -22,7 +23,7 @@ void Setka::Intitial_read(void)
 		fout >> str;
 	}
 
-	for (int ii = 0; ii < 1085; ii++) // 502
+	for (int ii = 0; ii < 177; ii++) // 1085    // 502
 	{
 		for (int i = 0; i < 10; i++)
 		{
@@ -43,7 +44,7 @@ void Setka::Intitial_read(void)
 		fout >> str;
 	}
 
-	for (int ii = 0; ii < 1136; ii++) // 533
+	for (int ii = 0; ii < 377; ii++) // 1136 // 533
 	{
 		for (int i = 0; i < 6; i++)
 		{

@@ -28,5 +28,5 @@ int main()
     S.Print_Setka_TecPlot();
     S.Print_Setka_TecPlot_surface();
     S.Print_cell_soseds();
-    S.Save_for_3D("SDK1");
+    S.Save_for_3D("SDK_40");
 }

@@ -24,16 +24,16 @@ void Setka::Set_geo()
     this->geo.tetta0 = const_pi / 6;
     this->geo.tetta1 = const_pi - const_pi / 6;
     this->geo.tetta2 = const_pi * 120.0 / 180.0;
-    this->geo.N1 = 30; //20;
-    this->geo.N2 = 15; //10;
-    this->geo.N3 = 20; //15; //10
-    this->geo.N4 = 15; //10;
-    this->geo.N5 = 30; //8;
+    this->geo.N1 = 20; //30; //20;
+    this->geo.N2 = 10;  //15; //10;
+    this->geo.N3 = 10; //20; //15; //10
+    this->geo.N4 = 10; //15; //10;
+    this->geo.N5 = 8;  //30; //8;
 
-    this->geo.M0 = 40;//14;
-    this->geo.M1 = 30; //15;//15;
+    this->geo.M0 = 14; //40;//14;
+    this->geo.M1 = 15; //30; //15;//15;
     this->geo.M11 = 3;
-    this->geo.M2 = 50; //25;//10;
+    this->geo.M2 = 15; //50; //25;//10;
     this->geo.M3 = 25; //20;
     this->geo.M4 = 15;
     this->geo.MF = 5;//4;

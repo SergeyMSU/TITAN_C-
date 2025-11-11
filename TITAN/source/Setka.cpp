@@ -221,12 +221,9 @@ void Setka::Algoritm(short int alg)
 		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
 		
 		cout << "Start zones_number push_back" << endl;
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(3); zones_n_koeff.push_back(1.0);
