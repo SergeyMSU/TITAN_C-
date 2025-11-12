@@ -244,10 +244,12 @@ public:
 	void Download_cell_MK_parameters(string filename, short int zone_except);
 	// zone_except - какую зону исключить из считывани€ (чтобы не испортить новые посчитанные в ней значени€)
 
-	void PereInterpolate(string filename, bool move);
+	void PereInterpolate(string filename, bool move, bool MK_only = false);
 	// —качитывает файл сетки-интерпол€ции filename
-	// ƒвигает текущую сетку к положени€м разрывов из файла интерпол€ции
+	// ƒвигает текущую сетку к положени€м разрывов из файла интерпол€ции если move == true
 	// «аполн€ет параметры в €чейках сетки из файла интерпол€ции
+	// ѕозвол€ет переинтерполировать толь MK переменные если MK_only == true
+	void PereInterpolate(Interpol* SS, bool move, bool MK_only = false);
 
 	void Save_for_interpolate(string filename, bool razriv = false);
 

@@ -167,7 +167,7 @@ Setka::~Setka()
 void Setka::Algoritm(short int alg, Setka* Smain)
 {
 	// 1  - Плазма МГД
-	// 2  - Монте-Карло (для основной сетки)
+	// 2  - Монте-Карло (для основной сетки) - старый алгорим, теперь используется 10
 	// 3  - Вычисление f_pui по посчитанным S+ S-
 	// 4  - Вычисление n_pui  и  T_pui  по рассчитанным f_pui
 	// 5  - Добавить в ячейки значение моментов водорода из Монте-Карло
@@ -666,7 +666,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		Smc.Set_MK_Zone();
 
 		//Проверим зоны   [опционально]
-		if (false)
+		if (true)
 		{
 			Smc.Tecplot_print_gran_with_condition(0);
 			Smc.Tecplot_print_gran_with_condition(1);
@@ -677,27 +677,29 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			Smc.Tecplot_print_gran_with_condition(6);
 		}
 
+		// В сетке для MK очистим ненужные имена переменных 
+		if (true)
+		{
+			Smc.phys_param->param_names.assign(Smc.phys_param->MK_param.begin(), Smc.phys_param->MK_param.end());
+		}
+
+		// Заполним сетку МК значениями плазмы из основной сетки (чтобы вместо интерполяции в МК использовать значения в центрах ячеек - так быстрее)
+		// переинтерполяция
+		if (true)
+		{
+			Smc.PereInterpolate(&SI_main, false);
+		}
+
 		vector<short int> zones_number;
 		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
 
 		cout << "Start zones_number push_back" << endl;
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
 
 		short int ijij = 0;
@@ -705,11 +707,18 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		{
 			cout << "Start zone = " << zone_play << endl;
 			Smc.MK_prepare(zone_play);
-			Smc.MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), &SI_main);
+			//Smc.MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), &SI_main);
+			Smc.MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), nullptr);
 			Smc.MK_delete(zone_play);
 			ijij++;
 		}
 
+		cout << "Create SI_MK" << endl;
+		// Из основной сетки создаём интерполяционную сетку
+		Smc.Save_for_interpolate("For_intertpolate_work_MK.bin", false);
+
+		// Переинтерполируем параметры Монте-Карло из вспомогательной сетки в основную
+		this->PereInterpolate("For_intertpolate_work_MK.bin", false, true);
 	}
 
 	cout << "End Algoritm " << alg << endl;

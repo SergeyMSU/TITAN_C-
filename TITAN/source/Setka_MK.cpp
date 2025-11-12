@@ -1047,7 +1047,7 @@ void Setka::MK_prepare(short int zone_MK)
 			#pragma omp critical (first) 
 			{
 				k1++;
-				if (k1 % 100 == 0)
+				if (k1 % 500 == 0)
 				{
 					cout << "Gran = " << k1 << "    Iz: " << this->MK_Grans[zone_MK - 1].size() << endl;
 				}
@@ -1212,8 +1212,12 @@ void Setka::MK_prepare(short int zone_MK)
 		for (short int iH = 0; iH < 9; iH++)
 		{
 			if (N1[iH] == 0) N1[iH] = 1;
-			file1 << "Zone:  " << zone_MK << "   H = " << iH + 1 << 
-				"   vxod size: " << 1.0 * N_vxod[iH] / N1[iH] << std::endl;
+			// Если надо писать в файл информацию про входные грани (так как они не меняются, я решил не писать)
+			if (false)
+			{
+				file1 << "Zone:  " << zone_MK << "   H = " << iH + 1 <<
+					"   vxod size: " << 1.0 * N_vxod[iH] / N1[iH] << std::endl;
+			}
 		}
 		file1.close();
 		cout << "End: Zagruzka AMR" << endl;
@@ -1709,7 +1713,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol)
 			#pragma omp critical (first) 
 			{
 				k1++;
-				if (k1 % 100 == 0)
+				if (k1 % 500 == 0 || k1 == 100)
 				{
 					cout << "Gran = " << k1 << "    Iz: " << this->MK_Grans[zone_MK - 1].size() << "  sort " << nh_ + 1 << endl;
 				}
@@ -1961,13 +1965,29 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol)
 						klk++;
 						if (klk > 100)
 						{
+							cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
+							cout << P.Vel[0] << " " << P.Vel[1] << " " << P.Vel[2] << endl;
+							cout << previos->geo_parameters["l_size"] << " " << dt << endl;
+							P.cel->Tecplot_print_cell();
 							cout << "Error 3296411221" << endl;
 							exit(-1);
 						}
-						Move[0] = (-P.coord[0] + Center_cell[0]) / 1000.0;
-						Move[1] = (-P.coord[1] + Center_cell[1]) / 1000.0;
-						Move[2] = (-P.coord[2] + Center_cell[2]) / 1000.0;
-						P.Move(Move);
+
+						if (klk == 99)
+						{
+							P.coord[0] = Center_cell[0];
+							P.coord[1] = Center_cell[1];
+							P.coord[2] = Center_cell[2];
+						}
+						else
+						{
+							Move[0] = (-P.coord[0] + Center_cell[0]) / 1000.0;
+							Move[1] = (-P.coord[1] + Center_cell[1]) / 1000.0;
+							Move[2] = (-P.coord[2] + Center_cell[2]) / 1000.0;
+							P.Move(Move);
+						}
+
+
 						ppp = this->Find_cell_point(P.coord[0] + P.Vel[0] * dt,
 							P.coord[1] + P.Vel[1] * dt,
 							P.coord[2] + P.Vel[2] * dt,

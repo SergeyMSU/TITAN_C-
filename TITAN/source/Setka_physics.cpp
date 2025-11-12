@@ -4497,11 +4497,16 @@ void Setka::Download_cell_MK_parameters(string filename, short int zone_except)
 	in.close();
 }
 
-void Setka::PereInterpolate(string filename, bool move)
+void Setka::PereInterpolate(string filename, bool move, bool MK_only)
 {
 	cout << "PereInterpolate: step 1/4" << endl;
 	Interpol SS = Interpol(filename);
 
+	this->PereInterpolate(&SS, move, MK_only);
+}
+
+void Setka::PereInterpolate(Interpol* SS, bool move, bool MK_only)
+{
 	cout << "PereInterpolate: step 2/4" << endl;
 	// Сначала двигаем все поверхности
 	if (move)
@@ -4523,7 +4528,7 @@ void Setka::PereInterpolate(string filename, bool move)
 					phi = polar_angle(y, z);
 
 
-					SS.Get_TS(x, y, z, param2);
+					SS->Get_TS(x, y, z, param2);
 					rr = param2["r"];
 					//rr = Surf->Get_TS(phi, the);
 
@@ -4542,7 +4547,7 @@ void Setka::PereInterpolate(string filename, bool move)
 					z = j->Yzels_opor[2]->coord[0][2];
 					r = sqrt(kvv(x, y, z));
 
-					SS.Get_HP(x, y, z, param2);
+					SS->Get_HP(x, y, z, param2);
 					rr = param2["r"];
 					//rr = Surf->Get_HP(phi, the, 0);
 
@@ -4563,7 +4568,7 @@ void Setka::PereInterpolate(string filename, bool move)
 					phi = polar_angle(y, z);
 
 					if (x < 0.01) x = 0.01;
-					SS.Get_BS(x, y, z, param2);
+					SS->Get_BS(x, y, z, param2);
 					rr = param2["r"];
 					//rr = Surf->Get_BS(phi, the);
 
@@ -4589,7 +4594,7 @@ void Setka::PereInterpolate(string filename, bool move)
 				phi = polar_angle(y, z);
 
 
-				SS.Get_TS(x, y, z, param2);
+				SS->Get_TS(x, y, z, param2);
 				rr = param2["r"];
 				//rr = Surf->Get_TS(phi, the);
 
@@ -4608,7 +4613,7 @@ void Setka::PereInterpolate(string filename, bool move)
 				z = j->Yzels_opor[2]->coord[0][2];
 				r = sqrt(kvv(x, y, z));
 
-				SS.Get_HP(x, y, z, param2);
+				SS->Get_HP(x, y, z, param2);
 				rr = param2["r"];
 				//rr = Surf->Get_HP(phi, the, 0);
 
@@ -4628,7 +4633,7 @@ void Setka::PereInterpolate(string filename, bool move)
 				the = polar_angle(x, sqrt(kv(y) + kv(z)));
 				phi = polar_angle(y, z);
 
-				SS.Get_BS(x, y, z, param2);
+				SS->Get_BS(x, y, z, param2);
 				rr = param2["r"];
 				//rr = Surf->Get_BS(phi, the);
 
@@ -4654,7 +4659,7 @@ void Setka::PereInterpolate(string filename, bool move)
 					the = polar_angle(x, sqrt(kv(y) + kv(z)));
 					phi = polar_angle(y, z);
 
-					SS.Get_TS(x, y, z, param2);
+					SS->Get_TS(x, y, z, param2);
 					rr = param2["r"];
 					//rr = Surf->Get_TS(phi, the);
 
@@ -4672,7 +4677,7 @@ void Setka::PereInterpolate(string filename, bool move)
 					y = j->Yzels_opor[2]->coord[0][1];
 					z = j->Yzels_opor[2]->coord[0][2];
 
-					SS.Get_HP(x, y, z, param2);
+					SS->Get_HP(x, y, z, param2);
 					rr = param2["r"];
 					//rr = Surf->Get_HP(phi, x, 1);
 					r = sqrt(kvv(0.0, y, z));
@@ -4699,7 +4704,7 @@ void Setka::PereInterpolate(string filename, bool move)
 					phi = polar_angle(y, z);
 
 
-					SS.Get_TS(x, y, z, param2);
+					SS->Get_TS(x, y, z, param2);
 					rr = param2["r"];
 					//rr = Surf->Get_TS(phi, the);
 
@@ -4724,7 +4729,7 @@ void Setka::PereInterpolate(string filename, bool move)
 				phi = polar_angle(y, z);
 
 
-				SS.Get_TS(x, y, z, param2);
+				SS->Get_TS(x, y, z, param2);
 				rr = param2["r"];
 				//rr = Surf->Get_TS(phi, the);
 
@@ -4747,7 +4752,7 @@ void Setka::PereInterpolate(string filename, bool move)
 					z = j->Yzels_opor[1]->coord[0][2];
 					r = sqrt(kvv(0.0, y, z));
 
-					SS.Get_HP(x, y, z, param2);
+					SS->Get_HP(x, y, z, param2);
 					rr = param2["r"];
 					//phi = polar_angle(y, z);
 					//rr = Surf->Get_HP(phi, x, 1);
@@ -4768,7 +4773,7 @@ void Setka::PereInterpolate(string filename, bool move)
 					r = sqrt(kvv(0.0, y, z));
 					phi = polar_angle(y, z);
 
-					SS.Get_HP(x, y, z, param2);
+					SS->Get_HP(x, y, z, param2);
 					rr = param2["r"];
 					//rr = Surf->Get_HP(phi, x, 1);
 
@@ -4841,11 +4846,21 @@ void Setka::PereInterpolate(string filename, bool move)
 		x = cel->center[0][0];
 		y = cel->center[0][1];
 		z = cel->center[0][2];
-		SS.Get_param(x, y, z, param, prev_cell, next_cell);     // Интерполируем переменные
+		bool bb;
+		bb = SS->Get_param(x, y, z, param, prev_cell, next_cell);     // Интерполируем переменные
+		if (bb == false)
+		{
+			cout << "Error iehgirgbfouewhrfiueywoehjfweiurf" << endl;
+			exit(-1);
+		}
+
 		for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // Обновляем предыдущую ячейку
 		for (const auto& [key, value] : param)
 		{
-			cel->parameters[0][key] = value;
+			if (MK_only == false || std::find(this->phys_param->MK_param.begin(), this->phys_param->MK_param.end(), key) != this->phys_param->MK_param.end())
+			{
+				cel->parameters[0][key] = value;
+			}
 		}
 
 		cel->parameters[1] = cel->parameters[0];
