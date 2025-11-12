@@ -694,13 +694,13 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
 
 		cout << "Start zones_number push_back" << endl;
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
 
 		short int ijij = 0;
 		for (const auto& zone_play : zones_number)
@@ -3250,6 +3250,14 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 
 				d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
+				if (true) 
+				{
+					b1 = i->Yzels_opor[1];
+					double the_ = polar_angle(b1->coord[0][0], norm2(0.0, b1->coord[0][1], b1->coord[0][2]));
+					// Это надо переделать, чтобы было от угла
+					d1 = d1 * sqrt(1.0 + the_ / 0.8);      // Увеличиваем ширину ячейки вокруг BS     // NEW DELETE
+				}
+
 				macros3(da2, 5.0);
 
 				//da3
@@ -3314,6 +3322,15 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 				b2 = i->get_yzel_near_opor(2, -1);
 
 				d2 = Yzel_distance(b1, b2, 0);
+
+
+				if (false) 
+				{
+					b1 = i->Yzels_opor[1];
+					double the_ = polar_angle(b1->coord[0][0], norm2(0.0, b1->coord[0][1], b1->coord[0][2]));
+					// Это надо переделать, чтобы было от угла
+					d1 = d1 * sqrt(1.0 + the_ / 0.8);       // NEW DELETE
+				}
 
 				macros3(ba2, 3.0);
 
