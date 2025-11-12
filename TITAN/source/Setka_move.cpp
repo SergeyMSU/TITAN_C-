@@ -1177,7 +1177,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		// Сглаживание по узлам
 		if (true)
 		{
-#pragma omp parallel for private(A, B, V) schedule(dynamic)
+			#pragma omp parallel for private(A, B, V) schedule(dynamic)
 			for (size_t ili = 0; ili < this->All_Yzel.size(); ili++)
 			{
 				auto yz = this->All_Yzel[ili];
@@ -1268,6 +1268,29 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			yz->coord[now2][0] = A[0];
 			yz->coord[now2][1] = A[1];
 			yz->coord[now2][2] = A[2];
+		}
+	}
+
+
+	// Надо подвинуть узлы на невыделяемой части BS
+	if(true)
+	{
+
+		for (short int i = 0; i < this->A_Luch.size(); i++)
+		{
+			short int NN = this->A_Luch[i].size() - 4;
+			auto yz = this->A_Luch[i][NN]->Yzels_opor[3];
+			double H = norm2(yz->coord[now2][0], yz->coord[now2][1], yz->coord[now2][2]);
+
+			for (short int j = this->A_Luch[i].size() - 3; j < this->A_Luch[i].size(); j++)
+			{
+				auto yyz = this->A_Luch[i][j]->Yzels_opor[3];
+				double h2 = norm2(yyz->coord[now2][0], yyz->coord[now2][1], yyz->coord[now2][2]);
+				yyz->coord[now2][0] *= H / h2;
+				yyz->coord[now2][1] *= H / h2;
+				yyz->coord[now2][2] *= H / h2;
+			}
+
 		}
 	}
 

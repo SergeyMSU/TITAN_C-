@@ -645,11 +645,11 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			// Задаём граничные грани
 			Smc.Init_boundary_grans();
 
-			Smc.Test_geometr();
+			
 		}
 
 		// Визуализация новой сетки для проверки   [опционально]
-		if (false)
+		if (true)
 		{
 			Smc.Tecplot_print_all_lush_in_2D();
 			Smc.Tecplot_print_2D_setka(0.0, 0.0, 1.0, -0.00001, "Smc_setka_2d_(0, 0, 1, 0)_");
@@ -659,6 +659,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			Smc.Tecplot_print_all_gran_in_surface("HP");
 			Smc.Tecplot_print_all_gran_in_surface("BS");
 		}
+
+		Smc.Test_geometr();
 
 
 		cout << "Set MK zone" << endl;
@@ -694,6 +696,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
 
 		cout << "Start zones_number push_back" << endl;
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
@@ -841,6 +845,7 @@ bool Setka::Test_geometr(void)
 			if (scalarProductFast(n1, n2, n3, a1, a2, a3) < 0.0)
 			{
 				cout << "Failure: 5678675634   = " << scalarProductFast(n1, n2, n3, a1, a2, a3) << endl;
+				cout << i->center[0][0] << " " << i->center[0][1] << " " << i->center[0][2] << endl;
 				exit(-1);
 			}
 		}

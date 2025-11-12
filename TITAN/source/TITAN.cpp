@@ -49,6 +49,30 @@ int main()
         S1.Init_TVD();
     }
 
+
+    //  Ручное изменение BS
+    if (true)
+    {
+        S1.Calculating_measure(0);
+        S1.Calculating_measure(1);
+        S1.Culc_Velocity_surface(0, 0.0, 3);
+        for (int i_step = 0; i_step < S1.All_Luch.size(); i_step++)
+        {
+            auto lu = S1.All_Luch[i_step];
+            lu->dvigenie(1);
+        }
+        for (auto& i : S1.All_Yzel)
+        {
+            i->coord[0][0] = i->coord[1][0];
+            i->coord[0][1] = i->coord[1][1];
+            i->coord[0][2] = i->coord[1][2];
+        }
+        S1.Calculating_measure(0);
+        S1.Calculating_measure(1);
+        S1.auto_set_luch_geo_parameter(0);
+        S1.Init_TVD();
+    }
+
     // Задаём начальные и граничные условия
     S1.Init_physics();
 
