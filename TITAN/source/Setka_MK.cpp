@@ -2366,15 +2366,17 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 				}
 
 				cout << "Poteryal D" << endl;
-				cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
-				cout << P.Vel[0] << " " << P.Vel[1] << " " << P.Vel[2] << endl;
-				cout << coord_do[0] << " " << coord_do[1] << " " << coord_do[2] << endl;
-				cout << P.cel->center[0][0] << " " << P.cel->center[0][1] << " " << P.cel->center[0][2] << endl;
-				//return;
+				//cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
+				//cout << P.Vel[0] << " " << P.Vel[1] << " " << P.Vel[2] << endl;
+				//cout << coord_do[0] << " " << coord_do[1] << " " << coord_do[2] << endl;
+				//cout << P.cel->center[0][0] << " " << P.cel->center[0][1] << " " << P.cel->center[0][2] << endl;
+
+				return;
 				//cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
 				//whach(P.cel->number);
-				P.cel->Tecplot_print_cell();
-				exit(-1);
+
+				//P.cel->Tecplot_print_cell();
+				//exit(-1);
 			}
 		}
 

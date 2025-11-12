@@ -55,13 +55,18 @@ void Luch::dvigenie(int i_time)
 
 		for (int j = 0; j < M1; j++)
 		{
-			r = R1 + (j + 1) * (R2 - R1) / (M1 + 1);
+			double aaa = 1.3; // Настраиваемый параметр сгущения
+			double t = (j + 1.0) / (M1 + 1.0);   // Равномерное распределение в [0,1]
+			double s = 1.0 - pow(1.0 - t, aaa);   // Нелинейное преобразование для сгущения к правому концу
+			r = R1 + s * (R2 - R1);   // Преобразование к интервалу [R1, R2]
+
+			//r = R1 + (j + 1) * (R2 - R1) / (M1 + 1);
 			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
 			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
 			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
 		}
 		num += M1 + 1;
-		double dr = (R2 - R1) / (M1 + 1);
+		double dr = (R2 - r); // (R2 - R1) / (M1 + 1);
 
 		for (int j = 0; j < M11; j++)
 		{
@@ -79,13 +84,13 @@ void Luch::dvigenie(int i_time)
 
 		for (int j = 0; j < M2 - M11; j++)
 		{
-			double s = (j + 1.0) / (M2 - M11 + 1.0);
+			//double s = (j + 1.0) / (M2 - M11 + 1.0);
 			//double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s);  // Линейное сгущение к обоим концам
-			double ss = s * (a * kv(1.0 - 3.0 * s + 2.0 * kv(s)) +
+			/*double ss = s * (a * kv(1.0 - 3.0 * s + 2.0 * kv(s)) +
 				s * (7.0 + b * kv(1.0 - 2.0 * s) * (-1.0 + s) - 2.0 * s *
-					(9.0 + 2.0 * s * (-5.0 + 2.0 * s))));
-			r = R2 + dr * M11 + (R3 - R2 - dr * M11) * ss;
-			//r = R2 + dr * M11 + (j + 1) * (R3 - R2 - dr * M11) / (M2 - M11 + 1);
+					(9.0 + 2.0 * s * (-5.0 + 2.0 * s))));*/                                // Какое-то другое сгущение
+			//r = R2 + dr * M11 + (R3 - R2 - dr * M11) * ss;
+			r = R2 + dr * M11 + (j + 1) * (R3 - R2 - dr * M11) / (M2 - M11 + 1);
 			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
 			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
 			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
@@ -188,12 +193,16 @@ void Luch::dvigenie(int i_time)
 
 		for (int j = 0; j < M1; j++)
 		{
-			r = R1 + (j + 1) * (R2 - R1) / (M1 + 1);
+			double aaa = 1.3; // Настраиваемый параметр сгущения
+			double t = (j + 1.0) / (M1 + 1.0);   // Равномерное распределение в [0,1]
+			double s = 1.0 - pow(1.0 - t, aaa);   // Нелинейное преобразование для сгущения к правому концу
+			r = R1 + s * (R2 - R1);   // Преобразование к интервалу [R1, R2]
+			//r = R1 + (j + 1) * (R2 - R1) / (M1 + 1);
 			this->Yzels[num + j]->coord[i_time][0] = r * cos(the);
 			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
 			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
 		}
-		dr = (R2 - R1) / (M1 + 1);
+		dr = (R2 - r);// (R2 - R1) / (M1 + 1);
 		num += M1 + 1;
 
 		for (int j = 0; j < M11; j++)
@@ -297,13 +306,17 @@ void Luch::dvigenie(int i_time)
 
 		for (int j = 0; j < M1; j++)
 		{
-			r = R1 + (j + 1) * (R2 - R1) / (M1 + 1);
+			double aaa = 1.3; // Настраиваемый параметр сгущения
+			double t = (j + 1.0) / (M1 + 1.0);   // Равномерное распределение в [0,1]
+			double s = 1.0 - pow(1.0 - t, aaa);   // Нелинейное преобразование для сгущения к правому концу
+			r = R1 + s * (R2 - R1);   // Преобразование к интервалу [R1, R2]
+			//r = R1 + (j + 1) * (R2 - R1) / (M1 + 1);
 			this->Yzels[j + num]->coord[i_time][0] = r * cos(the);
 			this->Yzels[j + num]->coord[i_time][1] = r * sin(the) * cos(phi);
 			this->Yzels[j + num]->coord[i_time][2] = r * sin(the) * sin(phi);
 		}
 		num += M1 + 1; // (+1 для опорной точки) но опорную точку здесь двигать не обязательно, она должна быть уже подвинута
-		dr = (R2 - R1) / (M1 + 1);
+		dr = (R2 - r);// (R2 - R1) / (M1 + 1);
 
 		for (int j = 0; j < M11; j++)
 		{
@@ -314,7 +327,7 @@ void Luch::dvigenie(int i_time)
 		}
 		num += M11;
 
-		double x3 = r* cos(the); // Запомнили
+		double x3 = r * cos(the); // Запомнили
 		this->Yzels_opor[2]->coord[i_time][0] = x3;
 		this->Yzels_opor[3]->coord[i_time][0] = x3;
 
@@ -328,13 +341,13 @@ void Luch::dvigenie(int i_time)
 		if (this->parameters.find("dd4") != this->parameters.end()) dd4 = this->parameters["dd4"];
 		
 
-		t1 = cos(the) * dd3;
+		t1 = (cos(the) * dd3)/( (the - 0.57) ) - kv(2.0/the);
 		tt1 = sin(the) * dd3;
 		t2 = 0.0;
 		tt2 = 1.0 * dd4;
 		x0 = r * cos(the); // Это координаты с последней итерации предыдущего цикла
 		y0 = r * sin(the);
-		x1 = x3;
+		x1 = x3;// *1.2;      // DELETE
 		y1 = R3;
 
 		double a1, b1, c1, d1, a2, b2, c2, d2;
@@ -451,8 +464,8 @@ void Luch::dvigenie(int i_time)
 
 		x = x0;
 
-		double a = 0.1;
-		double b = 0.3;
+		double a = 0.7; // 0.1;
+		double b = 0.6;
 
 		// Точки от R2 (TS) до R3 (HP)
 		num += 1;
@@ -626,7 +639,7 @@ void Luch::dvigenie(int i_time)
 		double dd8 = this->geo->dd8;
 
 		t1 = (yz1->coord[i_time][0] - yz3->coord[i_time][0]) * dd7;
-		tt1 = (yz1->func_Ryz(i_time) - yz3->func_Ryz(i_time)) * dd7;
+		tt1 = 0.0; // (yz1->func_Ryz(i_time) - yz3->func_Ryz(i_time))* dd7;
 		t2 = (yz4->coord[i_time][0] - yz2->coord[i_time][0]) * dd8;
 		tt2 = (yz4->func_Ryz(i_time) - yz2->func_Ryz(i_time)) * dd8;
 		x0 = yz1->coord[i_time][0];       
@@ -697,9 +710,9 @@ void Luch::dvigenie(int i_time)
 
 		double a1, b1, c1, d1, a2, b2, c2, d2, x, y, z;
 
-		t1 = (yz1->coord[i_time][0] - yz3->coord[i_time][0]) * dd1;
+		t1 = (yz1->coord[i_time][0] - yz3->coord[i_time][0]) * dd1 - 4.0;
 		tt1 = (yz1->func_Ryz(i_time) - yz3->func_Ryz(i_time)) * dd1;
-		t2 = 0.0;
+		t2 = 3.0; // 0.0;
 		tt2 = 1.0 * dd2;
 		x0 = yz1->coord[i_time][0];       
 		y0 = yz1->func_Ryz(i_time);

@@ -694,13 +694,16 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		vector<double> zones_n_koeff;        // ћожно дл€ каждой зоны настроить своЄ количество частиц
 
 		cout << "Start zones_number push_back" << endl;
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
 
 		short int ijij = 0;
 		for (const auto& zone_play : zones_number)
@@ -1793,13 +1796,13 @@ void Setka::New_initial(string name_setka_2d, string name_setka_krug)
 	}
 
 	// ћен€ем геометрические параметры, которые нужны
-	this->geo->dd3 = 19.0;
+	this->geo->dd3 = 30.0; // 19.0;
 	this->geo->dd4 = 15.0;
 	this->geo->dd5 = 19.0;
 	this->geo->dd6 = 14.0;
 
 
-	this->geo->dd7 = 0.7;
+	this->geo->dd7 = 3.0; // 0.7;
 
 
 	// —читываем узлы
@@ -3198,6 +3201,16 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 			procent = 0.1;
 		}
 
+		if (ii > 120)
+		{
+			procent = 0.01;
+		}
+
+		if (ii > 150)
+		{
+			procent = 0.001;
+		}
+
 		if (for_new == 0) // динамическое изменение коэффициента
 		{
 			if (ii > 80)
@@ -3242,7 +3255,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 				double d1 = fabs(a1->func_R(0) - a2->func_R(0));
 				double d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-				macros3(da1, 5.0);
+				//macros3(da1, 5.0);
 
 				// da2
 				b1 = i->Yzels_opor[2];
@@ -3258,17 +3271,19 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 					d1 = d1 * sqrt(1.0 + the_ / 0.8);      // ”величиваем ширину €чейки вокруг BS     // NEW DELETE
 				}
 
-				macros3(da2, 5.0);
+				//macros3(da2, 5.0);
 
 				//da3
 				if (i->parameters.find("da3") == i->parameters.end() || i->parameters["da3"] > 0.05)
 				{
 					b1 = i->Yzels_opor[2];
 					b2 = i->get_yzel_near_opor(2, 1);
+					auto b3 = i->get_yzel_near_opor(2, -1);
 
+					d1 = fabs(b1->func_R(0) - b3->func_R(0));
 					d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-					macros3(da3, 5.0);
+					macros3(da3, 0.05);
 				}
 
 				if (true)
@@ -3276,7 +3291,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 					b1 = i->Yzels_opor[3];
 					double the_ = polar_angle(b1->coord[0][0], norm2(0.0, b1->coord[0][1], b1->coord[0][2]));
 					// Ёто надо переделать, чтобы было от угла
-					d1 = d1 * 3.0 * (1.0 + the_/3.0);      // ”величиваем ширину €чейки вокруг BS     // NEW DELETE
+					d1 = d1 * 4.0 * (1.0 + the_/2.1);      // ”величиваем ширину €чейки вокруг BS     // NEW DELETE    было the_/2.0
 				}
 
 				// da4
@@ -3287,7 +3302,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 
 					d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-					macros3(da4, 5.0);
+					macros3(da4, 0.05);
 				}
 
 				//da5
@@ -3298,7 +3313,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 
 					d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-					macros3(da5, 5.0);
+					macros3(da5, 0.05);
 				}
 
 			}
@@ -3315,7 +3330,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 				double d1 = Yzel_distance(a1, a2, 0);
 				double d2 = Yzel_distance_x(b1, b2, 0);
 
-				macros3(ba1, 5.0);
+				//macros3(ba1, 5.0);
 
 				// ba2
 				b1 = i->Yzels_opor[2];
@@ -3324,15 +3339,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 				d2 = Yzel_distance(b1, b2, 0);
 
 
-				if (false) 
-				{
-					b1 = i->Yzels_opor[1];
-					double the_ = polar_angle(b1->coord[0][0], norm2(0.0, b1->coord[0][1], b1->coord[0][2]));
-					// Ёто надо переделать, чтобы было от угла
-					d1 = d1 * sqrt(1.0 + the_ / 0.8);       // NEW DELETE
-				}
-
-				macros3(ba2, 3.0);
+				//macros3(ba2, 3.0);
 
 				// ba3
 				if (i->parameters.find("ba3") == i->parameters.end() || i->parameters["ba3"] > 0.05)
@@ -3370,11 +3377,101 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 			}
 		}
 
+
+		// дл€ B лучей за TS     ba1   ba2
+		for (int i = 0; i < this->B_Luch.size(); i++)
+		{
+			auto A = this->A_Luch[i].back();
+			auto B = this->B_Luch[i][0];
+
+			auto aa1 = A->get_yzel_near_opor(2, -1);
+			auto aa2 = A->Yzels_opor[2];
+
+			double d1 = Yzel_distance(aa1, aa2, 0);
+
+			aa1 = A->get_yzel_near_opor(1, this->geo->M11);
+			aa2 = A->get_yzel_near_opor(1, this->geo->M11 + 1);
+			double c1 = Yzel_distance(aa1, aa2, 0);
+
+
+			int ik = 0;
+			for (auto& kk : this->B_Luch[i])
+			{
+				ik++;
+				auto b1 = kk->Yzels_opor[2];
+				auto b2 = kk->get_yzel_near_opor(2, -1);
+				double the_ = polar_angle(b1->coord[0][0], norm2(0.0, b1->coord[0][1], b1->coord[0][2]));
+				double dd1 = d1 * (the_ - 0.57);
+				double d2 = Yzel_distance(b1, b2, 0);
+
+				
+				b1 = kk->get_yzel_near_opor(1, this->geo->M11);
+				b2 = kk->get_yzel_near_opor(1, this->geo->M11 + 1);
+				double c2 = Yzel_distance(b1, b2, 0);
+
+				if ((100.0 - d2 * 100.0 / dd1) > 0.5)
+				{
+					k++;
+					izmen = true;
+					if (kk->parameters.find("ba2") != kk->parameters.end())
+					{
+						kk->parameters["ba2"] *= (1.0 + procent / 100.0);
+					}
+					else
+					{
+						kk->parameters["ba2"] = this->geo->ba2 * (1.0 + procent / 100.0);
+					}
+				}
+				else if ((100.0 - d2 * 100.0 / dd1) < -0.5)
+				{
+					k++;
+					izmen = true;
+					if (kk->parameters.find("ba2") != kk->parameters.end())
+					{
+						kk->parameters["ba2"] *= (1.0 - procent / 100.0);
+					}
+					else
+					{
+						kk->parameters["ba2"] = this->geo->ba2 * (1.0 - procent / 100.0);
+					}
+				}
+
+				if ((100.0 - c2 * 100.0 / c1) > 0.5)
+				{
+					k++;
+					izmen = true;
+					if (kk->parameters.find("ba1") != kk->parameters.end())
+					{
+						kk->parameters["ba1"] *= (1.0 + procent / 100.0);
+					}
+					else
+					{
+						kk->parameters["ba1"] = this->geo->ba1 * (1.0 + procent / 100.0);
+					}
+				}
+				else if ((100.0 - c2 * 100.0 / c1) < -0.5)
+				{
+					k++;
+					izmen = true;
+					if (kk->parameters.find("ba1") != kk->parameters.end())
+					{
+						kk->parameters["ba1"] *= (1.0 - procent / 100.0);
+					}
+					else
+					{
+						kk->parameters["ba1"] = this->geo->ba1 * (1.0 - procent / 100.0);
+					}
+				}
+			}
+
+		}
+
 		// дл€ B лучей за TS
 		for (int i = 0; i < this->B_Luch.size(); i++)
 		{
 			auto A = this->A_Luch[i].back();
 			auto B = this->B_Luch[i][0];
+
 			auto a1 = A->get_yzel_near_opor(3, 1);
 			auto a2 = A->Yzels_opor[3];
 
