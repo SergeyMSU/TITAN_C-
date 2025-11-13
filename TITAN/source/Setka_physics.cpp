@@ -1910,7 +1910,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				if (rho3 < 1e-7)
 				{
 					rho_null = true;
-					rho3 = 0.1;
+					rho3 = 0.05;
 					Q3 = Q / rho * rho3;
 					rho_He3 = 0.0;
 					cout << "Plasma  rho < 0" << endl;
@@ -2412,7 +2412,9 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 	qqq2.resize(8);
 	std::vector<double> konvect_left, konvect_right, konvect;
 	PrintOptions Option = PrintOptions{};
-	double area = gr->area[now];
+	int now2 = (now + 1) % 2;
+
+	double area = (gr->area[now] + gr->area[now2])/2.0;
 	name = "______";
 	short int metod_ = metod;
 
@@ -2427,9 +2429,14 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		// Это для расчёта шага по времени
 		auto A = gr->cells[0];
 		auto B = gr->cells[1];
-		dist = norm2(A->center[now][0] - B->center[now][0],
-			A->center[now][1] - B->center[now][1],
-			A->center[now][2] - B->center[now][2]) / 2.0;
+		//dist = norm2(A->center[now][0] - B->center[now][0],
+		//	A->center[now][1] - B->center[now][1],
+		//	A->center[now][2] - B->center[now][2]) / 2.0;
+		dist = min(norm2(A->center[now][0] - gr->center[now][0],
+			A->center[now][1] - gr->center[now][1],
+			A->center[now][2] - gr->center[now][2]), norm2(gr->center[now][0] - B->center[now][0],
+				gr->center[now][1] - B->center[now][1],
+				gr->center[now][2] - B->center[now][2]));
 	}
 
 	if (this->phys_param->culc_plasma == true)

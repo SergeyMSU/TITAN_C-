@@ -14,7 +14,7 @@ short int Gran::Get_method()
 	{
 		for (auto& i : this->yzels)
 		{
-			if (i->type == Type_yzel::HP || i->type == Type_yzel::TS)
+			if (i->type == Type_yzel::HP)
 			{
 				return 0;
 			}

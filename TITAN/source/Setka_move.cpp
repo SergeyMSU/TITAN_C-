@@ -52,7 +52,7 @@ B = A;\
 B[1] *= r1 / p[1];\
 B[2] *= r1 / p[1];\
 \
-V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / time;\
+V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / max(time, 0.000001);;\
 \
 AA->mut.lock();\
 AA->velocity[0] += V[0];\
@@ -65,7 +65,7 @@ B = A;\
 B[1] *= r2 / p[1];\
 B[2] *= r2 / p[1];\
 \
-V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / time;\
+V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_along * this->phys_param->sglag_HP_k * (B - A) / max(time, 0.000001);;\
 \
 AA->mut.lock();\
 AA->velocity[0] += V[0];\
@@ -78,7 +78,7 @@ B = A;\
 B[1] *= r3 / p[1];\
 B[2] *= r3 / p[1];\
 \
-V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / time;\
+V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / max(time, 0.000001);;\
 \
 AA->mut.lock();\
 AA->velocity[0] += V[0];\
@@ -91,7 +91,7 @@ B = A;\
 B[1] *= r4 / p[1];\
 B[2] *= r4 / p[1];\
 \
-V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / time;\
+V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_angle * this->phys_param->sglag_HP_k * (B - A) / max(time, 0.000001);;\
 \
 AA->mut.lock();\
 AA->velocity[0] += V[0];\
@@ -372,6 +372,9 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			auto A = gr->cells[0];
 			auto B = gr->cells[1];
 
+			double the_ = polar_angle(gr->center[0][0], norm2(0.0, gr->center[0][1], gr->center[0][2]));
+			if (the_ > 1.406) continue;   // Для этой части BS движение считать не надо
+
 
 			std::vector<double> qqq, qqq1, qqq2;
 			qqq.resize(8);
@@ -493,7 +496,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 					B2 = k * (A - B) + B;
 
 					V = this->phys_param->velocity_TS * 
-						this->phys_param->sglag_TS_k_sphere * (B2 - A) / time;
+						this->phys_param->sglag_TS_k_sphere * (B2 - A) / max(time, 0.000001);
 
 					yz->mut.lock();
 					yz->velocity[0] += V(0);
@@ -539,7 +542,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 					pk = this->phys_param->sglag_TS_k_sphere_head;
 				}
 
-				V = this->phys_param->velocity_TS * pk * (B - A) / time;
+				V = this->phys_param->velocity_TS * pk * (B - A) / max(time, 0.000001);;
 
 				for (auto& yz : gr->yzels)
 				{
@@ -609,7 +612,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 					double k = (r / rr);
 					B2 = k * (A - B) + B;
 
-					V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_k_sphere * (B2 - A) / time;
+					V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_k_sphere * (B2 - A) / max(time, 0.000001);;
 					//V = this->phys_param->sglag_HP_k_sphere * (B - A) / time;
 
 					yz->mut.lock();
@@ -645,7 +648,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 					B = A * r / rr;
 
-					V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_k_sphere * (B - A) / time;
+					V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_k_sphere * (B - A) / max(time, 0.000001);;
 
 					for (auto& yz : gr->yzels)
 					{
@@ -682,7 +685,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 					B /= (gr->grans_surf.size() + 2.0);
 
 
-					V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_k_sphere * (B - A) / time;
+					V = this->phys_param->velocity_HP * this->phys_param->sglag_HP_k_sphere * (B - A) / max(time, 0.000001);;
 
 					for (auto& yz : gr->yzels)
 					{
@@ -735,7 +738,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 					B = k * (A - center) + center;
 
 					V = this->phys_param->velocity_HP * 
-						this->phys_param->sglag_HP_k_angle * (B - A) / time;
+						this->phys_param->sglag_HP_k_angle * (B - A) / max(time, 0.000001);;
 
 					AA->mut.lock();
 					AA->velocity[0] += 0.0;
@@ -821,7 +824,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 				V = this->phys_param->velocity_HP *
 					this->phys_param->sglag_HP_sphere *
-					this->phys_param->sglag_HP_k_sphere * (B - A) / time;
+					this->phys_param->sglag_HP_k_sphere * (B - A) / max(time, 0.000001);;
 
 				AA->mut.lock();
 				AA->velocity[0] += V[0];
@@ -837,7 +840,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 				V = this->phys_param->velocity_HP *
 					this->phys_param->sglag_HP_sphere *
-					this->phys_param->sglag_HP_k_sphere * (B - A) / time; 
+					this->phys_param->sglag_HP_k_sphere * (B - A) / max(time, 0.000001);;
 
 				AA->mut.lock();
 				AA->velocity[0] += V[0];
@@ -853,7 +856,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 				V = this->phys_param->velocity_HP *
 					this->phys_param->sglag_HP_sphere *
-					this->phys_param->sglag_HP_k_sphere * (B - A) / time; 
+					this->phys_param->sglag_HP_k_sphere * (B - A) / max(time, 0.000001);;
 
 				AA->mut.lock();
 				AA->velocity[0] += V[0];
@@ -869,7 +872,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 				V = this->phys_param->velocity_HP *
 					this->phys_param->sglag_HP_sphere *
-					this->phys_param->sglag_HP_k_sphere * (B - A) / time; 
+					this->phys_param->sglag_HP_k_sphere * (B - A) / max(time, 0.000001);;
 
 				AA->mut.lock();
 				AA->velocity[0] += V[0];
@@ -1160,7 +1163,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				B /= (gr->grans_surf.size() + 1.0);
 
 
-				V = this->phys_param->velocity_BS * this->phys_param->sglag_BS_k * (B - A) / time;
+				V = this->phys_param->velocity_BS * this->phys_param->sglag_BS_k * (B - A) / max(time, 0.000001);;
 
 				for (auto& yz : gr->yzels)
 				{
@@ -1198,7 +1201,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				B /= (yz->Yzel_sosed_sglag2.size() + 1.0);
 
 
-				V = this->phys_param->velocity_BS * this->phys_param->sglag_BS_k * (B - A) / time;
+				V = this->phys_param->velocity_BS * this->phys_param->sglag_BS_k * (B - A) / max(time, 0.000001);;
 
 				yz->mut.lock();
 				yz->velocity[0] += V(0);

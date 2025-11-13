@@ -34,7 +34,8 @@ int main()
     }
 
     // Считываем физические параметры и геометрическое положение узлов из файла (предыдущего расчёта)
-    S1.Download_cell_parameters("parameters_0060.bin");
+    //S1.Download_cell_parameters("parameters_0060.bin");
+    S1.Download_cell_parameters("parameters_0065.bin");
 
     // Ещё один блок обязательной настройки
     if (true)
@@ -51,8 +52,9 @@ int main()
 
 
     //  Ручное изменение BS
-    if (true)
+    if (false)
     {
+        cout << "Hand" << endl;
         S1.Calculating_measure(0);
         S1.Calculating_measure(1);
         S1.Culc_Velocity_surface(0, 0.0, 3);
@@ -70,9 +72,18 @@ int main()
         S1.Calculating_measure(0);
         S1.Calculating_measure(1);
         S1.auto_set_luch_geo_parameter(0);
+        for (auto& i : S1.All_Yzel)
+        {
+            i->coord[1][0] = i->coord[0][0];
+            i->coord[1][1] = i->coord[0][1];
+            i->coord[1][2] = i->coord[0][2];
+        }
+        S1.Calculating_measure(0);
+        S1.Calculating_measure(1);
         S1.Init_TVD();
     }
 
+    cout << "A" << endl;
     // Задаём начальные и граничные условия
     S1.Init_physics();
 
@@ -90,7 +101,7 @@ int main()
     }
 
     // Выбор основного алгоритма расчёта (в данной функции представлены все варианты расчёта: атомы, мгд и т.д.), см. саму функцию
-    S1.Algoritm(10, &S1);
+    S1.Algoritm(1, &S1);
 
     //return 0;
 
@@ -149,7 +160,7 @@ int main()
 
 
 
-    //S1.Save_cell_parameters("parameters_0064.bin");
+    S1.Save_cell_parameters("parameters_0062.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
