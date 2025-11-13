@@ -191,7 +191,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Smooth_head_HP3();
 		this->Smooth_head_TS3();
 
-		for (int i = 1; i <= 9; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 6 * 11; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
 			cout << "IIIII = " << i << endl;
@@ -240,7 +240,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 			//this->Init_physics();
 
-			if (i % 12 == 0)
+			if (i % 6 == 0)
 			{
 				string namn = "parameters_promeg_11" + to_string(i) + ".bin";
 				this->Save_cell_parameters(namn);

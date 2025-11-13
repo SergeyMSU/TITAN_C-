@@ -14,6 +14,7 @@ short int Gran::Get_method()
 	{
 		bool b1 = false;
 		bool b2 = false;
+		bool b3 = false;
 		for (auto& i : this->yzels)
 		{
 			if (i->type == Type_yzel::HP)
@@ -23,8 +24,9 @@ short int Gran::Get_method()
 
 			if (i->dist_from_HP == 1) b1 = true;
 			if (i->dist_from_HP == 2) b2 = true;
+			if (i->dist_from_HP == 3) b3 = true;
 
-			if (b1 == true || b2 == true)            // Сейчас вообще почти три ряда ячеек считаем Лаксом
+			if (b1 == true || b2 == true || b3 == true)            // Сейчас вообще почти три ряда ячеек считаем Лаксом
 			{
 				return 0;                            // Лакс во втором ряду от гелиопаузы
 			}

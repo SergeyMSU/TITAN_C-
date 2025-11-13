@@ -35,7 +35,7 @@ int main()
 
     // Считываем физические параметры и геометрическое положение узлов из файла (предыдущего расчёта)
     //S1.Download_cell_parameters("parameters_0060.bin");   // 65
-    S1.Download_cell_parameters("parameters_0064.bin");
+    S1.Download_cell_parameters("parameters_0062.bin");
 
     // Ещё один блок обязательной настройки
     if (true)
@@ -160,7 +160,7 @@ int main()
 
 
 
-    S1.Save_cell_parameters("parameters_0062.bin");
+    S1.Save_cell_parameters("parameters_0063.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
