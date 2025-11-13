@@ -12,11 +12,21 @@ short int Gran::Get_method()
 
 	if (this->type2 == Type_Gran_surf::Us)
 	{
+		bool b1 = false;
+		bool b2 = false;
 		for (auto& i : this->yzels)
 		{
 			if (i->type == Type_yzel::HP)
 			{
-				return 0;
+				return 0;                           // Лакс вдоль гелиопаузы
+			}
+
+			if (i->dist_from_HP == 1) b1 = true;
+			if (i->dist_from_HP == 2) b2 = true;
+
+			if (b1 == true && b2 == true)
+			{
+				return 0;                            // Лакс во втором ряду от гелиопаузы
 			}
 		}
 	}

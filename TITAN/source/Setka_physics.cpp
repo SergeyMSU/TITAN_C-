@@ -241,6 +241,77 @@ void Setka::Init_boundary_grans(void)
 	whach(oh);
 	whach(ih);
 	whach(os);
+
+
+	// Далее задаём узлам параметр - расстояние до HP (для особых схем вдоль HP)
+	for (auto& i : this->All_Luch)
+	{
+		if (i->type == "A_Luch" || i->type == "A2_Luch" || i->type == "B_Luch")
+		{
+			auto a1 = i->get_yzel_near_opor(2, -1);
+			a1->dist_from_HP = 1;
+
+			a1 = i->get_yzel_near_opor(2, 1);
+			a1->dist_from_HP = 1;
+
+			a1 = i->get_yzel_near_opor(2, -2);
+			a1->dist_from_HP = 2;
+
+			a1 = i->get_yzel_near_opor(2, 2);
+			a1->dist_from_HP = 2;
+
+			a1 = i->get_yzel_near_opor(2, -3);
+			a1->dist_from_HP = 3;
+
+			a1 = i->get_yzel_near_opor(2, 3);
+			a1->dist_from_HP = 3;
+		}
+		else if (i->type == "E_Luch")
+		{
+			auto a1 = i->Yzels[1];
+			a1->dist_from_HP = 1;
+
+			a1 = i->Yzels[2];
+			a1->dist_from_HP = 2;
+
+			a1 = i->Yzels[3];
+			a1->dist_from_HP = 3;
+		}
+		else if (i->type == "G_Luch")
+		{
+			auto a1 = i->get_yzel_near_opor(2, -1);
+			a1->dist_from_HP = 1;
+
+			a1 = i->get_yzel_near_opor(2, -2);
+			a1->dist_from_HP = 2;
+
+			a1 = i->get_yzel_near_opor(2, -3);
+			a1->dist_from_HP = 3;
+		}
+		else if (i->type == "D_Luch")
+		{
+			auto a1 = i->get_yzel_near_opor(1, -1);
+
+			if (a1->coord[0][0] < this->geo->L6) continue;
+
+			a1->dist_from_HP = 1;
+
+			a1 = i->get_yzel_near_opor(1, 1);
+			a1->dist_from_HP = 1;
+
+			a1 = i->get_yzel_near_opor(1, -2);
+			a1->dist_from_HP = 2;
+
+			a1 = i->get_yzel_near_opor(1, 2);
+			a1->dist_from_HP = 2;
+
+			a1 = i->get_yzel_near_opor(1, -3);
+			a1->dist_from_HP = 3;
+
+			a1 = i->get_yzel_near_opor(1, 3);
+			a1->dist_from_HP = 3;
+		}
+	}
 }
 
 void Setka::Init_physics(void)

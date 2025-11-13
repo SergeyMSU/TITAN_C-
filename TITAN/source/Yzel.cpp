@@ -9,6 +9,8 @@ Yzel::Yzel()
 	this->number = 0;
 	this->is_inner = false;
 	this->type = Type_yzel::Us;
+
+	this->dist_from_HP = 0;
 }
 
 Yzel::Yzel(const double& a, const double& b, const double& c)
@@ -20,6 +22,8 @@ Yzel::Yzel(const double& a, const double& b, const double& c)
 	this->coord[1][0] = a;
 	this->coord[1][1] = b;
 	this->coord[1][2] = c;
+
+	this->dist_from_HP = 0;
 
 	///this->luch = nullptr;
 }
