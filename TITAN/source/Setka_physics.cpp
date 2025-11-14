@@ -265,6 +265,12 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(2, 3);
 			a1->dist_from_HP = 3;
+
+			a1 = i->get_yzel_near_opor(2, -4);
+			a1->dist_from_HP = 4;
+
+			a1 = i->get_yzel_near_opor(2, 4);
+			a1->dist_from_HP = 4;
 		}
 		else if (i->type == "E_Luch")
 		{
@@ -276,6 +282,9 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->Yzels[3];
 			a1->dist_from_HP = 3;
+
+			a1 = i->Yzels[4];
+			a1->dist_from_HP = 4;
 		}
 		else if (i->type == "G_Luch")
 		{
@@ -287,13 +296,14 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(2, -3);
 			a1->dist_from_HP = 3;
+
+			a1 = i->get_yzel_near_opor(2, -4);
+			a1->dist_from_HP = 4;
 		}
 		else if (i->type == "D_Luch")
 		{
 			auto a1 = i->get_yzel_near_opor(1, -1);
-
 			if (a1->coord[0][0] < this->geo->L6) continue;
-
 			a1->dist_from_HP = 1;
 
 			a1 = i->get_yzel_near_opor(1, 1);
@@ -310,6 +320,12 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(1, 3);
 			a1->dist_from_HP = 3;
+
+			a1 = i->get_yzel_near_opor(1, -4);
+			a1->dist_from_HP = 4;
+
+			a1 = i->get_yzel_near_opor(1, 4);
+			a1->dist_from_HP = 4;
 		}
 	}
 }
