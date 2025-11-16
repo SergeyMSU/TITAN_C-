@@ -711,7 +711,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 #pragma omp parallel for private(A, B, V) schedule(dynamic)
 			for (size_t i = 0; i < nn; i++)
 			{
-				//if (i > 3 && i < nn - 3) continue;
+				if (i > 4 && i < nn - 4) continue;
 
 				for (size_t j = 0; j < mm; j++)
 				{
@@ -1144,7 +1144,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		if (false)
 		{
 			// Лаплас в декартовых
-#pragma omp parallel for private(A, B, V)
+			#pragma omp parallel for private(A, B, V)
 			for (int i_step = 0; i_step < this->Gran_BS.size(); i_step++)
 			{
 				auto gr = this->Gran_BS[i_step];
@@ -1191,6 +1191,9 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				B = A;
 
 				if (yz->Yzel_sosed_sglag2.size() <= 5) continue;    // TODO!
+
+				double the_ = polar_angle(A[0], norm2(0.0, A[1], A[2]));
+				if (the_ > 1.3) continue;   // Для этой части BS сглаживание считать не надо
 
 				for (auto& j : yz->Yzel_sosed_sglag2)
 				{
@@ -1294,8 +1297,21 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				yyz->coord[now2][2] *= H / h2;
 			}
 
+			/*for (short int j = 0; j < this->A_Luch[i].size(); j++)
+			{
+				auto yyz = this->A_Luch[i][j]->Yzels_opor[3];
+				double h2 = norm2(yyz->coord[now2][0], yyz->coord[now2][1], yyz->coord[now2][2]);
+				if (h2 > 130)
+				{
+					yyz->coord[now2][0] *= 130.0 / h2;
+					yyz->coord[now2][1] *= 130.0 / h2;
+					yyz->coord[now2][2] *= 130.0 / h2;
+				}
+			}*/
+
 		}
 	}
+
 
 
 	// Остальные узлы на HP (невыделяемой части) надо подвинуть
@@ -1318,12 +1334,15 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			//	L[NN]->Yzels_opor[1]->coord[now2][2]);
 
 			// Двигаем пред-пред последнюю точку (можно улучшить, сделав линейно, а не просто среднее арифметическое)
-			auto yz = L[this->geo->N4 - 5]->Yzels_opor[1];
-			double hh = norm2(0.0, yz->coord[now2][1], yz->coord[now2][2]);
-			double xx = yz->coord[now2][0];
-			double hhh = linear2(xx1, h1, xx2, h2, xx);
-			yz->coord[now2][1] = yz->coord[now2][1] * hhh / hh;
-			yz->coord[now2][2] = yz->coord[now2][2] * hhh / hh;
+			if (false)
+			{
+				auto yz = L[this->geo->N4 - 5]->Yzels_opor[1];
+				double hh = norm2(0.0, yz->coord[now2][1], yz->coord[now2][2]);
+				double xx = yz->coord[now2][0];
+				double hhh = linear2(xx1, h1, xx2, h2, xx);
+				yz->coord[now2][1] = yz->coord[now2][1] * hhh / hh;
+				yz->coord[now2][2] = yz->coord[now2][2] * hhh / hh;
+			}
 
 			for (short int i = this->geo->N4 - 3; i <= NN; i++)
 			{

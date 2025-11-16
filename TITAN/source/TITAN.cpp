@@ -35,7 +35,10 @@ int main()
 
     // Считываем физические параметры и геометрическое положение узлов из файла (предыдущего расчёта)
     //S1.Download_cell_parameters("parameters_0060.bin");   // 62
-    S1.Download_cell_parameters("parameters_0063.bin");
+
+    // 65 с утра
+    // 63 до включения особенности на HP (лучше не затирать)
+    S1.Download_cell_parameters("parameters_0064.bin");
 
     // Ещё один блок обязательной настройки
     if (true)
