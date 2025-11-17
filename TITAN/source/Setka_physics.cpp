@@ -4942,10 +4942,16 @@ void Setka::PereInterpolate(Interpol* SS, bool move, bool MK_only)
 		z = cel->center[0][2];
 		bool bb;
 		bb = SS->Get_param(x, y, z, param, prev_cell, next_cell);     // »нтерполируем переменные
-		if (bb == false)
-		{
-			cout << "Error iehgirgbfouewhrfiueywoehjfweiurf" << endl;
-			exit(-1);
+		while(bb == false)
+		{	
+			x = x * 0.99;
+			y = y * 0.99;
+			z = z * 0.99;
+			bb = SS->Get_param(x, y, z, param, prev_cell, next_cell);     // »нтерполируем переменные
+			if (bb == false)
+			{
+				cout << "ifuhueiruoweiohgf83478  Warning! pereinterpolate x,y,z " << x << " " << y << " " << z << endl;
+			}
 		}
 
 		for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // ќбновл€ем предыдущую €чейку

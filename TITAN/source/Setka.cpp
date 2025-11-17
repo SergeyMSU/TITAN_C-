@@ -173,7 +173,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 5  - Добавить в ячейки значение моментов водорода из Монте-Карло
 	// 6  - Вычисление функции h0 для розыгрыша пикапов (она считается один раз для каждого сечения перезарядки)
 	// 7  - Вычисление всех интеграллов в ячейках для розыгрыша пикапов (частота и т.д.)
-	// 8  - Вычисление поглощения вдоль заданных лучей
+	// 8  - Вычисление поглощения вдоль заданных лучей (новая реализация через вспомогательную сетку) - ЕЩЁ НЕ ПРОВЕРЕН
 	// 9  - перемасштабирование функций распредления водорода, без потери значений
 	// 10 - Монте-Карло (новая реализация через вспомогательную сетку)
 
@@ -488,46 +488,51 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	}
 	else if (alg == 8)
 	{
+		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
+		Setka* Smc;
+		this->Create_mini_Setka_for_MK(Smc);
+
 		cout << "Reading arrays from files" << endl;
-		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+		for (size_t idx = 0; idx < Smc->All_Cell.size(); ++idx)
 		{
 			//cout << "A" << endl;
-			auto A = this->All_Cell[idx];
-			A->Init_mas_pogl(this->phys_param->pogl_n, this->phys_param->num_H);
+			auto A = Smc->All_Cell[idx];
+			A->Init_mas_pogl(Smc->phys_param->pogl_n, Smc->phys_param->num_H);
 			//cout << "B" << endl;
-			A->read_mas_pogl_FromFile(this->phys_param);
+			A->read_mas_pogl_FromFile(Smc->phys_param);
 			//cout << "C" << endl;
 		}
 
 		// Считываем моменты
-		if (this->phys_param->culc_cell_moments == true)
+		if (Smc->phys_param->culc_cell_moments == true)
 		{
-			if (file_exists(this->phys_param->MK_file))
+			if (file_exists(Smc->phys_param->MK_file))
 			{
-				this->Download_cell_MK_parameters(this->phys_param->MK_file, 1000);
+				Smc->Download_cell_MK_parameters(Smc->phys_param->MK_file, 1000);
 			}
 		}
 
 		cout << "Arrays read successfully" << endl;
 
-		mas_pogl_Culc( 1.0, 0.0, 0.0, "upwind");
-		mas_pogl_Culc( 1.0, 0.1, 0.0, "sim_upwind");
-		mas_pogl_Culc( 0.0, 1.0, 0.0, "crosswind1");
-		mas_pogl_Culc( 0.0, 1.0, 1.0, "crosswind2");
-		mas_pogl_Culc( 0.0, 0.0, 1.0, "crosswind3");
-		mas_pogl_Culc(-1.0, 0.0, 0.0, "downwind");
-		mas_pogl_Culc(-1.0, 1.0, 0.0, "tail1");
-		mas_pogl_Culc(-1.0, 0.70710678, 0.70710678, "tail2");
-		mas_pogl_Culc(-1.0, 0.0, 1.0, "tail3");
+		Smc->mas_pogl_Culc( 1.0, 0.0, 0.0, "upwind");
+		Smc->mas_pogl_Culc( 1.0, 0.1, 0.0, "sim_upwind");
+		Smc->mas_pogl_Culc( 0.0, 1.0, 0.0, "crosswind1");
+		Smc->mas_pogl_Culc( 0.0, 1.0, 1.0, "crosswind2");
+		Smc->mas_pogl_Culc( 0.0, 0.0, 1.0, "crosswind3");
+		Smc->mas_pogl_Culc(-1.0, 0.0, 0.0, "downwind");
+		Smc->mas_pogl_Culc(-1.0, 1.0, 0.0, "tail1");
+		Smc->mas_pogl_Culc(-1.0, 0.70710678, 0.70710678, "tail2");
+		Smc->mas_pogl_Culc(-1.0, 0.0, 1.0, "tail3");
 
 		cout << "Removing arrays" << endl;
 
-		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+		for (size_t idx = 0; idx < Smc->All_Cell.size(); ++idx)
 		{
-			auto A = this->All_Cell[idx];
+			auto A = Smc->All_Cell[idx];
 			A->Delete_mas_pogl();
 		}
 
+		delete Smc;
 	}
 	else if (alg == 9)
 	{
@@ -624,113 +629,58 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	}
 	else if (alg == 10)
 	{
-		cout << "Create Setka Smc" << endl;
 		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
-		Setka Smc = Setka("SDK_40_2D_Setka.bin", "SDK_40_krug_setka.bin", 40);
-
-		cout << "Create SI_main" << endl;
-		// Из основной сетки создаём интерполяционную сетку
-		this->Save_for_interpolate("For_intertpolate_work.bin", false);
-		Interpol SI_main = Interpol("For_intertpolate_work.bin");
-
-		cout << "Move Setka Smc" << endl;
-		// Двигаем поверхности вспомогательной сетки к поверхностям основной
-		Smc.Move_to_surf(&SI_main);
-
-		// Точно задаём положение внутренней границы сетки
-		Smc.geo->R0 = Smc.phys_param->R_0;
-
-		// Автоматически подстраиваем геометрические параметры сетки (сгущение и т.д.) под новые поверхности
-		Smc.auto_set_luch_geo_parameter(0);
-
-		// Настраиваем новую сетку (также как и основную)   [обязательно]
-		if (true)
-		{
-			// Считаем объёмы, площади и другие геометрические характеристики
-			Smc.Calculating_measure(0);
-			Smc.Calculating_measure(1);
-
-			// Задаём граничные грани
-			Smc.Init_boundary_grans();
-
-			
-		}
-
-		// Визуализация новой сетки для проверки   [опционально]
-		if (true)
-		{
-			Smc.Tecplot_print_all_lush_in_2D();
-			Smc.Tecplot_print_2D_setka(0.0, 0.0, 1.0, -0.00001, "Smc_setka_2d_(0, 0, 1, 0)_");
-			Smc.Tecplot_print_2D_setka(0.0, 1.0, 0.0, -0.00001, "Smc_setka_2d_(0, 1, 0, 0)_");
-			Smc.Tecplot_print_2D_setka(0.0, 1.0, 1.0, -0.00001, "Smc_setka_2d_(0, 1, 1, 0)_");
-			Smc.Tecplot_print_all_gran_in_surface("TS");
-			Smc.Tecplot_print_all_gran_in_surface("HP");
-			Smc.Tecplot_print_all_gran_in_surface("BS");
-		}
-
-		Smc.Test_geometr();
-
+		Setka* Smc;
+		
+		this->Create_mini_Setka_for_MK(Smc);
 
 		cout << "Set MK zone" << endl;
 		// Определим зоны для МК
-		Smc.Set_MK_Zone();
+		Smc->Set_MK_Zone();
 
 		//Проверим зоны   [опционально]
 		if (true)
 		{
-			Smc.Tecplot_print_gran_with_condition(0);
-			Smc.Tecplot_print_gran_with_condition(1);
-			Smc.Tecplot_print_gran_with_condition(2);
-			Smc.Tecplot_print_gran_with_condition(3);
-			Smc.Tecplot_print_gran_with_condition(4);
-			Smc.Tecplot_print_gran_with_condition(5);
-			Smc.Tecplot_print_gran_with_condition(6);
+			Smc->Tecplot_print_gran_with_condition(0);
+			Smc->Tecplot_print_gran_with_condition(1);
+			Smc->Tecplot_print_gran_with_condition(2);
+			Smc->Tecplot_print_gran_with_condition(3);
+			Smc->Tecplot_print_gran_with_condition(4);
+			Smc->Tecplot_print_gran_with_condition(5);
+			Smc->Tecplot_print_gran_with_condition(6);
 		}
 
-		// В сетке для MK очистим ненужные имена переменных 
-		if (true)
-		{
-			Smc.phys_param->param_names.assign(Smc.phys_param->MK_param.begin(), Smc.phys_param->MK_param.end());
-		}
-
-		// Заполним сетку МК значениями плазмы из основной сетки (чтобы вместо интерполяции в МК использовать значения в центрах ячеек - так быстрее)
-		// переинтерполяция
-		if (true)
-		{
-			Smc.PereInterpolate(&SI_main, false);
-		}
 
 		vector<short int> zones_number;
 		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
 
 		cout << "Start zones_number push_back" << endl;
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 
 		short int ijij = 0;
 		for (const auto& zone_play : zones_number)
 		{
 			cout << "Start zone = " << zone_play << endl;
-			Smc.MK_prepare(zone_play);
+			Smc->MK_prepare(zone_play);
 			//Smc.MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), &SI_main);
-			Smc.MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), nullptr);
-			Smc.MK_delete(zone_play);
+			Smc->MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), nullptr);
+			Smc->MK_delete(zone_play);
 			ijij++;
 		}
 
 		cout << "Create SI_MK" << endl;
 		// Из основной сетки создаём интерполяционную сетку
-		Smc.Save_for_interpolate("For_intertpolate_work_MK.bin", false);
+		Smc->Save_for_interpolate("For_intertpolate_work_MK.bin", false);
 
 		// Переинтерполируем параметры Монте-Карло из вспомогательной сетки в основную
 		this->PereInterpolate("For_intertpolate_work_MK.bin", false, true);
+
+		delete Smc;
 	}
 
 	cout << "End Algoritm " << alg << endl;
@@ -1479,7 +1429,7 @@ void Setka::Move_to_surf(Interpol* Surf)
 				the = polar_angle(x, sqrt(kv(y) + kv(z)));
 				phi = polar_angle(y, z);
 
-
+				if (x < 0.1) x = 0.1;           // Сдвигаем x, так как BS плохо определяется иначе
 				Surf->Get_BS(x, y, z, param);
 				rr = param["r"];
 
@@ -3182,12 +3132,13 @@ void Setka::Calculating_measure(unsigned short int st_time)
 	}
 }
 
-void Setka::auto_set_luch_geo_parameter(int for_new)
+void Setka::auto_set_luch_geo_parameter(int for_new, bool for_MK)
 {
 	// автоматическая настройки сгущений сетки с разных областях
 	// for_new = 0 - значит это первый запуск функции и параметры далеки от идеальных
 	// в этом случае движение изначально будет большое
 	// for_new = 1 - небольшое движение, если это не первый запуск и поверхности уже стоят где надо
+	// for_MK = true - для сетки Монте-Карло, которая является грубой, параметры должны быть другие
 
 	cout << "Start: Izmenenie geo parameters" << endl;
 	// Эту функцию совместно с функцией движения сетки (luch.cpp) можно улучшать и дополнять в процессе
@@ -3293,7 +3244,14 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 					d1 = fabs(b1->func_R(0) - b3->func_R(0));
 					d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-					macros3(da3, 0.05);
+					if (for_MK == false)
+					{
+						//macros3(da3, 0.05);
+					}
+					else
+					{
+						//macros3(da3, 0.2);
+					}
 				}
 
 				if (true)
@@ -3312,7 +3270,14 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 
 					d2 = fabs(b1->func_R(0) - b2->func_R(0));
 
-					macros3(da4, 0.05);
+					if (for_MK == false)
+					{
+						//macros3(da4, 0.05);
+					}
+					else
+					{
+						//macros3(da4, 0.2);
+					}
 				}
 
 				//da5
@@ -3419,10 +3384,17 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 				b2 = kk->get_yzel_near_opor(1, this->geo->M11 + 1);
 				double c2 = Yzel_distance(b1, b2, 0);
 
-				if ((100.0 - d2 * 100.0 / dd1) > 0.5)
+				double percent = 0.5;
+				if (for_MK == true)
+				{
+					percent = 2.0;
+				}
+
+				if ((100.0 - d2 * 100.0 / dd1) > percent)
 				{
 					k++;
 					izmen = true;
+					//cout << "M3 " << "ba2" << endl;
 					if (kk->parameters.find("ba2") != kk->parameters.end())
 					{
 						kk->parameters["ba2"] *= (1.0 + procent / 100.0);
@@ -3432,10 +3404,11 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 						kk->parameters["ba2"] = this->geo->ba2 * (1.0 + procent / 100.0);
 					}
 				}
-				else if ((100.0 - d2 * 100.0 / dd1) < -0.5)
+				else if ((100.0 - d2 * 100.0 / dd1) < -percent)
 				{
 					k++;
 					izmen = true;
+					//cout << "M4 " << "ba2" << endl;
 					if (kk->parameters.find("ba2") != kk->parameters.end())
 					{
 						kk->parameters["ba2"] *= (1.0 - procent / 100.0);
@@ -3446,10 +3419,11 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 					}
 				}
 
-				if ((100.0 - c2 * 100.0 / c1) > 0.5)
+				if ((100.0 - c2 * 100.0 / c1) > percent)
 				{
 					k++;
 					izmen = true;
+					//cout << "M5 " << "ba1" << endl;
 					if (kk->parameters.find("ba1") != kk->parameters.end())
 					{
 						kk->parameters["ba1"] *= (1.0 + procent / 100.0);
@@ -3459,10 +3433,11 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 						kk->parameters["ba1"] = this->geo->ba1 * (1.0 + procent / 100.0);
 					}
 				}
-				else if ((100.0 - c2 * 100.0 / c1) < -0.5)
+				else if ((100.0 - c2 * 100.0 / c1) < -percent)
 				{
 					k++;
 					izmen = true;
+					//cout << "M6 " << "ba1" << endl;
 					if (kk->parameters.find("ba1") != kk->parameters.end())
 					{
 						kk->parameters["ba1"] *= (1.0 - procent / 100.0);
@@ -3858,12 +3833,19 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 
 				auto i = this->G_Luch[ik][0];
 
+				double percent = 0.5;
+				if (for_MK == true)
+				{
+					percent = 2.0;
+				}
+
 				if (i->parameters.find("dd2") == i->parameters.end() || i->parameters["dd2"] > 0.01)
 				{
-					if ((100.0 - d2 * 100.0 / d1) > 0.5)
+					if ((100.0 - d2 * 100.0 / d1) > percent)
 					{
 						k++;
 						izmen = true;
+						//cout << "M8 " << "dd2" << endl;
 						for (auto& kk : this->G_Luch[ik])
 						{
 							if (kk->parameters.find("dd2") != kk->parameters.end())
@@ -3876,10 +3858,11 @@ void Setka::auto_set_luch_geo_parameter(int for_new)
 							}
 						}
 					}
-					else if ((100.0 - d2 * 100.0 / d1) < -0.5)
+					else if ((100.0 - d2 * 100.0 / d1) < -percent)
 					{
 						k++;
 						izmen = true;
+						//cout << "M9 " << "dd2" << endl;
 						for (auto& kk : this->G_Luch[ik])
 						{
 							if (kk->parameters.find("dd2") != kk->parameters.end())
@@ -5951,6 +5934,66 @@ struct PairHash {
 };
 // Возможны коллизии (например, пары (A, B) и (B, A) дадут одинаковый хеш, 
 // если ^ используется без дополнительных преобразований).
+
+void Setka::Create_mini_Setka_for_MK(Setka* SS)
+{
+	cout << "Create Setka Smc" << endl;
+	// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
+	SS = new Setka("SDK_40_2D_Setka.bin", "SDK_40_krug_setka.bin", 40);
+
+	cout << "Create SI_main" << endl;
+	// Из основной сетки создаём интерполяционную сетку
+	this->Save_for_interpolate("For_intertpolate_work.bin", false);
+	Interpol SI_main = Interpol("For_intertpolate_work.bin");
+
+	cout << "Move Setka Smc" << endl;
+	// Двигаем поверхности вспомогательной сетки к поверхностям основной
+	SS->Move_to_surf(&SI_main);
+
+	// Точно задаём положение внутренней границы сетки
+	this->geo->R0 = SS->phys_param->R_0;
+
+	// Автоматически подстраиваем геометрические параметры сетки (сгущение и т.д.) под новые поверхности
+	SS->auto_set_luch_geo_parameter(0, true);
+
+	// Настраиваем новую сетку (также как и основную)   [обязательно]
+	if (true)
+	{
+		// Считаем объёмы, площади и другие геометрические характеристики
+		SS->Calculating_measure(0);
+		SS->Calculating_measure(1);
+
+		// Задаём граничные грани
+		SS->Init_boundary_grans();
+	}
+
+	// Визуализация новой сетки для проверки   [опционально]
+	if (true)
+	{
+		SS->Tecplot_print_all_lush_in_2D();
+		SS->Tecplot_print_2D_setka(0.0, 0.0, 1.0, -0.00001, "Smc_setka_2d_(0, 0, 1, 0)_");
+		SS->Tecplot_print_2D_setka(0.0, 1.0, 0.0, -0.00001, "Smc_setka_2d_(0, 1, 0, 0)_");
+		SS->Tecplot_print_2D_setka(0.0, 1.0, 1.0, -0.00001, "Smc_setka_2d_(0, 1, 1, 0)_");
+		SS->Tecplot_print_all_gran_in_surface("TS");
+		SS->Tecplot_print_all_gran_in_surface("HP");
+		SS->Tecplot_print_all_gran_in_surface("BS");
+	}
+
+	// В сетке для MK очистим ненужные имена переменных 
+	if (true)
+	{
+		SS->phys_param->param_names.assign(SS->phys_param->MK_param.begin(), SS->phys_param->MK_param.end());
+	}
+
+	// Заполним сетку МК значениями плазмы из основной сетки (чтобы вместо интерполяции в МК использовать значения в центрах ячеек - так быстрее)
+	// переинтерполяция
+	if (true)
+	{
+		SS->PereInterpolate(&SI_main, false);
+	}
+
+	SS->Test_geometr();
+}
 
 void Setka::Edges_create(void)
 {
