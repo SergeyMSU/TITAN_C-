@@ -56,7 +56,12 @@ void Cell::read_mas_pogl_FromFile(Phys_param* phys_param)
 {
 	std::string filename = phys_param->pogl_folder + "/poglosh_" + to_string(this->number) + ".bin";
 
-	if (file_exists(filename) == false) return;
+	if (file_exists(filename) == false)
+	{
+		//cout << "Not file: " << filename << endl;
+		// cout << "Not file: " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][2] << endl;
+		return;
+	}
 
 	std::ifstream file(filename, std::ios::binary);
 	if (!file.is_open())
@@ -89,6 +94,19 @@ void Cell::read_mas_pogl_FromFile(Phys_param* phys_param)
 		{
 			cout << "Error  efdwef34rfwefwerfewwfwf" << endl;
 			exit(-1);
+		}
+
+		//cout << "0 Sum = " << this->mas_pogl.sum() << endl;
+
+		// Проверка есть ли ненулевой элемент:
+		if (false)
+		{
+			bool has_non_zero = this->mas_pogl.isZero();
+
+			if (has_non_zero)
+			{
+				cout << "All null  " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][2] <<  endl;
+			}
 		}
 
 		file.close();

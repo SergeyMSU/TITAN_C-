@@ -3322,7 +3322,7 @@ void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, 
 	ofstream fout;
 	string name_f = "poglosh_" + name + ".txt";
 	fout.open(name_f);
-	fout << "TITLE = HP  VARIABLES = u, f1, f1_fluid, f1_moment, f2, f2_fluid, f2_moment, f3, f3_fluid, f3_moment, f4, f4_fluid, f4_moment, fAll, fALL_fluid, fALL_moment" << endl;
+	fout << "TITLE = HP  VARIABLES = u, f1, f1_moment, f2, f2_moment, f3, f3_moment, f4, f4_moment, fAll, fALL_moment" << endl;
 
 	Eigen::Vector3d e;
 	Eigen::Vector3d r;
@@ -3330,8 +3330,8 @@ void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, 
 	prev = nullptr;
 	// Для трёх способов расчёта поглощения создаём массивы
 	Eigen::MatrixXd mas_pogl;      // (sort, n)    Массив поглощения
-	Eigen::MatrixXd mas_pogl2;      // (sort, n)    Массив поглощения
-	Eigen::MatrixXd mas_pogl3;      // (sort, n)    Массив поглощения
+	Eigen::MatrixXd mas_pogl2;      // (sort, n)    Массив поглощения для флюидов (я его убрал - его надо считать на основной сетке)
+	Eigen::MatrixXd mas_pogl3;      // (sort, n)    Массив поглощения для моментов водорода
 	mas_pogl.resize(this->phys_param->num_H, this->phys_param->pogl_n);
 	mas_pogl.setZero();
 	mas_pogl2.resize(this->phys_param->num_H, this->phys_param->pogl_n);
@@ -3350,22 +3350,24 @@ void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, 
 	double u1, u2, u3, c, n, p;
 	double u1_MK, u2_MK, u3_MK, c_MK, n_MK, p_MK;
 
+	double My_S = 0.0;
+
 	while (true)
 	{
 		r += e * dr;
-		A = Find_cell_point(r[0], r[1], r[2], 0, prev);
+		A = this->Find_cell_point(r[0], r[1], r[2], 0, prev);
 
 		if (A == nullptr) break;
 
 
 		for (int i = 0; i < this->phys_param->num_H; i++)
 		{
-			u1 = A->parameters[0]["Vx_H" + to_string(i + 1)];
+			/*u1 = A->parameters[0]["Vx_H" + to_string(i + 1)];
 			u2 = A->parameters[0]["Vy_H" + to_string(i + 1)];
 			u3 = A->parameters[0]["Vz_H" + to_string(i + 1)];
 			n = A->parameters[0]["rho_H" + to_string(i + 1)];
 			p = A->parameters[0]["p_H" + to_string(i + 1)];
-			c = sqrt(2.0 * p / n);
+			c = sqrt(2.0 * p / n);*/
 
 			u1_MK = A->parameters[0]["MK_Vx_H" + to_string(i + 1)];
 			u2_MK = A->parameters[0]["MK_Vy_H" + to_string(i + 1)];
@@ -3379,9 +3381,10 @@ void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, 
 				double v = this->phys_param->pogl_L + dv * (j + 0.5);
 
 				mas_pogl(i, j) += A->mas_pogl(i, j);
+				My_S += A->mas_pogl(i, j);
 				
-				mas_pogl2(i, j) +=  n *
-					exp(-(kv(v - u1 * e[0] - u2 * e[1] - u3 * e[2])) / kv(c)) / (sqrt_pi * c);
+				//mas_pogl2(i, j) +=  n *
+				//	exp(-(kv(v - u1 * e[0] - u2 * e[1] - u3 * e[2])) / kv(c)) / (sqrt_pi * c);
 
 				mas_pogl3(i, j) += n_MK *
 					exp(-(kv(v - u1_MK * e[0] - u2_MK * e[1] - u3_MK * e[2])) / kv(c_MK)) / (sqrt_pi * c_MK);
@@ -3392,6 +3395,9 @@ void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, 
 		//if (r[0] > 14.0) break;
 	}
 
+	cout << "My_S = " << My_S << endl;
+	cout << this->phys_param->par_n_H_LISM << " " << this->phys_param->par_poglosh << " " << dr / dv << endl;
+
 	for (int j = 0; j < this->phys_param->pogl_n; j++)
 	{
 		fout << this->phys_param->pogl_L + dv * (j + 0.5) << " ";
@@ -3401,14 +3407,14 @@ void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, 
 		for (int i = 0; i < this->phys_param->num_H; i++)
 		{
 			mas_pogl(i, j) *= this->phys_param->par_n_H_LISM * this->phys_param->par_poglosh * dr / dv;
-			mas_pogl2(i, j) *= this->phys_param->par_n_H_LISM * this->phys_param->par_poglosh * dr;
+			//mas_pogl2(i, j) *= this->phys_param->par_n_H_LISM * this->phys_param->par_poglosh * dr;
 			mas_pogl3(i, j) *= this->phys_param->par_n_H_LISM * this->phys_param->par_poglosh * dr;
-			fout << exp(-mas_pogl(i, j)) << " " << exp(-mas_pogl2(i, j)) << " " << exp(-mas_pogl3(i, j)) << " ";
+			fout << exp(-mas_pogl(i, j)) << " " << exp(-mas_pogl3(i, j)) << " ";
 			S += mas_pogl(i, j);
-			SS += mas_pogl2(i, j);
+			//SS += mas_pogl2(i, j);
 			SSS += mas_pogl3(i, j);
 		}
-		fout << exp(-S) << " " << exp(-SS) << " " << exp(-SSS) << " " << endl;
+		fout << exp(-S) << " " << exp(-SSS) << " " << endl;
 	}
 	
 	fout.close();
