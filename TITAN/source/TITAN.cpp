@@ -86,7 +86,7 @@ int main()
         S1.Init_TVD();
     }
 
-    cout << "A" << endl;
+    cout << "A-" << endl;
     // Задаём начальные и граничные условия
     S1.Init_physics();
 

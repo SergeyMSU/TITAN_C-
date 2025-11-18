@@ -56,6 +56,8 @@ public:
     Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  hydrogen_condition;
     // ћатрица граничных условий дл€ водорода
 
+
+
     // ћатрицы взаимодействи€ сортов по област€м
     Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  hydrogen_arise_1;
     Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>  proton_arise_1;
