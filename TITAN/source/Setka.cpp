@@ -177,6 +177,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 9  - перемасштабирование функций распредления водорода, без потери значений
 	// 10 - Монте-Карло (новая реализация через вспомогательную сетку)
 	// 11 - расчёт поверхностных токов на разрывах
+	// 12 - расчёт объёмных токов
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -777,12 +778,10 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		
 
 		short int ijij = 0;
 		for (const auto& zone_play : zones_number)
@@ -962,6 +961,30 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 			fout.close();
 		}
+	}
+	else if (alg == 12)
+	{
+		// Вычислим ротор в центре каждой ячейки
+		this->Edges_create();
+		this->Culc_usual_rotors_in_cell();
+
+		//this->Save_for_interpolate("For_intertpolate_0059-.bin", false);
+		//Interpol SS = Interpol("For_intertpolate_0059-.bin");
+
+		ofstream fout;
+		string name_f = "Inner Heliosheth_J.txt";
+		fout.open(name_f);
+		fout << "TITLE = HP  VARIABLES = x, y, z, Jx, Jy, Jz, |J|" << endl;
+
+		for (auto& C : this->All_Cell)
+		{
+			if (C->type != Type_cell::Zone_2) continue;
+
+			fout << C->center[0][0] << " " << C->center[0][1] << " " << C->center[0][2] << " " <<
+				C->parameters[0]["rotB_x"] << " " << C->parameters[0]["rotB_y"] << " " << C->parameters[0]["rotB_z"] << " " <<
+				kvv(C->parameters[0]["rotB_x"], C->parameters[0]["rotB_y"], C->parameters[0]["rotB_z"]) << endl;
+		}
+		
 	}
 	cout << "End Algoritm " << alg << endl;
 }

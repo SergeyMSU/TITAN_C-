@@ -361,43 +361,24 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 			if (nH == 4)
 			{
 				this->AMR[nH - 1][ni]->procent_signif = 0.3;  // 0.2
-
-				if (this->type2 == Type_Gran_surf::TS || this->cells[0]->type == Type_cell::Zone_2)
-				{
-					this->AMR[nH - 1][ni]->procent_signif = 0.3;
-				}
-
-				if (this->cells.size() == 2)
-				{
-					if (this->cells[1]->type == Type_cell::Zone_2)
-					{
-						this->AMR[nH - 1][ni]->procent_signif = 0.3;
-					}
-				}
 			}
+
 			if (nH == 3)
 			{
-				this->AMR[nH - 1][ni]->procent_signif = 0.4;  // 0.3
-
-				if (this->type2 == Type_Gran_surf::TS || this->cells[0]->type == Type_cell::Zone_2)
-				{
-					this->AMR[nH - 1][ni]->procent_signif = 0.4;
-				}
-
-				if (this->cells.size() == 2)
-				{
-					if (this->cells[1]->type == Type_cell::Zone_2)
-					{
-						this->AMR[nH - 1][ni]->procent_signif = 0.4;
-					}
-				}
+				this->AMR[nH - 1][ni]->procent_signif = 0.45;  // 0.3
 			}
+
 			if (nH == 2)
 			{
-				this->AMR[nH - 1][ni]->procent_signif = 0.8; // 0.4
+				this->AMR[nH - 1][ni]->procent_signif = 1.0; // 0.4
 				this->AMR[nH - 1][ni]->procent_devide = 4.0; // 2.0
 			}
-			if (nH == 1) this->AMR[nH - 1][ni]->procent_signif = 0.6;
+
+			if (nH == 1)
+			{
+				this->AMR[nH - 1][ni]->procent_signif = 0.8;
+				this->AMR[nH - 1][ni]->procent_devide = 2.0; // 2.0
+			}
 
 
 			//if (nH == 4) Nmax = 6000;  // Ёксперементально

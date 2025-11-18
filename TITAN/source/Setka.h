@@ -194,6 +194,7 @@ public:
 	// Зоны есть  1, 2, 3, 4
 
 	void Culc_rotors_in_cell(void);
+	void Culc_usual_rotors_in_cell(void);
 	// Считает ротор векторной величины в ячейке
 	// Пока зделал для ротора нормированного магнитного поля
 
