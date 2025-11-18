@@ -116,7 +116,7 @@ Phys_param::Phys_param()
         this->proton_arise_3 << 1, 1,
                                 1, 1,
                                 0, 0,
-                                1, 1,
+                                0, 0,
                                 1, 1,
                                 1, 1,
                                 1, 1,
@@ -126,7 +126,7 @@ Phys_param::Phys_param()
         proton_arise_4.resize(this->num_H, this->num_pui + 1 - 1);
         this->proton_arise_4 << 1, 1,
                                 1, 1,
-                                1, 1,
+                                0, 0,
                                 0, 0,
                                 1, 1,
                                 1, 1,
