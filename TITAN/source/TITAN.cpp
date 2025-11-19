@@ -102,10 +102,10 @@ int main()
     }
 
     // Выбор основного алгоритма расчёта (в данной функции представлены все варианты расчёта: атомы, мгд и т.д.), см. саму функцию
-    S1.Algoritm(10, &S1);
+    S1.Algoritm(1, &S1);
     //S1.Algoritm(8, &S1);
 
-    return 0;
+    //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 
@@ -162,7 +162,7 @@ int main()
 
 
 
-    //S1.Save_cell_parameters("parameters_0064.bin");
+    S1.Save_cell_parameters("parameters_0065.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
