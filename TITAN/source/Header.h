@@ -17,6 +17,7 @@ class Interpol;
 class Int_point;
 class MK_particle;
 enum class Type_Gran_surf;
+enum class Type_cell;
 
 
 #define kv(x) ((x) * (x))

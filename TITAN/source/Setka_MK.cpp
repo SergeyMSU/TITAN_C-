@@ -2972,7 +2972,7 @@ double Setka::Get_Spotok_inf(const Eigen::Vector3d& n)
 	return -(-exp(-kv(Ux)) + sqrtpi_ * Ux * erfc(Ux)) / (2.0 * sqrtpi_);
 }
 
-void Setka::Culc_f_pui_in_cell(Cell* Cel)
+void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interpol& SI_MK)
 {
 	short int pui_nW = this->phys_param->pui_nW;
 	double pui_wR = this->phys_param->pui_wR;
@@ -3013,6 +3013,15 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 	short int zone = determ_zone(Cel, 0);
 	unsigned int step = 0;
 
+	std::array<Cell_handle, 6> prev_cell;
+	std::array<Cell_handle, 6> next_cell;
+	for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
+
+	Cell_handle prev_cell_ = nullptr;
+	Cell_handle next_cell_ = nullptr;
+
+	std::unordered_map<string, double> parameters;
+	double x_do, y_do, z_do;
 
 	if (zone == 1)
 	{
@@ -3027,6 +3036,10 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 
 
 			A = Find_cell_point(r[0], r[1], r[2], 0, prev);
+			x_do = r[0];
+			y_do = r[1];
+			z_do = r[2];
+
 			if (A == nullptr)
 			{
 				cout << "Error 9089h45hgtine5gg" << endl;
@@ -3046,19 +3059,53 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 			//}
 
 			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
-			rho = A->parameters[0]["rho"];
+
+
+			bool bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
+
+			if (bb == true)
+			{
+				for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i];
+
+				rho = parameters["rho"];
+				r[0] -= parameters["Vx"] * dt;
+				r[1] -= parameters["Vy"] * dt;
+				r[2] -= parameters["Vz"] * dt;
+			}
+			else
+			{
+				rho = A->parameters[0]["rho"];
+				r[0] -= A->parameters[0]["Vx"] * dt;
+				r[1] -= A->parameters[0]["Vy"] * dt;
+				r[2] -= A->parameters[0]["Vz"] * dt;
+			}
+
 			qInt = qInt + dt * q1 / rho;
-			r[0] -= A->parameters[0]["Vx"] * dt;
-			r[1] -= A->parameters[0]["Vy"] * dt;
-			r[2] -= A->parameters[0]["Vz"] * dt;
 
 			for (short int iw = 0; iw < pui_nW; iw++)
 			{
 				short int numw = min(int(mas_w[iw] / pui_wR * pui_nW), pui_nW - 1);
 				if (mas_w(iw) < pui_wR && mas_w(iw) > 0)
 				{
-					mas_Sm(iw) = mas_Sm(iw) + nH * A->pui_Sm[numw] * dt;
-					f0_pui(iw) = f0_pui(iw) + nH * A->pui_Sp(0, numw) * dt * exp(-mas_Sm(iw));  // Это S + , просто сразу накапливаем в функцию распределения
+					// Сначала интерполируем Sm и Sp
+					double Sm = 0.0;
+					bool b = this->Get_pui_Sm(Sm, numw, x_do, y_do, z_do,
+						S_MK, SI_MK, prev_cell_, next_cell_);
+					if (b == false)
+					{
+						Sm = A->pui_Sm[numw];
+					}
+
+					double Sp = 0.0;
+					b = this->Get_pui_Sp(Sp, 0, numw, x_do, y_do, z_do,
+						S_MK, SI_MK, prev_cell_, next_cell_);
+					if (b == false)
+					{
+						Sp = A->pui_Sp(0, numw);
+					}
+
+					mas_Sm(iw) = mas_Sm(iw) + nH * Sm * dt;
+					f0_pui(iw) = f0_pui(iw) + nH * Sp * dt * exp(-mas_Sm(iw));  // Это S + , просто сразу накапливаем в функцию распределения
 				}
 				mas_w(iw) = mas_w0(iw) / (pow((rho0 / rho), (1.0 / 3.0)) * exp(-1.0 / 3.0 * qInt));
 			}
@@ -3096,6 +3143,9 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 				//cout << r[0] << " " << r[1] << " " << r[2] << endl;
 				//exit(-1);
 			}
+			x_do = r[0];
+			y_do = r[1];
+			z_do = r[2];
 
 			if (A == A_do)
 			{
@@ -3128,25 +3178,64 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 
 			//dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
 
-			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
-			rho_do = rho;
-			rho = A->parameters[0]["rho"];
-
 			if (zone_now == 1) break;
 
+			bool bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
+
+			if (bb == true)
+			{
+				for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i];
+
+				rho = parameters["rho"];
+				r[0] -= parameters["Vx"] * dt;
+				r[1] -= parameters["Vy"] * dt;
+				r[2] -= parameters["Vz"] * dt;
+			}
+			else
+			{
+				rho = A->parameters[0]["rho"];
+				r[0] -= A->parameters[0]["Vx"] * dt;
+				r[1] -= A->parameters[0]["Vy"] * dt;
+				r[2] -= A->parameters[0]["Vz"] * dt;
+			}
+
+			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
+			rho_do = rho;
 			qInt = qInt + dt * q1 / rho;
-			r[0] -= A->parameters[0]["Vx"] * dt;
-			r[1] -= A->parameters[0]["Vy"] * dt;
-			r[2] -= A->parameters[0]["Vz"] * dt;
 
 			for (short int iw = 0; iw < pui_nW; iw++)
 			{
 				short int numw = min(int(mas_w[iw] / pui_wR * pui_nW), pui_nW - 1);
 				if (mas_w(iw) < pui_wR && mas_w(iw) > 0)
 				{
-					mas_Sm(iw) = mas_Sm(iw) + nH * A->pui_Sm[numw] * dt;
-					f0_pui(iw) = f0_pui(iw) + nH * A->pui_Sp(0, numw) * dt * exp(-mas_Sm(iw));  // Это S + , просто сразу накапливаем в функцию распределения
-					f1_pui(iw) = f1_pui(iw) + nH * A->pui_Sp(1, numw) * dt * exp(-mas_Sm(iw));  // Это S + , просто сразу накапливаем в функцию распределения
+					// Сначала интерполируем Sm и Sp
+					double Sm = 0.0;
+					bool b = this->Get_pui_Sm(Sm, numw, x_do, y_do, z_do,
+						S_MK, SI_MK, prev_cell_, next_cell_);
+					if (b == false)
+					{
+						Sm = A->pui_Sm[numw];
+					}
+
+					double Sp1 = 0.0;
+					b = this->Get_pui_Sp(Sp1, 0, numw, x_do, y_do, z_do,
+						S_MK, SI_MK, prev_cell_, next_cell_);
+					if (b == false)
+					{
+						Sp1 = A->pui_Sp(0, numw);
+					}
+
+					double Sp2 = 0.0;
+					b = this->Get_pui_Sp(Sp2, 1, numw, x_do, y_do, z_do,
+						S_MK, SI_MK, prev_cell_, next_cell_);
+					if (b == false)
+					{
+						Sp2 = A->pui_Sp(1, numw);
+					}
+
+					mas_Sm(iw) = mas_Sm(iw) + nH * Sm * dt;
+					f0_pui(iw) = f0_pui(iw) + nH * Sp1 * dt * exp(-mas_Sm(iw));  // Это S + , просто сразу накапливаем в функцию распределения
+					f1_pui(iw) = f1_pui(iw) + nH * Sp2 * dt * exp(-mas_Sm(iw));  // Это S + , просто сразу накапливаем в функцию распределения
 				}
 				mas_w(iw) = mas_w0(iw) / (pow((rho0 / rho), (1.0 / 3.0)) * exp(-1.0 / 3.0 * qInt));
 			}
@@ -3223,20 +3312,58 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 				//dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
 			}
 
+			x_do = r[0];
+			y_do = r[1];
+			z_do = r[2];
+
+			bool bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
+
+			if (bb == true)
+			{
+				for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i];
+
+				rho = parameters["rho"];
+				r[0] -= parameters["Vx"] * dt;
+				r[1] -= parameters["Vy"] * dt;
+				r[2] -= parameters["Vz"] * dt;
+			}
+			else
+			{
+				rho = A->parameters[0]["rho"];
+				r[0] -= A->parameters[0]["Vx"] * dt;
+				r[1] -= A->parameters[0]["Vy"] * dt;
+				r[2] -= A->parameters[0]["Vz"] * dt;
+			}
+
+
 			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
-			rho = A->parameters[0]["rho"];
 			qInt = qInt + dt * q1 / rho;
-			r[0] -= A->parameters[0]["Vx"] * dt;
-			r[1] -= A->parameters[0]["Vy"] * dt;
-			r[2] -= A->parameters[0]["Vz"] * dt;
 
 			for (short int iw = 0; iw < pui_nW; iw++)
 			{
 				short int numw = min(int(mas_w[iw] / pui_wR * pui_nW), pui_nW - 1);
 				if (mas_w(iw) < pui_wR && mas_w(iw) > 0)
 				{
-					mas_Sm(iw) = mas_Sm(iw) + nH * A->pui_Sm[numw] * dt;
-					f0_pui(iw) = f0_pui(iw) + nH * A->pui_Sp(0, numw) * dt * exp(-mas_Sm(iw)) * s / pow(C, 1.5);  // Это S + , просто сразу накапливаем в функцию распределения
+					// Сначала интерполируем Sm и Sp
+					double Sm = 0.0;
+					bool b = this->Get_pui_Sm(Sm, numw, x_do, y_do, z_do,
+						S_MK, SI_MK, prev_cell_, next_cell_);
+					if (b == false)
+					{
+						Sm = A->pui_Sm[numw];
+					}
+
+					double Sp1 = 0.0;
+					b = this->Get_pui_Sp(Sp1, 0, numw, x_do, y_do, z_do,
+						S_MK, SI_MK, prev_cell_, next_cell_);
+					if (b == false)
+					{
+						Sp1 = A->pui_Sp(0, numw);
+					}
+
+
+					mas_Sm(iw) = mas_Sm(iw) + nH * Sm * dt;
+					f0_pui(iw) = f0_pui(iw) + nH * Sp1 * dt * exp(-mas_Sm(iw)) * s / pow(C, 1.5);  // Это S + , просто сразу накапливаем в функцию распределения
 				}
 				mas_w(iw) = mas_w0(iw) / (pow((rho0 / rho), (1.0 / 3.0)) * exp(-1.0 / 3.0 * qInt));
 			}
@@ -3290,20 +3417,56 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel)
 				//dt = this->geo->R0 / norm2(A->parameters[0]["Vx"], A->parameters[0]["Vy"], A->parameters[0]["Vz"]) / dstep;
 			}
 
+			x_do = r[0];
+			y_do = r[1];
+			z_do = r[2];
+
+			bool bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
+
+			if (bb == true)
+			{
+				for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i];
+
+				rho = parameters["rho"];
+				r[0] -= parameters["Vx"] * dt;
+				r[1] -= parameters["Vy"] * dt;
+				r[2] -= parameters["Vz"] * dt;
+			}
+			else
+			{
+				rho = A->parameters[0]["rho"];
+				r[0] -= A->parameters[0]["Vx"] * dt;
+				r[1] -= A->parameters[0]["Vy"] * dt;
+				r[2] -= A->parameters[0]["Vz"] * dt;
+			}
+
 			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
-			rho = A->parameters[0]["rho"];
 			qInt = qInt + dt * q1 / rho;
-			r[0] -= A->parameters[0]["Vx"] * dt;
-			r[1] -= A->parameters[0]["Vy"] * dt;
-			r[2] -= A->parameters[0]["Vz"] * dt;
 
 			for (short int iw = 0; iw < pui_nW; iw++)
 			{
 				short int numw = min(int(mas_w[iw] / pui_wR * pui_nW), pui_nW - 1);
 				if (mas_w(iw) < pui_wR && mas_w(iw) > 0)
 				{
-					mas_Sm(iw) = mas_Sm(iw) + nH * A->pui_Sm[numw] * dt;
-					f0_pui(iw) = f0_pui(iw) + nH * A->pui_Sp(0, numw) * dt * exp(-mas_Sm(iw));  // Это S + , просто сразу накапливаем в функцию распределения
+					// Сначала интерполируем Sm и Sp
+					double Sm = 0.0;
+					bool b = this->Get_pui_Sm(Sm, numw, x_do, y_do, z_do,
+						S_MK, SI_MK, prev_cell_, next_cell_);
+					if (b == false)
+					{
+						Sm = A->pui_Sm[numw];
+					}
+
+					double Sp1 = 0.0;
+					b = this->Get_pui_Sp(Sp1, 0, numw, x_do, y_do, z_do,
+						S_MK, SI_MK, prev_cell_, next_cell_);
+					if (b == false)
+					{
+						Sp1 = A->pui_Sp(0, numw);
+					}
+
+					mas_Sm(iw) = mas_Sm(iw) + nH * Sm * dt;
+					f0_pui(iw) = f0_pui(iw) + nH * Sp1 * dt * exp(-mas_Sm(iw));  // Это S + , просто сразу накапливаем в функцию распределения
 				}
 				mas_w(iw) = mas_w0(iw) / (pow((rho0 / rho), (1.0 / 3.0)) * exp(-1.0 / 3.0 * qInt));
 			}

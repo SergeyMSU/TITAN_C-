@@ -4325,6 +4325,816 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	out.close();
 }
 
+void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
+{
+	std::ofstream out(filename, std::ios::binary);
+	if (!out) {
+		cout << "Error 097564537  Can not  open file to writing: " + filename << endl;
+		exit(-1);
+	}
+
+	bool razriv = false;
+	// Записываем есть ли особенная интерполяция на разрывах (или всё сплошным образом)
+	out.write(reinterpret_cast<const char*>(&razriv), sizeof(bool));
+
+	// Записываем до какого расстояния слева выделяется HP
+	out.write(reinterpret_cast<const char*>(&this->geo->L6), sizeof(double));
+
+	// Добавляем ещё переменные для вывода  "BB/8pi"
+	if (true)
+	{
+		this->phys_param->param_names.push_back("BB/8pi");
+		for (const auto& Cel : this->All_Cell)
+		{
+			Cel->parameters[0]["BB/8pi"] = kvv(Cel->parameters[0]["Bx"],
+				Cel->parameters[0]["By"], Cel->parameters[0]["Bz"]) / (8.0 * const_pi);
+		}
+		this->Cell_Center->parameters[0]["BB/8pi"] = kvv(this->Cell_Center->parameters[0]["Bx"],
+			this->Cell_Center->parameters[0]["By"], this->Cell_Center->parameters[0]["Bz"]) / (8.0 * const_pi);
+	}
+
+
+	// Записываем количество строк
+	size_t size = this->phys_param->param_names.size() + 1;
+	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+	// Записываем каждую строку
+	for (const auto& str : this->phys_param->param_names) {
+		// Сначала записываем длину строки
+		size_t str_size = str.size();
+		out.write(reinterpret_cast<const char*>(&str_size), sizeof(str_size));
+		// Затем саму строку
+		out.write(str.data(), str_size);
+	}
+
+	cout << "All parameters (send): " << endl;
+	for (const auto& i : this->phys_param->param_names)
+	{
+		cout << i << "  ";
+	}
+	cout << endl;
+
+	// Добавляем геометрическую зону
+	if (true)
+	{
+		string str = "zone_geo";
+		size_t str_size = str.size();
+		out.write(reinterpret_cast<const char*>(&str_size), sizeof(str_size));
+		out.write(str.data(), str_size);
+	}
+
+	// Считаем сколько дополнительных ячеек будет на внешней границе
+	unsigned int gr_b = 0;
+
+	if (true)
+	{
+		if (true)
+		{
+			unsigned int N_cell = 0;
+			for (const auto& Cel : this->All_Cell)
+			{
+				Cel->is_need = static_cast<short int>(Cel->type);
+
+				if (Cel->type == ZONA) N_cell++;
+			}
+
+			if (ZONA == Type_cell::Zone_1) N_cell++;
+
+			// Записываем количество ячеек
+			size = N_cell; // + Центр?
+			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+			for (const auto& Cel : this->All_Cell)
+			{
+				if (Cel->type != ZONA) continue;
+				double aa = Cel->center[0][0];
+				double bb = Cel->center[0][1];
+				double cc = Cel->center[0][2];
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+
+					if (Cel->parameters[0].find(i) != Cel->parameters[0].end())
+					{
+						aa = Cel->parameters[0][i];
+					}
+
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+
+				double zzz = static_cast<double>(Cel->is_need);
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+			}
+
+			// Записываем центральную точку
+			if (ZONA == Type_cell::Zone_1)
+			{
+				double aa = 0.0;
+				double bb = 0.0;
+				double cc = 0.0;
+				out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
+				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
+
+				for (const auto& i : this->phys_param->param_names)
+				{
+					aa = 0.0;
+					if (this->Cell_Center->parameters[0].find(i) != this->Cell_Center->parameters[0].end())
+					{
+						aa = this->Cell_Center->parameters[0][i];
+					}
+					out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+				}
+
+				//cout << "================  " << this->Cell_Center->parameters[0]["rho"] << endl;
+
+				double zzz = 1.0;
+				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
+				//cout << "================  " << zzz << endl;
+			}
+		}
+	}
+
+	unordered_map<string, double> par_left, par_right;
+	// Запишем координаты поверхностей (на самом деле центров граней)
+
+	int test_i = 121;
+	out.write(reinterpret_cast<const char*>(&test_i), sizeof(int));
+
+	// TS
+	if (true)
+	{
+		size = this->Gran_TS.size() * 7;
+		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+		std::ofstream outfile("TS_interpol.txt");
+
+		for (const auto& gr : this->Gran_TS)
+		{
+			double aa = gr->center[0][0];
+			double bb = gr->center[0][1];
+			double cc = gr->center[0][2];
+
+			double r_1, the_1, phi_1;
+
+			r_1 = sqrt(aa * aa + bb * bb + cc * cc);
+			the_1 = acos(aa / r_1);
+			phi_1 = polar_angle(bb, cc);
+
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
+
+			// Симметрия phi
+			phi_1 = phi_1 + 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
+
+			// Симметрия phi
+			phi_1 = phi_1 - 2 * const_pi;
+			phi_1 = phi_1 - 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
+
+			// Симметрия - theta
+			phi_1 = phi_1 + 2 * const_pi;  // вернул
+			the_1 = -the_1;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
+
+			// Симметрия - theta  phi
+			phi_1 = phi_1 + 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
+
+			// Симметрия - theta  phi
+			phi_1 = phi_1 - 2 * const_pi; // вернул
+			phi_1 = phi_1 - 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
+
+			// Симметрия - theta
+			phi_1 = phi_1 + 2 * const_pi; // вернул
+			the_1 = -the_1;
+			the_1 = 2 * const_pi - the_1;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			for (const auto& str : this->phys_param->param_names)
+			{
+				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
+				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
+			}
+		}
+
+		outfile.close();
+	}
+
+	test_i = 122;
+	out.write(reinterpret_cast<const char*>(&test_i), sizeof(int));
+
+	// HP
+	if (true)
+	{
+		// сначала радиальная запись HP
+		size = 0;
+		for (const auto& gr : this->Gran_HP)
+		{
+			double aa = gr->center[0][0];
+			if (aa >= -5.0) size++;
+		}
+		size = size * 4 + 101 + 120;
+		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+		std::ofstream outfile("HP_interpol.txt");
+
+		for (const auto& gr : this->Gran_HP)
+		{
+			double aa = gr->center[0][0];
+			double bb = gr->center[0][1];
+			double cc = gr->center[0][2];
+
+			if (aa < -5.0) continue;
+
+			double r_1, the_1, phi_1;
+
+			r_1 = sqrt(aa * aa + bb * bb + cc * cc);
+			the_1 = acos(aa / r_1);
+			phi_1 = polar_angle(bb, cc);
+
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия phi
+			phi_1 = phi_1 + 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия phi
+			phi_1 = phi_1 - 2 * const_pi;
+			phi_1 = phi_1 - 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия - theta
+			phi_1 = phi_1 + 2 * const_pi;
+			the_1 = -the_1;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+		}
+
+		// добавим нулевую точку 101 раз
+		if (true)
+		{
+			double time;
+			bool bb = false;
+			Gran* G = nullptr;
+			Eigen::Vector3d orig, Vel;
+
+			for (const auto& gr : this->Gran_HP)
+			{
+				orig << 0.0, 0.0, 0.0;
+				Vel << 1.0, 0.0, 0.0;
+				bool aa = gr->Luch_crossing(orig, Vel, time);
+				if (aa == true && time > 0)
+				{
+					G = gr;
+					bb = true;
+					break;
+				}
+			}
+
+			if (bb == false)
+			{
+				cout << "Error 7657367y5h4w56346  " << endl;
+				exit(-1);
+			}
+
+			Eigen::Vector3d CC;
+			CC = orig + Vel * time;
+
+			double r_1, the_1, phi_1;
+
+			r_1 = CC.norm();
+			the_1 = acos(CC[0] / r_1);
+			phi_1 = -0.06;
+
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			Gran* gr = G;
+
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(double));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(double));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(double));
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(double));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
+
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
+
+			for (size_t ii = 0; ii < 100; ii++)
+			{
+				phi_1 = -0.05 + ii * (2.2 * const_pi) / 100.0;
+				outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+				out.write(reinterpret_cast<const char*>(&the_1), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&phi_1), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&r_1), sizeof(double));
+
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
+
+				out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
+			}
+
+		}
+
+		// добавим нулевую точку 101 раз
+		if (true)
+		{
+			double time;
+			bool bb = false;
+			Gran* G = nullptr;
+			Eigen::Vector3d orig, Vel;
+			for (size_t ii = 0; ii < 120; ii++)
+			{
+				double phi_1 = -const_pi / 9.176784 + ii * (2 * const_pi / (120 - 10));
+				for (const auto& gr : this->Gran_HP)
+				{
+					orig << 0.0, 0.0, 0.0;
+					Vel << 0.0, cos(phi_1), sin(phi_1);
+					bool aa = gr->Luch_crossing(orig, Vel, time);
+					if (aa == true && time > 0)
+					{
+						G = gr;
+						bb = true;
+						break;
+					}
+				}
+
+				if (bb == false)
+				{
+					cout << "Error 7657367y5h4w56346  " << endl;
+					exit(-1);
+				}
+
+				Eigen::Vector3d CC;
+				CC = orig + Vel * time;
+
+				double r_1, the_1;
+
+				r_1 = CC.norm();
+				the_1 = acos(CC[0] / r_1);
+
+				outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+				Gran* gr = G;
+
+				out.write(reinterpret_cast<const char*>(&the_1), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&phi_1), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&r_1), sizeof(double));
+
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
+
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+				out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
+			}
+
+		}
+
+
+		outfile.close();
+
+		// Теперь цилиндрическая запись HP
+
+		size_t size_x = 100;
+		size_t size_phi = 120;
+
+		out.write(reinterpret_cast<const char*>(&size_x), sizeof(size_x));
+		out.write(reinterpret_cast<const char*>(&size_phi), sizeof(size_phi));
+		outfile.open("HP_2_interpol.txt");
+
+		for (size_t i = 0; i < size_phi; ++i)
+		{
+			for (size_t j = 0; j < size_x; ++j)
+			{
+				double phi_ = -const_pi / 9.176784 + i * (2 * const_pi / (size_phi - 10));
+				double x_ = this->geo->L6 * 0.9999 + j * (-this->geo->L6 + 5) / size_x;
+				double time;
+				bool bb = false;
+				Gran* G = nullptr;
+				Eigen::Vector3d orig, Vel;
+
+				for (const auto& gr : this->Gran_HP)
+				{
+					orig << x_, 0.0, 0.0;
+					Vel << 0.0, cos(phi_), sin(phi_);
+					bool aa = gr->Luch_crossing(orig, Vel, time);
+					if (aa == true && time > 0)
+					{
+						G = gr;
+						bb = true;
+						break;
+					}
+				}
+
+				if (bb == false)
+				{
+					cout << "Error 8765ugeugg346  " << endl;
+					cout << x_ << " " << phi_ << endl;
+					exit(-1);
+				}
+
+				Eigen::Vector3d CC;
+				CC = orig + Vel * time;
+
+				double r_1 = sqrt(kv(CC[1]) + kv(CC[2]));
+
+				outfile << x_ << " " << phi_ << " " << r_1 << endl;
+
+				Gran* gr = G;
+
+				out.write(reinterpret_cast<const char*>(&x_), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&phi_), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&r_1), sizeof(double));
+
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
+
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+				out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
+
+			}
+		}
+		outfile.close();
+	}
+
+	test_i = 123;
+	out.write(reinterpret_cast<const char*>(&test_i), sizeof(int));
+
+	// BS
+	if (true)
+	{
+		// сначала радиальная запись BS
+		size = 0;
+		for (const auto& gr : this->Gran_BS)
+		{
+			double aa = gr->center[0][0];
+			size++;
+		}
+		size = size * 4 + 101 + 120;
+		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+		std::ofstream outfile("BS_interpol.txt");
+
+		for (const auto& gr : this->Gran_BS)
+		{
+			double aa = gr->center[0][0];
+			double bb = gr->center[0][1];
+			double cc = gr->center[0][2];
+
+			double r_1, the_1, phi_1;
+
+			r_1 = sqrt(aa * aa + bb * bb + cc * cc);
+			the_1 = acos(aa / r_1);
+			phi_1 = polar_angle(bb, cc);
+
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия phi
+			phi_1 = phi_1 + 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия phi
+			phi_1 = phi_1 - 2 * const_pi;
+			phi_1 = phi_1 - 2 * const_pi;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+			// Симметрия - theta
+			phi_1 = phi_1 + 2 * const_pi;
+			the_1 = -the_1;
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(aa));
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
+
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
+
+		}
+
+		// добавим нулевую точку 101 раз
+		if (true)
+		{
+			double time;
+			bool bb = false;
+			Gran* G = nullptr;
+			Eigen::Vector3d orig, Vel;
+
+			for (const auto& gr : this->Gran_BS)
+			{
+				orig << 0.0, 0.0, 0.0;
+				Vel << 1.0, 0.0, 0.0;
+				bool aa = gr->Luch_crossing(orig, Vel, time);
+				if (aa == true && time > 0)
+				{
+					G = gr;
+					bb = true;
+					break;
+				}
+			}
+
+			if (bb == false)
+			{
+				cout << "Error 7657367y5h4w56346  " << endl;
+				exit(-1);
+			}
+
+			Eigen::Vector3d CC;
+			CC = orig + Vel * time;
+
+			double r_1, the_1, phi_1;
+
+			r_1 = CC.norm();
+			the_1 = acos(CC[0] / r_1);
+			phi_1 = -0.06;
+
+			outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+			Gran* gr = G;
+
+			out.write(reinterpret_cast<const char*>(&the_1), sizeof(double));
+			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(double));
+			out.write(reinterpret_cast<const char*>(&r_1), sizeof(double));
+
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(double));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
+			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
+
+			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
+			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
+
+			for (size_t ii = 0; ii < 100; ii++)
+			{
+				phi_1 = -0.05 + ii * (2.2 * const_pi) / 100.0;
+				outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+				out.write(reinterpret_cast<const char*>(&the_1), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&phi_1), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&r_1), sizeof(double));
+
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
+
+				out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
+			}
+
+		}
+
+		// добавим доп точку 120 раз
+		if (true)
+		{
+			double time;
+			bool bb = false;
+			Gran* G = nullptr;
+			Eigen::Vector3d orig, Vel;
+			for (size_t ii = 0; ii < 120; ii++)
+			{
+				double phi_1 = -const_pi / 9.176784 + ii * (2 * const_pi / (120 - 10));
+				for (const auto& gr : this->Gran_BS)
+				{
+					orig << 0.0001, 0.0, 0.0;
+					Vel << 0.0, cos(phi_1), sin(phi_1);
+					bool aa = gr->Luch_crossing(orig, Vel, time);
+					if (aa == true && time > 0)
+					{
+						G = gr;
+						bb = true;
+						break;
+					}
+				}
+
+				if (bb == false)
+				{
+					cout << "Error yurthrtegdk76  " << endl;
+					exit(-1);
+				}
+
+				Eigen::Vector3d CC;
+				CC = orig + Vel * time;
+
+				double r_1, the_1;
+
+				r_1 = CC.norm();
+				the_1 = acos(CC[0] / r_1);
+
+				outfile << the_1 << " " << phi_1 << " " << r_1 << endl;
+
+				Gran* gr = G;
+
+				out.write(reinterpret_cast<const char*>(&the_1), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&phi_1), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&r_1), sizeof(double));
+
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][0]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(double));
+
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+				out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(double));
+				out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(double));
+			}
+
+		}
+
+
+		outfile.close();
+	}
+
+	test_i = 124;
+	out.write(reinterpret_cast<const char*>(&test_i), sizeof(int));
+
+
+	for (size_t i = 0; i < 999; i++)
+	{
+		bool aa = false;
+		out.write(reinterpret_cast<const char*>(&aa), sizeof(aa));
+	}
+
+	out.close();
+}
+
+
 void Setka::Save_cell_pui_parameters(string filename)
 {
 	std::ofstream out("PUI_" + filename, std::ios::binary);

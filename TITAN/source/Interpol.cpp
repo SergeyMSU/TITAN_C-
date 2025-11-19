@@ -784,9 +784,9 @@ know_zone:
 
 
 bool Interpol::Get_real_cells(const double& x, const double& y, const double& z,
-    vector<int> num_cell, vector<double> koeff_cell, const Cell_handle& prev_cell, Cell_handle& next_cell)
+    vector<int>& num_cell, vector<double>& koeff_cell, const Cell_handle& prev_cell, Cell_handle& next_cell)
 {
-    if (this->razriv == false)
+    if (this->razriv == true)
     {
         cout << "Error 9j4fuheuohfguweorghuiyesrhgesgr" << endl;
         exit(-1);

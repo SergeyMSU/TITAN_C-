@@ -254,6 +254,7 @@ public:
 	void PereInterpolate(Interpol* SS, bool move, bool MK_only = false);
 
 	void Save_for_interpolate(string filename, bool razriv = false);
+	void Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA);
 
 	// Монте карло ***********************************************************
 	void MK_prepare(short int zone_MK); // Настройка всего для Монте-Карло
@@ -275,7 +276,14 @@ public:
 	// Считает поток
 	// нормаль должна быть внешняя
 
-	void Culc_f_pui_in_cell(Cell* Cel); // Считает функцию/функции распределения пикапов в данной ячейке
+
+	bool Get_pui_Sm(double& pui_Sm, int n, double& x, double& y, double& z,
+		Setka& S_MK, Interpol& SI_MK, Cell_handle& prev_cell, Cell_handle& next_cell);
+
+	bool Get_pui_Sp(double& pui_Sp, short int ii, int n, double& x, double& y, double& z,
+		Setka& S_MK, Interpol& SI_MK, Cell_handle& prev_cell, Cell_handle& next_cell);
+
+	void Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interpol& SI_MK); // Считает функцию/функции распределения пикапов в данной ячейке
 	// Обязательное условие, что S+ и S- загружены для всех ячеек в сетке!
 
 	void mas_pogl_Culc(const double& ex, const double& ey, const double& ez, const string& name);
