@@ -797,22 +797,26 @@ bool Interpol::Get_real_cells(const double& x, const double& y, const double& z,
     if (radius < 0.1) return false;
 
     // Определили интерполяционную зону, теперь делаем интерполяцию
-know_zone:
-    //cout << "A4" << endl;
+    // 
+    //cout << "A01" << endl;
     Point query(x, y, z);
     Cell_handle containing_cell;
     std::vector <Int_point*>* CCC = nullptr;
     //cout << "A02" << endl;
     
     CCC = &this->Cells_1;
+
+    this->mut_Delone_1.lock();
     containing_cell = this->Delone_1->locate(query, prev_cell);
+    this->mut_Delone_1.unlock();
+
     if (this->Delone_1->is_infinite(containing_cell))
     {
         return false;
     }
     next_cell = containing_cell;
     
-    //cout << "A2" << endl;
+    //cout << "A03" << endl;
     // Получаем вершины тетраэдра 
     Point& p0 = containing_cell->vertex(0)->point();
     Point& p1 = containing_cell->vertex(1)->point();
@@ -824,13 +828,22 @@ know_zone:
     size_t i2 = containing_cell->vertex(2)->info();
     size_t i3 = containing_cell->vertex(3)->info();
 
+    //cout << "A031" << endl;
+
+    if (num_cell.size() < 4) num_cell.resize(4);
+    if (koeff_cell.size() < 4) koeff_cell.resize(4);
+
     num_cell[0] = i0;
     num_cell[1] = i1;
     num_cell[2] = i2;
     num_cell[3] = i3;
 
+    //cout << "A04" << endl;
+
     // Вычисляем барицентрические координаты 
     auto coords = barycentric_coordinates(query, Tetrahedron(p0, p1, p2, p3));
+
+    //cout << "A05" << endl;
 
     koeff_cell[0] = coords[0];
 	koeff_cell[1] = coords[1];

@@ -416,14 +416,14 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		// Важно - источники S+ S- хранятся на сетке МК
 		// Но PUI считаются на основной сетке!
 
-		//#pragma omp parallel for schedule(dynamic)
+		#pragma omp parallel for schedule(dynamic)
 		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
 		{
 			auto A = this->All_Cell[idx];
 			#pragma omp critical (gergergerg4) 
 			{
 				st++;
-				if (st % 1 == 0)
+				if (st % 500 == 0)
 				{
 					cout << "st = " << st << "   from " << this->All_Cell.size() << endl;
 				}
@@ -433,15 +433,15 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			//if (file_exists(filename) == true) continue;
 
 			short int zone = this->determ_zone(A, 0);
-			cout << "A" << endl;
+			//cout << "A" << endl;
 			A->Init_f_pui(this->phys_param->pui_nW, zone);
-			cout << "B" << endl;
+			//cout << "B" << endl;
 			this->Culc_f_pui_in_cell(A, Smc, SI_main, SI_MK);
-			cout << "C" << endl;
+			//cout << "C" << endl;
 			A->write_pui_ToFile();
-			cout << "D" << endl;
+			//cout << "D" << endl;
 			A->Delete_f_pui();
-			cout << "F" << endl;
+			//cout << "F" << endl;
 		}
 		cout << "End: Culc PUI" << endl;
 
@@ -1090,7 +1090,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 
 		// Рисует тетраэдры в текплот
-		if (false)
+		if (true)
 		{
 			
 
@@ -1143,7 +1143,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		// Трассируем линии тока
-		if (true)
+		if (false)
 		{
 			std::ofstream file("I_IHS.txt");
 			file << "VARIABLES = X, Y, Z, I" << std::endl;

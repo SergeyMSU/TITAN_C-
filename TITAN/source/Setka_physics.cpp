@@ -3554,7 +3554,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			}
 
 			// Записываем количество ячеек
-			size = this->All_Cell.size() + 1; // + Центр
+			size = this->All_Cell.size(); // + Центр
 			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 			for (const auto& Cel : this->All_Cell)
@@ -3584,7 +3584,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			}
 
 			// Записываем центральную точку
-			if (true)
+			if (false)
 			{
 				double aa = 0.0;
 				double bb = 0.0;

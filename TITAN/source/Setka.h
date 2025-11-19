@@ -276,11 +276,13 @@ public:
 	// —читает поток
 	// нормаль должна быть внешн€€
 
-
-	bool Get_pui_Sm(double& pui_Sm, int n, double& x, double& y, double& z,
+	bool Get_pui_SS(vector<double>& pui_Sm, vector<double>& pui_Sp1, vector<double>& pui_Sp2, short int ii, const double& x, const double& y, const double& z,
 		Setka& S_MK, Interpol& SI_MK, Cell_handle& prev_cell, Cell_handle& next_cell);
 
-	bool Get_pui_Sp(double& pui_Sp, short int ii, int n, double& x, double& y, double& z,
+	bool Get_pui_Sm(double& pui_Sm, int n, const double& x, const double& y, const double& z,
+		Setka& S_MK, Interpol& SI_MK, Cell_handle& prev_cell, Cell_handle& next_cell);
+
+	bool Get_pui_Sp(double& pui_Sp, short int ii, int n, const double& x, const double& y, const double& z,
 		Setka& S_MK, Interpol& SI_MK, Cell_handle& prev_cell, Cell_handle& next_cell);
 
 	void Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interpol& SI_MK); // —читает функцию/функции распределени€ пикапов в данной €чейке

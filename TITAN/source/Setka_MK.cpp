@@ -2978,6 +2978,8 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 	double pui_wR = this->phys_param->pui_wR;
 	double nH = this->phys_param->par_n_H_LISM;
 
+	bool main_interpol = false;
+
 	const short int dstep = 2;  // На сколько дробим шаг по времени (по сравнению со временем пролёта 1 ае)
 
 	Eigen::VectorXd mas_w0(pui_nW);
@@ -2986,12 +2988,16 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 	Eigen::VectorXd f1_pui(pui_nW);
 	Eigen::VectorXd mas_Sm(pui_nW);
 
+	vector<double> mas_Sm_(pui_nW);
+	vector<double> mas_Sp1_(pui_nW);
+	vector<double> mas_Sp2_(pui_nW);
+
 	Eigen::Vector3d r;
 	r[0] = Cel->center[0][0];
 	r[1] = Cel->center[0][1];
 	r[2] = Cel->center[0][2];
 
-	double dt = 0.0001;
+	double dt = 0.001;
 	double rho0 = Cel->parameters[0]["rho"];
 	double qInt = 0.0;               // Интеграл от источника массы при ионизации
 	double q1, rho, rho_do;
@@ -3017,11 +3023,13 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 	std::array<Cell_handle, 6> next_cell;
 	for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
 
-	Cell_handle prev_cell_ = nullptr;
+	Cell_handle prev_cell_ = Cell_handle();
 	Cell_handle next_cell_ = nullptr;
 
 	std::unordered_map<string, double> parameters;
 	double x_do, y_do, z_do;
+
+	//cout << "Start zone = " << zone << endl;
 
 	if (zone == 1)
 	{
@@ -3060,8 +3068,10 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 
 			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
 
-
-			bool bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
+			//cout << "C1 " << endl;
+			bool bb = false;
+			if(main_interpol) bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
+			//cout << "C2 " << endl;
 
 			if (bb == true)
 			{
@@ -3082,26 +3092,31 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 
 			qInt = qInt + dt * q1 / rho;
 
+			//cout << "C3 " << endl;
+
+			bool b = this->Get_pui_SS(mas_Sm_, mas_Sp1_, mas_Sp2_, 1, x_do, y_do, z_do,
+				S_MK, SI_MK, prev_cell_, next_cell_);
+
 			for (short int iw = 0; iw < pui_nW; iw++)
 			{
 				short int numw = min(int(mas_w[iw] / pui_wR * pui_nW), pui_nW - 1);
 				if (mas_w(iw) < pui_wR && mas_w(iw) > 0)
 				{
 					// Сначала интерполируем Sm и Sp
-					double Sm = 0.0;
-					bool b = this->Get_pui_Sm(Sm, numw, x_do, y_do, z_do,
-						S_MK, SI_MK, prev_cell_, next_cell_);
+					double Sm = mas_Sm_[numw];
 					if (b == false)
 					{
-						Sm = A->pui_Sm[numw];
+						//cout << "ERROR wergvwevrtgewte44" << endl;
+						//Sm = A->pui_Sm[numw];
+						Sm = 0.0;
 					}
 
-					double Sp = 0.0;
-					b = this->Get_pui_Sp(Sp, 0, numw, x_do, y_do, z_do,
-						S_MK, SI_MK, prev_cell_, next_cell_);
+					double Sp = mas_Sp1_[numw];
 					if (b == false)
 					{
-						Sp = A->pui_Sp(0, numw);
+						//cout << "ERROR werfg345tb4t345" << endl;
+						//Sp = A->pui_Sp(0, numw);
+						Sp = 0.0;
 					}
 
 					mas_Sm(iw) = mas_Sm(iw) + nH * Sm * dt;
@@ -3109,6 +3124,7 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 				}
 				mas_w(iw) = mas_w0(iw) / (pow((rho0 / rho), (1.0 / 3.0)) * exp(-1.0 / 3.0 * qInt));
 			}
+			//cout << "C4 " << endl;
 
 			if (r.norm() < 1.01 * this->geo->R0) break;
 		}
@@ -3180,7 +3196,9 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 
 			if (zone_now == 1) break;
 
-			bool bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
+			bool bb = false;
+			if (main_interpol) bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
+
 
 			if (bb == true)
 			{
@@ -3203,34 +3221,37 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 			rho_do = rho;
 			qInt = qInt + dt * q1 / rho;
 
+			bool b = this->Get_pui_SS(mas_Sm_, mas_Sp1_, mas_Sp2_, 2, x_do, y_do, z_do,
+				S_MK, SI_MK, prev_cell_, next_cell_);
+
 			for (short int iw = 0; iw < pui_nW; iw++)
 			{
 				short int numw = min(int(mas_w[iw] / pui_wR * pui_nW), pui_nW - 1);
 				if (mas_w(iw) < pui_wR && mas_w(iw) > 0)
 				{
 					// Сначала интерполируем Sm и Sp
-					double Sm = 0.0;
-					bool b = this->Get_pui_Sm(Sm, numw, x_do, y_do, z_do,
-						S_MK, SI_MK, prev_cell_, next_cell_);
+					double Sm = mas_Sm_[numw];
 					if (b == false)
 					{
-						Sm = A->pui_Sm[numw];
+						//cout << "ERROR fwerfe4tf34tf345t34" << endl;
+						//Sm = A->pui_Sm[numw];
+						Sm = 0.0;
 					}
 
-					double Sp1 = 0.0;
-					b = this->Get_pui_Sp(Sp1, 0, numw, x_do, y_do, z_do,
-						S_MK, SI_MK, prev_cell_, next_cell_);
+					double Sp1 = mas_Sp1_[numw];
 					if (b == false)
 					{
-						Sp1 = A->pui_Sp(0, numw);
+						//cout << "ERROR wergvwevrtg34tr34tr34" << endl;
+						Sp1 = 0.0;
+						//Sp1 = A->pui_Sp(0, numw);
 					}
 
-					double Sp2 = 0.0;
-					b = this->Get_pui_Sp(Sp2, 1, numw, x_do, y_do, z_do,
-						S_MK, SI_MK, prev_cell_, next_cell_);
+					double Sp2 = mas_Sp2_[numw];
 					if (b == false)
 					{
-						Sp2 = A->pui_Sp(1, numw);
+						//cout << "ERROR wergvwevertertgewte44" << endl;
+						Sp2 = 0.0;
+						//Sp2 = A->pui_Sp(1, numw);
 					}
 
 					mas_Sm(iw) = mas_Sm(iw) + nH * Sm * dt;
@@ -3316,7 +3337,8 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 			y_do = r[1];
 			z_do = r[2];
 
-			bool bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
+			bool bb = false;
+			if (main_interpol) bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
 
 			if (bb == true)
 			{
@@ -3339,26 +3361,29 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
 			qInt = qInt + dt * q1 / rho;
 
+			bool b = this->Get_pui_SS(mas_Sm_, mas_Sp1_, mas_Sp2_, 1, x_do, y_do, z_do,
+				S_MK, SI_MK, prev_cell_, next_cell_);
+
 			for (short int iw = 0; iw < pui_nW; iw++)
 			{
 				short int numw = min(int(mas_w[iw] / pui_wR * pui_nW), pui_nW - 1);
 				if (mas_w(iw) < pui_wR && mas_w(iw) > 0)
 				{
 					// Сначала интерполируем Sm и Sp
-					double Sm = 0.0;
-					bool b = this->Get_pui_Sm(Sm, numw, x_do, y_do, z_do,
-						S_MK, SI_MK, prev_cell_, next_cell_);
+					double Sm = mas_Sm_[numw];
 					if (b == false)
 					{
-						Sm = A->pui_Sm[numw];
+						//cout << "ERROR wergvwevrtgewtertferfefewee44" << endl;
+						//Sm = A->pui_Sm[numw];
+						Sm = 0.0;
 					}
 
-					double Sp1 = 0.0;
-					b = this->Get_pui_Sp(Sp1, 0, numw, x_do, y_do, z_do,
-						S_MK, SI_MK, prev_cell_, next_cell_);
+					double Sp1 = mas_Sp1_[numw];
 					if (b == false)
 					{
-						Sp1 = A->pui_Sp(0, numw);
+						//cout << "ERROR wergvwevr3453452345tgewte44" << endl;
+						//Sp1 = A->pui_Sp(0, numw);
+						Sp1 = 0.0;
 					}
 
 
@@ -3421,7 +3446,9 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 			y_do = r[1];
 			z_do = r[2];
 
-			bool bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
+			bool bb = false;
+			if (main_interpol) bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
+
 
 			if (bb == true)
 			{
@@ -3443,26 +3470,30 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 			q1 = 0.0;  // Если есть ионизация, надо сюда дописывать
 			qInt = qInt + dt * q1 / rho;
 
+			bool b = this->Get_pui_SS(mas_Sm_, mas_Sp1_, mas_Sp2_, 1, x_do, y_do, z_do,
+				S_MK, SI_MK, prev_cell_, next_cell_);
+
 			for (short int iw = 0; iw < pui_nW; iw++)
 			{
 				short int numw = min(int(mas_w[iw] / pui_wR * pui_nW), pui_nW - 1);
 				if (mas_w(iw) < pui_wR && mas_w(iw) > 0)
 				{
 					// Сначала интерполируем Sm и Sp
-					double Sm = 0.0;
-					bool b = this->Get_pui_Sm(Sm, numw, x_do, y_do, z_do,
-						S_MK, SI_MK, prev_cell_, next_cell_);
+					double Sm = mas_Sm_[numw];
 					if (b == false)
 					{
-						Sm = A->pui_Sm[numw];
+						//cout << "ERROR wergvwevrtgewterwrwere44" << endl;
+						//cout << x_do << " " <<  y_do << " " << z_do << endl;
+						//Sm = A->pui_Sm[numw];
+						Sm = 0.0;
 					}
 
-					double Sp1 = 0.0;
-					b = this->Get_pui_Sp(Sp1, 0, numw, x_do, y_do, z_do,
-						S_MK, SI_MK, prev_cell_, next_cell_);
+					double Sp1 = mas_Sp1_[numw];
 					if (b == false)
 					{
-						Sp1 = A->pui_Sp(0, numw);
+						//cout << "ERROR wergvwevrtgewtewerwqerwer232244" << endl;
+						//Sp1 = A->pui_Sp(0, numw);
+						Sp1 = 0.0;
 					}
 
 					mas_Sm(iw) = mas_Sm(iw) + nH * Sm * dt;
