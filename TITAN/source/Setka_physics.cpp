@@ -344,14 +344,15 @@ void Setka::Init_physics(void)
 		for (auto& i : this->All_Cell)
 		{
 			
-			double r = norm2(i->center[0][0], i->center[0][1], i->center[0][2]);
+			double r = norm2(0.0, i->center[0][1], i->center[0][2]);
 
 			int zone = determ_zone(i, 0);
-			if (i->center[0][0] > 100.0)
+			if (r > 330.0)
 			{
 				i->parameters[0]["rho"] = this->phys_param->rho_LISM;
 				i->parameters[0]["rho_He"] = this->phys_param->rho_HE_LISM; 
 				i->parameters[0]["p"] = this->phys_param->rho_p_LISM; 
+				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters[0]["Vy"] = 0.0;
 				i->parameters[0]["Vz"] = 0.0;
 				i->parameters[0]["Bx"] = this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
@@ -5358,6 +5359,8 @@ void Setka::Download_cell_MK_parameters(string filename, short int zone_except)
 		exit(-1);
 	}
 
+	cout << "Start Download_cell_MK_parameters  for  setka " << this->name << endl;
+
 	vector<string> param_file;
 	//cout << "MK_parameters: ";
 	size_t size;
@@ -5391,6 +5394,7 @@ void Setka::Download_cell_MK_parameters(string filename, short int zone_except)
 			{
 				ii->parameters[0][pair] = value;
 			}
+
 		}
 	}
 
@@ -6267,4 +6271,96 @@ void Setka::Culc_divergence_in_cell(void)
 	}
 
 	cout << "End: Culc_divergence_in_cell" << endl;
+}
+
+
+void Setka::Culc_gradient_in_cell(void)
+{
+	cout << "Start: Culc_grad_in_cell" << endl;
+
+	this->phys_param->param_names.push_back("gradBB_x");
+	this->phys_param->param_names.push_back("gradBB_y");
+	this->phys_param->param_names.push_back("gradBB_z");
+	//this->phys_param->param_names.push_back("div_et");
+	//this->phys_param->param_names.push_back("gradK_x");
+	//this->phys_param->param_names.push_back("gradK_y");
+	//this->phys_param->param_names.push_back("gradK_z");
+	//this->phys_param->param_names.push_back("et_x");
+	//this->phys_param->param_names.push_back("et_y");
+	//this->phys_param->param_names.push_back("et_z");
+	// Добавили переменную для интерполяции
+
+#pragma omp parallel for
+	for (size_t i_step = 0; i_step < this->All_Cell.size(); i_step++)
+	{
+		unordered_map<string, double> par_left, par_right;
+		Eigen::Vector3d normal;
+		Eigen::Vector3d eB;
+
+		auto& cell = this->All_Cell[i_step];
+		double gr_x = 0.0;
+		double gr_y = 0.0;
+		double gr_z = 0.0;
+
+
+		// пробегаемся по всем граням 
+		for (const auto& gr : cell->grans)
+		{
+			eB << 0.0, 0.0, 0.0;
+
+
+			if (gr->cells[0] == cell)
+			{
+				normal << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
+			}
+			else
+			{
+				normal << -gr->normal[0][0], -gr->normal[0][1], -gr->normal[0][2];
+			}
+
+			if (gr->type == Type_Gran::Us)
+			{
+				this->Snos_on_Gran(gr, par_left, par_right, 0, true);
+
+				if (gr->type2 == Type_Gran_surf::Us)
+				{
+					eB << (par_left["Bx"] + par_right["Bx"]) / 2.0,
+						(par_left["By"] + par_right["By"]) / 2.0,
+						(par_left["Bz"] + par_right["Bz"]) / 2.0;
+				}
+				else
+				{
+					if (gr->cells[0] == cell)
+					{
+						eB << par_left["Bx"],
+							par_left["By"],
+							par_left["Bz"];
+					}
+					else
+					{
+						eB << par_right["Bx"],
+							par_right["By"],
+							par_right["Bz"];
+					}
+				}
+			}
+			else
+			{
+				eB << cell->parameters[0]["Bx"], cell->parameters[0]["By"], cell->parameters[0]["Bz"];
+			}
+
+			double BB = kv(eB.norm());
+
+			gr_x += BB * normal[0] * gr->area[0];
+			gr_y += BB * normal[1] * gr->area[0];
+			gr_z += BB * normal[2] * gr->area[0];
+
+		}
+
+		cell->parameters[0]["gradBB_x"] = gr_x / cell->volume[0];
+		cell->parameters[0]["gradBB_y"] = gr_y / cell->volume[0];
+		cell->parameters[0]["gradBB_z"] = gr_z / cell->volume[0];
+	}
+
+	cout << "End: Culc_grad_in_cell" << endl;
 }

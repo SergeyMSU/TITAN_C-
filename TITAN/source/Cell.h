@@ -139,8 +139,8 @@ public:
 	
 	void Init_S(short int k, short int n);   // Инициализация S+ S-, заполняет нулями
 	void write_S_ToFile(void);
-	void read_S_FromFile(void);
-	void print_SmSp(double Wmax, string nam);
+	void read_S_FromFile(const double& n_H_lism);
+	void print_SmSp(double Wmax, string nam, Phys_param*& phys);
 
 	void Get_RBF_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par);
 	void Get_IDW_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par, Phys_param* phys_param);

@@ -37,6 +37,7 @@ int main()
     //S1.Download_cell_parameters("parameters_0060.bin");   
 
     S1.Download_cell_parameters("parameters_0064.bin");
+    //S1.Download_cell_parameters("parameters_promeg_1124.bin");
 
     // Ещё один блок обязательной настройки
     if (true)
@@ -102,10 +103,10 @@ int main()
     }
 
     // Выбор основного алгоритма расчёта (в данной функции представлены все варианты расчёта: атомы, мгд и т.д.), см. саму функцию
-    S1.Algoritm(1, &S1);
+    S1.Algoritm(11, &S1);
     //S1.Algoritm(8, &S1);
 
-    //return 0;
+    return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 
@@ -162,19 +163,78 @@ int main()
 
 
 
-    S1.Save_cell_parameters("parameters_0065.bin");
+    //S1.Save_cell_parameters("parameters_0065.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
-    //S1.Edges_create();
-    //S1.Culc_divergence_in_cell();
-    //S1.Culc_rotors_in_cell();
+    S1.Edges_create();
+    S1.Culc_divergence_in_cell();
+    S1.Culc_gradient_in_cell();
+    S1.Culc_rotors_in_cell();
+    S1.Culc_usual_rotors_in_cell();
 
-    //S1.Save_for_interpolate("For_intertpolate_217.bin", true);
-    //Interpol SS = Interpol("For_intertpolate_217.bin");
+    if (true)
+    {
+        // Надо улучшить ротеры вблизи разрывов
+        for (auto& gr : S1.Gran_TS)
+        {
+            auto C1 = gr->cells[1];
+            auto C2 = gr->cells_TVD[1];
 
-    S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
-    Interpol SS = Interpol("For_intertpolate_0059-.bin");
+            C1->parameters[0]["rotB_x"] = C2->parameters[0]["rotB_x"];
+            C1->parameters[0]["rotB_y"] = C2->parameters[0]["rotB_y"];
+            C1->parameters[0]["rotB_z"] = C2->parameters[0]["rotB_z"];
+
+            C1->parameters[0]["gradBB_x"] = C2->parameters[0]["gradBB_x"];
+            C1->parameters[0]["gradBB_y"] = C2->parameters[0]["gradBB_y"];
+            C1->parameters[0]["gradBB_z"] = C2->parameters[0]["gradBB_z"];
+
+            C1 = gr->cells[0];
+            C2 = gr->cells_TVD[0];
+
+            C1->parameters[0]["rotB_x"] = C2->parameters[0]["rotB_x"];
+            C1->parameters[0]["rotB_y"] = C2->parameters[0]["rotB_y"];
+            C1->parameters[0]["rotB_z"] = C2->parameters[0]["rotB_z"];
+
+            C1->parameters[0]["gradBB_x"] = C2->parameters[0]["gradBB_x"];
+            C1->parameters[0]["gradBB_y"] = C2->parameters[0]["gradBB_y"];
+            C1->parameters[0]["gradBB_z"] = C2->parameters[0]["gradBB_z"];
+        }
+
+        for (auto& gr : S1.Gran_HP)
+        {
+            auto C1 = gr->cells[0];
+            auto C2 = gr->cells_TVD[0];
+
+            C1->parameters[0]["rotB_x"] = C2->parameters[0]["rotB_x"];
+            C1->parameters[0]["rotB_y"] = C2->parameters[0]["rotB_y"];
+            C1->parameters[0]["rotB_z"] = C2->parameters[0]["rotB_z"];
+
+            C1->parameters[0]["gradBB_x"] = C2->parameters[0]["gradBB_x"];
+            C1->parameters[0]["gradBB_y"] = C2->parameters[0]["gradBB_y"];
+            C1->parameters[0]["gradBB_z"] = C2->parameters[0]["gradBB_z"];
+
+
+            C1 = gr->cells[0];
+            C2 = gr->cells_TVD[0];
+
+            C1->parameters[0]["rotB_x"] = C2->parameters[0]["rotB_x"];
+            C1->parameters[0]["rotB_y"] = C2->parameters[0]["rotB_y"];
+            C1->parameters[0]["rotB_z"] = C2->parameters[0]["rotB_z"];
+
+            C1->parameters[0]["gradBB_x"] = C2->parameters[0]["gradBB_x"];
+            C1->parameters[0]["gradBB_y"] = C2->parameters[0]["gradBB_y"];
+            C1->parameters[0]["gradBB_z"] = C2->parameters[0]["gradBB_z"];
+        }
+
+
+    }
+
+    S1.Save_for_interpolate("For_intertpolate_0064.bin", true);
+    Interpol SS = Interpol("For_intertpolate_0064.bin");
+
+    //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
+    //Interpol SS = Interpol("For_intertpolate_0059-.bin");
 
     cout << "AAA" << endl;
 

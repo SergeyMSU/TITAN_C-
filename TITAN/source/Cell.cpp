@@ -500,7 +500,7 @@ void Cell::write_pui_ToFile(void)
 	}
 }
 
-void Cell::read_S_FromFile(void) 
+void Cell::read_S_FromFile(const double& n_H_lism) 
 {
 	std::string filename = "data_SpSm/func_cells_SpSm_" + to_string(this->number) + ".bin";
 
@@ -540,6 +540,13 @@ void Cell::read_S_FromFile(void)
 			rows * cols * sizeof(double));
 
 		file.close();
+
+		// Умножение каждого элемента вектора на n_H_lism
+		for (size_t i = 0; i < this->pui_Sm.size(); ++i) 
+		{
+			this->pui_Sm[i] *= n_H_lism;
+		}
+		this->pui_Sp = this->pui_Sp * n_H_lism;
 
 	}
 	catch (const std::exception& e) {
@@ -593,18 +600,184 @@ void Cell::read_pui_FromFile(void)
 	}
 }
 
-void Cell::print_SmSp(double Wmax, string nam)
+double nu_exchenge(const double& u, const double& rho, const double& c, Phys_param*& phys)
+{
+	// u - модуль разности скоростей 
+	if (u / c > 7.0)
+	{
+		double uz = Velosity_1(u, c);
+		return rho * uz * phys->sigma(uz) / phys->par_Kn;
+	}
+	else
+	{
+		return (rho * phys->MK_int_1(u, c)) / phys->par_Kn;  // Пробуем вычислять интеграллы численно
+	}
+}
+
+double Sm_maxwell(const double& w, const double& UHx, const double& UHy, const double& UHz, 
+				const double& rhoH, const double& cH, const double& Ux, const double& Uy, const double& Uz, Phys_param*& phys)
+{
+	// Параметры интегрирования
+	const int n_theta = 100;  // Количество шагов по ?
+	const int n_phi = 200;    // Количество шагов по ?
+	const double r = 1.0;     // Радиус (может быть функцией)
+
+	// Границы интегрирования
+	const double theta_min = 0.0;      // от 0
+	const double theta_max = const_pi;     // до ?
+	const double phi_min = 0.0;        // от 0  
+	const double phi_max = 2.0 * const_pi; // до 2?
+
+	// Шаги интегрирования
+	const double d_theta = (theta_max - theta_min) / n_theta;
+	const double d_phi = (phi_max - phi_min) / n_phi;
+
+	double integral = 0.0;
+
+	// Цикл интегрирования по сферическим углам
+	for (int i = 0; i < n_theta; ++i) 
+	{
+		double theta = theta_min + (i + 0.5) * d_theta;  // середина интервала
+
+		for (int j = 0; j < n_phi; ++j) 
+		{
+			double phi = phi_min + (j + 0.5) * d_phi;    // середина интервала
+			double volume_element = std::sin(theta) * d_theta * d_phi;
+
+			double wx = w * sin(theta) * cos(phi);
+			double wy = w * sin(theta) * sin(phi);
+			double wz = w * cos(theta);
+
+			double wwx = Ux + wx;
+			double wwy = Uy + wy;
+			double wwz = Uz + wz;
+
+			// Добавляем вклад в интеграл
+			integral += nu_exchenge(norm2(UHx - wwx, UHy - wwy, UHz - wwz), rhoH, cH, phys) * volume_element;
+		}
+	}
+
+	return integral / (4.0 * const_pi);
+}
+
+double Sp_maxwell(const double& w, const double& UHx, const double& UHy, const double& UHz,
+	const double& rhoH, const double& cH, const double& Ux, const double& Uy, const double& Uz,
+	const double& rho, const double& cp, Phys_param*& phys)
+{
+	// Параметры интегрирования
+	const int n_theta = 100;  // Количество шагов по ?
+	const int n_phi = 200;    // Количество шагов по ?
+	const double r = 1.0;     // Радиус (может быть функцией)
+
+	// Границы интегрирования
+	const double theta_min = 0.0;      // от 0
+	const double theta_max = const_pi;     // до ?
+	const double phi_min = 0.0;        // от 0  
+	const double phi_max = 2.0 * const_pi; // до 2?
+
+	// Шаги интегрирования
+	const double d_theta = (theta_max - theta_min) / n_theta;
+	const double d_phi = (phi_max - phi_min) / n_phi;
+
+	double integral = 0.0;
+
+	// Цикл интегрирования по сферическим углам
+	for (int i = 0; i < n_theta; ++i)
+	{
+		double theta = theta_min + (i + 0.5) * d_theta;  // середина интервала
+
+		for (int j = 0; j < n_phi; ++j)
+		{
+			double phi = phi_min + (j + 0.5) * d_phi;    // середина интервала
+			double volume_element = std::sin(theta) * d_theta * d_phi;
+
+			double wx = w * sin(theta) * cos(phi);
+			double wy = w * sin(theta) * sin(phi);
+			double wz = w * cos(theta);
+
+			double wwx = Ux + wx;
+			double wwy = Uy + wy;
+			double wwz = Uz + wz;
+
+			double f = maxwell(rhoH, cH, UHx, UHy, UHz, wwx, wwy, wwz);
+			double nu = nu_exchenge(w, rho, cp, phys);
+
+			// Добавляем вклад в интеграл
+			integral += f * nu * volume_element;
+		}
+	}
+
+	return integral / (4.0 * const_pi);
+}
+
+
+void Cell::print_SmSp(double Wmax, string nam, Phys_param*& phys)
 {
 	ofstream fout;
 	string name_f = "Tecplot_SpSm_" + nam  + "__" + to_string(this->number) + ".txt";
 	fout.open(name_f);
-	fout << "TITLE = HP  VARIABLES = u, Sm, Sp1, Sp2" << endl;
+	fout << "TITLE = HP  VARIABLES = u, Sm, Sm_maxwell_H1, Sm_maxwell_H2, Sm_maxwell_H3, Sm_maxwell_H4, Sm_maxwell_all, Sp1, Sp2, Sp_summ, Sp_maxwell_H1, Sp_maxwell_H2, Sp_maxwell_H3, Sp_maxwell_H4, Sp_maxwell" << endl;
 	int size = this->pui_Sm.size();
 	double dx = Wmax / size;
+
+	double UH1x = this->parameters[0]["MK_Vx_H1"];
+	double UH1y = this->parameters[0]["MK_Vy_H1"];
+	double UH1z = this->parameters[0]["MK_Vz_H1"];
+	double rhoH1 = this->parameters[0]["MK_n_H1"];// *phys->par_n_H_LISM;
+	//double cH1 = sqrt(2.0 * this->parameters[0]["MK_p_H1"] / rhoH1);
+	double cH1 = sqrt(this->parameters[0]["MK_T_H1"]);
+
+	double UH2x = this->parameters[0]["MK_Vx_H2"];
+	double UH2y = this->parameters[0]["MK_Vy_H2"];
+	double UH2z = this->parameters[0]["MK_Vz_H2"];
+	double rhoH2 = this->parameters[0]["MK_n_H2"];// *phys->par_n_H_LISM;
+	//double cH2 = sqrt(2.0 * this->parameters[0]["MK_p_H2"] / rhoH2);
+	double cH2 = sqrt(this->parameters[0]["MK_T_H2"]);
+
+	double UH3x = this->parameters[0]["MK_Vx_H3"];
+	double UH3y = this->parameters[0]["MK_Vy_H3"];
+	double UH3z = this->parameters[0]["MK_Vz_H3"];
+	double rhoH3 = this->parameters[0]["MK_n_H3"];// *phys->par_n_H_LISM;
+	//double cH3 = sqrt(2.0 * this->parameters[0]["MK_p_H3"] / rhoH3);
+	double cH3 = sqrt(this->parameters[0]["MK_T_H3"]);
+
+	double UH4x = this->parameters[0]["MK_Vx_H4"];
+	double UH4y = this->parameters[0]["MK_Vy_H4"];
+	double UH4z = this->parameters[0]["MK_Vz_H4"];
+	double rhoH4 = this->parameters[0]["MK_n_H4"];// *phys->par_n_H_LISM;
+	//double cH4 = sqrt(2.0 * this->parameters[0]["MK_p_H4"] / rhoH4);
+	double cH4 = sqrt(this->parameters[0]["MK_T_H4"]);
+
+	double Ux = this->parameters[0]["Vx"];
+	double Uy = this->parameters[0]["Vy"];
+	double Uz = this->parameters[0]["Vz"];
+	double rho = this->parameters[0]["rho"];// *phys->par_n_H_LISM;
+	double cp = sqrt(2.0 * this->parameters[0]["p"] / rho);
+
+
+	cout << "rhoH = " << rhoH1 << " " << rhoH2 << " " << rhoH3 << " " << rhoH4 << endl;
+
+
 	for (int i = 0; i < size; ++i)
 	{
-		double center = (i + 0.5) * dx;  // центр ячейки
-		fout << center << " " << this->pui_Sm[i] << " " << this->pui_Sp(0, i) << " " << this->pui_Sp(1, i) << std::endl;
+		double center = (i + 0.5) * dx;  // центр ячейки - Скорость w
+
+		double Sm1 = Sm_maxwell(center, UH1x, UH1y, UH1z, rhoH1, cH1, Ux, Uy, Uz, phys);
+		double Sm2 = Sm_maxwell(center, UH2x, UH2y, UH2z, rhoH2, cH2, Ux, Uy, Uz, phys);
+		double Sm3 = Sm_maxwell(center, UH3x, UH3y, UH3z, rhoH3, cH3, Ux, Uy, Uz, phys);
+		double Sm4 = Sm_maxwell(center, UH4x, UH4y, UH4z, rhoH4, cH4, Ux, Uy, Uz, phys);
+		double Sm = Sm1 + Sm2 + Sm3 + Sm4;
+
+		double Sp1 = Sp_maxwell(center, UH1x, UH1y, UH1z, rhoH1, cH1, Ux, Uy, Uz, rho, cp, phys);
+		double Sp2 = Sp_maxwell(center, UH2x, UH2y, UH2z, rhoH2, cH2, Ux, Uy, Uz, rho, cp, phys);
+		double Sp3 = Sp_maxwell(center, UH3x, UH3y, UH3z, rhoH3, cH3, Ux, Uy, Uz, rho, cp, phys);
+		double Sp4 = Sp_maxwell(center, UH4x, UH4y, UH4z, rhoH4, cH4, Ux, Uy, Uz, rho, cp, phys);
+		double Sp = Sp1 + Sp2 + Sp3 + Sp4;
+
+
+		fout << center << " " << this->pui_Sm[i] << " " << Sm1 << " " << Sm2 << " " << Sm3 << " " << Sm4 << " " << Sm << " "
+			<< this->pui_Sp(0, i) << " " << this->pui_Sp(1, i) << " " << this->pui_Sp(0, i) + this->pui_Sp(1, i)  << " " 
+			<< Sp1 << " " << Sp2 << " " << Sp3 << " " << Sp4 << " " << Sp << std::endl;
 	}
 
 	fout.close();
@@ -1404,7 +1577,8 @@ void Cell::MK_calc_Sm(Phys_param* phys_param)
 
 	for (size_t ij = 0; ij < phys_param->pui_nW; ij++)
 	{
-		this->pui_Sm[ij] = pui_Sm2[ij] / phys_param->par_Kn;
+		this->pui_Sm[ij] = pui_Sm2[ij] / phys_param->par_Kn;// *phys_param->par_n_H_LISM;
+		// Я решил не домножать источники на концентрацию атомов. Нужно на неё домжить непосредственно при использовании
 	}
 
 }

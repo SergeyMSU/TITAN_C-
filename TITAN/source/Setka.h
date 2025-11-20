@@ -10,7 +10,7 @@ class Setka
 public:
 	class Geo_param* geo;
 	class Phys_param* phys_param;
-	
+	string name = "no_name";
 
 
 	bool regim_otladki = true;
@@ -201,6 +201,9 @@ public:
 	void Culc_divergence_in_cell(void); 
 	// В каждой ячейке считает дивергенцию скорости
 
+	void Culc_gradient_in_cell(void);
+	// Вычисляет градиент B^2 в ячейке
+
 	void Set_MK_Zone(void);
 	// Надо быть аккуратным, так как эта функция для Монте-Карло меняет типы граней
 	// Если потом считать МГД, нужно вызывать Init_boundary_grans() заново
@@ -285,7 +288,7 @@ public:
 	bool Get_pui_Sp(double& pui_Sp, short int ii, int n, const double& x, const double& y, const double& z,
 		Setka& S_MK, Interpol& SI_MK, Cell_handle& prev_cell, Cell_handle& next_cell);
 
-	void Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interpol& SI_MK); // Считает функцию/функции распределения пикапов в данной ячейке
+	void Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interpol& SI_MK, bool Interpol_S); // Считает функцию/функции распределения пикапов в данной ячейке
 	// Обязательное условие, что S+ и S- загружены для всех ячеек в сетке!
 
 	void mas_pogl_Culc(const double& ex, const double& ey, const double& ez, const string& name);

@@ -167,8 +167,8 @@ Setka::~Setka()
 void Setka::Algoritm(short int alg, Setka* Smain)
 {
 	// 1  - Плазма МГД
-	// 2  - Монте-Карло (для основной сетки) - старый алгорим, теперь используется 10
-	// 3  - Вычисление f_pui по посчитанным S+ S-  (СТАРАЯ реализация - надо адаптировать)
+	// 2  - Монте-Карло (для основной сетки) - старый алгорим, теперь используется № 10
+	// 3  - Вычисление f_pui по посчитанным S+ S- 
 	// 4  - Вычисление n_pui  и  T_pui  по рассчитанным f_pui  (СТАРАЯ реализация - надо адаптировать)
 	// 5  - Добавить в ячейки основной сетки значение моментов водорода из Монте-Карло (которые посчитаны для сетки MK)
 	// 6  - Вычисление функции h0 для розыгрыша пикапов (она считается один раз для каждого сечения перезарядки)  (СТАРАЯ реализация - надо адаптировать)
@@ -178,6 +178,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 10 - Монте-Карло (новая реализация через вспомогательную сетку)
 	// 11 - расчёт поверхностных токов на разрывах
 	// 12 - расчёт объёмных токов
+	// 13 - просмотр источников S+/S- и сравнение их с флюидными источниками
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -194,7 +195,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Smooth_head_TS3();
 
 
-		for (int i = 1; i <= 5 * 10; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 3 * 10; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
 			cout << "IIIII = " << i << endl;
@@ -338,6 +339,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	}
 	else if (alg == 3)
 	{
+		bool interpol_SS = false;  // Во время вычисления f_pui надо ли интерполировать S+ S- в каждой точке? Или брать среднее в ячейке (это быстрее)
+
 		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
 		cout << "Create Setka Smc" << endl;
 		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
@@ -381,16 +384,62 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		Smc.Test_geometr();
-		// Потяну ли я загружать S+ S- для всех ячеек сетки? Должно влезть в память (это 2 Гб примерно)
+
+
 		// Загружаем S+ S- для всей сетки
 		for (auto& A : Smc.All_Cell)
 		{
 			A->Init_S(2, Smc.phys_param->pui_nW);
-			A->read_S_FromFile();
+			A->read_S_FromFile(Smc.phys_param->par_n_H_LISM);
 		}
 
 		Smc.Save_for_interpolate("For_intertpolate_work_MK.bin", false);
 		Interpol SI_MK = Interpol("For_intertpolate_work_MK.bin");
+
+
+		// Интерполируем S+ S- с малой сетки на большую
+		if (interpol_SS == false)
+		{
+			vector<double> mas_Sm_(this->phys_param->pui_nW);
+			vector<double> mas_Sp1_(this->phys_param->pui_nW);
+			vector<double> mas_Sp2_(this->phys_param->pui_nW);
+
+			Cell_handle prev_cell_ = Cell_handle();
+			Cell_handle next_cell_ = nullptr;
+
+			for (auto& A : this->All_Cell)
+			{
+				std::fill(mas_Sm_.begin(), mas_Sm_.end(), 0.0);
+				std::fill(mas_Sp1_.begin(), mas_Sp1_.end(), 0.0);
+				std::fill(mas_Sp2_.begin(), mas_Sp2_.end(), 0.0);
+
+				short int zone = this->determ_zone(A, 0);
+				short int kk = 1;;
+				A->Init_S(2, this->phys_param->pui_nW);
+				if (zone == 2) kk = 2;
+
+				this->Get_pui_SS(mas_Sm_, mas_Sp1_, mas_Sp2_, kk, 
+					A->center[0][0], A->center[0][1], A->center[0][2],
+					Smc, SI_MK, prev_cell_, next_cell_);
+
+				for (size_t i = 0; i < this->phys_param->pui_nW; ++i)
+				{
+					A->pui_Sm[i] = mas_Sm_[i];
+					A->pui_Sp(0, i) = mas_Sp1_[i];
+					A->pui_Sp(1, i) = mas_Sp2_[i];
+				}
+			}
+
+
+			// Удаляем все S+ S- (чистим память) на малой сетке
+			for (auto& A : Smc.All_Cell)
+			{
+				A->pui_Sm.resize(0);
+				A->pui_Sp.resize(0, 0);
+			}
+		}
+
+
 
 		// Считаем функции распределения
 		unsigned int st = 0;
@@ -436,7 +485,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			//cout << "A" << endl;
 			A->Init_f_pui(this->phys_param->pui_nW, zone);
 			//cout << "B" << endl;
-			this->Culc_f_pui_in_cell(A, Smc, SI_main, SI_MK);
+			this->Culc_f_pui_in_cell(A, Smc, SI_main, SI_MK, interpol_SS);
 			//cout << "C" << endl;
 			A->write_pui_ToFile();
 			//cout << "D" << endl;
@@ -452,6 +501,13 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			A->pui_Sm.resize(0);
 			A->pui_Sp.resize(0, 0);
 		}
+
+		for (auto& A : this->All_Cell)
+		{
+			A->pui_Sm.resize(0);
+			A->pui_Sp.resize(0, 0);
+		}
+
 
 		this->Print_pui(17.0, 0.0, 0.0);
 		this->Print_pui(20.0, 0.0, 0.0);
@@ -908,7 +964,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		{
 			name_f = "HP_J.txt";
 			fout.open(name_f);
-			fout << "TITLE = HP  VARIABLES = x, y, z, phi, the, Jx, Jy, Jz, |J|" << endl;
+			fout << "TITLE = HP  VARIABLES = x, y, z, phi, the, Jx, Jy, Jz, |J|, J2x, J2y, J2z, |J2|" << endl;
 			fout << "ZONE T=HP, N = " << this->Gran_HP.size() * 4 << ", E = " << this->Gran_HP.size() << ", F=FEPOINT, ET=quadrilateral" << endl;
 
 			for (const auto& i : this->Gran_HP)
@@ -930,8 +986,10 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				B2[2] = B->parameters[0]["Bz"];
 
 				Eigen::Vector3d J = n.cross(B2 - B1);
+				Eigen::Vector3d J2 = n.cross(B2 + B1);
 
 				J = J / (4.0 * const_pi);
+				J2 = J2 / (4.0 * const_pi);
 
 				for (auto& j : i->yzels)
 				{
@@ -941,7 +999,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 					fout << cc[0] << " " << cc[1] << " " << cc[2] << " " <<
 						polar_angle(cc[1], cc[2]) << " " << polar_angle(cc[0], norm2(0.0, cc[1], cc[2])) << " " <<
-						J[0] << " " << J[1] << " " << J[2] << " " << J.norm() << endl;
+						J[0] << " " << J[1] << " " << J[2] << " " << J.norm() << " " << 
+						J2[0] << " " << J2[1] << " " << J2[2] << " " << J2.norm() << endl;
 				}
 			}
 
@@ -1237,6 +1296,61 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		
+	}
+	else if (alg == 13)
+	{
+		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
+		cout << "Create Setka Smc" << endl;
+		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
+		Setka Smc = Setka("SDK_40_2D_Setka.bin", "SDK_40_krug_setka.bin", 40);
+		Smc.name = "Mini_for_MK";
+
+		cout << "Create SI_main" << endl;
+		// Из основной сетки создаём интерполяционную сетку
+		this->Save_for_interpolate("For_intertpolate_work.bin", false);
+		Interpol SI_main = Interpol("For_intertpolate_work.bin");
+
+		cout << "Move Setka Smc" << endl;
+		// Двигаем поверхности вспомогательной сетки к поверхностям основной
+		Smc.Move_to_surf(&SI_main);
+		// Точно задаём положение внутренней границы сетки
+		Smc.geo->R0 = Smc.phys_param->R_0;
+
+		// Автоматически подстраиваем геометрические параметры сетки (сгущение и т.д.) под новые поверхности
+		Smc.auto_set_luch_geo_parameter(0, true);
+		// Настраиваем новую сетку (также как и основную)   [обязательно]
+		if (true)
+		{
+			// Считаем объёмы, площади и другие геометрические характеристики
+			Smc.Calculating_measure(0);
+			Smc.Calculating_measure(1);
+
+			// Задаём граничные грани
+			Smc.Init_boundary_grans();
+		}
+
+		// Заполним сетку МК значениями плазмы из основной сетки (чтобы вместо интерполяции в МК использовать значения в центрах ячеек - так быстрее)
+		// переинтерполяция
+		if (true)
+		{
+			Smc.PereInterpolate(&SI_main, false);
+		}
+
+		Smc.Test_geometr();
+
+
+		Smc.Download_cell_MK_parameters(Smc.phys_param->MK_file, -10);
+
+		Smc.Print_SpSm(17.0, 0.0, 0.0);
+		Smc.Print_SpSm(10.0, 0.0, 0.0);
+		Smc.Print_SpSm(15.0, 0.0, 0.0);
+		Smc.Print_SpSm(17.0, 0.0, 0.0);
+		Smc.Print_SpSm(20.0, 0.0, 0.0);
+		Smc.Print_SpSm(22.0, 0.0, 0.0);
+		Smc.Print_SpSm(25.0, 0.0, 0.0);
+		Smc.Print_SpSm(27.0, 0.0, 0.0);
+		Smc.Print_SpSm(30.0, 0.0, 0.0);
+		Smc.Print_SpSm(40.0, 0.0, 0.0);
 	}
 
 	cout << "End Algoritm " << alg << endl;
@@ -4629,8 +4743,10 @@ void Setka::Print_SpSm(double x, double y, double z)
 	}
 
 	A->Init_S(2, this->phys_param->pui_nW);
-	A->read_S_FromFile();
-	A->print_SmSp(this->phys_param->pui_wR, to_string(x));
+	A->read_S_FromFile(this->phys_param->par_n_H_LISM);
+
+	A->print_SmSp(this->phys_param->pui_wR, to_string(x), this->phys_param);
+
 	A->pui_Sm.resize(0);
 	A->pui_Sp.resize(0, 0);
 }
