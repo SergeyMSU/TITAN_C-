@@ -169,7 +169,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 1  - Плазма МГД
 	// 2  - Монте-Карло (для основной сетки) - старый алгорим, теперь используется № 10
 	// 3  - Вычисление f_pui по посчитанным S+ S- 
-	// 4  - Вычисление n_pui  и  T_pui  по рассчитанным f_pui  (СТАРАЯ реализация - надо адаптировать)
+	// 4  - Вычисление n_pui  и  T_pui  по рассчитанным f_pui
 	// 5  - Добавить в ячейки основной сетки значение моментов водорода из Монте-Карло (которые посчитаны для сетки MK)
 	// 6  - Вычисление функции h0 для розыгрыша пикапов (она считается один раз для каждого сечения перезарядки)  (СТАРАЯ реализация - надо адаптировать)
 	// 7  - Вычисление всех интеграллов в ячейках для розыгрыша пикапов (частота и т.д.)  (СТАРАЯ реализация - надо адаптировать)
@@ -964,18 +964,29 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		{
 			name_f = "HP_J.txt";
 			fout.open(name_f);
-			fout << "TITLE = HP  VARIABLES = x, y, z, phi, the, Jx, Jy, Jz, |J|, J2x, J2y, J2z, |J2|" << endl;
+			fout << "TITLE = HP  VARIABLES = x, y, z, phi, the, Jx, Jy, Jz, |J|, J2x, J2y, J2z, |J2|, Bx_L, By_L, Bz_L, Bx_R, By_R, Bz_R" << endl;
 			fout << "ZONE T=HP, N = " << this->Gran_HP.size() * 4 << ", E = " << this->Gran_HP.size() << ", F=FEPOINT, ET=quadrilateral" << endl;
 
 			for (const auto& i : this->Gran_HP)
 			{
 				auto A = i->cells[0];
 				auto B = i->cells[1];
-				Eigen::Vector3d n, B1, B2, cc;
+				Eigen::Vector3d n, B1, B2, cc, J2, J, BB1, BB2;
 
 				n[0] = i->normal[0][0];
 				n[1] = i->normal[0][1];
 				n[2] = i->normal[0][2];
+
+				if (A->type == Type_cell::Zone_3)
+				{
+					A = i->cells[1];
+					B = i->cells[0];
+
+					n[0] = -i->normal[0][0];
+					n[1] = -i->normal[0][1];
+					n[2] = -i->normal[0][2];
+				}
+
 
 				B1[0] = A->parameters[0]["Bx"];
 				B1[1] = A->parameters[0]["By"];
@@ -985,8 +996,14 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				B2[1] = B->parameters[0]["By"];
 				B2[2] = B->parameters[0]["Bz"];
 
-				Eigen::Vector3d J = n.cross(B2 - B1);
-				Eigen::Vector3d J2 = n.cross(B2 + B1);
+
+				BB1 = B2 - B1;
+				BB2 = B2 + B1;
+
+				//cout << "do = " << B1[0] << endl;
+				J = n.cross(BB1);
+				J2 = n.cross(BB2);
+				//cout << "posle = " << B1[0] << endl;
 
 				J = J / (4.0 * const_pi);
 				J2 = J2 / (4.0 * const_pi);
@@ -1000,7 +1017,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 					fout << cc[0] << " " << cc[1] << " " << cc[2] << " " <<
 						polar_angle(cc[1], cc[2]) << " " << polar_angle(cc[0], norm2(0.0, cc[1], cc[2])) << " " <<
 						J[0] << " " << J[1] << " " << J[2] << " " << J.norm() << " " << 
-						J2[0] << " " << J2[1] << " " << J2[2] << " " << J2.norm() << endl;
+						J2[0] << " " << J2[1] << " " << J2[2] << " " << J2.norm() << " " << 
+						B1[0] << " " << B1[1] << " " << B1[2] << " " << 
+						B2[0] << " " << B2[1] << " " << B2[2] << " " << endl;
 				}
 			}
 
