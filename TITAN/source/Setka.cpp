@@ -174,7 +174,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 6  - Вычисление функции h0 для розыгрыша пикапов (она считается один раз для каждого сечения перезарядки)  (СТАРАЯ реализация - надо адаптировать)
 	// 7  - Вычисление всех интеграллов в ячейках для розыгрыша пикапов (частота и т.д.)  (СТАРАЯ реализация - надо адаптировать)
 	// 8  - Вычисление поглощения вдоль заданных лучей (новая реализация через вспомогательную сетку)
-	// 9  - Перемасштабирование функций распредления водорода, без потери значений (СТАРАЯ реализация - надо адаптировать)
+	// 9  - Перемасштабирование функций распредления водорода (речь про число ячеек AMR), без потери значений (СТАРАЯ реализация - надо адаптировать)
 	// 10 - Монте-Карло (новая реализация через вспомогательную сетку)
 	// 11 - расчёт поверхностных токов на разрывах
 	// 12 - расчёт объёмных токов
@@ -195,7 +195,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Smooth_head_TS3();
 
 
-		for (int i = 1; i <= 3 * 10; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 3 * 4; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
 			cout << "IIIII = " << i << endl;
@@ -207,7 +207,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			this->Go(false, 400, 1); // 400   1
 			if (i % 10 == 0)
 			{
-				this->Go(true, 4000, 1); // 400   1 
+				this->Go(true, 1000, 1); // 400   1 
 			}
 			else
 			{
@@ -876,6 +876,13 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 			// Задаём граничные грани
 			Smc.Init_boundary_grans();
+
+			// Проверки
+			if (this->phys_param->is_PUI != Smc.phys_param->is_PUI)
+			{
+				cout << "Error eijrgfouiehg384tfg7gf" << endl;
+				exit(-1);
+			}
 		}
 
 		// Визуализация новой сетки для проверки   [опционально]
@@ -904,6 +911,22 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		Smc.Test_geometr();
+
+		// Настройка всех массивов для расчёта пикапов
+		if (Smc.phys_param->is_PUI == true)
+		{
+			// Загружаем h0
+			Smc.Init_h0_and_read_from_file();
+
+			// Загружаем все интеграллы пикапов
+			for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+			{
+				auto A = this->All_Cell[idx];
+				short int zone = determ_zone(A, 0);
+				A->Init_pui_integral(this->phys_param->pui_F_n, zone);
+				A->read_pui_integral_FromFile();
+			}
+		}
 
 		cout << "Set MK zone" << endl;
 		// Определим зоны для МК
@@ -942,7 +965,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			cout << "Start zone = " << zone_play << endl;
 			Smc.MK_prepare(zone_play);
 			//Smc.MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), &SI_main);
-			Smc.MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), nullptr);
+			Smc.MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), nullptr, Smain);
 			Smc.MK_delete(zone_play);
 			ijij++;
 		}
@@ -953,6 +976,23 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 		// Переинтерполируем параметры Монте-Карло из вспомогательной сетки в основную
 		this->PereInterpolate("For_intertpolate_work_MK.bin", false, true);
+
+
+		// Очистка
+		if (Smc.phys_param->is_PUI == true)
+		{
+			// Загружаем h0
+			Smc.Delete_h0();
+
+			// Загружаем все интеграллы пикапов
+			for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+			{
+				auto A = this->All_Cell[idx];
+				short int zone = determ_zone(A, 0);
+				A->Delete_pui_integral();
+			}
+		}
+
 	}
 	else if (alg == 11)
 	{

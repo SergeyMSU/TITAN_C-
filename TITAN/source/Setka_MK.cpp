@@ -1582,7 +1582,7 @@ void Setka::MK_delete(short int zone_MK)
 	cout << "END MK_delete" << endl;
 }
 
-void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol)
+void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*& S_main)
 {
 	// Как работает алгоритм пошагово:
 	// 1) Загружаются выходящие функции распределения только для сортов, которые рождаются в данной области
@@ -2013,7 +2013,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol)
 				//cout << "FLY" << endl;
 
 
-				this->MK_fly_immit(P, zone_MK, this->Sensors[sens_num2], Interpol); // Запускаем частицу в полёт   // !! Не написана
+				this->MK_fly_immit(P, zone_MK, this->Sensors[sens_num2], Interpol, S_main); // Запускаем частицу в полёт   // !! Не написана
 				//exit(-1);
 				//cout << "END" << endl;
 			}
@@ -2199,8 +2199,12 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol)
 	std::cout << "MK all time: " << duration.count() / 1000.0 / 60.0 << " minutes" << std::endl;
 }
 
-void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interpol* Interpol)
+void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interpol* Interpol, Setka*& S_main)
 {
+	// S_main - это основная сетка (с большим числом ячеек)
+	//          в ней хранятся массивы пикапов, их частот и т.д.
+
+
 	/*cout << "______Start_MK_fly_immit___________" << endl;
 	whach(P.coord[0]);
 	whach(P.coord[1]);

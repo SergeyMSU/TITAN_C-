@@ -79,6 +79,9 @@ public:
 
 
 	Surfaces* Surf1;  // Для считывания поверхностей разрыва и движения сетки к ним
+
+
+	vector<double> h0_pui; // массив h0 для пикапов
 	
 
 	vector<Sensor*> Sensors;
@@ -217,7 +220,10 @@ public:
 	void Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 		short int now, short int zone);
 
+	void Init_h0_and_read_from_file(void);
+	void Delete_h0(void);
 	void Culc_h0_for_pui(void); // Считает h_0 для пикапов и сразу записывает в файл результат
+	double PUI_get_h0(const double& w);
 
 	void Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 		unordered_map<string, double>& par_right, short int now, bool plasma_culc_or_atoms);
@@ -265,8 +271,9 @@ public:
 	// Монте карло ***********************************************************
 	void MK_prepare(short int zone_MK); // Настройка всего для Монте-Карло
 	void MK_delete(short int zone_MK); 
-	void MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol);      // Запуск всех частиц
-	void MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interpol* Interpol);  // Запуск частицы, имитационный метод
+	void MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*& S_main);      // Запуск всех частиц
+	void MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, 
+						Interpol* Interpol, Setka*& S_main);  // Запуск частицы, имитационный метод
 	void M_K_Change_Velosity(Sensor* sens, const double& Ur, const double& Uthe,
 		const double& Uphi, const double& Vr, const double& Vthe,
 		const double& Vphi, double& Wr, double& Wthe, double& Wphi, const double& cp);

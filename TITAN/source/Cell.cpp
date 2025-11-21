@@ -416,7 +416,7 @@ void Cell::pui_integral_Culc(Phys_param* phys_param)
 		}
 
 
-		// ƒалее надо считать частиту перезар€дки и источники импульса и энергии
+		// ƒалее надо считать частоту перезар€дки и источники импульса и энергии
 		double the, u;
 		nn1 = 500;
 		short int nn2 = 90;
@@ -922,6 +922,219 @@ double Cell::pui_get_f(const double& w, short int ii, const double& Wmax)
 		cout << "ERROR 54tuh8745bgoi;sjfge" << endl;
 		exit(-1);
 	}
+}
+
+
+double Cell::pui_get_nu(const double& w, short int ii, const double& Wmax)
+{
+	short int N = 0;
+	if (ii == 0) { N = this->nu_integr_pui_1.size(); }
+	else if (ii == 1) { N = this->nu_integr_pui_2.size(); }
+	else { cout << "ERROR ey4556uy564556ty4y453dfsde" << endl; exit(-1); }
+	if (N == 0) return 0.0;
+
+	double cell_size = Wmax / N;
+	int left_index = static_cast<int>(w / cell_size);
+	if (left_index == N)
+	{
+		if (ii == 0) { return this->nu_integr_pui_1[N - 1]; }
+		else if (ii == 1) { return this->nu_integr_pui_2[N - 1]; }
+		else
+		{
+			cout << "ERROR hbtyryuj7ue4swswsw32" << endl;
+			exit(-1);
+		}
+	}
+
+	//  оординаты центров €чеек
+	double left_center = (left_index + 0.5) * cell_size;
+	double right_center = (left_index + 1.5) * cell_size;
+
+	if (left_index == 0 && w < left_center) {
+		// Ёкстрапол€ци€ от первой €чейки
+		double next_center = (1.5) * cell_size;
+		if (ii == 0)
+		{
+			return this->nu_integr_pui_1[0] + (this->nu_integr_pui_1[1] - this->nu_integr_pui_1[0]) *
+				(w - left_center) / (next_center - left_center);
+		}
+		else if (ii == 1)
+		{
+			return this->nu_integr_pui_2[0] + (this->nu_integr_pui_2[1] - this->nu_integr_pui_2[0]) *
+				(w - left_center) / (next_center - left_center);
+		}
+		else
+		{
+			cout << "ERROR tbftgeyt45tvggestv" << endl;
+			exit(-1);
+		}
+	}
+	else if (left_index == N - 1 && w > right_center)
+	{
+		double prev_center = (N - 1.5) * cell_size;
+		if (ii == 0)
+		{
+			return this->nu_integr_pui_1[N - 2] + (this->nu_integr_pui_1[N - 1] - this->nu_integr_pui_1[N - 2]) *
+				(w - prev_center) / (right_center - prev_center);
+		}
+		else if (ii == 1)
+		{
+			return this->nu_integr_pui_2[N - 2] + (this->nu_integr_pui_2[N - 1] - this->nu_integr_pui_2[N - 2]) *
+				(w - prev_center) / (right_center - prev_center);
+		}
+		else
+		{
+			cout << "ERROR rtyr6uy56u5u56u5u6;sjfge" << endl;
+			exit(-1);
+		}
+	}
+
+	// Ћинейна€ интерпол€ци€ между центрами €чеек
+	double t = (w - left_center) / (right_center - left_center);
+	if (ii == 0)
+	{
+		return this->nu_integr_pui_1[left_index] * (1.0 - t) + this->nu_integr_pui_1[left_index + 1] * t;
+	}
+	else if (ii == 1)
+	{
+		return this->nu_integr_pui_2[left_index] * (1.0 - t) + this->nu_integr_pui_2[left_index + 1] * t;
+	}
+	else
+	{
+		cout << "ERROR 54tuh8745bgoi;sjfge" << endl;
+		exit(-1);
+	}
+}
+
+
+double Cell::PUI_get_F_integer(const double& w, short int ii)
+{
+	const double Wmax = 1.0;
+	short int N = 0;
+	if (ii == 0) { N = this->F_integr_pui_1.size(); }
+	else if (ii == 1) { N = this->F_integr_pui_2.size(); }
+	else { cout << "ERROR ey4556uy564556ty4y453dfsde" << endl; exit(-1); }
+	if (N == 0) return 0.0;
+
+	double cell_size = Wmax / N;
+	int left_index = static_cast<int>(w / cell_size);
+	if (left_index == N)
+	{
+		if (ii == 0) { return this->F_integr_pui_1[N - 1]; }
+		else if (ii == 1) { return this->F_integr_pui_2[N - 1]; }
+		else
+		{
+			cout << "ERROR hbtyryuj7ue4swswsw32" << endl;
+			exit(-1);
+		}
+	}
+
+	//  оординаты центров €чеек
+	double left_center = (left_index + 0.5) * cell_size;
+	double right_center = (left_index + 1.5) * cell_size;
+
+	if (left_index == 0 && w < left_center) {
+		// Ёкстрапол€ци€ от первой €чейки
+		double next_center = (1.5) * cell_size;
+		if (ii == 0)
+		{
+			return this->F_integr_pui_1[0] + (this->F_integr_pui_1[1] - this->F_integr_pui_1[0]) *
+				(w - left_center) / (next_center - left_center);
+		}
+		else if (ii == 1)
+		{
+			return this->F_integr_pui_2[0] + (this->F_integr_pui_2[1] - this->F_integr_pui_2[0]) *
+				(w - left_center) / (next_center - left_center);
+		}
+		else
+		{
+			cout << "ERROR tbftgeyt45tvggestv" << endl;
+			exit(-1);
+		}
+	}
+	else if (left_index == N - 1 && w > right_center)
+	{
+		double prev_center = (N - 1.5) * cell_size;
+		if (ii == 0)
+		{
+			return this->F_integr_pui_1[N - 2] + (this->F_integr_pui_1[N - 1] - this->F_integr_pui_1[N - 2]) *
+				(w - prev_center) / (right_center - prev_center);
+		}
+		else if (ii == 1)
+		{
+			return this->F_integr_pui_2[N - 2] + (this->F_integr_pui_2[N - 1] - this->F_integr_pui_2[N - 2]) *
+				(w - prev_center) / (right_center - prev_center);
+		}
+		else
+		{
+			cout << "ERROR rtyr6uy56u5u56u5u6;sjfge" << endl;
+			exit(-1);
+		}
+	}
+
+	// Ћинейна€ интерпол€ци€ между центрами €чеек
+	double t = (w - left_center) / (right_center - left_center);
+	if (ii == 0)
+	{
+		return this->F_integr_pui_1[left_index] * (1.0 - t) + this->F_integr_pui_1[left_index + 1] * t;
+	}
+	else if (ii == 1)
+	{
+		return this->F_integr_pui_2[left_index] * (1.0 - t) + this->F_integr_pui_2[left_index + 1] * t;
+	}
+	else
+	{
+		cout << "ERROR 54tuh8745bgoi;sjfge" << endl;
+		exit(-1);
+	}
+}
+
+
+void Cell::MK_pui_charge_exchange_velocity(Sensor* sens, Setka* SS, Phys_param* Phys,
+	const double& Upx, const double& Upy, 
+	const double& Upz, const double& UHx, const double& UHy, const double& UHz, 
+	double& VHx, double& VHy, double& VHz)
+{
+	// !? ‘ункци€ перезар€дки - вычисл€ет новые скорости атома после перезар€дки
+
+	double ksi1, ksi2, ksi3;
+	double UH, w, the, u, h0, phi;
+	double vx, vy, vz;
+
+	Eigen::Vector3d ex, ey, ez;
+
+	ez[0] = UHx - Upx;
+	ez[1] = UHy - Upy;
+	ez[2] = UHz - Upz;
+
+	UH = sqrt(kv(Upx - UHx) + kv(Upy - UHy) + kv(Upz - UHz));
+	ez = ez / UH;
+	h0 = SS->PUI_get_h0(UH);
+
+	get_bazis(ez, ex, ey);
+
+	while (true)
+	{
+		ksi1 = sens->MakeRandom();
+		ksi2 = sens->MakeRandom();
+		ksi3 = sens->MakeRandom();
+
+		w = this->PUI_get_F_integer(ksi1);
+		the = acos(1.0 - 2.0 * ksi2);
+		u = sqrt(kv(w) * kv(sin(the)) + kv(w * cos(the) - UH));
+		if (u * Phys->sigma(u) / ((w + Phys->pui_h0_wc) * Phys->sigma(w + Phys->pui_h0_wc) * h0) >= ksi3) break;
+	}
+
+	ksi1 = sens->MakeRandom();
+	phi = ksi1 * 2.0 * const_pi;
+
+	vx = w * sin(the) * cos(phi);
+	vy = w * sin(the) * sin(phi);
+	vz = w * cos(the);
+
+	VHx = Upx + vx * ex(0) + vy * ey(0) + vz * ez(0);
+	VHy = Upy + vx * ex(1) + vy * ey(1) + vz * ez(1);
+	VHz = Upz + vx * ex(2) + vy * ey(2) + vz * ez(2);
 }
 
 void Cell::Get_RBF_interpolation(const double& x, const double& y, const double& z, unordered_map<string, double>& par)

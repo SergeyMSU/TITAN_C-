@@ -137,6 +137,15 @@ public:
 	/// @see MK_Add_pui_source() - добавление источника пикапов при моделировании МК
 	
 	
+	double pui_get_nu(const double& w, short int ii, const double& Wmax);
+	double PUI_get_F_integer(const double& ksi, short int ii);
+
+	void MK_pui_charge_exchange_velocity(Sensor* sens, Setka* SS, Phys_param* Phys,
+		const double& Upx, const double& Upy,
+		const double& Upz, const double& UHx, const double& UHy, const double& UHz,
+		double& VHx, double& VHy, double& VHz);
+	
+	
 	void Init_S(short int k, short int n);   // Инициализация S+ S-, заполняет нулями
 	void write_S_ToFile(void);
 	void read_S_FromFile(const double& n_H_lism);

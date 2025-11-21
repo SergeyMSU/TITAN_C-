@@ -37,6 +37,8 @@ int main()
     //S1.Download_cell_parameters("parameters_0060.bin");   
 
     S1.Download_cell_parameters("parameters_0064.bin");
+
+
     //S1.Download_cell_parameters("parameters_promeg_1124.bin");
 
     // Ещё один блок обязательной настройки
@@ -103,7 +105,7 @@ int main()
     }
 
     // Выбор основного алгоритма расчёта (в данной функции представлены все варианты расчёта: атомы, мгд и т.д.), см. саму функцию
-    S1.Algoritm(4, &S1);
+    S1.Algoritm(10, &S1);
     //S1.Algoritm(8, &S1);
 
     //return 0;
@@ -163,7 +165,7 @@ int main()
 
 
 
-    //S1.Save_cell_parameters("parameters_0065.bin");
+    //S1.Save_cell_parameters("parameters_0066.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -173,7 +175,7 @@ int main()
     //S1.Culc_rotors_in_cell();
     //S1.Culc_usual_rotors_in_cell();
 
-    if (true)
+    if (false)
     {
         // Надо улучшить ротеры вблизи разрывов
         for (auto& gr : S1.Gran_TS)
