@@ -2410,7 +2410,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 		double ro, p, rho_He, cp, vx, vy, vz, rho_Th, p_Th;
 		unordered_map<string, double> param;
 		unordered_map<string, double> param2;
-		double u, u1, u2, u3, skalar, nu_ex, sig;
+		double u, u1, u2, u3, skalar, nu_ex, sig = 0.0, nu_ex_pui_1, nu_ex_pui_2;
 		double cp_sr = 0.0, u_sr = 0.0, u1_sr = 0.0, u2_sr = 0.0, u3_sr = 0.0, skalar_sr = 0.0;    // Средние параметры в ячейке при пролёте
 		double vx_sr = 0.0, vy_sr = 0.0, vz_sr = 0.0;
 
@@ -2419,193 +2419,86 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 		double Vel_norm = sqrt(kvv(P.Vel[0], P.Vel[1], P.Vel[2]));                  // Модуль скорости атома
 		
 
-		// Если нет интерполяции
-		if (Interpol == nullptr)
+		ro = P.cel->parameters[0]["rho"];
+		p = P.cel->parameters[0]["p"];
+		rho_He = P.cel->parameters[0]["rho_He"];
+			// cp;// = sqrt(P.cel->parameters[0]["p"] / ro);
+		vx = P.cel->parameters[0]["Vx"];			// Скорости плазмы в ячейке
+		vy = P.cel->parameters[0]["Vy"];
+		vz = P.cel->parameters[0]["Vz"];
+
+		vx_sr = vx;
+		vy_sr = vy;
+		vz_sr = vz;
+
+		//Sootnosheniya(ro, p, rho_He, 0.0, 0.0, (int)(P.cel->type),
+		//	rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
+
+		this->phys_param->Plasma_components_1((int)(P.cel->type), P.cel->parameters[0], param); // Это без пикапов
+
+
+		//this->phys_param->Plasma_components((int)(P.cel->type), P.cel->parameters[0], param);
+
+		rho_Th = param["rho_Th"];
+		p_Th = param["p_Th"];
+
+		if (rho_Th <= 1e-8) rho_Th = 1e-8;
+		if (p_Th <= 1e-8 / 2.0) p_Th = 1e-8 / 2.0;
+
+		ro = rho_Th;
+		cp = sqrt(2.0 * p_Th / rho_Th);
+
+		// Постоянные поля для тестирования
+		if (false)  
 		{
-			ro = P.cel->parameters[0]["rho"];
-			p = P.cel->parameters[0]["p"];
-			rho_He = P.cel->parameters[0]["rho_He"];
-			 // cp;// = sqrt(P.cel->parameters[0]["p"] / ro);
-			vx = P.cel->parameters[0]["Vx"];			// Скорости плазмы в ячейке
-			vy = P.cel->parameters[0]["Vy"];
-			vz = P.cel->parameters[0]["Vz"];
+			ro = 1.0;
+			cp = 1.0;
+			vx = this->phys_param->Velosity_inf;
+			vy = 0.0;
+			vz = 0.0;
 
 			vx_sr = vx;
 			vy_sr = vy;
 			vz_sr = vz;
-
-			//Sootnosheniya(ro, p, rho_He, 0.0, 0.0, (int)(P.cel->type),
-			//	rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
-
-			this->phys_param->Plasma_components_1((int)(P.cel->type), P.cel->parameters[0], param); // Это без пикапов
-
-
-			//this->phys_param->Plasma_components((int)(P.cel->type), P.cel->parameters[0], param);
-
-			rho_Th = param["rho_Th"];
-			p_Th = param["p_Th"];
-
-			if (rho_Th <= 1e-8) rho_Th = 1e-8;
-			if (p_Th <= 1e-8 / 2.0) p_Th = 1e-8 / 2.0;
-
-			ro = rho_Th;
-			cp = sqrt(2.0 * p_Th / rho_Th);
-
-			// Постоянные поля для тестирования
-			if (false)  
-			{
-				ro = 1.0;
-				cp = 1.0;
-				vx = this->phys_param->Velosity_inf;
-				vy = 0.0;
-				vz = 0.0;
-
-				vx_sr = vx;
-				vy_sr = vy;
-				vz_sr = vz;
-			}
-
-			// Найдём время до перезарядки
-
-			
-			u = sqrt(kvv(P.Vel[0] - vx, P.Vel[1] - vy, P.Vel[2] - vz));
-			u1 = vx - P.Vel[0];
-			u2 = vy - P.Vel[1];
-			u3 = vz - P.Vel[2];
-			skalar = u1 * P.Vel[0] + u2 * P.Vel[1] + u3 * P.Vel[2];
-
-			cp_sr = cp; 
-			u_sr = u; 
-			u1_sr = u1; 
-			u2_sr = u2; 
-			u3_sr = u3; 
-			skalar_sr = skalar;
-
-			if (u / cp > 7.0)
-			{
-				double uz = Velosity_1(u, cp);
-				nu_ex = ro * uz * this->phys_param->sigma(uz) / this->phys_param->par_Kn;
-			}
-			else
-			{
-				nu_ex = (ro * this->phys_param->MK_int_1(u, cp)) / this->phys_param->par_Kn;  // Пробуем вычислять интеграллы численно
-			}
-
-			sig = Vel_norm / nu_ex;
-
 		}
-		else // Если есть интерполяция
+
+
+		// ------------------------------
+		// ------------------------------
+		// ------------------------------
+		// Находим частоты по перезарядке и другим процессам
+
+		u = sqrt(kvv(P.Vel[0] - vx, P.Vel[1] - vy, P.Vel[2] - vz));
+		u1 = vx - P.Vel[0];
+		u2 = vy - P.Vel[1];
+		u3 = vz - P.Vel[2];
+		skalar = u1 * P.Vel[0] + u2 * P.Vel[1] + u3 * P.Vel[2];
+
+		cp_sr = cp; 
+		u_sr = u; 
+		u1_sr = u1; 
+		u2_sr = u2; 
+		u3_sr = u3; 
+		skalar_sr = skalar;
+
+		if (u / cp > 7.0)
 		{
-			short int N_step = 1;  // Число шагов в ячейке
-			double x_, y_, z_, dl, ss;
-
-			ss = 0.0;
-			dl = l / N_step;
-			bool bsfw;
-
-			for (short int st = 0; st < N_step; st++)
-			{
-				x_ = P.coord[0] + (st + 0.5) * time / N_step * P.Vel[0];
-				y_ = P.coord[1] + (st + 0.5) * time / N_step * P.Vel[1];
-				z_ = P.coord[2] + (st + 0.5) * time / N_step * P.Vel[2];
-
-				//cout << "A1" << endl;
-
-				bsfw = Interpol->Get_param(x_, y_, z_, param, prev_cell, next_cell);
-				
-				if (bsfw == false)
-				{
-					/*cout << "Error wr4tr34trfe45t34t3f34rf34r" << endl;
-					cout << x_ << " " << y_ << " " << z_ << endl;
-					cout << P.coord[0] << " " << P.coord[1] << " " << P.coord[2] << endl;
-					cout << P.Vel[0] << " " << P.Vel[1] << " " << P.Vel[2] << endl;
-					exit(-2);*/
-					ro = 1.0;
-					cp = 1.0;
-					vx = this->phys_param->Velosity_inf;
-					vy = 0.0;
-					vz = 0.0;
-				}
-				else
-				{
-					for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // Обновляем предыдущую ячейку
-
-					ro = param["rho"];
-
-
-					p = param["p"];
-					rho_He = param["rho_He"];
-					vx = param["Vx"];			// Скорости плазмы в ячейке
-					vy = param["Vy"];
-					vz = param["Vz"];
-
-					this->phys_param->Plasma_components_1((int)(P.cel->type), param, param2); // Это без пикапов
-
-					rho_Th = param2["rho_Th"];
-					p_Th = param2["p_Th"];
-
-					if (rho_Th <= 1e-8) rho_Th = 1e-8;
-					if (p_Th <= 1e-8 / 2.0) p_Th = 1e-8 / 2.0;
-
-					if (rho_Th > 5000.0)
-					{
-						cout << "error ergewfaewwsghrgseerg" << endl;
-						cout << ro << endl;
-						exit(-1);
-					}
-
-					ro = rho_Th;
-					cp = sqrt(2.0 * p_Th / rho_Th);
-
-
-
-					if (std::isnan(cp) || std::isnan(ro) || std::isnan(rho_He) || cp > 100000000.0)
-					{
-						std::cout << "ERROR erverfsdrvfsrdvff " << std::endl;
-						cout << cp << " " << ro << endl;
-						exit(-1);
-					}
-
-				}
-
-				//cout << "A2" << endl;
-
-				vx_sr += vx / N_step;
-				vy_sr += vy / N_step;
-				vz_sr += vz / N_step;
-
-				u = sqrt(kvv(P.Vel[0] - vx, P.Vel[1] - vy, P.Vel[2] - vz));
-				u1 = vx - P.Vel[0];
-				u2 = vy - P.Vel[1];
-				u3 = vz - P.Vel[2];
-				skalar = u1 * P.Vel[0] + u2 * P.Vel[1] + u3 * P.Vel[2];
-
-				cp_sr += cp / N_step;
-				u_sr += u / N_step;
-				u1_sr += u1 / N_step;
-				u2_sr += u2 / N_step;
-				u3_sr += u3 / N_step;
-				skalar_sr += skalar / N_step;
-
-				if (u / cp > 7.0)
-				{
-					double uz = Velosity_1(u, cp);
-					nu_ex = ro * uz * this->phys_param->sigma(uz) / this->phys_param->par_Kn;
-				}
-				else
-				{
-					nu_ex = (ro * this->phys_param->MK_int_1(u, cp)) / this->phys_param->par_Kn;  // Пробуем вычислять интеграллы численно
-				}
-
-				sig = Vel_norm / nu_ex;     // локальная sig на каждом участке интегрирования
-				ss += dl / sig;
-			}
-
-			//cout << "A3" << endl;
-
-			sig = l / ss;   // Некая средняя sigma по перезарядке
+			double uz = Velosity_1(u, cp);
+			nu_ex = ro * uz * this->phys_param->sigma(uz) / this->phys_param->par_Kn;
+		}
+		else
+		{
+			nu_ex = (ro * this->phys_param->MK_int_1(u, cp)) / this->phys_param->par_Kn;  // Пробуем вычислять интеграллы численно
 		}
 
+		nu_ex_pui_1 = 0.0;
+		nu_ex_pui_2 = 0.0;
+
+		// Посчитаем частоты перезарядки на пикапах
+		if (this->phys_param->is_PUI == true)
+		{
+
+		}
 
 		if (std::isnan(cp_sr) || std::isnan(u1_sr))
 		{
@@ -2621,8 +2514,14 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 			exit(-1);
 		}
 
+		double summ_nu = nu_ex + nu_ex_pui_1 + nu_ex_pui_2;
 
-		I += l / sig;
+		if (summ_nu >= 0.000000001)
+		{
+			// Иначе если частота процессов нулевая, то в этой ячейке не произошло никакое событие
+			sig = Vel_norm / summ_nu;
+			I += l / sig;
+		}
 
 
 		if (P.cel->MK_zone != zone_MK)
@@ -2656,7 +2555,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 				short int zone = this->determ_zone(P.cel, 0);
 				if (this->phys_param->MK_source_S == true)
 				{
-					P.cel->MK_Add_pui_source(P, u, nu_ex, P.mu, time, this->phys_param, zone, 0);
+					P.cel->MK_Add_pui_source(P, u, nu_ex + nu_ex_pui_1 + nu_ex_pui_2, P.mu, time, this->phys_param, zone, 0);
 				}
 				// -------------------------------------------------------------------
 			}
@@ -2748,30 +2647,107 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 
 				if (this->phys_param->MK_source_S == true)
 				{
-					P.cel->MK_Add_pui_source(P, u_sr, nu_ex, P.mu, t_ex, this->phys_param, zone, 0);
+					P.cel->MK_Add_pui_source(P, u_sr, nu_ex + nu_ex_pui_1 + nu_ex_pui_2, P.mu, t_ex, this->phys_param, zone, 0);
 				}
 				// -------------------------------------------------------------------
+				// теперь нужно определить процесс, который произошёл
+				double ksi_ = Sens->MakeRandom();
 
-				// Разыгрываем новую скорость
-				double Ur, Uphi, Uthe;
-				double Vr, Vphi, Vthe;
-				double Wr, Wthe, Wphi;
-				spherical_skorost(P.coord[0], P.coord[1], P.coord[2],
-					vx_sr, vy_sr, vz_sr, Ur, Uphi, Uthe);
-				spherical_skorost(P.coord[0], P.coord[1], P.coord[2],
-					P.Vel[0], P.Vel[1], P.Vel[2], Vr, Vphi, Vthe);
-				this->M_K_Change_Velosity(Sens, Ur / cp_sr, Uthe / cp_sr, Uphi / cp_sr,
-					Vr / cp_sr, Vthe / cp_sr, Vphi / cp_sr, Wr, Wthe, Wphi, cp_sr);
-				Wr *= cp_sr;
-				Wthe *= cp_sr;
-				Wphi *= cp_sr;
+				// Матрицы взаимодействия сортов по областям
+				Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>* hydrogen_arise;
 
-				dekard_skorost(P.coord[0], P.coord[1], P.coord[2],
-					Wr, Wphi, Wthe, P.Vel[0], P.Vel[1], P.Vel[2]);
+				if (this->phys_param->is_PUI == true)
+				{
+					if (zone == 1)
+					{
+						hydrogen_arise = &this->phys_param->hydrogen_arise_1;
+					}
+					else if (zone == 2)
+					{
+						hydrogen_arise = &this->phys_param->hydrogen_arise_2;
+					}
+					else if (zone == 3)
+					{
+						hydrogen_arise = &this->phys_param->hydrogen_arise_3;
+					}
+					else if (zone == 4)
+					{
+						hydrogen_arise = &this->phys_param->hydrogen_arise_4;
+					}
+				}
+
+				// В этом случае произошла перезарядка на тепловых протонах
+				if (ksi_ <= nu_ex / summ_nu)
+				{
+					// Разыгрываем новую скорость
+					double Ur, Uphi, Uthe;
+					double Vr, Vphi, Vthe;
+					double Wr, Wthe, Wphi;
+					spherical_skorost(P.coord[0], P.coord[1], P.coord[2],
+						vx_sr, vy_sr, vz_sr, Ur, Uphi, Uthe);
+					spherical_skorost(P.coord[0], P.coord[1], P.coord[2],
+						P.Vel[0], P.Vel[1], P.Vel[2], Vr, Vphi, Vthe);
+					this->M_K_Change_Velosity(Sens, Ur / cp_sr, Uthe / cp_sr, Uphi / cp_sr,
+						Vr / cp_sr, Vthe / cp_sr, Vphi / cp_sr, Wr, Wthe, Wphi, cp_sr);
+					Wr *= cp_sr;
+					Wthe *= cp_sr;
+					Wphi *= cp_sr;
+
+					dekard_skorost(P.coord[0], P.coord[1], P.coord[2],
+						Wr, Wphi, Wthe, P.Vel[0], P.Vel[1], P.Vel[2]);
+
+					P.sort = zone;
+				}
+				else if(ksi_ <=  (nu_ex + nu_ex_pui_1) / summ_nu) // Пикапы 1
+				{
+					if (this->phys_param->is_PUI == false)
+					{
+						cout << "Error rthryertgegrsy5ry45" << endl;
+						exit(-1);
+					}
+
+					double uu, vv, ww;
+					// Здесь не та ячейка!
+					P.cel->MK_pui_charge_exchange_velocity(Sens, S_main, this->phys_param,
+						vx, vy, vz, P.Vel[0], P.Vel[1], P.Vel[2], uu, vv, ww, 1);
+					P.Vel[0] = uu;
+					P.Vel[1] = vv;
+					P.Vel[2] = ww;
+
+					int sss = (*hydrogen_arise)(P.sort, 1);
+					P.sort = sss;
+				}
+				else if (ksi_ <= (nu_ex + nu_ex_pui_1 + nu_ex_pui_2) / summ_nu) // Пикапы 1
+				{
+					if (this->phys_param->is_PUI == false)
+					{
+						cout << "Error htrhry45y45tyegergeg" << endl;
+						exit(-1);
+					}
+					double uu, vv, ww;
+					// Здесь не та ячейка!
+					P.cel->MK_pui_charge_exchange_velocity(Sens, S_main, this->phys_param,
+						vx, vy, vz, P.Vel[0], P.Vel[1], P.Vel[2], uu, vv, ww, 2);
+					P.Vel[0] = uu;
+					P.Vel[1] = vv;
+					P.Vel[2] = ww;
+
+					if (hydrogen_arise->cols() < 3)
+					{
+						cout << "Error rewjhfgueyrghf983yt4r83" << endl;
+						exit(-1);
+					}
+
+					int sss = (*hydrogen_arise)(P.sort, 2);
+					P.sort = sss;
+				}
+				else
+				{
+					cout << "Error e80u4g79eogh9p3h40983t" << endl;
+					exit(-1);
+				}
 
 				
-				// Потом нужно отделить сорта от термальных протонов и пикапов 1 и 2
-				P.sort = zone; // (short int)(P.cel->type);                              // Определение сорта частицы  !TODO
 				P.KSI = -log(1.0 - Sens->MakeRandom());
 				vtoroy_shans = false;
 				if (P.cel->MK_zone != zone_MK)

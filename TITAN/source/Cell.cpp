@@ -1093,7 +1093,7 @@ double Cell::PUI_get_F_integer(const double& w, short int ii)
 void Cell::MK_pui_charge_exchange_velocity(Sensor* sens, Setka* SS, Phys_param* Phys,
 	const double& Upx, const double& Upy, 
 	const double& Upz, const double& UHx, const double& UHy, const double& UHz, 
-	double& VHx, double& VHy, double& VHz)
+	double& VHx, double& VHy, double& VHz, short int num_pui)
 {
 	// !? Функция перезарядки - вычисляет новые скорости атома после перезарядки
 
@@ -1119,7 +1119,7 @@ void Cell::MK_pui_charge_exchange_velocity(Sensor* sens, Setka* SS, Phys_param* 
 		ksi2 = sens->MakeRandom();
 		ksi3 = sens->MakeRandom();
 
-		w = this->PUI_get_F_integer(ksi1);
+		w = this->PUI_get_F_integer(ksi1, num_pui);
 		the = acos(1.0 - 2.0 * ksi2);
 		u = sqrt(kv(w) * kv(sin(the)) + kv(w * cos(the) - UH));
 		if (u * Phys->sigma(u) / ((w + Phys->pui_h0_wc) * Phys->sigma(w + Phys->pui_h0_wc) * h0) >= ksi3) break;

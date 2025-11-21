@@ -143,7 +143,7 @@ public:
 	void MK_pui_charge_exchange_velocity(Sensor* sens, Setka* SS, Phys_param* Phys,
 		const double& Upx, const double& Upy,
 		const double& Upz, const double& UHx, const double& UHy, const double& UHz,
-		double& VHx, double& VHy, double& VHz);
+		double& VHx, double& VHy, double& VHz, short int num_pui);
 	
 	
 	void Init_S(short int k, short int n);   // Инициализация S+ S-, заполняет нулями

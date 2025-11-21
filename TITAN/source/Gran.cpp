@@ -29,16 +29,11 @@ short int Gran::Get_method()
 			if (i->dist_from_HP == 2) b2 = true;
 			if (i->dist_from_HP == 3) b3 = true;
 			if (i->dist_from_HP == 4) b4 = true;
-		}
 
-		if (b4 == true)        // Ёкспериментально   (ещЄ вынес из цикла все услови€)
-		{
-			return 1;
-		}
-
-		if (b1 == true || b2 == true || b3 == true || b4 == true)            // —ейчас вообще почти три р€да €чеек считаем Ћаксом
-		{
-			return 0;                            // Ћакс во втором р€ду от гелиопаузы
+			if (b1 == true || b2 == true || b3 == true || b4 == true)            // —ейчас вообще почти три р€да €чеек считаем Ћаксом
+			{
+				return 0;                            // Ћакс во втором р€ду от гелиопаузы
+			}
 		}
 	}
 
