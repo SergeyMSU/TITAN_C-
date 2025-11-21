@@ -332,7 +332,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		{
 			cout << "Start zone = " << zone_play << endl;
 			this->MK_prepare(zone_play);
-			this->MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), nullptr);
+			this->MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), nullptr, Smain);
 			this->MK_delete(zone_play);
 			ijij++;
 		}
@@ -644,16 +644,18 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			A->Init_f_pui(this->phys_param->pui_nW, zone);
 			A->read_pui_FromFile();
 
+			A->culc_pui_n_T(this->phys_param->pui_wR);
 			A->Init_pui_integral(this->phys_param->pui_F_n, zone);
-			//cout << "A" << endl;
 			A->pui_integral_Culc(this->phys_param);
-			//cout << "B" << endl;
 			A->write_pui_integral_ToFile();
-			//cout << "C" << endl;
 			A->Delete_pui_integral();
-			//cout << "D" << endl;
 			A->Delete_f_pui();
 		}
+
+		this->phys_param->param_names.push_back("MK_rho_Pui_1");
+		this->phys_param->param_names.push_back("MK_T_Pui_1");
+		this->phys_param->param_names.push_back("MK_rho_Pui_2");
+		this->phys_param->param_names.push_back("MK_T_Pui_2");
 	}
 	else if (alg == 8)
 	{

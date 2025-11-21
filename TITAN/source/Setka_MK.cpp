@@ -2230,6 +2230,10 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 	std::array<Cell_handle, 6> next_cell;
 	for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
 
+	Cell* Cell_main = nullptr;   // Ячейка из основной сетки, где находится атом-частица
+	// Её нужно знать, так как f_pui и интеграллы от неё хранятся именно в основной сетке
+	Cell* Cell_main_prev = nullptr;
+
 	// Главный цикл по ячейкам
 	// Выйти из него можно только если частица достигнет конца области
 	while (true)
@@ -2407,6 +2411,19 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 
 		// Получаем параметры плазмы в ячейке ----------------------------
 
+		Cell_main = (*S_main).Find_cell_point(P.cel->center[0][0], P.cel->center[0][1], P.cel->center[0][2], 0, Cell_main_prev);
+		if (Cell_main == nullptr)
+		{
+			Cell_main = (*S_main).Find_cell_point(P.cel->center[0][0] * 0.99, P.cel->center[0][1] * 0.99, P.cel->center[0][2] * 0.99, 0, Cell_main_prev);
+			if (Cell_main == nullptr)
+			{
+				cout << "Error ihergiegufyiowehfvhuewygfiw" << endl;
+				exit(-1);
+			}
+		}
+		Cell_main_prev = Cell_main;
+
+		short int zone = this->determ_zone(P.cel, 0);
 		double ro, p, rho_He, cp, vx, vy, vz, rho_Th, p_Th;
 		unordered_map<string, double> param;
 		unordered_map<string, double> param2;
@@ -2497,7 +2514,15 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 		// Посчитаем частоты перезарядки на пикапах
 		if (this->phys_param->is_PUI == true)
 		{
+			if (this->phys_param->pui_in_zone(zone, 0) == true)
+			{
+				nu_ex_pui_1 = Cell_main->pui_get_nu(u, 0, this->phys_param->pui_wR) / this->phys_param->par_Kn;
+			}
 
+			if (this->phys_param->pui_in_zone(zone, 1) == true)
+			{
+				nu_ex_pui_2 = Cell_main->pui_get_nu(u, 1, this->phys_param->pui_wR) / this->phys_param->par_Kn;
+			}
 		}
 
 		if (std::isnan(cp_sr) || std::isnan(u1_sr))
@@ -2630,7 +2655,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 				//double uz_M = Velosity_2(u, cp) / (uz * kv(cp) * cp * const_pi * sqrtpi_);
 				//double uz_E = Velosity_3(u, cp);
 
-				short int zone = this->determ_zone(P.cel, 0);
+				
 
 				// Здесь записываем необходимые моменты в ячейку ---------------------
 				if (this->phys_param->culc_cell_moments == true)
@@ -2674,6 +2699,11 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 					{
 						hydrogen_arise = &this->phys_param->hydrogen_arise_4;
 					}
+					else
+					{
+						cout << "Error geuihrbgeyurfge8754ty3tg" << endl;
+						exit(-1);
+					}
 				}
 
 				// В этом случае произошла перезарядка на тепловых протонах
@@ -2707,8 +2737,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 					}
 
 					double uu, vv, ww;
-					// Здесь не та ячейка!
-					P.cel->MK_pui_charge_exchange_velocity(Sens, S_main, this->phys_param,
+					(*Cell_main).MK_pui_charge_exchange_velocity(Sens, S_main, this->phys_param,
 						vx, vy, vz, P.Vel[0], P.Vel[1], P.Vel[2], uu, vv, ww, 1);
 					P.Vel[0] = uu;
 					P.Vel[1] = vv;
@@ -2726,7 +2755,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 					}
 					double uu, vv, ww;
 					// Здесь не та ячейка!
-					P.cel->MK_pui_charge_exchange_velocity(Sens, S_main, this->phys_param,
+					(*Cell_main).MK_pui_charge_exchange_velocity(Sens, S_main, this->phys_param,
 						vx, vy, vz, P.Vel[0], P.Vel[1], P.Vel[2], uu, vv, ww, 2);
 					P.Vel[0] = uu;
 					P.Vel[1] = vv;

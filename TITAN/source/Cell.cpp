@@ -807,40 +807,69 @@ void Cell::culc_pui_n_T(const double& pui_wR)
 {
 	double S = 0.0;
 	double S2 = 0.0;
-	short int pui_nw = this->f_pui_1.size();
 
-	for (short int i = 0; i < this->f_pui_1.size(); i++)
+	double rho = this->parameters[0]["rho"];
+	double rho_He = this->parameters[0]["rho_He"];
+
+	while (true)
 	{
-		double w = (i + 0.5) * pui_wR / this->f_pui_1.size();
-		S = S + this->f_pui_1[i] * 4.0 * const_pi * kv(w) * (pui_wR / pui_nw);
-		S2 = S2 + this->f_pui_1[i] * 4.0 * const_pi * pow4(w) * (pui_wR / pui_nw);
-	}
+		short int pui_nw = this->f_pui_1.size();
+		for (short int i = 0; i < this->f_pui_1.size(); i++)
+		{
+			double w = (i + 0.5) * pui_wR / this->f_pui_1.size();
+			S = S + this->f_pui_1[i] * 4.0 * const_pi * kv(w) * (pui_wR / pui_nw);
+			S2 = S2 + this->f_pui_1[i] * 4.0 * const_pi * pow4(w) * (pui_wR / pui_nw);
+		}
 
-	S2 = S2 / (S * 3.0);
-	this->parameters[0]["MK_rho_Pui_1"] = S;
-	this->parameters[0]["MK_T_Pui_1"] = S2;
-
-
-	pui_nw = this->f_pui_2.size();
-	S = S2 = 0.0;
-
-	for (short int i = 0; i < this->f_pui_2.size(); i++)
-	{
-		double w = (i + 0.5) * pui_wR / this->f_pui_2.size();
-		S = S + this->f_pui_2[i] * 4.0 * const_pi * kv(w) * (pui_wR / pui_nw);
-		S2 = S2 + this->f_pui_2[i] * 4.0 * const_pi * pow4(w) * (pui_wR / pui_nw);
-	}
-
-	if (S > 0.0000001)
-	{
 		S2 = S2 / (S * 3.0);
+		this->parameters[0]["MK_rho_Pui_1"] = S;
+		this->parameters[0]["MK_T_Pui_1"] = S2;
+
+
+		pui_nw = this->f_pui_2.size();
+		S = S2 = 0.0;
+
+		for (short int i = 0; i < this->f_pui_2.size(); i++)
+		{
+			double w = (i + 0.5) * pui_wR / this->f_pui_2.size();
+			S = S + this->f_pui_2[i] * 4.0 * const_pi * kv(w) * (pui_wR / pui_nw);
+			S2 = S2 + this->f_pui_2[i] * 4.0 * const_pi * pow4(w) * (pui_wR / pui_nw);
+		}
+
+		if (S > 0.0000001)
+		{
+			S2 = S2 / (S * 3.0);
+		}
+		else
+		{
+			S2 = 0.0;
+		}
+		this->parameters[0]["MK_rho_Pui_2"] = S;
+		this->parameters[0]["MK_T_Pui_2"] = S2;
+
+		if (this->parameters[0]["MK_rho_Pui_1"] + this->parameters[0]["MK_rho_Pui_2"] > (rho - rho_He) * 0.995)
+		{
+			double kkl = ((rho - rho_He) * 0.99499) / 
+				(this->parameters[0]["MK_rho_Pui_1"] + this->parameters[0]["MK_rho_Pui_2"]);
+			for (short int i = 0; i < this->f_pui_1.size(); i++)
+			{
+				this->f_pui_1[i] *= kkl;
+			}
+
+			for (short int i = 0; i < this->f_pui_2.size(); i++)
+			{
+				this->f_pui_2[i] *= kkl;
+			}
+		}
+		else
+		{
+			break;
+		}
 	}
-	else
-	{
-		S2 = 0.0;
-	}
-	this->parameters[0]["MK_rho_Pui_2"] = S;
-	this->parameters[0]["MK_T_Pui_2"] = S2;
+
+
+
+
 }
 
 double Cell::pui_get_f(const double& w, short int ii, const double& Wmax)
