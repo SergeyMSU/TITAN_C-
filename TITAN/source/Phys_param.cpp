@@ -734,8 +734,12 @@ void Phys_param::Plasma_components_2(const short int& zone,
     if (zone == 1 || zone == 3 || zone == 4)
     {
         // Здесь один сорт пикапов
-        rho_Pui_1 = param_in_cell["rho_Pui_1"];
-        p_Pui_1 = param_in_cell["p_Pui_1"];
+        //rho_Pui_1 = param_in_cell["rho_Pui_1"];
+        //p_Pui_1 = param_in_cell["p_Pui_1"];
+
+        rho_Pui_1 = param_in_cell["MK_rho_Pui_1"];
+        p_Pui_1 = 2.0 * rho_Pui_1 * param_in_cell["MK_T_Pui_1"];
+
 
         param["rho_Th"] = -(-4.0 * rho + 4.0 * rho_He + al * MF_meDmp * rho_He + 
             (4.0  + 4.0 * MF_meDmp) * rho_Pui_1)
@@ -748,11 +752,17 @@ void Phys_param::Plasma_components_2(const short int& zone,
     else
     {
         // Здесь два сорта пикапов
-        rho_Pui_1 = param_in_cell["rho_Pui_1"];
-        p_Pui_1 = param_in_cell["p_Pui_1"];
+        //rho_Pui_1 = param_in_cell["rho_Pui_1"];
+        //p_Pui_1 = param_in_cell["p_Pui_1"];
 
-        rho_Pui_2 = param_in_cell["rho_Pui_2"];
-        p_Pui_2 = param_in_cell["p_Pui_2"];
+        //rho_Pui_2 = param_in_cell["rho_Pui_2"];
+        //p_Pui_2 = param_in_cell["p_Pui_2"];
+
+        rho_Pui_1 = param_in_cell["MK_rho_Pui_1"];
+        p_Pui_1 = 2.0 * rho_Pui_1 * param_in_cell["MK_T_Pui_1"];
+
+        rho_Pui_2 = param_in_cell["MK_rho_Pui_2"];
+        p_Pui_2 = 2.0 * rho_Pui_2 * param_in_cell["MK_T_Pui_2"];
 
         param["rho_Th"] = -(-4.0 * rho + 4.0 * rho_He + al * MF_meDmp * rho_He +
             (4.0 + 4.0 * MF_meDmp) * (rho_Pui_1 + rho_Pui_2))

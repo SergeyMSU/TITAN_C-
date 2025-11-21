@@ -957,10 +957,26 @@ double Cell::pui_get_f(const double& w, short int ii, const double& Wmax)
 double Cell::pui_get_nu(const double& w, short int ii, const double& Wmax)
 {
 	short int N = 0;
-	if (ii == 0) { N = this->nu_integr_pui_1.size(); }
-	else if (ii == 1) { N = this->nu_integr_pui_2.size(); }
-	else { cout << "ERROR ey4556uy564556ty4y453dfsde" << endl; exit(-1); }
-	if (N == 0) return 0.0;
+	if (ii == 0) 
+	{ 
+		N = this->nu_integr_pui_1.size(); 
+	}
+	else if (ii == 1) 
+	{ 
+		N = this->nu_integr_pui_2.size(); 
+	}
+	else 
+	{ 
+		cout << "ERROR ey4556uy564556ty4y453dfsde" << endl; 
+		exit(-1); 
+	}
+	if (N == 0)
+	{
+		cout << "Error N = 0" << endl;
+		cout << this->nu_integr_pui_1.size() << " " << this->nu_integr_pui_2.size() << endl;
+		cout << "zone = " << (int)(this->type) << endl;
+		return 0.0;
+	}
 
 	double cell_size = Wmax / N;
 	int left_index = static_cast<int>(w / cell_size);

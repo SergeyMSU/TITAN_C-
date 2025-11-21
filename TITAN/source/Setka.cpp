@@ -921,12 +921,27 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			Smc.Init_h0_and_read_from_file();
 
 			// Загружаем все интеграллы пикапов
+			unsigned int st = 0;
+			#pragma omp parallel for schedule(dynamic)
 			for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
 			{
+				#pragma omp critical (gergergerg4) 
+				{
+					st++;
+					if (st % 10000 == 0)
+					{
+						cout << "st = " << st << "   from " << this->All_Cell.size() << endl;
+					}
+				}
+
 				auto A = this->All_Cell[idx];
 				short int zone = determ_zone(A, 0);
 				A->Init_pui_integral(this->phys_param->pui_F_n, zone);
 				A->read_pui_integral_FromFile();
+				A->Init_f_pui(this->phys_param->pui_nW, zone);
+				A->read_pui_FromFile();
+				A->culc_pui_n_T(this->phys_param->pui_wR);
+				A->Delete_f_pui();
 			}
 		}
 
@@ -951,14 +966,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
 
 		cout << "Start zones_number push_back" << endl;
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		
 
 		short int ijij = 0;
