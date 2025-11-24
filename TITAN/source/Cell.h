@@ -79,8 +79,9 @@ public:
 	void Init_pui_integral(short int n, short int zone);  // Инициализация интеграллов для розыгрыша pui
 	void Delete_pui_integral(void);
 	void write_pui_integral_ToFile(void);
-	void read_pui_integral_FromFile(void);
+	void read_pui_integral_FromFile(Phys_param*& Phys_param);
 	void pui_integral_Culc(Phys_param* phys_param);
+	void print_nu_integr_pui(Phys_param* phys_param, string name = "");
 
 
 	void Init_f_pui(short int n, short int zone);  // Инициализация f_pui, заполняет нулями

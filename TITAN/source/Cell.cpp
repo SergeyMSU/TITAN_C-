@@ -305,23 +305,18 @@ void Cell::write_pui_integral_ToFile(void)
 	}
 }
 
-void Cell::read_pui_integral_FromFile(void)
+void Cell::read_pui_integral_FromFile(Phys_param*& Phys_param)
 {
-	std::string filename = "data_pui_intergal/func_cells_pui_" + to_string(this->number) + ".bin";
+	std::string filename = "data_pui_intergal/func_cells_pui_integral_" + to_string(this->number) + ".bin";
 
 	if (file_exists(filename) == false) return;
 
 	std::ifstream file(filename, std::ios::binary);
 	if (!file.is_open())
 	{
-		std::cerr << "Error ji86y4tre4364ye5tg" << filename << std::endl;
+		std::cout << "Error ji86y4tre4364ye5tg" << filename << std::endl;
 		exit(-10);
 	}
-
-	vector<double> F_integr_pui_1;   // (pui_F_n)
-	vector<double> nu_integr_pui_1;   // (pui_F_n)
-	vector<double> Mz_integr_pui_1;   // (pui_F_n)
-	vector<double> E_integr_pui_1;   // (pui_F_n)
 
 	try {
 		// „итаем размеры матриц
@@ -329,9 +324,16 @@ void Cell::read_pui_integral_FromFile(void)
 		file.read(reinterpret_cast<char*>(&size1), sizeof(size1));
 		file.read(reinterpret_cast<char*>(&size2), sizeof(size2));
 
+		// ѕровер€ем корректность прочитанных размеров
+		if (size1 < 0 || size2 < 0) {
+			std::cout << "Error: Invalid sizes read from file: " << size1 << ", " << size2 << std::endl;
+			file.close();
+			exit(-13);
+		}
+
 		if (size1 != this->F_integr_pui_1.size() || size2 != this->F_integr_pui_2.size())
 		{
-			std::cerr << "Error reerhyy6576456t45uhrdgrt" << std::endl;
+			std::cout << "Error reerhyy6576456t45uhrdgrt" << std::endl;
 			cout << size1 << " " << size2 << " " << this->F_integr_pui_1.size() << " " << 
 				this->F_integr_pui_2.size() << endl;
 			file.close();
@@ -358,8 +360,7 @@ void Cell::read_pui_integral_FromFile(void)
 			size2 * sizeof(double));
 
 		int pvr;
-		file.read(reinterpret_cast<char*>(pvr),
-			sizeof(pvr));
+		file.read(reinterpret_cast<char*>(&pvr), sizeof(pvr));
 		if (pvr != 468)
 		{
 			cout << "Error  93498tryh38hgibuwe4fghp9iehg" << endl;
@@ -368,11 +369,18 @@ void Cell::read_pui_integral_FromFile(void)
 
 		file.close();
 	}
-	catch (const std::exception& e) {
-		std::cerr << "Error ry4536345te5y34ty34et;9 " << e.what() << std::endl;
+	catch (const std::exception& e) 
+	{
+		std::cout << "Error ry4536345te5y34ty34et;9 " << e.what() << std::endl;
 		file.close();
 		exit(-19);
 	}
+
+	if (this->number == 378182)
+	{
+		this->print_nu_integr_pui(Phys_param, "_init_");
+	}
+
 }
 
 void Cell::pui_integral_Culc(Phys_param* phys_param)
@@ -442,11 +450,20 @@ void Cell::pui_integral_Culc(Phys_param* phys_param)
 					S = S + 2.0 * ks;
 					SS = SS + 2.0 * w * cos(the) * ks;
 					S1 = S1 + kv(w) * ks;
+
+					if (this->number == 2201 && i == 0)
+					{
+						//cout << "u = " << u << " " << ks << " " << ff << " " << w << " " << the << endl;
+					}
 				}
 			}
 
 			if (ijk == 0)
 			{
+				if (this->number == 2201)
+				{
+					//cout << "S = " << S << endl;
+				}
 				this->nu_integr_pui_1[i] = S;
 				this->Mz_integr_pui_1[i] = SS;
 				this->E_integr_pui_1[i] = S1;
@@ -465,6 +482,37 @@ void Cell::pui_integral_Culc(Phys_param* phys_param)
 		}
 	}
 
+}
+
+void Cell::print_nu_integr_pui(Phys_param* phys_param, string name)
+{
+	std::ofstream file(name + "_1_print_nu_integr_pui_" + to_string(this->number) + ".txt");
+	if (!file.is_open()) {
+		cout << "Error uehgrifbghvuoyerfowhefwef" << endl;
+		exit(-1);
+	}
+
+	for (int i = 0; i < nu_integr_pui_1.size(); i++) 
+	{
+		double w = (i + 0.5) * phys_param->pui_wR / nu_integr_pui_1.size();
+		file << w << "\t" << nu_integr_pui_1[i] << "\n";
+	}
+
+	file.close();
+
+	std::ofstream  file2(name + "_2_print_nu_integr_pui_" + to_string(this->number) + ".txt");
+	if (!file2.is_open()) {
+		cout << "Error dthgretget345" << endl;
+		exit(-1);
+	}
+
+	for (int i = 0; i < nu_integr_pui_2.size(); i++)
+	{
+		double w = (i + 0.5) * phys_param->pui_wR / nu_integr_pui_2.size();
+		file2 << w << "\t" << nu_integr_pui_2[i] << "\n";
+	}
+
+	file2.close();
 }
 
 void Cell::write_pui_ToFile(void)
@@ -801,6 +849,21 @@ void Cell::print_pui(double Wmax, string nam)
 	}
 
 	fout.close();
+
+	fout.open("interpol_" + name_f);
+	fout << "TITLE = HP  VARIABLES = u, f1, f2, f" << endl;
+	size = this->f_pui_1.size();
+	dx = Wmax / ( 9 * size);
+	for (int i = 0; i < 10 * size; ++i)
+	{
+		double center = (i + 0.5) * dx;  // центр €чейки
+		double f2 = 0.0;
+		if (this->f_pui_2.size() > i) f2 = this->pui_get_f(center, 1, Wmax);
+		fout << center << " " << this->pui_get_f(center, 0, Wmax) << " " << f2 << " " <<
+			this->pui_get_f(center, 0, Wmax) + f2 << std::endl;
+	}
+
+	fout.close();
 }
 
 void Cell::culc_pui_n_T(const double& pui_wR)
@@ -875,17 +938,31 @@ void Cell::culc_pui_n_T(const double& pui_wR)
 double Cell::pui_get_f(const double& w, short int ii, const double& Wmax)
 {
 	short int N = 0;
-	if (ii == 0) {N = this->f_pui_1.size();}
-	else if (ii == 1) {N = this->f_pui_2.size();}
-	else { cout << "ERROR ey4556uy564556ty4y453dfsde" << endl; exit(-1);}
+	if (ii == 0) 
+	{
+		N = this->f_pui_1.size();
+	}
+	else if (ii == 1) 
+	{
+		N = this->f_pui_2.size();
+	}
+	else { 
+		cout << "ERROR ey4556uy564556ty4y453dfsde" << endl; 
+		exit(-1);
+	}
 	if (N == 0) return 0.0;
 
 	double cell_size = Wmax / N;
 	int left_index = static_cast<int>(w / cell_size);
-	if (left_index == N) 
+	if (left_index == N || w >= Wmax)
 	{
-		if (ii == 0) { return this->f_pui_1[N - 1]; }
-		else if (ii == 1) { return this->f_pui_2[N - 1]; }
+		if (ii == 0) { 
+			return this->f_pui_1[N - 1]; 
+		}
+		else if (ii == 1) 
+		{ 
+			return this->f_pui_2[N - 1]; 
+		}
 		else
 		{
 			cout << "ERROR hbtyryuj7ue4swswsw32" << endl;
@@ -893,58 +970,76 @@ double Cell::pui_get_f(const double& w, short int ii, const double& Wmax)
 		}
 	}
 
-	//  оординаты центров €чеек
+	if (w <= 0.0)
+	{
+		if (ii == 0) 
+		{ 
+			return this->f_pui_1[0]; 
+		}
+		else if (ii == 1) 
+		{ 
+			return this->f_pui_2[0]; 
+		}
+		else
+		{
+			cout << "ERROR hbtyryuj7ue4swswsw32" << endl;
+			exit(-1);
+		}
+	}
+
+	int right_index = left_index + 1;
+	if (w < (left_index + 0.5) * cell_size)
+	{
+		left_index -= 1;
+		right_index = left_index + 1;
+	}
+
+	if (left_index < 0)
+	{
+		if (ii == 0)
+		{
+			return this->f_pui_1[0];
+		}
+		else if (ii == 1)
+		{
+			return this->f_pui_2[0];
+		}
+		else
+		{
+			cout << "ERROR efwefwefwqrd23r2r3wfdwe" << endl;
+			exit(-1);
+		}
+	}
+
+	if (right_index > N - 1)
+	{
+		if (ii == 0) 
+		{
+			return this->f_pui_1[N - 1];
+		}
+		else if (ii == 1)
+		{
+			return this->f_pui_2[N - 1];
+		}
+		else
+		{
+			cout << "ERROR fgergergefgwfgerawf" << endl;
+			exit(-1);
+		}
+	}
+
 	double left_center = (left_index + 0.5) * cell_size;
 	double right_center = (left_index + 1.5) * cell_size;
-
-	if (left_index == 0 && w < left_center) {
-		// Ёкстрапол€ци€ от первой €чейки
-		double next_center = (1.5) * cell_size;
-		if (ii == 0)
-		{
-			return this->f_pui_1[0] + (this->f_pui_1[1] - this->f_pui_1[0]) * 
-				(w - left_center) / (next_center - left_center);
-		}
-		else if (ii == 1)
-		{
-			return this->f_pui_2[0] + (this->f_pui_2[1] - this->f_pui_2[0]) *
-				(w - left_center) / (next_center - left_center);
-		}
-		else
-		{
-			cout << "ERROR tbftgeyt45tvggestv" << endl;
-			exit(-1);
-		}
-	}
-	else if (left_index == N - 1 && w > right_center) 
-	{
-		double prev_center = (N - 1.5) * cell_size;
-		if (ii == 0)
-		{
-			return this->f_pui_1[N - 2] + (this->f_pui_1[N - 1] - this->f_pui_1[N - 2]) *
-				(w - prev_center) / (right_center - prev_center);
-		}
-		else if (ii == 1)
-		{
-			return this->f_pui_2[N - 2] + (this->f_pui_2[N - 1] - this->f_pui_2[N - 2]) *
-				(w - prev_center) / (right_center - prev_center);
-		}
-		else
-		{
-			cout << "ERROR rtyr6uy56u5u56u5u6;sjfge" << endl;
-			exit(-1);
-		}
-	}
 
 	// Ћинейна€ интерпол€ци€ между центрами €чеек
 	double t = (w - left_center) / (right_center - left_center);
 	if (ii == 0)
 	{
-		return this->f_pui_1[left_index] * (1.0 - t) + this->f_pui_1[left_index + 1] * t;
+		return max(this->f_pui_1[left_index] * (1.0 - t) + this->f_pui_1[right_index] * t, 0.0);
 	}
 	else if (ii == 1)
 	{
-		return this->f_pui_2[left_index] * (1.0 - t) + this->f_pui_2[left_index + 1] * t;
+		return max(this->f_pui_2[left_index] * (1.0 - t) + this->f_pui_2[left_index + 1] * t, 0.0);
 	}
 	else
 	{
@@ -956,6 +1051,8 @@ double Cell::pui_get_f(const double& w, short int ii, const double& Wmax)
 
 double Cell::pui_get_nu(const double& w, short int ii, const double& Wmax)
 {
+	// ii = 0/1   - номер пикапов
+
 	short int N = 0;
 	if (ii == 0) 
 	{ 
@@ -978,15 +1075,31 @@ double Cell::pui_get_nu(const double& w, short int ii, const double& Wmax)
 		return 0.0;
 	}
 
+	//cout << "DFDS:  N = " << N << endl;
+	//cout << "DFDS:  Wmax = " << Wmax << endl;
+
 	double cell_size = Wmax / N;
+	//cout << "DFDS:  cell_size = " << cell_size << endl;
+
 	int left_index = static_cast<int>(w / cell_size);
-	if (left_index == N)
+	if (left_index == N || w >= Wmax)
 	{
 		if (ii == 0) { return this->nu_integr_pui_1[N - 1]; }
 		else if (ii == 1) { return this->nu_integr_pui_2[N - 1]; }
 		else
 		{
 			cout << "ERROR hbtyryuj7ue4swswsw32" << endl;
+			exit(-1);
+		}
+	}
+
+	if (w <= 0.0)
+	{
+		if (ii == 0) { return this->nu_integr_pui_1[0]; }
+		else if (ii == 1) { return this->nu_integr_pui_2[0]; }
+		else
+		{
+			cout << "ERROR fgergertf453ytger" << endl;
 			exit(-1);
 		}
 	}
@@ -1036,6 +1149,9 @@ double Cell::pui_get_nu(const double& w, short int ii, const double& Wmax)
 
 	// Ћинейна€ интерпол€ци€ между центрами €чеек
 	double t = (w - left_center) / (right_center - left_center);
+
+	//cout << "DFDS:  t = " << t << endl;
+
 	if (ii == 0)
 	{
 		return this->nu_integr_pui_1[left_index] * (1.0 - t) + this->nu_integr_pui_1[left_index + 1] * t;

@@ -209,15 +209,15 @@ Phys_param::Phys_param()
     {
         this->Plasma_components = [this](const short int& zone,
             unordered_map<string, double>& param_in_cell,
-            unordered_map<string, double>& param) {
-                this->Plasma_components_2(zone, param_in_cell, param); };
+            unordered_map<string, double>& param, bool fluid) {
+                this->Plasma_components_2(zone, param_in_cell, param, fluid); };
     }
     else
     {
         this->Plasma_components = [this](const short int& zone,
             unordered_map<string, double>& param_in_cell,
-            unordered_map<string, double>& param) {
-                this->Plasma_components_1(zone, param_in_cell, param); };
+            unordered_map<string, double>& param, bool fluid) {
+                this->Plasma_components_1(zone, param_in_cell, param, fluid); };
     }
 
 
@@ -666,7 +666,7 @@ void Phys_param::set_parameters(void)
 
 void Phys_param::Plasma_components_1(const short int& zone, 
     unordered_map<string, double>& param_in_cell,
-    unordered_map<string, double>& param)
+    unordered_map<string, double>& param, bool fluid)
 {
     // Без пикапов, только протоны и гелий
     // Te == Tth
@@ -705,7 +705,7 @@ void Phys_param::Plasma_components_1(const short int& zone,
 
 void Phys_param::Plasma_components_2(const short int& zone,
     unordered_map<string, double>& param_in_cell,
-    unordered_map<string, double>& param)
+    unordered_map<string, double>& param, bool fluid)
 {
     // Протоны, гелий, пикапы (два сорта)
     // Te == Tth
@@ -734,11 +734,16 @@ void Phys_param::Plasma_components_2(const short int& zone,
     if (zone == 1 || zone == 3 || zone == 4)
     {
         // Здесь один сорт пикапов
-        //rho_Pui_1 = param_in_cell["rho_Pui_1"];
-        //p_Pui_1 = param_in_cell["p_Pui_1"];
-
-        rho_Pui_1 = param_in_cell["MK_rho_Pui_1"];
-        p_Pui_1 = 2.0 * rho_Pui_1 * param_in_cell["MK_T_Pui_1"];
+        if (fluid == true)
+        {
+            rho_Pui_1 = param_in_cell["rho_Pui_1"];
+            p_Pui_1 = param_in_cell["p_Pui_1"];
+        }
+        else
+        {
+            rho_Pui_1 = param_in_cell["MK_rho_Pui_1"];
+            p_Pui_1 = 2.0 * rho_Pui_1 * param_in_cell["MK_T_Pui_1"];
+        }
 
 
         param["rho_Th"] = -(-4.0 * rho + 4.0 * rho_He + al * MF_meDmp * rho_He + 
@@ -752,17 +757,22 @@ void Phys_param::Plasma_components_2(const short int& zone,
     else
     {
         // Здесь два сорта пикапов
-        //rho_Pui_1 = param_in_cell["rho_Pui_1"];
-        //p_Pui_1 = param_in_cell["p_Pui_1"];
+        if (fluid == true)
+        {
+            rho_Pui_1 = param_in_cell["rho_Pui_1"];
+            p_Pui_1 = param_in_cell["p_Pui_1"];
 
-        //rho_Pui_2 = param_in_cell["rho_Pui_2"];
-        //p_Pui_2 = param_in_cell["p_Pui_2"];
+            rho_Pui_2 = param_in_cell["rho_Pui_2"];
+            p_Pui_2 = param_in_cell["p_Pui_2"];
+        }
+        else
+        {
+            rho_Pui_1 = param_in_cell["MK_rho_Pui_1"];
+            p_Pui_1 = 2.0 * rho_Pui_1 * param_in_cell["MK_T_Pui_1"];
 
-        rho_Pui_1 = param_in_cell["MK_rho_Pui_1"];
-        p_Pui_1 = 2.0 * rho_Pui_1 * param_in_cell["MK_T_Pui_1"];
-
-        rho_Pui_2 = param_in_cell["MK_rho_Pui_2"];
-        p_Pui_2 = 2.0 * rho_Pui_2 * param_in_cell["MK_T_Pui_2"];
+            rho_Pui_2 = param_in_cell["MK_rho_Pui_2"];
+            p_Pui_2 = 2.0 * rho_Pui_2 * param_in_cell["MK_T_Pui_2"];
+        }
 
         param["rho_Th"] = -(-4.0 * rho + 4.0 * rho_He + al * MF_meDmp * rho_He +
             (4.0 + 4.0 * MF_meDmp) * (rho_Pui_1 + rho_Pui_2))

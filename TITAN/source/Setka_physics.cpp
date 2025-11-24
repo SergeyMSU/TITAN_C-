@@ -956,7 +956,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 	// Получаем переменные -----------------------------------------------------------------
 	unordered_map<string, double> param;
 
-	this->phys_param->Plasma_components(zone_, C->parameters[now], param);
+	this->phys_param->Plasma_components(zone_, C->parameters[now], param, true);
 
 	if (this->regim_otladki == true)
 	{
@@ -1461,7 +1461,7 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 
 	unordered_map<string, double> param;
 
-	this->phys_param->Plasma_components(zone, C->parameters[now], param);
+	this->phys_param->Plasma_components(zone, C->parameters[now], param, true);
 
 	rho_Th = param["rho_Th"];
 	p_Th = param["p_Th"];

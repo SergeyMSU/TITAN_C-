@@ -14,6 +14,12 @@ short int Gran::Get_method()
 
 	if (this->type2 == Type_Gran_surf::Us)
 	{
+
+		if (this->cells[0]->type == Type_cell::Zone_1)
+		{
+			return 2;
+		}
+
 		bool b1 = false;
 		bool b2 = false;
 		bool b3 = false;

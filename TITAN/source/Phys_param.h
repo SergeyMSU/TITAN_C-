@@ -90,7 +90,7 @@ public:
 
     std::function<void (const short int&,
         unordered_map<string, double>&,
-        unordered_map<string, double>&)> Plasma_components;
+        unordered_map<string, double>&, bool)> Plasma_components;
 
 
     double ALL_Time = 0.0;            // Общее время решения задачи
@@ -262,11 +262,11 @@ public:
     // Разделение компонент плазмы
     void Plasma_components_1(const short int& zone,
         unordered_map<string, double>& param_in_cell,
-        unordered_map<string, double>& param);
+        unordered_map<string, double>& param, bool fluid = true);
 
     void Plasma_components_2(const short int& zone,
         unordered_map<string, double>& param_in_cell,
-        unordered_map<string, double>& param);
+        unordered_map<string, double>& param, bool fluid = true);
 
 
     void Get_Potok(const double& rho, const double& p, const double& u, const double& v,

@@ -36,7 +36,7 @@ int main()
     // Считываем физические параметры и геометрическое положение узлов из файла (предыдущего расчёта)
     //S1.Download_cell_parameters("parameters_0060.bin");   
 
-    S1.Download_cell_parameters("parameters_0064.bin");
+    S1.Download_cell_parameters("parameters_0065.bin");
 
 
     //S1.Download_cell_parameters("parameters_promeg_1124.bin");
@@ -108,7 +108,7 @@ int main()
     S1.Algoritm(10, &S1);
     //S1.Algoritm(8, &S1);
 
-    //return 0;
+    return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 
@@ -165,15 +165,15 @@ int main()
 
 
 
-    //S1.Save_cell_parameters("parameters_0066.bin");
+    //S1.Save_cell_parameters("parameters_0065.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
-    //S1.Edges_create();
-    //S1.Culc_divergence_in_cell();
-    //S1.Culc_gradient_in_cell();
-    //S1.Culc_rotors_in_cell();
-    //S1.Culc_usual_rotors_in_cell();
+    S1.Edges_create();
+    S1.Culc_divergence_in_cell();
+    S1.Culc_gradient_in_cell();
+    S1.Culc_rotors_in_cell();
+    S1.Culc_usual_rotors_in_cell();
 
     if (false)
     {
@@ -232,10 +232,10 @@ int main()
 
     }
 
-    //S1.Save_for_interpolate("For_intertpolate_0064.bin", true);
+    //S1.Save_for_interpolate("For_intertpolate_0065.bin", true);
     //Interpol SS = Interpol("For_intertpolate_0064.bin");
 
-    S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
+    S1.Save_for_interpolate("For_intertpolate_0059-.bin", true);
     Interpol SS = Interpol("For_intertpolate_0059-.bin");
 
     cout << "AAA" << endl;

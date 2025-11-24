@@ -1706,7 +1706,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*&
 
 		// 4. Теперь бежим по граням и делаем основной алгоритм
 		k1 = 0;
-		//#pragma omp parallel for schedule(dynamic)                                                   // DELETE
+		#pragma omp parallel for schedule(dynamic)                                                   // DELETE
 		for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
 		//for (size_t idx = 2700; idx < 2701; ++idx)
 		{
@@ -2466,7 +2466,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 		//	rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
 
 		//this->phys_param->Plasma_components_1(zone, P.cel->parameters[0], param); // Это без пикапов
-		S_main->phys_param->Plasma_components(zone, Cell_main->parameters[0], param);
+		S_main->phys_param->Plasma_components(zone, Cell_main->parameters[0], param, false);
 
 		rho_Th = param["rho_Th"];
 		p_Th = param["p_Th"];
@@ -2529,15 +2529,26 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 			if (this->phys_param->pui_in_zone(zone - 1, 0) == true)
 			{
 				nu_ex_pui_1 = Cell_main->pui_get_nu(u, 0, this->phys_param->pui_wR) / this->phys_param->par_Kn;
+				if (nu_ex_pui_1 < 0.0)
+				{
+					cout << "Error eijg9uerhguoiehg89pger  " << Cell_main->number << " " << nu_ex_pui_1 << " " <<
+					u << endl;
+					exit(-4);
+				}
 			}
 
 			if (this->phys_param->pui_in_zone(zone - 1, 1) == true)
 			{
 				nu_ex_pui_2 = Cell_main->pui_get_nu(u, 1, this->phys_param->pui_wR) / this->phys_param->par_Kn;
+				if (nu_ex_pui_2 < 0.0)
+				{
+					cout << "Error jtyu5rtygergergeg  " << Cell_main->number << " " << nu_ex_pui_2 << " " <<
+						u << endl;
+					exit(-4);
+				}
 			}
 		}
 
-		cout << "nu_ex = " << nu_ex << " " << nu_ex_pui_1 << " " << nu_ex_pui_2 << endl;
 
 		if (std::isnan(cp_sr) || std::isnan(u1_sr))
 		{
