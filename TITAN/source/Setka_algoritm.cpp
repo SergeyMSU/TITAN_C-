@@ -11,7 +11,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 4  - Вычисление n_pui  и  T_pui  по рассчитанным f_pui
 	// 5  - Добавить в ячейки основной сетки значение моментов водорода из Монте-Карло (которые посчитаны для сетки MK)
 	// 6  - Вычисление функции h0 для розыгрыша пикапов (она считается один раз для каждого сечения перезарядки)  (СТАРАЯ реализация - надо адаптировать)
-	// 7  - Вычисление всех интеграллов в ячейках для розыгрыша пикапов (частота и т.д.)  (СТАРАЯ реализация - надо адаптировать)
+	// 7  - Вычисление всех интеграллов в ячейках для розыгрыша пикапов (частота и т.д.) 
 	// 8  - Вычисление поглощения вдоль заданных лучей (новая реализация через вспомогательную сетку)
 	// 9  - Перемасштабирование функций распредления водорода (речь про число ячеек AMR), без потери значений (СТАРАЯ реализация - надо адаптировать)
 	// 10 - Монте-Карло (новая реализация через вспомогательную сетку)
@@ -463,10 +463,10 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	else if (alg == 7)
 	{
 		unsigned int st = 0;
-#pragma omp parallel for schedule(dynamic)
+		#pragma omp parallel for schedule(dynamic)
 		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
 		{
-#pragma omp critical (gergergerg4) 
+			#pragma omp critical (gergergerg4) 
 			{
 				st++;
 				if (st % 5000 == 0)
@@ -835,7 +835,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				CC->pui_get_nu(-50, 1, this->phys_param->pui_wR) << endl;*/
 		}
 
-		return;
+		//return;
 
 		cout << "Set MK zone" << endl;
 		// Определим зоны для МК
@@ -858,9 +858,18 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
 
 		cout << "Start zones_number push_back" << endl;
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
 
 
 		short int ijij = 0;

@@ -858,7 +858,7 @@ void Cell::print_pui(double Wmax, string nam)
 	{
 		double center = (i + 0.5) * dx;  // центр ячейки
 		double f2 = 0.0;
-		if (this->f_pui_2.size() > i) f2 = this->pui_get_f(center, 1, Wmax);
+		if (this->f_pui_2.size() > 0) f2 = this->pui_get_f(center, 1, Wmax);
 		fout << center << " " << this->pui_get_f(center, 0, Wmax) << " " << f2 << " " <<
 			this->pui_get_f(center, 0, Wmax) + f2 << std::endl;
 	}
@@ -935,321 +935,124 @@ void Cell::culc_pui_n_T(const double& pui_wR)
 
 }
 
-double Cell::pui_get_f(const double& w, short int ii, const double& Wmax)
-{
-	short int N = 0;
-	if (ii == 0) 
-	{
-		N = this->f_pui_1.size();
-	}
-	else if (ii == 1) 
-	{
-		N = this->f_pui_2.size();
-	}
-	else { 
-		cout << "ERROR ey4556uy564556ty4y453dfsde" << endl; 
-		exit(-1);
-	}
-	if (N == 0) return 0.0;
-
-	double cell_size = Wmax / N;
-	int left_index = static_cast<int>(w / cell_size);
-	if (left_index == N || w >= Wmax)
-	{
-		if (ii == 0) { 
-			return this->f_pui_1[N - 1]; 
-		}
-		else if (ii == 1) 
-		{ 
-			return this->f_pui_2[N - 1]; 
-		}
-		else
-		{
-			cout << "ERROR hbtyryuj7ue4swswsw32" << endl;
-			exit(-1);
-		}
-	}
-
-	if (w <= 0.0)
-	{
-		if (ii == 0) 
-		{ 
-			return this->f_pui_1[0]; 
-		}
-		else if (ii == 1) 
-		{ 
-			return this->f_pui_2[0]; 
-		}
-		else
-		{
-			cout << "ERROR hbtyryuj7ue4swswsw32" << endl;
-			exit(-1);
-		}
-	}
-
-	int right_index = left_index + 1;
-	if (w < (left_index + 0.5) * cell_size)
-	{
-		left_index -= 1;
-		right_index = left_index + 1;
-	}
-
-	if (left_index < 0)
-	{
-		if (ii == 0)
-		{
-			return this->f_pui_1[0];
-		}
-		else if (ii == 1)
-		{
-			return this->f_pui_2[0];
-		}
-		else
-		{
-			cout << "ERROR efwefwefwqrd23r2r3wfdwe" << endl;
-			exit(-1);
-		}
-	}
-
-	if (right_index > N - 1)
-	{
-		if (ii == 0) 
-		{
-			return this->f_pui_1[N - 1];
-		}
-		else if (ii == 1)
-		{
-			return this->f_pui_2[N - 1];
-		}
-		else
-		{
-			cout << "ERROR fgergergefgwfgerawf" << endl;
-			exit(-1);
-		}
-	}
-
-	double left_center = (left_index + 0.5) * cell_size;
-	double right_center = (left_index + 1.5) * cell_size;
-
-	// Линейная интерполяция между центрами ячеек
-	double t = (w - left_center) / (right_center - left_center);
-	if (ii == 0)
-	{
-		return max(this->f_pui_1[left_index] * (1.0 - t) + this->f_pui_1[right_index] * t, 0.0);
-	}
-	else if (ii == 1)
-	{
-		return max(this->f_pui_2[left_index] * (1.0 - t) + this->f_pui_2[left_index + 1] * t, 0.0);
-	}
-	else
-	{
-		cout << "ERROR 54tuh8745bgoi;sjfge" << endl;
-		exit(-1);
-	}
-}
-
 
 double Cell::pui_get_nu(const double& w, short int ii, const double& Wmax)
 {
-	// ii = 0/1   - номер пикапов
+	// Выбор нужного вектора
+	const auto& vec = (ii == 0) ? this->nu_integr_pui_1 : (ii == 1) ? this->nu_integr_pui_2 : [&]() -> const vector<double>&
+		{
+			cout << "ERROR ey4556uy564556ty4y453dfsde" << endl;
+			exit(-1);
+			return f_pui_1; // заглушка, никогда не выполнится
+		}();
 
-	short int N = 0;
-	if (ii == 0) 
-	{ 
-		N = this->nu_integr_pui_1.size(); 
-	}
-	else if (ii == 1) 
-	{ 
-		N = this->nu_integr_pui_2.size(); 
-	}
-	else 
-	{ 
-		cout << "ERROR ey4556uy564556ty4y453dfsde" << endl; 
-		exit(-1); 
-	}
-	if (N == 0)
-	{
-		cout << "Error N = 0" << endl;
-		cout << this->nu_integr_pui_1.size() << " " << this->nu_integr_pui_2.size() << endl;
-		cout << "zone = " << (int)(this->type) << endl;
-		return 0.0;
-	}
+	const short int N = vec.size();
+	if (N == 0) return 0.0;
 
-	//cout << "DFDS:  N = " << N << endl;
-	//cout << "DFDS:  Wmax = " << Wmax << endl;
+	// Проверка граничных значений
+	if (w <= 0.0) return vec[0];
+	if (w >= Wmax) return vec[N - 1];
 
-	double cell_size = Wmax / N;
-	//cout << "DFDS:  cell_size = " << cell_size << endl;
-
+	const double cell_size = Wmax / N;
 	int left_index = static_cast<int>(w / cell_size);
-	if (left_index == N || w >= Wmax)
-	{
-		if (ii == 0) { return this->nu_integr_pui_1[N - 1]; }
-		else if (ii == 1) { return this->nu_integr_pui_2[N - 1]; }
-		else
-		{
-			cout << "ERROR hbtyryuj7ue4swswsw32" << endl;
-			exit(-1);
-		}
-	}
 
-	if (w <= 0.0)
+	// Корректировка индексов
+	if (w < (left_index + 0.5) * cell_size)
 	{
-		if (ii == 0) { return this->nu_integr_pui_1[0]; }
-		else if (ii == 1) { return this->nu_integr_pui_2[0]; }
-		else
-		{
-			cout << "ERROR fgergertf453ytger" << endl;
-			exit(-1);
-		}
+		left_index--;
 	}
+	int right_index = left_index + 1;
 
-	// Координаты центров ячеек
-	double left_center = (left_index + 0.5) * cell_size;
-	double right_center = (left_index + 1.5) * cell_size;
+	// Проверка скорректированных индексов
+	if (left_index < 0) return vec[0];
+	if (right_index >= N) return vec[N - 1];
 
-	if (left_index == 0 && w < left_center) {
-		// Экстраполяция от первой ячейки
-		double next_center = (1.5) * cell_size;
-		if (ii == 0)
-		{
-			return this->nu_integr_pui_1[0] + (this->nu_integr_pui_1[1] - this->nu_integr_pui_1[0]) *
-				(w - left_center) / (next_center - left_center);
-		}
-		else if (ii == 1)
-		{
-			return this->nu_integr_pui_2[0] + (this->nu_integr_pui_2[1] - this->nu_integr_pui_2[0]) *
-				(w - left_center) / (next_center - left_center);
-		}
-		else
-		{
-			cout << "ERROR tbftgeyt45tvggestv" << endl;
-			exit(-1);
-		}
-	}
-	else if (left_index == N - 1 && w > right_center)
-	{
-		double prev_center = (N - 1.5) * cell_size;
-		if (ii == 0)
-		{
-			return this->nu_integr_pui_1[N - 2] + (this->nu_integr_pui_1[N - 1] - this->nu_integr_pui_1[N - 2]) *
-				(w - prev_center) / (right_center - prev_center);
-		}
-		else if (ii == 1)
-		{
-			return this->nu_integr_pui_2[N - 2] + (this->nu_integr_pui_2[N - 1] - this->nu_integr_pui_2[N - 2]) *
-				(w - prev_center) / (right_center - prev_center);
-		}
-		else
-		{
-			cout << "ERROR rtyr6uy56u5u56u5u6;sjfge" << endl;
-			exit(-1);
-		}
-	}
+	// Линейная интерполяция
+	const double left_center = (left_index + 0.5) * cell_size;
+	const double right_center = (right_index + 0.5) * cell_size;
+	const double t = (w - left_center) / (right_center - left_center);
 
-	// Линейная интерполяция между центрами ячеек
-	double t = (w - left_center) / (right_center - left_center);
-
-	//cout << "DFDS:  t = " << t << endl;
-
-	if (ii == 0)
-	{
-		return this->nu_integr_pui_1[left_index] * (1.0 - t) + this->nu_integr_pui_1[left_index + 1] * t;
-	}
-	else if (ii == 1)
-	{
-		return this->nu_integr_pui_2[left_index] * (1.0 - t) + this->nu_integr_pui_2[left_index + 1] * t;
-	}
-	else
-	{
-		cout << "ERROR 54tuh8745bgoi;sjfge" << endl;
-		exit(-1);
-	}
+	return max(vec[left_index] * (1.0 - t) + vec[right_index] * t, 0.0);
 }
 
+double Cell::pui_get_f(const double& w, short int ii, const double& Wmax)
+{
+	// Выбор нужного вектора
+	const auto& vec = (ii == 0) ? this->f_pui_1 : (ii == 1) ? this->f_pui_2 : [&]() -> const vector<double>&
+		{
+		cout << "ERROR ey4556uy564556ty4y453dfsde" << endl;
+		exit(-1);
+		return f_pui_1; // заглушка, никогда не выполнится
+		}();
+
+	const short int N = vec.size();
+	if (N == 0) return 0.0;
+
+	// Проверка граничных значений
+	if (w <= 0.0) return vec[0];
+	if (w >= Wmax) return vec[N - 1];
+
+	const double cell_size = Wmax / N;
+	int left_index = static_cast<int>(w / cell_size);
+
+	// Корректировка индексов
+	if (w < (left_index + 0.5) * cell_size) 
+	{
+		left_index--;
+	}
+	int right_index = left_index + 1;
+
+	// Проверка скорректированных индексов
+	if (left_index < 0) return vec[0];
+	if (right_index >= N) return vec[N - 1];
+
+	// Линейная интерполяция
+	const double left_center = (left_index + 0.5) * cell_size;
+	const double right_center = (right_index + 0.5) * cell_size;
+	const double t = (w - left_center) / (right_center - left_center);
+
+	return max(vec[left_index] * (1.0 - t) + vec[right_index] * t, 0.0);
+}
 
 double Cell::PUI_get_F_integer(const double& w, short int ii)
 {
 	const double Wmax = 1.0;
-	short int N = 0;
-	if (ii == 0) { N = this->F_integr_pui_1.size(); }
-	else if (ii == 1) { N = this->F_integr_pui_2.size(); }
-	else { cout << "ERROR ey4556uy564556ty4y453dfsde" << endl; exit(-1); }
+	// Выбор нужного вектора
+	const auto& vec = (ii == 0) ? this->F_integr_pui_1 : (ii == 1) ? this->F_integr_pui_2 : [&]() -> const vector<double>&
+		{
+			cout << "ERROR ey4556uy564556ty4y453dfsde" << endl;
+			exit(-1);
+			return this->F_integr_pui_1; // заглушка, никогда не выполнится
+		}();
+
+	const short int N = vec.size();
 	if (N == 0) return 0.0;
 
-	double cell_size = Wmax / N;
+	// Проверка граничных значений
+	if (w <= 0.0) return vec[0];
+	if (w >= Wmax) return vec[N - 1];
+
+	const double cell_size = Wmax / N;
 	int left_index = static_cast<int>(w / cell_size);
-	if (left_index == N)
-	{
-		if (ii == 0) { return this->F_integr_pui_1[N - 1]; }
-		else if (ii == 1) { return this->F_integr_pui_2[N - 1]; }
-		else
-		{
-			cout << "ERROR hbtyryuj7ue4swswsw32" << endl;
-			exit(-1);
-		}
-	}
 
-	// Координаты центров ячеек
-	double left_center = (left_index + 0.5) * cell_size;
-	double right_center = (left_index + 1.5) * cell_size;
+	// Корректировка индексов
+	if (w < (left_index + 0.5) * cell_size)
+	{
+		left_index--;
+	}
+	int right_index = left_index + 1;
 
-	if (left_index == 0 && w < left_center) {
-		// Экстраполяция от первой ячейки
-		double next_center = (1.5) * cell_size;
-		if (ii == 0)
-		{
-			return this->F_integr_pui_1[0] + (this->F_integr_pui_1[1] - this->F_integr_pui_1[0]) *
-				(w - left_center) / (next_center - left_center);
-		}
-		else if (ii == 1)
-		{
-			return this->F_integr_pui_2[0] + (this->F_integr_pui_2[1] - this->F_integr_pui_2[0]) *
-				(w - left_center) / (next_center - left_center);
-		}
-		else
-		{
-			cout << "ERROR tbftgeyt45tvggestv" << endl;
-			exit(-1);
-		}
-	}
-	else if (left_index == N - 1 && w > right_center)
-	{
-		double prev_center = (N - 1.5) * cell_size;
-		if (ii == 0)
-		{
-			return this->F_integr_pui_1[N - 2] + (this->F_integr_pui_1[N - 1] - this->F_integr_pui_1[N - 2]) *
-				(w - prev_center) / (right_center - prev_center);
-		}
-		else if (ii == 1)
-		{
-			return this->F_integr_pui_2[N - 2] + (this->F_integr_pui_2[N - 1] - this->F_integr_pui_2[N - 2]) *
-				(w - prev_center) / (right_center - prev_center);
-		}
-		else
-		{
-			cout << "ERROR rtyr6uy56u5u56u5u6;sjfge" << endl;
-			exit(-1);
-		}
-	}
+	// Проверка скорректированных индексов
+	if (left_index < 0) return vec[0];
+	if (right_index >= N) return vec[N - 1];
 
-	// Линейная интерполяция между центрами ячеек
-	double t = (w - left_center) / (right_center - left_center);
-	if (ii == 0)
-	{
-		return this->F_integr_pui_1[left_index] * (1.0 - t) + this->F_integr_pui_1[left_index + 1] * t;
-	}
-	else if (ii == 1)
-	{
-		return this->F_integr_pui_2[left_index] * (1.0 - t) + this->F_integr_pui_2[left_index + 1] * t;
-	}
-	else
-	{
-		cout << "ERROR 54tuh8745bgoi;sjfge" << endl;
-		exit(-1);
-	}
+	// Линейная интерполяция
+	const double left_center = (left_index + 0.5) * cell_size;
+	const double right_center = (right_index + 0.5) * cell_size;
+	const double t = (w - left_center) / (right_center - left_center);
+
+	return max(vec[left_index] * (1.0 - t) + vec[right_index] * t, 0.0);
 }
-
 
 void Cell::MK_pui_charge_exchange_velocity(Sensor* sens, Setka* SS, Phys_param* Phys,
 	const double& Upx, const double& Upy, 
