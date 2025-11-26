@@ -2430,6 +2430,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 		Cell_main_prev = Cell_main;
 
 		short int zone = this->determ_zone(P.cel, 0);
+		short int zone_main = this->determ_zone(Cell_main, 0);
 		double ro, p, rho_He, cp, vx, vy, vz, rho_Th, p_Th;
 		unordered_map<string, double> param;
 		unordered_map<string, double> param2;
@@ -2466,10 +2467,16 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 		//	rho_Th, rho_E, p_Th, p_Pui, T_Th, T_E);
 
 		//this->phys_param->Plasma_components_1(zone, P.cel->parameters[0], param); // Это без пикапов
-		S_main->phys_param->Plasma_components(zone, Cell_main->parameters[0], param, false);
+		S_main->phys_param->Plasma_components(zone_main, Cell_main->parameters[0], param, false);
 
 		rho_Th = param["rho_Th"];
 		p_Th = param["p_Th"];
+
+		/*cout << "-------  " << zone << " | " << zone_main << "  | " << rho_Th << " |  " << p_Th << " |  " 
+			<< rho_He << "  | " <<
+			P.cel->parameters[0]["rho"] << "  | " << P.cel->parameters[0]["p"] << " |  " << 
+			Cell_main->parameters[0]["rho"]
+			<< "  | " << Cell_main->parameters[0]["p"] << endl;*/
 
 		if (rho_Th <= 1e-8) rho_Th = 1e-8;
 		if (p_Th <= 1e-8 / 2.0) p_Th = 1e-8 / 2.0;
@@ -2550,9 +2557,27 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 		}
 
 
+		if (zone_main == 3)
+		{
+			if (nu_ex_pui_1 > nu_ex * 0.1 || nu_ex_pui_2 > nu_ex * 0.1)
+			{
+				cout << "Error uiehrgiehfouherf343   " << nu_ex << " " << nu_ex_pui_1 << " " << 
+					nu_ex_pui_2 << endl;
+				//exit(-1);
+			}
+		}
+
 		if (std::isnan(cp_sr) || std::isnan(u1_sr))
 		{
 			std::cout << "ERROR frewrtgewr4 e4tewfwerfwf " << std::endl;
+			cout << zone_main << " | " << rho_Th << " | " << p_Th << " | v =  " <<
+				vx << " | " << vy << " | " << vz << " || " <<
+				Cell_main->parameters[0]["rho"] << " | " << Cell_main->parameters[0]["p"]
+				<< " | " << Cell_main->parameters[0]["rho_He"]
+				<< " | MK_rho_Pui_1 = " << Cell_main->parameters[0]["MK_rho_Pui_1"]
+				<< " | " << Cell_main->parameters[0]["MK_T_Pui_1"]
+				<< " | " << Cell_main->parameters[0]["MK_rho_Pui_2"]
+				<< " | " << Cell_main->parameters[0]["MK_T_Pui_2"] << endl;
 			cout << cp_sr << " " << u1_sr << endl;
 			exit(-1);
 		}
