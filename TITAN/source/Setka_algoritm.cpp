@@ -773,7 +773,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 			// Загружаем все интеграллы пикапов
 			unsigned int st = 0;
-			//#pragma omp parallel for schedule(dynamic)
+			#pragma omp parallel for schedule(dynamic)
 			for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
 			{
 				auto A = this->All_Cell[idx];
@@ -782,7 +782,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				A->read_pui_integral_FromFile(this->phys_param);
 				A->Init_f_pui(this->phys_param->pui_nW, zone);
 				A->read_pui_FromFile();
-				if (idx == 2200)
+				if (false)//(idx == 2200)
 				{
 					//A->pui_integral_Culc(this->phys_param);
 					A->print_pui(this->phys_param->pui_wR, "2200_pui");
@@ -863,28 +863,12 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 
+		
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-
 		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
-
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
 
 
 

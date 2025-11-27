@@ -2050,9 +2050,11 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*&
 					ni = 0;
 				}
 
-				// Здесь надо дял функции загрузить обратно ненужные массивы переменных
+				// Здесь надо для функции загрузить обратно ненужные массивы переменных
+				//cout << "Re_Partially_free_space" << endl;
 				gr->AMR[nh_][ni]->Re_Partially_free_space();
 
+				//cout << "Normir_velocity_volume" << endl;
 				gr->AMR[nh_][ni]->Normir_velocity_volume(gr->area[0]);
 				if (this->phys_param->de_refine_AMR == true)
 				{
@@ -2063,8 +2065,10 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*&
 					to_string(nh_ + 1) + "_" + to_string(gr->number) + ".bin";
 				if (this->phys_param->save_AMR == true)
 				{
+					//cout << "Save" << endl;
 					gr->AMR[nh_][ni]->Save(this->phys_param->AMR_folder + "/" + name_f);
 				}
+				//cout << "Delete" << endl;
 				gr->AMR[nh_][ni]->Delete();
 				delete gr->AMR[nh_][ni];
 				gr->AMR[nh_][ni] = nullptr;

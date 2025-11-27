@@ -1788,11 +1788,21 @@ void Cell::MK_normir_Moments(Phys_param* phys_param)
 	{
 		if (this->parameters[0].find("MK_n_" + name) != this->parameters[0].end())
 		{
-			this->parameters[0]["MK_Vx_" + name] /= (this->parameters[0]["MK_n_" + name]);
-			this->parameters[0]["MK_Vy_" + name] /= (this->parameters[0]["MK_n_" + name]);
-			this->parameters[0]["MK_Vz_" + name] /= (this->parameters[0]["MK_n_" + name]);
-			this->parameters[0]["MK_T_" + name] = (2.0/3.0) * (this->parameters[0]["MK_T_" + name]/ this->parameters[0]["MK_n_" + name] - 
-				kvv(this->parameters[0]["MK_Vx_" + name], this->parameters[0]["MK_Vy_" + name], this->parameters[0]["MK_Vz_" + name]));
+			if (this->parameters[0]["MK_n_" + name] > 0.0000000001)
+			{
+				this->parameters[0]["MK_Vx_" + name] /= (this->parameters[0]["MK_n_" + name]);
+				this->parameters[0]["MK_Vy_" + name] /= (this->parameters[0]["MK_n_" + name]);
+				this->parameters[0]["MK_Vz_" + name] /= (this->parameters[0]["MK_n_" + name]);
+				this->parameters[0]["MK_T_" + name] = (2.0 / 3.0) * (this->parameters[0]["MK_T_" + name] / this->parameters[0]["MK_n_" + name] -
+					kvv(this->parameters[0]["MK_Vx_" + name], this->parameters[0]["MK_Vy_" + name], this->parameters[0]["MK_Vz_" + name]));
+			}
+			else
+			{
+				this->parameters[0]["MK_Vx_" + name] = 0.0;
+				this->parameters[0]["MK_Vy_" + name] = 0.0;
+				this->parameters[0]["MK_Vz_" + name] = 0.0;
+				this->parameters[0]["MK_T_" + name] = 0.0;
+			}
 
 			this->parameters[0]["MK_n_" + name] /= this->volume[0];
 		}
