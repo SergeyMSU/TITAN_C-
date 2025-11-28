@@ -776,6 +776,15 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			#pragma omp parallel for schedule(dynamic)
 			for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
 			{
+				#pragma omp critical (gergergerg4) 
+				{
+					st++;
+					if (st % 50000 == 0)
+					{
+						cout << "step = " << st << "   from " << this->All_Cell.size() << endl;
+					}
+				}
+
 				auto A = this->All_Cell[idx];
 				short int zone = determ_zone(A, 0);
 				A->Init_pui_integral(this->phys_param->pui_F_n, zone);
@@ -805,10 +814,11 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			cout << "Proverka chastot pui" << endl;
 			Cell* CC;
 			Cell* prev = nullptr;
-			//CC = this->Find_cell_point(20.0, 0.0, 0.0, 0, prev);
-			CC = this->All_Cell[2200];
+			CC = this->Find_cell_point(20.0, 0.0, 0.0, 0, prev);
+			//CC = this->All_Cell[2200];
 
 			CC->print_nu_integr_pui(this->phys_param);
+			CC->print_F_integr_pui();
 
 			double nu = CC->pui_get_nu(5.0, 0, this->phys_param->pui_wR);
 			if (nu <= 0.0)
@@ -864,13 +874,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 
 		
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 
 
 

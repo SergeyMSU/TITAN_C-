@@ -82,6 +82,7 @@ public:
 	void read_pui_integral_FromFile(Phys_param*& Phys_param);
 	void pui_integral_Culc(Phys_param* phys_param);
 	void print_nu_integr_pui(Phys_param* phys_param, string name = "");
+	void print_F_integr_pui(string name = "");
 
 
 	void Init_f_pui(short int n, short int zone);  // Инициализация f_pui, заполняет нулями

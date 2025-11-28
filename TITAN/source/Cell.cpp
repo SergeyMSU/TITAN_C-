@@ -484,6 +484,68 @@ void Cell::pui_integral_Culc(Phys_param* phys_param)
 
 }
 
+void Cell::print_F_integr_pui(string name)
+{
+	std::ofstream file(name + "_1_print_F_integr_pui_" + to_string(this->number) + ".txt");
+	if (!file.is_open()) {
+		cout << "Error uehgrifbghvuoyerfowhefwef" << endl;
+		exit(-1);
+	}
+
+	std::ofstream file3(name + "_1_print_F_integr_interpol_pui_" + to_string(this->number) + ".txt");
+	if (!file3.is_open()) {
+		cout << "Error uehgrifbghvuoyerfowhefwef" << endl;
+		exit(-1);
+	}
+
+	double pui_wR = 1.0;
+
+	for (int i = 0; i < F_integr_pui_1.size(); i++)
+	{
+		double w = (i + 0.5) * pui_wR / F_integr_pui_1.size();
+		double w2 = this->PUI_get_F_integer(w, 0);
+		file << w << "\t" << F_integr_pui_1[i] << "\t" << w2 << "\n";
+	}
+
+	for (double w = 0.0; w <= 1.0; w = w + 0.001)
+	{
+		double w2 = this->PUI_get_F_integer(w, 0);
+		file3 << w << "\t" << w2 << "\n";
+	}
+
+	file.close();
+	file3.close();
+
+	std::ofstream  file2(name + "_2_print_F_integr_pui_" + to_string(this->number) + ".txt");
+	if (!file2.is_open()) {
+		cout << "Error dthgretget345" << endl;
+		exit(-1);
+	}
+
+	std::ofstream  file4(name + "_2_print_F_integr_interpol_pui_" + to_string(this->number) + ".txt");
+	if (!file4.is_open()) {
+		cout << "Error dthgretget345" << endl;
+		exit(-1);
+	}
+
+	for (int i = 0; i < F_integr_pui_2.size(); i++)
+	{
+		double w = (i + 0.5) * pui_wR / F_integr_pui_2.size();
+		double w2 = this->PUI_get_F_integer(w, 1);
+		file2 << w << "\t" << F_integr_pui_2[i] << "\t" << w2 << "\n";
+	}
+
+	for (double w = 0.0; w <= 1.0; w = w + 0.001)
+	{
+		double w2 = this->PUI_get_F_integer(w, 1);
+		file4 << w << "\t" << w2 << "\n";
+	}
+
+	file2.close();
+	file4.close();
+}
+
+
 void Cell::print_nu_integr_pui(Phys_param* phys_param, string name)
 {
 	std::ofstream file(name + "_1_print_nu_integr_pui_" + to_string(this->number) + ".txt");
@@ -876,6 +938,9 @@ void Cell::culc_pui_n_T(const double& pui_wR)
 
 	while (true)
 	{
+		S = 0.0;
+		S2 = 0.0;
+
 		short int pui_nw = this->f_pui_1.size();
 		for (short int i = 0; i < this->f_pui_1.size(); i++)
 		{
@@ -884,7 +949,14 @@ void Cell::culc_pui_n_T(const double& pui_wR)
 			S2 = S2 + this->f_pui_1[i] * 4.0 * const_pi * pow4(w) * (pui_wR / pui_nw);
 		}
 
-		S2 = S2 / (S * 3.0);
+		if (S > 0.0000001)
+		{
+			S2 = S2 / (S * 3.0);
+		}
+		else
+		{
+			S2 = 1.0;
+		}
 		this->parameters[0]["MK_rho_Pui_1"] = S;
 		this->parameters[0]["MK_T_Pui_1"] = S2;
 
@@ -905,7 +977,7 @@ void Cell::culc_pui_n_T(const double& pui_wR)
 		}
 		else
 		{
-			S2 = 0.0;
+			S2 = 1.0;
 		}
 		this->parameters[0]["MK_rho_Pui_2"] = S;
 		this->parameters[0]["MK_T_Pui_2"] = S2;
@@ -914,6 +986,12 @@ void Cell::culc_pui_n_T(const double& pui_wR)
 		{
 			double kkl = ((rho - rho_He) * 0.99499) / 
 				(this->parameters[0]["MK_rho_Pui_1"] + this->parameters[0]["MK_rho_Pui_2"]);
+
+			if (kkl > 1.0)
+			{
+				cout << "Error dgiuehrfguiheiprhf934rrr   " << kkl <<  endl;
+				exit(-1);
+			}
 			for (short int i = 0; i < this->f_pui_1.size(); i++)
 			{
 				this->f_pui_1[i] *= kkl;

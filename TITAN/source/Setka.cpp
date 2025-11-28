@@ -4511,7 +4511,7 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 		{
 			zone = 3;
 		}
-		this->phys_param->Plasma_components(zone, parameters, param, true);
+		this->phys_param->Plasma_components(zone, parameters, param, false);
 
 		if (param["rho_Th"] < 1e-8) param["rho_Th"] = 1e-8;
 
@@ -4520,7 +4520,14 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 		fout << " " << param["T_Th"];
 		if (std::find(Int1->param_names.begin(), Int1->param_names.end(), "rho_Pui_1") != Int1->param_names.end())
 		{
-			fout << " " << 2.0 * parameters["p_Pui_1"] / parameters["rho_Pui_1"];
+			if (parameters["rho_Pui_1"] > 1e-6)
+			{
+				fout << " " << 2.0 * parameters["p_Pui_1"] / parameters["rho_Pui_1"];
+			}
+			else
+			{
+				fout << " " << 0.0;
+			}
 		}
 		if (std::find(Int1->param_names.begin(), Int1->param_names.end(), "rho_Pui_2") != Int1->param_names.end())
 		{

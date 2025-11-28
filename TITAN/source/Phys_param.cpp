@@ -370,7 +370,7 @@ Phys_param::Phys_param()
     std::ifstream file("nVT1au_new_2000-2022av.dat");
     //std::ifstream file("nVT1au_IA2020.dat");
     if (!file.is_open()) {
-        std::cerr << "Error 6564397608" << std::endl;
+        std::cerr << "Error 6564397608   nVT1au_new_2000-2022av.dat" << std::endl;
         exit(-1);
     }
 
@@ -773,12 +773,8 @@ void Phys_param::Plasma_components_2(const short int& zone,
             rho_Pui_1 = param_in_cell["MK_rho_Pui_1"];
             p_Pui_1 = rho_Pui_1 * param_in_cell["MK_T_Pui_1"] / 2.0;
 
-            if (rho_Pui_1 < 0.00000001) p_Pui_1 = 0.0;
-
             rho_Pui_2 = param_in_cell["MK_rho_Pui_2"];
             p_Pui_2 = rho_Pui_2 * param_in_cell["MK_T_Pui_2"] / 2.0;
-
-            if (rho_Pui_2 < 0.00000001) p_Pui_2 = 0.0;
         }
 
         param["rho_Th"] = -(-4.0 * rho + 4.0 * rho_He + al * MF_meDmp * rho_He +
@@ -789,7 +785,7 @@ void Phys_param::Plasma_components_2(const short int& zone,
             (8.0 * rho - (7.0 - al + (-1.0 + al) * MF_meDmp) * rho_He -
                 4.0 * (1.0 + MF_meDmp) * (rho_Pui_1 + rho_Pui_2));
 
-        param["p_Th"] = param["rho_Th"] * param["T_Th"]/2.0;
+        param["p_Th"] = param["rho_Th"] * param["T_Th"] / 2.0;
     }
 
     return;
