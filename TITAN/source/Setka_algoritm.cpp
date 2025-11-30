@@ -604,38 +604,82 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			auto A = Smc.All_Cell[idx];
 			A->Delete_mas_pogl();
 		}
+
+		Smc.Print_f_proect_in_gran(1);
+		Smc.Print_f_proect_in_gran(2);
+		Smc.Print_f_proect_in_gran(3);
 	}
 	else if (alg == 9)
 	{
-		short int sortH = 2; // Какой сорт водорода будет менять?  1-4
-		double Diapazon = 50.0; // Какой новый диапазон функции
+		short int sortH = 5; // Какой сорт водорода будет менять?  1-4
+		double Diapazon = 100.0; // Какой новый диапазон функции
+
+		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
+		cout << "Create Setka Smc" << endl;
+		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
+		Setka Smc = Setka("SDK_40_2D_Setka.bin", "SDK_40_krug_setka.bin", 40);
+
+		cout << "Create SI_main" << endl;
+		// Из основной сетки создаём интерполяционную сетку
+		this->Save_for_interpolate("For_intertpolate_work.bin", false);
+		Interpol SI_main = Interpol("For_intertpolate_work.bin");
+
+		cout << "Move Setka Smc" << endl;
+		// Двигаем поверхности вспомогательной сетки к поверхностям основной
+		Smc.Move_to_surf(&SI_main);
+		// Точно задаём положение внутренней границы сетки
+		Smc.geo->R0 = Smc.phys_param->R_0;
+
+		// Автоматически подстраиваем геометрические параметры сетки (сгущение и т.д.) под новые поверхности
+		Smc.auto_set_luch_geo_parameter(0, true);
+		// Настраиваем новую сетку (также как и основную)   [обязательно]
+		if (true)
+		{
+			// Считаем объёмы, площади и другие геометрические характеристики
+			Smc.Calculating_measure(0);
+			Smc.Calculating_measure(1);
+
+			// Задаём граничные грани
+			Smc.Init_boundary_grans();
+
+			// Проверки
+			if (this->phys_param->is_PUI != Smc.phys_param->is_PUI)
+			{
+				cout << "Error eijrgfouiehg384tfg7gf" << endl;
+				exit(-1);
+			}
+		}
+
+
+		Smc.Test_geometr();
 
 		if (true)
 		{
 			unsigned int in = 0;
 
-#pragma omp parallel for schedule(dynamic)
-			for (size_t idx = 0; idx < this->All_Gran.size(); ++idx)
-				//for (auto& gr : this->All_Gran)
+			//#pragma omp parallel for schedule(dynamic)
+			for (size_t idx = 0; idx < Smc.All_Gran.size(); ++idx)
 			{
-				auto gr = this->All_Gran[idx];
-#pragma omp critical (gergergerg4) 
+				auto gr = Smc.All_Gran[idx];
+				#pragma omp critical (gergergerg4) 
 				{
 					in++;
-					if (in % 50000 == 0)
+					if (in % 1 == 0)
 					{
-						cout << "Gran: " << in << "  /  " << this->All_Gran.size() << endl;
+						cout << "Gran: " << in << "  /  " << Smc.All_Gran.size() << endl;
 					}
 				}
 				for (int ii = 0; ii <= 1; ii++)
 				{
 					string name_f = this->phys_param->AMR_folder + "/" + "func_grans_AMR_" + to_string(ii) + "_H" +
 						to_string(sortH) + "_" + to_string(gr->number) + ".bin";
+					cout << "A1" << endl;
 					if (std::filesystem::exists(name_f))
 					{
 						// Выделяем место под AMR, сколько сортов водорода, столько и места
 						if (gr->AMR.size() < this->phys_param->num_H)
 						{
+							cout << "A2" << endl;
 							gr->AMR.resize(this->phys_param->num_H);
 							for (size_t i = 0; i < this->phys_param->num_H; i++)
 							{
@@ -643,11 +687,12 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 								gr->AMR[i][1] = nullptr;
 							}
 						}
+						cout << "A3" << endl;
 
 						// Считываем AMR
 						gr->Read_AMR(ii, sortH, this->phys_param, false);
 						auto func = gr->AMR[sortH - 1][ii];
-
+						cout << "A4" << endl;
 						std::vector<AMR_cell*> cells_amr;
 						std::vector<std::pair<Point, size_t>> points; // точки и их номера для построения триангуляции
 						std::vector <Int_point*> ALL_Cells;     // Точки в которых хранятся параметры
@@ -655,7 +700,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 						Delaunay* Delone;
 						double Vx, Vy, Vz;
 						unsigned int i = 0;
-
+						cout << "A5" << endl;
 						func->Get_all_cells(cells_amr);
 						for (const auto& cell : cells_amr)
 						{
@@ -667,27 +712,28 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 							ALL_Cells.push_back(A);
 							i++;
 						}
-
+						cout << "A6" << endl;
 						Delone = new Delaunay(points.begin(), points.end());
 
 						auto new_func = new AMR_f();
 						new_func->AMR_self = new_func;
-
+						cout << "A7" << endl;
 						new_func->AMR_resize(0.0, Diapazon, -Diapazon, Diapazon,                      // ЗДЕСЬ НАПИСАН ДИАПОЗОН ИЗМЕНЕНИЯ
 							-Diapazon, Diapazon, 3, 6, 6);
-
+						cout << "A71" << endl;
 						new_func->Copy_and_Refine(ALL_Cells, Delone);
-
+						cout << "A8" << endl;
 						//cout << "Copy_and_Refine:  " << func->Size() << "   " << new_func->Size() << endl;
 
 						func->Delete();
 						gr->AMR[sortH - 1][ii] = new_func;
-
+						cout << "A9" << endl;
 						delete Delone;
 						for (auto& i : ALL_Cells)
 						{
 							delete i;
 						}
+						cout << "A10" << endl;
 						ALL_Cells.clear();
 						std::filesystem::remove(name_f);
 						new_func->Save(name_f);
@@ -874,9 +920,15 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 
 		
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+
+		/*zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);*/
 
 
 

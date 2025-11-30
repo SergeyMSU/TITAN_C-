@@ -245,7 +245,16 @@ void Setka::Print_f_proect_in_gran(short int nn)
 	if (nn == 3) name_f = "f_proekts_on_BS.txt";
 
 	fout.open(name_f);
-	fout << "TITLE = HP  VARIABLES = u, f1L, f1R, f1L_fluid, f1Lmoment, f2L, f2R, f2L_fluid, f2Lmoment, f3L, f3R, f3L_fluid, f3Lmoment, f4L, f4R, f4L_fluid, f4Lmoment, ff_inf" << endl;
+	//fout << "TITLE = HP  VARIABLES = u, f1L, f1R, f1L_fluid, f1Lmoment, f2L, f2R, f2L_fluid, f2Lmoment, f3L, f3R, f3L_fluid, f3Lmoment, f4L, f4R, f4L_fluid, f4Lmoment, ff_inf" << endl;
+	fout << "TITLE = HP  VARIABLES = u, " << endl;
+	for (int i = 0; i < this->phys_param->num_H; i++)
+	{
+		fout << "f_" + to_string(i + 1) << "_L, f_" + to_string(i + 1) << "_R, ";
+	}
+
+	fout << "ff_inf" << endl;
+
+
 	double dv = (this->phys_param->pogl_R - this->phys_param->pogl_L) / this->phys_param->pogl_n;
 
 
@@ -272,10 +281,10 @@ void Setka::Print_f_proect_in_gran(short int nn)
 
 			if (c_MK < 0.00000000001) c_MK = 1.0;
 
-			fout << A->mas_pogl(i, j) * this->phys_param->par_n_H_LISM / dv << " " 
-				<< B->mas_pogl(i, j) * this->phys_param->par_n_H_LISM / dv << " " <<
-				n / (sqrt_pi * c) * exp(-kv(VV - u1) / kv(c)) * this->phys_param->par_n_H_LISM << " " <<
-				n_MK / (sqrt_pi * c_MK) * exp(-kv(VV - u1_MK) / kv(c_MK)) * this->phys_param->par_n_H_LISM << " ";
+			fout << A->mas_pogl(i, j) * this->phys_param->par_n_H_LISM / dv << " "
+				<< B->mas_pogl(i, j) * this->phys_param->par_n_H_LISM / dv << " ";// <<
+				//n / (sqrt_pi * c) * exp(-kv(VV - u1) / kv(c)) * this->phys_param->par_n_H_LISM << " " <<
+				//n_MK / (sqrt_pi * c_MK) * exp(-kv(VV - u1_MK) / kv(c_MK)) * this->phys_param->par_n_H_LISM << " ";
 		}
 
 		fout << 3.0 / (sqrt_pi * 1.0) * exp((-kv(VV - this->phys_param->Velosity_inf)) / kv(1.0));
@@ -2805,6 +2814,11 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 
 					int sss = (*hydrogen_arise)(P.sort - 1, 1);
 					P.sort = sss;
+					if (zone != 2 && sss == 6)
+					{
+						cout << "Error jegiurhguyeorf7893tf8er" << endl;
+						exit(-1);
+					}
 				}
 				else if (ksi_ <= (nu_ex + nu_ex_pui_1 + nu_ex_pui_2) / summ_nu) // ѕикапы 1
 				{
@@ -2835,6 +2849,11 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 
 					int sss = (*hydrogen_arise)(P.sort - 1, 2);
 					P.sort = sss;
+					if (zone != 2 && sss == 6)
+					{
+						cout << "Error rtyhy45t45tg54ye4gredgerg" << endl;
+						exit(-1);
+					}
 				}
 				else
 				{
@@ -2900,7 +2919,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 				AMR->Add_particle(P.Vel[0], P.Vel[1], P.Vel[2], P.mu); // мьютексы внутри
 			}
 
-			gran->mut.lock(); // ћбютекс дл€ записи в гранб
+			gran->mut.lock(); // ћьютекс дл€ записи в гранб
 			gran->N_particle++;
 			gran->mut.unlock();
 
@@ -3643,7 +3662,14 @@ void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, 
 	ofstream fout;
 	string name_f = "poglosh_" + name + ".txt";
 	fout.open(name_f);
-	fout << "TITLE = HP  VARIABLES = u, f1, f1_moment, f2, f2_moment, f3, f3_moment, f4, f4_moment, fAll, fALL_moment" << endl;
+	fout << "TITLE = HP  VARIABLES = u, ";
+
+	for (int i = 0; i < this->phys_param->num_H; i++)
+	{
+		fout << "f_" + to_string(i + 1) << ", f_moment_" + to_string(i + 1) << ", ";
+	}
+
+	fout << "fAll, fALL_moment" << endl;
 
 	Eigen::Vector3d e;
 	Eigen::Vector3d r;
