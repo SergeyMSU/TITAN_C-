@@ -13,7 +13,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 6  - Вычисление функции h0 для розыгрыша пикапов (она считается один раз для каждого сечения перезарядки)  (СТАРАЯ реализация - надо адаптировать)
 	// 7  - Вычисление всех интеграллов в ячейках для розыгрыша пикапов (частота и т.д.) 
 	// 8  - Вычисление поглощения вдоль заданных лучей (новая реализация через вспомогательную сетку)
-	// 9  - Перемасштабирование функций распредления водорода (речь про число ячеек AMR), без потери значений (СТАРАЯ реализация - надо адаптировать)
+	// 9  - (не работает) Перемасштабирование функций распредления водорода (речь про число ячеек AMR), без потери значений (СТАРАЯ реализация - надо адаптировать)
 	// 10 - Монте-Карло (новая реализация через вспомогательную сетку)
 	// 11 - расчёт поверхностных токов на разрывах
 	// 12 - расчёт объёмных токов
@@ -657,14 +657,14 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		{
 			unsigned int in = 0;
 
-			//#pragma omp parallel for schedule(dynamic)
+			#pragma omp parallel for schedule(dynamic)
 			for (size_t idx = 0; idx < Smc.All_Gran.size(); ++idx)
 			{
 				auto gr = Smc.All_Gran[idx];
 				#pragma omp critical (gergergerg4) 
 				{
 					in++;
-					if (in % 1 == 0)
+					if (in % 10000 == 0)
 					{
 						cout << "Gran: " << in << "  /  " << Smc.All_Gran.size() << endl;
 					}
@@ -673,13 +673,13 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				{
 					string name_f = this->phys_param->AMR_folder + "/" + "func_grans_AMR_" + to_string(ii) + "_H" +
 						to_string(sortH) + "_" + to_string(gr->number) + ".bin";
-					cout << "A1" << endl;
+					//cout << "A1" << endl;
 					if (std::filesystem::exists(name_f))
 					{
 						// Выделяем место под AMR, сколько сортов водорода, столько и места
 						if (gr->AMR.size() < this->phys_param->num_H)
 						{
-							cout << "A2" << endl;
+							//cout << "A2" << endl;
 							gr->AMR.resize(this->phys_param->num_H);
 							for (size_t i = 0; i < this->phys_param->num_H; i++)
 							{
@@ -687,12 +687,12 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 								gr->AMR[i][1] = nullptr;
 							}
 						}
-						cout << "A3" << endl;
+						//cout << "A3" << endl;
 
 						// Считываем AMR
 						gr->Read_AMR(ii, sortH, this->phys_param, false);
 						auto func = gr->AMR[sortH - 1][ii];
-						cout << "A4" << endl;
+						//cout << "A4" << endl;
 						std::vector<AMR_cell*> cells_amr;
 						std::vector<std::pair<Point, size_t>> points; // точки и их номера для построения триангуляции
 						std::vector <Int_point*> ALL_Cells;     // Точки в которых хранятся параметры
@@ -700,7 +700,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 						Delaunay* Delone;
 						double Vx, Vy, Vz;
 						unsigned int i = 0;
-						cout << "A5" << endl;
+						//cout << "A5" << endl;
 						func->Get_all_cells(cells_amr);
 						for (const auto& cell : cells_amr)
 						{
@@ -712,28 +712,28 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 							ALL_Cells.push_back(A);
 							i++;
 						}
-						cout << "A6" << endl;
+						//cout << "A6" << endl;
 						Delone = new Delaunay(points.begin(), points.end());
 
 						auto new_func = new AMR_f();
 						new_func->AMR_self = new_func;
-						cout << "A7" << endl;
+						//cout << "A7" << endl;
 						new_func->AMR_resize(0.0, Diapazon, -Diapazon, Diapazon,                      // ЗДЕСЬ НАПИСАН ДИАПОЗОН ИЗМЕНЕНИЯ
 							-Diapazon, Diapazon, 3, 6, 6);
-						cout << "A71" << endl;
+						//cout << "A71" << endl;
 						new_func->Copy_and_Refine(ALL_Cells, Delone);
-						cout << "A8" << endl;
+						//cout << "A8" << endl;
 						//cout << "Copy_and_Refine:  " << func->Size() << "   " << new_func->Size() << endl;
 
 						func->Delete();
 						gr->AMR[sortH - 1][ii] = new_func;
-						cout << "A9" << endl;
+						//cout << "A9" << endl;
 						delete Delone;
 						for (auto& i : ALL_Cells)
 						{
 							delete i;
 						}
-						cout << "A10" << endl;
+						//cout << "A10" << endl;
 						ALL_Cells.clear();
 						std::filesystem::remove(name_f);
 						new_func->Save(name_f);
@@ -893,6 +893,38 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 		//return;
 
+		// Удаляем какие-то функции распределения
+		if (false)
+		{
+			for (auto& gr : Smc.All_Gran)
+			{
+				for (int ii = 0; ii <= 1; ii++)
+				{
+					string name_f = Smc.phys_param->AMR_folder + "/" + "func_grans_AMR_" + to_string(ii) + "_H" +
+						to_string(5) + "_" + to_string(gr->number) + ".bin";
+
+					if (std::filesystem::exists(this->phys_param->AMR_folder + "/" + name_f))
+					{
+						std::filesystem::remove(this->phys_param->AMR_folder + "/" + name_f);
+					}
+				}
+			}
+
+			for (auto& gr : Smc.All_Gran)
+			{
+				for (int ii = 0; ii <= 1; ii++)
+				{
+					string name_f = Smc.phys_param->AMR_folder + "/" + "func_grans_AMR_" + to_string(ii) + "_H" +
+						to_string(6) + "_" + to_string(gr->number) + ".bin";
+
+					if (std::filesystem::exists(this->phys_param->AMR_folder + "/" + name_f))
+					{
+						std::filesystem::remove(this->phys_param->AMR_folder + "/" + name_f);
+					}
+				}
+			}
+		}
+
 		cout << "Set MK zone" << endl;
 		// Определим зоны для МК
 		Smc.Set_MK_Zone();
@@ -922,8 +954,10 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		
 		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 
 		/*zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);

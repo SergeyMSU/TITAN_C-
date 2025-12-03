@@ -232,9 +232,12 @@ void AMR_f::AMR_resize(const double& xL, const double& xR, const double& yL, con
 
 	this->cells.resize(boost::extents[xn][yn][zn]);
 
-	for (int i = 0; i < xn; ++i) {
-		for (int j = 0; j < yn; ++j) {
-			for (int k = 0; k < zn; ++k) {
+	for (int i = 0; i < xn; ++i) 
+	{
+		for (int j = 0; j < yn; ++j) 
+		{
+			for (int k = 0; k < zn; ++k) 
+			{
 				auto A = new AMR_cell();
 				A->nx = i;
 				A->ny = j;
@@ -790,8 +793,8 @@ void AMR_f::Copy_and_Refine(std::vector<Int_point*>& Cells, Delaunay* Delone)
 		for (const auto& i : cells)
 		{
 			i->Get_Center(this->AMR_self, center);
-			Get_param_amr(center[0], center[1], center[2], parameters, Cells, Delone, prev_cell, next_cell);
-			prev_cell = next_cell;
+			bool bb = Get_param_amr(center[0], center[1], center[2], parameters, Cells, Delone, prev_cell, next_cell);
+			if(bb == true) prev_cell = next_cell;
 			i->setF(parameters["f"]);
 		}
 		K2 = this->Refine(0);
@@ -812,8 +815,8 @@ void AMR_f::Copy_and_Refine(std::vector<Int_point*>& Cells, Delaunay* Delone)
 		for (const auto& i : cells)
 		{
 			i->Get_Center(this->AMR_self, center);
-			Get_param_amr(center[0], center[1], center[2], parameters, Cells, Delone, prev_cell, next_cell);
-			prev_cell = next_cell;
+			bool bb = Get_param_amr(center[0], center[1], center[2], parameters, Cells, Delone, prev_cell, next_cell);
+			if (bb == true) prev_cell = next_cell;
 			i->setF(parameters["f"]);
 		}
 		K2 = this->de_Refine();
@@ -962,6 +965,11 @@ unsigned int AMR_f::Refine(short int H_n)
 		if (i->getF() > 0.0000000001)
 		{
 			double dd = 2.0;
+			if (H_n == 9)  dd = 0.7;
+			if (H_n == 8)  dd = 0.7;
+			if (H_n == 7)  dd = 3.0;
+			if (H_n == 6)  dd = 4.5;
+			if (H_n == 5)  dd = 4.5;
 			if (H_n == 4)  dd = 0.7;
 			if (H_n == 3)  dd = 0.7;
 			if (H_n == 2)  dd = 3.0;
