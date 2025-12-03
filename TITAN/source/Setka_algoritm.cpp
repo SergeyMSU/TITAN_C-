@@ -903,9 +903,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 					string name_f = Smc.phys_param->AMR_folder + "/" + "func_grans_AMR_" + to_string(ii) + "_H" +
 						to_string(5) + "_" + to_string(gr->number) + ".bin";
 
-					if (std::filesystem::exists(this->phys_param->AMR_folder + "/" + name_f))
+					if (std::filesystem::exists(name_f))
 					{
-						std::filesystem::remove(this->phys_param->AMR_folder + "/" + name_f);
+						std::filesystem::remove(name_f);
 					}
 				}
 			}
@@ -917,9 +917,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 					string name_f = Smc.phys_param->AMR_folder + "/" + "func_grans_AMR_" + to_string(ii) + "_H" +
 						to_string(6) + "_" + to_string(gr->number) + ".bin";
 
-					if (std::filesystem::exists(this->phys_param->AMR_folder + "/" + name_f))
+					if (std::filesystem::exists(name_f))
 					{
-						std::filesystem::remove(this->phys_param->AMR_folder + "/" + name_f);
+						std::filesystem::remove(name_f);
 					}
 				}
 			}
@@ -952,6 +952,15 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 
 		
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
@@ -961,27 +970,10 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
-
-		/*zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);*/
-
-
+		
 
 
 		short int ijij = 0;
