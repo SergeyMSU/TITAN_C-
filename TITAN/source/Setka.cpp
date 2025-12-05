@@ -4549,8 +4549,20 @@ void Setka::Tecplot_print_1D(Interpol* Int1, const Eigen::Vector3d& Origin,
 
 }
 
-void Setka::Tecplot_print_2D(Interpol* Int1, const double& a, 
-	const double& b, const double& c, const double& d, string name, bool razmer)
+
+void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
+		const double& b, const double& c, const double& d, string name, bool razmer)
+{
+	Eigen::Vector3d eex(1.0, 0.0, 0.0);
+	Eigen::Vector3d eey(1.0, 0.0, 0.0);
+	Eigen::Vector3d centr_sys(0.0, 0.0, 0.0);
+	this->Tecplot_print_2D(Int1, a, b, c, d, name, razmer, eex, eey, centr_sys);
+}
+
+
+void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
+	const double& b, const double& c, const double& d, string name, bool razmer,
+	const Eigen::Vector3d& eex, const Eigen::Vector3d& eey, const Eigen::Vector3d& centr_sys)
 {
 	// Находим нормаль к плоскости
 	cout << "Start: Tecplot_print_2D " << name << endl;
@@ -4778,13 +4790,13 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 
 	fout.open(name_f);
 	fout << "TITLE = HP" << endl;
-	fout << "VARIABLES = X, Y, Z";
+	fout << "VARIABLES = xx, yy, X, Y, Z";
 
 	for (auto& nam : Int1->param_names)
 	{
 		fout << ", " << nam;
 	}
-	fout << ", Mach, Mach_Alf, BB_8pi, rho_Th, p_Th, T_Th";
+	fout << ", Mach, Mach_Alf, BB_8pi, rho_Th, p_Th, T_Th, J, Jxx, Jyy";
 	fout << endl;
 
 	fout << "ZONE T=HP, ";
@@ -4848,12 +4860,13 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 
 			if (visible == false)
 			{
-				fout << 0.0 << " " << 0.0 << " " << 0.0;
+				fout << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0;
 			}
 			else
 			{
 				double kk = 1.0;
 				if (razmer == true) kk = this->phys_param->Get_razmer("r");
+				fout << (C - centr_sys).dot(eex) << " " << (C - centr_sys).dot(eey) << " ";
 				fout << C(0) * kk << " " << C(1) * kk << " " << C(2) * kk;
 			}
 
@@ -4948,6 +4961,11 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			fout << " " << Mach << " " << Mach_alf << " "
 				<< norm2(parameters["Bx"], parameters["By"], parameters["Bz"]) / (8.0 * const_pi) << 
 				" " << rho_Th * krho  << " " << p_Th * kp << " " << T_Th * kT;
+			
+			Eigen::Vector3d JJ(parameters["rotB_x"], parameters["rotB_y"], parameters["rotB_z"]);
+				
+
+			fout << " " << JJ.norm() << " " << JJ.dot(eex) << " " << JJ.dot(eey);
 
 
 			fout << endl;
@@ -5027,11 +5045,13 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 
 		fout.open(name_f);
 		fout << "TITLE = HP" << endl;
-		fout << "VARIABLES = X, Y" << endl;
+		fout << "VARIABLES = xx, yy, X, Y" << endl;
 		fout << "ZONE T=HP, NODES = " << all_point_surf.size() << ", ELEMENTS = " << all_point_surf.size() / 2 << ", F = FEPOINT, ET = LINESEG" << endl;
 
 		for (auto& ii : all_point_surf)
 		{
+			Eigen::Vector3d C(ii[0], ii[1], ii[2]);
+			fout << (C - centr_sys).dot(eex) << " " << (C - centr_sys).dot(eey) << " ";
 			fout << ii[0] << " " << ii[1] << endl;
 		}
 

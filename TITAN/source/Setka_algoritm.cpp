@@ -937,8 +937,20 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
 		
 
 
@@ -1190,12 +1202,20 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 
+		this->Save_for_interpolate("For_intertpolate_0059-.bin", false);
+		Interpol SS = Interpol("For_intertpolate_0059-.bin");
+
+		cout << "AAA" << endl;
+
+		this->Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_IHG_meridional_", false, 
+			Eigen::Vector3d(-0.9958639688067077, 0.07561695085992419, -0.05036896241933166), 
+			Eigen::Vector3d(0.08910295088675518, 0.7044237408557894, -0.7041646522383864), 
+			Eigen::Vector3d(0.0, 0.0, 0.0));
+
 
 		// Рисует тетраэдры в текплот
 		if (true)
 		{
-
-
 			this->Save_for_interpolate_one_zone_only("For_intertpolate_work.bin", Type_cell::Zone_2);
 			Interpol SS = Interpol("For_intertpolate_work.bin");
 
@@ -1258,7 +1278,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 			cout << "Start trasser" << endl;
 
-#pragma omp parallel for schedule(dynamic)
+			#pragma omp parallel for schedule(dynamic)
 			for (auto& gr : this->Gran_TS)
 			{
 				bool bb;

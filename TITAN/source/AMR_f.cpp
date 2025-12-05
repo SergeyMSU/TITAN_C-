@@ -966,7 +966,7 @@ unsigned int AMR_f::Refine(short int H_n)
 		{
 			double dd = 3.0;
 			if (H_n == 9)  dd = 1.5;
-			if (H_n == 8)  dd = 1.5;
+			if (H_n == 8)  dd = 2.5;
 			if (H_n == 7)  dd = 3.0;
 			if (H_n == 6)  dd = 4.5;
 			if (H_n == 5)  dd = 4.5;

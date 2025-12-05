@@ -379,6 +379,12 @@ public:
 		string name, bool razmer = false);
 	// Плоскость   a x + b y + c z + d = 0;
 
+	void Tecplot_print_2D(Interpol* Int1, const double& a,
+		const double& b, const double& c, const double& d, string name, bool razmer, 
+		const Eigen::Vector3d& eex, const Eigen::Vector3d& eey, const Eigen::Vector3d& centr_sys);
+	// Вектора задают в каких координатах рисовать плоскость
+	// Вектора должны быть единичные!
+
 	void Tecplot_print_2D_setka(const double& a, const double& b,
 		const double& c, const double& d,
 		string name);
