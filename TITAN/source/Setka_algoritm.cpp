@@ -887,21 +887,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				for (int ii = 0; ii <= 1; ii++)
 				{
 					string name_f = Smc.phys_param->AMR_folder + "/" + "func_grans_AMR_" + to_string(ii) + "_H" +
-						to_string(5) + "_" + to_string(gr->number) + ".bin";
-
-					if (std::filesystem::exists(name_f))
-					{
-						std::filesystem::remove(name_f);
-					}
-				}
-			}
-
-			for (auto& gr : Smc.All_Gran)
-			{
-				for (int ii = 0; ii <= 1; ii++)
-				{
-					string name_f = Smc.phys_param->AMR_folder + "/" + "func_grans_AMR_" + to_string(ii) + "_H" +
-						to_string(6) + "_" + to_string(gr->number) + ".bin";
+						to_string(8) + "_" + to_string(gr->number) + ".bin";
 
 					if (std::filesystem::exists(name_f))
 					{
@@ -938,19 +924,18 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
 		
 
 
@@ -1183,12 +1168,17 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		// Надо улучшить ротеры вблизи разрывов
 		for (auto& gr : this->Gran_TS)
 		{
-			auto C1 = gr->cells[1];
-			auto C2 = gr->cells_TVD[1];
+			auto C1 = gr->cells[0];
+			auto C3 = gr->cells[1];
+			auto C2 = gr->cells_TVD[0];
 
 			C1->parameters[0]["rotB_x"] = C2->parameters[0]["rotB_x"];
 			C1->parameters[0]["rotB_y"] = C2->parameters[0]["rotB_y"];
 			C1->parameters[0]["rotB_z"] = C2->parameters[0]["rotB_z"];
+
+			C3->parameters[0]["rotB_x"] = C1->parameters[0]["rotB_x"];
+			C3->parameters[0]["rotB_y"] = C1->parameters[0]["rotB_y"];
+			C3->parameters[0]["rotB_z"] = C1->parameters[0]["rotB_z"];
 		}
 
 		for (auto& gr : this->Gran_HP)

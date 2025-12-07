@@ -5915,11 +5915,26 @@ void Setka::Culc_usual_rotors_in_cell(void)
 {
 	cout << "Start: Culc_rotor_in_cell" << endl;
 
+	bool r_mult = true;  // Предварительное домножение магнитного поля на r
+
 	this->phys_param->param_names.push_back("rotB_x");
 	this->phys_param->param_names.push_back("rotB_y");
 	this->phys_param->param_names.push_back("rotB_z");
 	// Добавили переменную для интерполяции
 	unsigned int k1 = 0;
+
+
+	if (r_mult == true)
+	{
+		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+		{
+			auto& cell = this->All_Cell[idx];
+			double r = norm2(cell->center[0][0], cell->center[0][1], cell->center[0][2]);
+			cell->parameters[0]["Bx"] *= r;
+			cell->parameters[0]["By"] *= r;
+			cell->parameters[0]["Bz"] *= r;
+		}
+	}
 
 #pragma omp parallel for schedule(dynamic)
 	//for (auto& cell : this->All_Cell)
@@ -6024,6 +6039,7 @@ void Setka::Culc_usual_rotors_in_cell(void)
 						}
 
 						v_all++;
+
 						Vec_all += Vec;
 					}
 				}
@@ -6064,9 +6080,24 @@ void Setka::Culc_usual_rotors_in_cell(void)
 
 		Eigen::Vector3d vvv = M.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(F);
 
-		cell->parameters[0]["rotB_x"] = vvv[0];
-		cell->parameters[0]["rotB_y"] = vvv[1];
-		cell->parameters[0]["rotB_z"] = vvv[2];
+		if (r_mult == true)
+		{
+			double r = norm2(cell->center[0][0], cell->center[0][1], cell->center[0][2]);
+			Eigen::Vector3d rr(cell->center[0][0], cell->center[0][1], cell->center[0][2]);
+			Eigen::Vector3d Bvec(cell->parameters[0]["Bx"], cell->parameters[0]["By"], cell->parameters[0]["Bz"]);
+			rr = rr / r;
+			Eigen::Vector3d otv = vvv / r - (rr.cross(Bvec)) / kv(r);
+			cell->parameters[0]["rotB_x"] = otv[0];
+			cell->parameters[0]["rotB_y"] = otv[1];
+			cell->parameters[0]["rotB_z"] = otv[2];
+		}
+		else
+		{
+			cell->parameters[0]["rotB_x"] = vvv[0];
+			cell->parameters[0]["rotB_y"] = vvv[1];
+			cell->parameters[0]["rotB_z"] = vvv[2];
+		}
+	
 
 		/*cout << F[0] << " " <<
 			F[1] << " " <<
@@ -6085,6 +6116,19 @@ void Setka::Culc_usual_rotors_in_cell(void)
 		cout << vvv[0] << " " << vvv[1] << " " << vvv[2] << endl;
 
 		exit(-1);*/
+	}
+
+
+	if (r_mult == true)
+	{
+		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+		{
+			auto& cell = this->All_Cell[idx];
+			double r = norm2(cell->center[0][0], cell->center[0][1], cell->center[0][2]);
+			cell->parameters[0]["Bx"] *= r;
+			cell->parameters[0]["By"] *= r;
+			cell->parameters[0]["Bz"] *= r;
+		}
 	}
 
 	cout << "End: Culc_rotor_in_cell" << endl;

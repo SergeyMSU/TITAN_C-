@@ -4571,6 +4571,9 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 	normal[1] = b;
 	normal[2] = c;
 
+	const double dim_r = 4.21132;
+	const double dim_j = 4.1536129;
+
 	double length = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
 	if (length > 0)
 	{
@@ -4764,7 +4767,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			C(0) = j[0];
 			C(1) = j[1];
 			C(2) = j[2];
-			fout << C(0) << " " << C(1) << " " << C(2) << endl;
+			fout << C(0) * dim_r << " " << C(1) * dim_r << " " << C(2) * dim_r << endl;
 		}
 	}
 
@@ -4796,7 +4799,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 	{
 		fout << ", " << nam;
 	}
-	fout << ", Mach, Mach_Alf, BB_8pi, rho_Th, p_Th, T_Th, J, Jxx, Jyy";
+	fout << ", Mach, Mach_Alf, BB_8pi, rho_Th, p_Th, T_Th, J, Jxx, Jyy, J_an, Jxx_an, Jyy_an";
 	fout << endl;
 
 	fout << "ZONE T=HP, ";
@@ -4866,7 +4869,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			{
 				double kk = 1.0;
 				if (razmer == true) kk = this->phys_param->Get_razmer("r");
-				fout << (C - centr_sys).dot(eex) << " " << (C - centr_sys).dot(eey) << " ";
+				fout << (C - centr_sys).dot(eex) * dim_r << " " << (C - centr_sys).dot(eey) * dim_r << " ";
 				fout << C(0) * kk << " " << C(1) * kk << " " << C(2) * kk;
 			}
 
@@ -4965,8 +4968,16 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			Eigen::Vector3d JJ(parameters["rotB_x"], parameters["rotB_y"], parameters["rotB_z"]);
 				
 
-			fout << " " << JJ.norm() << " " << JJ.dot(eex) << " " << JJ.dot(eey);
+			fout << " " << JJ.norm() * dim_j << " " << JJ.dot(eex) * dim_j << " " << JJ.dot(eey) * dim_j;
 
+			Eigen::Vector3d cc;
+			cc = this->phys_param->Matr2 * C;
+			double r = C.norm();
+			double the = acos(cc(2) / r);
+
+			double Rot_r = 2.0 * this->phys_param->B_0 * this->phys_param->R_0 * cos(the) / kv(r);
+
+			fout << " " << fabs(Rot_r) * dim_j << " " << Rot_r * C.dot(eex)/r * dim_j << " " << Rot_r * C.dot(eey) / r * dim_j;
 
 			fout << endl;
 		}
@@ -5051,7 +5062,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 		for (auto& ii : all_point_surf)
 		{
 			Eigen::Vector3d C(ii[0], ii[1], ii[2]);
-			fout << (C - centr_sys).dot(eex) << " " << (C - centr_sys).dot(eey) << " ";
+			fout << (C - centr_sys).dot(eex) * dim_r << " " << (C - centr_sys).dot(eey) * dim_r << " ";
 			fout << ii[0] << " " << ii[1] << endl;
 		}
 
