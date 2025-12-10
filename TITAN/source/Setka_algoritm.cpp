@@ -1,6 +1,7 @@
 #include "Setka.h"
 #include <algorithm>
 #include <filesystem> // Для работы с файловой системой
+
 namespace fs = std::filesystem; // Создаем псевдоним для удобства
 
 void Setka::Algoritm(short int alg, Setka* Smain)
@@ -18,6 +19,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 11 - расчёт поверхностных токов на разрывах
 	// 12 - расчёт объёмных токов
 	// 13 - просмотр источников S+/S- и сравнение их с флюидными источниками
+	// 14 - расчёт потенциальных токов в сверхзвуковом ветре от HCS
+	// 15 - расчёт геометрии HCS 
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -1271,7 +1274,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				std::unordered_map<string, double> parameters;
 				int my_N;
 
-#pragma omp critical (dsds1) 
+				#pragma omp critical (dsds1) 
 				{
 					NN++;
 					my_N = NN;
@@ -1398,6 +1401,163 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		Smc.Print_SpSm(27.0, 0.0, 0.0);
 		Smc.Print_SpSm(30.0, 0.0, 0.0);
 		Smc.Print_SpSm(40.0, 0.0, 0.0);
+	}
+	else if (alg == 14)
+	{
+		this->Save_for_interpolate("For_intertpolate_0059-.bin", false);
+		Interpol SS = Interpol("For_intertpolate_0059-.bin");
+
+		this->Tecplot_print_2D_for_HCS_potencial_1_zone(&SS, 0.0, 0.0, 1.0, -0.00001, "_IHG_meridional_HCS_", false,
+			Eigen::Vector3d(-0.9958639688067077, 0.07561695085992419, -0.05036896241933166),
+			Eigen::Vector3d(0.08910295088675518, 0.7044237408557894, -0.7041646522383864),
+			Eigen::Vector3d(0.0, 0.0, 0.0));
+	}
+	else if (alg == 15)
+	{
+		this->Save_for_interpolate("For_intertpolate_work.bin", false);
+		Interpol SI_main = Interpol("For_intertpolate_work.bin");
+
+		unsigned int N_p = 50; // Количество точек на экваторе
+		unsigned int N_l = 180; // Число слоёв
+		unsigned int N_step = 5; // Число шагов по времени до создания новых точек
+
+		// Вектор для хранения всех слоев
+		std::vector<std::vector<Eigen::Vector3d>> all_layers;
+		all_layers.reserve(N_l);
+
+		std::unordered_map<string, double> parameters;
+
+		double ddt = 0.001 / N_step;
+		// Глобальный цикл
+		for (int step = 0; step < N_l; step++)
+		{
+			cout << "step = " << step << "   from: " << N_l << endl;
+			std::vector<Eigen::Vector3d> points;
+			points.reserve(N_p);
+
+			// Создаём точки
+			for (int i = 0; i < N_p; ++i)
+			{
+				// Угол в экваториальной плоскости
+				double phi = 2.0 * const_pi * i / N_p;
+
+				// Создаем точку на экваторе (z=0)
+				Eigen::Vector3d point(this->phys_param->R_0 * cos(phi), this->phys_param->R_0 * sin(phi), 0.0);
+
+				// Первое вращение: на угол alpha вокруг оси X
+				Eigen::AngleAxisd rotation1(const_pi / 18.0, Eigen::Vector3d::UnitX());
+				point = rotation1 * point;
+
+				// Второе вращение: на угол beta вокруг оси Z
+				Eigen::AngleAxisd rotation2(step * ddt * N_step * 2.0 * const_pi / 0.03843666, Eigen::Vector3d::UnitZ());
+				point = rotation2 * point;
+
+				Eigen::Vector3d point2 = this->phys_param->Matr * point;
+
+				points.push_back(point2);
+			}
+			all_layers.push_back(points);
+
+
+			// Теперь передвигаем точки
+			for (int j = 0; j < N_step; ++j)
+			{
+				for (auto& layer : all_layers) 
+				{  
+					for (auto& point : layer) 
+					{  // point - Vector3d
+						double r = 1.0;
+						if (point.norm() < 3.0 * this->phys_param->R_0) r = 3.0 * this->phys_param->R_0 / point.norm();
+						bool fine_int = SI_main.Get_param(r * point(0), r * point(1), r * point(2), parameters);
+						if (fine_int == false)
+						{
+							fine_int = SI_main.Get_param(r * point(0) * 0.997, r * point(1) * 0.999, r * point(2) * 0.999, parameters);
+							if (fine_int == false)
+							{
+								cout << "erorr euiegh87eg8ferg" << endl;
+								exit(-1);
+							}
+						}
+
+						point(0) += parameters["Vx"] * ddt;
+						point(1) += parameters["Vy"] * ddt;
+						point(2) += parameters["Vz"] * ddt;
+					}
+				}
+			}
+
+
+			
+
+			
+
+
+
+		}
+
+		// Запись в Техплот
+		if (true)
+		{
+			ofstream tecfile("HCS_3d.txt");
+			if (!tecfile.is_open()) 
+			{
+				cerr << "Error jgiofueh9fgh3e489fergл " << endl;
+				return;
+			}
+
+			tecfile << "TITLE = \"Heliospheric Current Sheet Surface\"" << endl;
+			tecfile << "VARIABLES = \"X\", \"Y\", \"Z\", \"Layer\"" << endl;
+
+			unsigned int N_quads;
+			N_quads = (N_l - 1) * N_p;  // Замкнутая поверхность
+
+			// Записываем зону с четырехугольниками
+			tecfile << "ZONE T=\"Surface\", N=" << N_l * N_p
+				<< ", E=" << N_quads
+				<< ", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
+
+			// Записываем все точки с номером слоя как переменную
+			for (unsigned int layer = 0; layer < N_l; ++layer) 
+			{
+				for (unsigned int point = 0; point < N_p; ++point) 
+				{
+					const Eigen::Vector3d& p = all_layers[layer][point];
+					tecfile << p.x() << " " << p.y() << " " << p.z()
+						<< " " << layer << endl;
+				}
+			}
+
+			// Записываем коннективити (соединения)
+			// Tecplot использует 1-индексацию
+			for (unsigned int layer = 0; layer < N_l - 1; ++layer) 
+			{
+				for (unsigned int point = 0; point < N_p - 1; ++point) 
+				{
+					unsigned int idx1 = layer * N_p + point + 1;       // Текущий слой, текущая точка
+					unsigned int idx2 = layer * N_p + point + 1 + 1;   // Текущий слой, следующая точка
+					unsigned int idx3 = (layer + 1) * N_p + point + 1 + 1; // Следующий слой, следующая точка
+					unsigned int idx4 = (layer + 1) * N_p + point + 1;     // Следующий слой, текущая точка
+
+					tecfile << idx1 << " " << idx2 << " " << idx3 << " " << idx4 << endl;
+				}
+
+				// Если поверхность замкнута, добавляем четырехугольник между последней и первой точкой
+				if (true) 
+				{
+					unsigned int point = N_p - 1;
+					unsigned int idx1 = layer * N_p + point + 1;       // Текущий слой, последняя точка
+					unsigned int idx2 = layer * N_p + 0 + 1;           // Текущий слой, первая точка
+					unsigned int idx3 = (layer + 1) * N_p + 0 + 1;     // Следующий слой, первая точка
+					unsigned int idx4 = (layer + 1) * N_p + point + 1; // Следующий слой, последняя точка
+
+					tecfile << idx1 << " " << idx2 << " " << idx3 << " " << idx4 << endl;
+				}
+			}
+
+			tecfile.close();
+
+		}
+
 	}
 
 	cout << "End Algoritm " << alg << endl;

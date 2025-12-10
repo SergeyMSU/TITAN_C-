@@ -5079,6 +5079,466 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 
 }
 
+void Setka::Tecplot_print_2D_for_HCS_potencial_1_zone(Interpol* Int1, const double& a,
+	const double& b, const double& c, const double& d, string name, bool razmer,
+	const Eigen::Vector3d& eex, const Eigen::Vector3d& eey, const Eigen::Vector3d& centr_sys)
+{
+	// Находим нормаль к плоскости
+	cout << "Start: Tecplot_print_2D " << name << endl;
+	std::array<double, 3> normal;
+	normal[0] = a;
+	normal[1] = b;
+	normal[2] = c;
+
+	const double dim_r = 4.21132;
+	const double dim_j = 1.743;
+
+	double length = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+	if (length > 0)
+	{
+		normal[0] /= length;
+		normal[1] /= length;
+		normal[2] /= length;
+	}
+
+	// Выбираем произвольное направление для сортировки (например, ось OX в плоскости)
+	std::array<double, 3> reference_dir;
+	if (std::abs(normal[0]) > 0.9)
+	{ // Если нормаль близка к OX, выбираем OY
+		reference_dir = { 0.0, 1.0, 0.0 };
+	}
+	else
+	{
+		reference_dir = { 1.0, 0.0, 0.0 };
+	}
+
+	// Находим вектор в плоскости, перпендикулярный нормали
+	std::array<double, 3>  tangent_dir = {
+		reference_dir[1] * normal[2] - reference_dir[2] * normal[1],
+		reference_dir[2] * normal[0] - reference_dir[0] * normal[2],
+		reference_dir[0] * normal[1] - reference_dir[1] * normal[0]
+	};
+
+
+
+	std::vector< std::array<short int, 2> > rebro;
+	rebro.resize(12);
+	rebro[0][0] = 1; rebro[0][1] = 2;
+	rebro[1][0] = 2; rebro[1][1] = 3;
+	rebro[2][0] = 3; rebro[2][1] = 4;
+	rebro[3][0] = 4; rebro[3][1] = 1;
+	rebro[4][0] = 5; rebro[4][1] = 6;
+	rebro[5][0] = 6; rebro[5][1] = 7;
+	rebro[6][0] = 7; rebro[6][1] = 8;
+	rebro[7][0] = 8; rebro[7][1] = 5;
+	rebro[8][0] = 1; rebro[8][1] = 5;
+	rebro[9][0] = 2; rebro[9][1] = 6;
+	rebro[10][0] = 3; rebro[10][1] = 7;
+	rebro[11][0] = 4; rebro[11][1] = 8;
+
+	Yzel* A1;
+	Yzel* A2;
+
+	std::vector < std::vector< std::array<double, 3> >> all_setka;
+
+	bool aa;
+
+	cout << "Tecplot_print_2D: srez" << endl;
+
+	// Находим срез сетки
+	for (const auto& cell : this->All_Cell)
+	{
+		std::vector< std::array<double, 3> > all_point;
+		std::array<double, 3> P1;
+		std::array<double, 3> P2;
+		std::array<double, 3> outIntersection;
+
+		for (size_t i = 0; i < 12; i++) // Пробегаемся по рёбрам
+		{
+			A1 = cell->yzels[rebro[i][0] - 1];
+			A2 = cell->yzels[rebro[i][1] - 1];
+
+			P1 = { A1->coord[0][0], A1->coord[0][1], A1->coord[0][2] };
+			P2 = { A2->coord[0][0], A2->coord[0][1], A2->coord[0][2] };
+
+			//cout << "A" << endl;
+			aa = findIntersection(P1, P2, a, b, c, d, outIntersection);
+			//cout << "B" << endl;
+			if (aa == true)
+			{
+				all_point.push_back(outIntersection);
+			}
+			else
+			{
+				continue;
+			}
+
+			if (fabs(a * outIntersection[0] + b * outIntersection[1] + c * outIntersection[2] + d) > 0.001)
+			{
+				cout << "Error  798646575467845456" << endl;
+				cout << outIntersection[0] << endl;
+				cout << outIntersection[1] << endl;
+				cout << outIntersection[2] << endl;
+				cout << fabs(a * outIntersection[0] + b * outIntersection[1] + c * outIntersection[2] + d) << endl;
+				exit(-1);
+			}
+
+			//cout << "C" << endl;
+		}
+
+		//cout << "________" << endl;
+
+		if (all_point.size() == 0) continue;
+
+		if (all_point.size() < 3)
+		{
+			cout << "Error 9867531090    " << all_point.size() << endl;
+			continue;
+		}
+
+
+		// std::vector< std::array<double, 3> > all_point;
+		// Сейчас тут хранятся все найденные точки, которые надо рассортировать по кругу
+
+		std::array<double, 3> centroid = { 0.0, 0.0, 0.0 };
+		for (const auto& p : all_point) {
+			centroid[0] += p[0];
+			centroid[1] += p[1];
+			centroid[2] += p[2];
+		}
+		centroid[0] /= all_point.size();
+		centroid[1] /= all_point.size();
+		centroid[2] /= all_point.size();
+
+		/*for (const auto& i : all_point)
+		{
+			cout << i[0] << " " << i[1] << " " << i[2] << endl;
+		}
+		cout << "___" << endl;*/
+
+
+		// Сортируем точки по углу относительно tangent_dir
+		std::sort(all_point.begin(), all_point.end(), [centroid, &tangent_dir]
+		(std::array<double, 3> aa, std::array<double, 3> bb)
+			{
+				std::array<double, 3> vec_a = { aa[0] - centroid[0], aa[1] - centroid[1], aa[2] - centroid[2] };
+				std::array<double, 3> vec_b = { bb[0] - centroid[0], bb[1] - centroid[1], bb[2] - centroid[2] };;
+
+				// Угол между vec_a и tangent_dir
+				double dot_a = vec_a[0] * tangent_dir[0] + vec_a[1] * tangent_dir[1] + vec_a[2] * tangent_dir[2];
+				double cross_a =
+					tangent_dir[1] * vec_a[2] - tangent_dir[2] * vec_a[1] -
+					tangent_dir[0] * vec_a[2] + tangent_dir[2] * vec_a[0] +
+					tangent_dir[0] * vec_a[1] - tangent_dir[1] * vec_a[0];
+
+				double angle_a = std::atan2(cross_a, dot_a);
+
+				// Угол между vec_b и tangent_dir
+				double dot_b = vec_b[0] * tangent_dir[0] + vec_b[1] * tangent_dir[1] + vec_b[2] * tangent_dir[2];
+				double cross_b =
+					tangent_dir[1] * vec_b[2] - tangent_dir[2] * vec_b[1] -
+					tangent_dir[0] * vec_b[2] + tangent_dir[2] * vec_b[0] +
+					tangent_dir[0] * vec_b[1] - tangent_dir[1] * vec_b[0];
+
+				double angle_b = std::atan2(cross_b, dot_b);
+
+				return angle_a < angle_b;
+			});
+
+		/*for (const auto& i : all_point)
+		{
+			cout << i[0] << " " << i[1] << " " << i[2] << endl;
+		}
+		cout << endl;
+
+		exit(-1);*/
+
+
+		all_setka.push_back(all_point);
+	}
+
+	unsigned int NN = 0;
+	unsigned int NN2 = 0;
+
+	for (const auto& i : all_setka)
+	{
+		NN += i.size() + 1;
+		NN2 += i.size();
+	}
+
+
+	cout << "Tecplot_print_2D: print" << endl;
+
+	// Рисуем саму сетку
+	ofstream fout;
+	string name_f = "Tecplot_setka_srez_" + name + ".txt";
+
+	fout.open(name_f);
+	fout << "TITLE = HP" << endl;
+	fout << "VARIABLES = X, Y, Z" << endl;
+	fout << "ZONE T=HP, NODES = " << NN2 << ", ELEMENTS = " << NN2 << ", F = FEPOINT, ET = LINESEG" << endl;
+
+	Eigen::Vector3d C;
+	for (const auto& i : all_setka)
+	{
+		for (const auto& j : i)
+		{
+			C(0) = j[0];
+			C(1) = j[1];
+			C(2) = j[2];
+			fout << C(0) * dim_r << " " << C(1) * dim_r << " " << C(2) * dim_r << endl;
+		}
+	}
+
+
+	size_t all_k1 = 1;
+	for (const auto& i : all_setka)
+	{
+		size_t k1 = i.size();
+		for (size_t ii = 0; ii < k1; ii++)
+		{
+			size_t k2 = ii + 1;
+			if (k2 >= k1) k2 = 0;
+			fout << all_k1 + ii << " " << all_k1 + k2 << endl;
+		}
+
+		all_k1 = all_k1 + k1;
+	}
+
+	fout.close();
+
+	// Рисуем поля параметров
+	name_f = "Tecplot_Tecplot_print_2D_" + name + ".txt";
+
+	fout.open(name_f);
+	fout << "TITLE = HP" << endl;
+	fout << "VARIABLES = xx, yy, X, Y, Z";
+
+	for (auto& nam : Int1->param_names)
+	{
+		fout << ", " << nam;
+	}
+	fout << ", |J|, |J_an|";
+	fout << endl;
+
+	fout << "ZONE T=HP, ";
+
+	fout << "NODES = " << NN << ", ELEMENTS = " << NN2 << ", F = FEPOINT, ET = TRIANGLE" << endl;
+
+	Eigen::Vector3d C2;
+	std::unordered_map<string, double> parameters;
+	bool fine_int;
+
+	for (const auto& i : all_setka)
+	{
+		std::vector< std::array<double, 3> > kj(i);
+		C2 << 0.0, 0.0, 0.0;
+
+		for (const auto& j : i)
+		{
+			C(0) = j[0];
+			C(1) = j[1];
+			C(2) = j[2];
+			C2 += C;
+		}
+		C2 /= (1.0 * i.size());
+
+		kj.push_back({ C2[0], C2[1], C2[2] });
+
+		bool visible = true;
+
+		for (const auto& j : kj)
+		{
+			C(0) = j[0];
+			C(1) = j[1];
+			C(2) = j[2];
+			fine_int = Int1->Get_param(C(0), C(1), C(2), parameters);
+			if (fine_int == false)
+			{
+				C = C * 0.999;
+				fine_int = Int1->Get_param(C(0), C(1), C(2), parameters);
+			}
+
+
+			if (fine_int == false)
+			{
+				visible = false;
+				break;
+			}
+		}
+
+		for (const auto& j : kj)
+		{
+			C(0) = j[0];
+			C(1) = j[1];
+			C(2) = j[2];
+			fine_int = Int1->Get_param(C(0), C(1), C(2), parameters);
+			if (fine_int == false)
+			{
+				C = C * 0.999;
+				fine_int = Int1->Get_param(C(0), C(1), C(2), parameters);
+			}
+
+
+			if (visible == false)
+			{
+				fout << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0;
+			}
+			else
+			{
+				double kk = 1.0;
+				if (razmer == true) kk = this->phys_param->Get_razmer("r");
+				fout << (C - centr_sys).dot(eex) * dim_r << " " << (C - centr_sys).dot(eey) * dim_r << " ";
+				fout << C(0) * kk << " " << C(1) * kk << " " << C(2) * kk;
+			}
+
+
+			for (auto& nam : Int1->param_names)
+			{
+				if (fine_int == true && visible == true)
+				{
+					if (nam != "Q")
+					{
+						double kk = 1.0;
+						if (razmer == true) kk = this->phys_param->Get_razmer(nam);
+
+						if (std::isnan(parameters[nam]) || std::fpclassify(parameters[nam]) == FP_SUBNORMAL)
+						{
+							fout << " " << 0.0;
+						}
+						else
+						{
+							fout << " " << parameters[nam] * kk;
+						}
+					}
+					else
+					{
+						fout << " " << parameters["Q"] / parameters["rho"];
+					}
+				}
+				else
+				{
+					fout << " " << 0.0;
+				}
+			}
+
+			fout << " " << 2.0 * norm2(parameters["Bx"], parameters["By"], parameters["Bz"]) * dim_j << " ";
+
+			Eigen::Vector3d cc;
+			cc = this->phys_param->Matr2 * C;
+			double r = C.norm();
+			double the = acos(cc(2) / r);
+
+			double BR = -this->phys_param->B_0 * kv(this->phys_param->R_0 / r);
+			double BPHI = -BR * sin(the) * (r / this->phys_param->R_0);
+			double V3, V1, V2;
+
+			dekard_skorost(cc(2), cc(0), cc(1), BR, BPHI, 0.0, V3, V1, V2);
+
+			Eigen::Vector3d BB;
+			BB << V1, V2, V3;
+
+			fout << 2.0 * BB.norm() * dim_j << endl;
+		}
+
+		kj.clear();
+	}
+
+	size_t all_k = 1;
+	for (const auto& i : all_setka)
+	{
+		size_t k1 = i.size();
+		for (size_t ii = 0; ii < k1; ii++)
+		{
+			size_t k2 = ii + 1;
+			if (k2 >= k1) k2 = 0;
+			fout << all_k + k1 << " " << all_k + ii << " " << all_k + k2 << endl;
+		}
+
+		all_k = all_k + k1 + 1;
+	}
+
+	fout.close();
+
+	// Отдельно находим пересечение плоскости с поверхностями разрыва
+
+	for (short int ik = 0; ik < 3; ik++)
+	{
+		std::vector< std::array<double, 3> > all_point_surf;
+		vector<Gran*>* AA = nullptr;
+		if (ik == 0) AA = &this->Gran_HP;
+		if (ik == 1) AA = &this->Gran_TS;
+		if (ik == 2) AA = &this->Gran_BS;
+
+		for (const auto& gr : *AA)
+		{
+			std::vector< std::array<double, 3> > all_point;
+			std::array<double, 3> P1;
+			std::array<double, 3> P2;
+			std::array<double, 3> outIntersection;
+
+			for (size_t i = 0; i < 4; i++) // Пробегаемся по рёбрам
+			{
+				size_t ii = i + 1;
+				if (ii >= 4) ii = 0;
+				A1 = gr->yzels[i];
+				A2 = gr->yzels[ii];
+
+				P1 = { A1->coord[0][0], A1->coord[0][1], A1->coord[0][2] };
+				P2 = { A2->coord[0][0], A2->coord[0][1], A2->coord[0][2] };
+
+				//cout << "A" << endl;
+				aa = findIntersection(P1, P2, a, b, c, d, outIntersection);
+				//cout << "B" << endl;
+				if (aa == true)
+				{
+					all_point.push_back(outIntersection);
+				}
+				else
+				{
+					continue;
+				}
+			}
+
+
+			if (all_point.size() != 2) continue;
+
+			for (auto& ii : all_point)
+			{
+				all_point_surf.push_back(ii);
+			}
+		}
+
+		if (ik == 0) name_f = "HP_srez_" + name + ".txt";
+		if (ik == 1) name_f = "TS_srez_" + name + ".txt";
+		if (ik == 2) name_f = "BS_srez_" + name + ".txt";
+
+		fout.open(name_f);
+		fout << "TITLE = HP" << endl;
+		fout << "VARIABLES = xx, yy, X, Y" << endl;
+		fout << "ZONE T=HP, NODES = " << all_point_surf.size() << ", ELEMENTS = " << all_point_surf.size() / 2 << ", F = FEPOINT, ET = LINESEG" << endl;
+
+		for (auto& ii : all_point_surf)
+		{
+			Eigen::Vector3d C(ii[0], ii[1], ii[2]);
+			fout << (C - centr_sys).dot(eex) * dim_r << " " << (C - centr_sys).dot(eey) * dim_r << " ";
+			fout << ii[0] << " " << ii[1] << endl;
+		}
+
+		for (size_t ii = 0; ii < all_point_surf.size() / 2; ii++)
+		{
+			fout << 2 * ii + 1 << " " << 2 * ii + 2 << endl;
+		}
+
+		fout.close();
+	}
+
+
+	cout << "End: Tecplot_print_2D " << name << endl;
+
+}
+
+
 void Setka::Tecplot_print_2D_setka(const double& a,
 	const double& b, const double& c, const double& d, string name)
 {
