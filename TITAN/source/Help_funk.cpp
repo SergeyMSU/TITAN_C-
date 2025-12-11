@@ -500,3 +500,51 @@ bool Get_param_amr(const double& x, const double& y, const double& z,
 	}
 	return true;
 }
+
+Eigen::Vector3d computeSurfaceNormal(
+	const Eigen::Vector3d& p,
+	const std::vector<Eigen::Vector3d>& neighbors)
+{
+	// Ќедостаточно точек
+	if (neighbors.size() < 3) {
+		return Eigen::Vector3d(0, 0, 1);
+	}
+
+	Eigen::MatrixXd centered(neighbors.size(), 3);
+
+	for (size_t i = 0; i < neighbors.size(); ++i) {
+		Eigen::Vector3d diff = neighbors[i] - p;
+
+		if (!diff.allFinite()) {
+			return Eigen::Vector3d(0, 0, 1);
+		}
+		centered.row(i) = diff;
+	}
+
+	Eigen::Matrix3d cov = centered.transpose() * centered;
+	if (!cov.allFinite()) {
+		return Eigen::Vector3d(0, 0, 1);
+	}
+
+	// SVD разложение
+	Eigen::JacobiSVD<Eigen::Matrix3d> svd(
+		cov,
+		Eigen::ComputeFullU
+	);
+
+	// ѕроверка, что получили матрицу U
+	const Eigen::Matrix3d& U = svd.matrixU();
+
+	if (!U.allFinite()) {
+		return Eigen::Vector3d(0, 0, 1);
+	}
+
+	// Ќормаль Ч сингул€рный вектор, соответствующий наименьшему сингул€рному значению (col(2))
+	Eigen::Vector3d normal = U.col(2);
+
+	if (!normal.allFinite() || normal.norm() < 1e-12) {
+		return Eigen::Vector3d(0, 0, 1);
+	}
+
+	return normal.normalized();
+}

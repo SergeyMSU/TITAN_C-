@@ -79,3 +79,8 @@ double Velosity_3(const double& u, const double& cp);
 bool Get_param_amr(const double& x, const double& y, const double& z,
 	std::unordered_map<string, double>& parameters, std::vector <Int_point*>& Cells_1, Delaunay* Delone_1,
 	const Cell_handle& prev_cell, Cell_handle& next_cell);
+
+
+Eigen::Vector3d computeSurfaceNormal(
+	const Eigen::Vector3d& p,
+	const std::vector<Eigen::Vector3d>& neighbors);

@@ -1417,17 +1417,15 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Save_for_interpolate("For_intertpolate_work.bin", false);
 		Interpol SI_main = Interpol("For_intertpolate_work.bin");
 
-		unsigned int N_p = 50; // Количество точек на экваторе
-		unsigned int N_l = 180; // Число слоёв
-		unsigned int N_step = 5; // Число шагов по времени до создания новых точек
+		unsigned int N_p = 90; // Количество точек на экваторе
+		unsigned int N_l = 360; // Число слоёв
+		unsigned int N_step = 3; // Число шагов по времени до создания новых точек
 
 		// Вектор для хранения всех слоев
 		std::vector<std::vector<Eigen::Vector3d>> all_layers;
 		all_layers.reserve(N_l);
 
-		std::unordered_map<string, double> parameters;
-
-		double ddt = 0.001 / N_step;
+		double ddt = 0.0004 / N_step;
 		// Глобальный цикл
 		for (int step = 0; step < N_l; step++)
 		{
@@ -1462,16 +1460,27 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			// Теперь передвигаем точки
 			for (int j = 0; j < N_step; ++j)
 			{
-				for (auto& layer : all_layers) 
-				{  
-					for (auto& point : layer) 
-					{  // point - Vector3d
+
+				#pragma omp parallel for
+				for (int i = 0; i < (int)all_layers.size(); ++i)
+				{
+					std::unordered_map<string, double> parameters;
+					std::array<Cell_handle, 6> prev_cell;
+					std::array<Cell_handle, 6> next_cell;
+					for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
+
+
+					for (int j = 0; j < (int)all_layers[i].size(); ++j)
+					{
+						Eigen::Vector3d& point = all_layers[i][j];
+
 						double r = 1.0;
 						if (point.norm() < 3.0 * this->phys_param->R_0) r = 3.0 * this->phys_param->R_0 / point.norm();
-						bool fine_int = SI_main.Get_param(r * point(0), r * point(1), r * point(2), parameters);
+						bool fine_int = SI_main.Get_param(r * point(0), r * point(1), r * point(2), parameters, prev_cell, next_cell);
+
 						if (fine_int == false)
 						{
-							fine_int = SI_main.Get_param(r * point(0) * 0.997, r * point(1) * 0.999, r * point(2) * 0.999, parameters);
+							fine_int = SI_main.Get_param(r * point(0) * 0.997, r * point(1) * 0.999, r * point(2) * 0.999, parameters, prev_cell, next_cell);
 							if (fine_int == false)
 							{
 								cout << "erorr euiegh87eg8ferg" << endl;
@@ -1479,25 +1488,21 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 							}
 						}
 
+						for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i];
+
 						point(0) += parameters["Vx"] * ddt;
 						point(1) += parameters["Vy"] * ddt;
 						point(2) += parameters["Vz"] * ddt;
 					}
 				}
 			}
-
-
-			
-
-			
-
-
-
 		}
 
 		// Запись в Техплот
 		if (true)
 		{
+			std::unordered_map<string, double> parameters;
+
 			ofstream tecfile("HCS_3d.txt");
 			if (!tecfile.is_open()) 
 			{
@@ -1506,7 +1511,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			}
 
 			tecfile << "TITLE = \"Heliospheric Current Sheet Surface\"" << endl;
-			tecfile << "VARIABLES = \"X\", \"Y\", \"Z\", \"Layer\"" << endl;
+			tecfile << "VARIABLES = \"X\", \"Y\", \"Z\", \"|J|\", \"Jx\", \"Jy\", \"Jz\"" << endl;
 
 			unsigned int N_quads;
 			N_quads = (N_l - 1) * N_p;  // Замкнутая поверхность
@@ -1519,11 +1524,67 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			// Записываем все точки с номером слоя как переменную
 			for (unsigned int layer = 0; layer < N_l; ++layer) 
 			{
-				for (unsigned int point = 0; point < N_p; ++point) 
+				for (unsigned int point = 0; point < N_p; ++point)
 				{
 					const Eigen::Vector3d& p = all_layers[layer][point];
+
+					double r = 1.0;
+					if (p.norm() < 3.0 * this->phys_param->R_0) r = 3.0 * this->phys_param->R_0 / p.norm();
+					bool fine_int = SI_main.Get_param(r * p(0), r * p(1), r * p(2), parameters);
+					if (fine_int == false)
+					{
+						fine_int = SI_main.Get_param(r * p(0) * 0.997, r * p(1) * 0.999, r * p(2) * 0.999, parameters);
+						if (fine_int == false)
+						{
+							cout << "erorr euiegh87eg8ferg" << endl;
+							exit(-1);
+						}
+					}
+
+					vector<Eigen::Vector3d> neighbors;
+
+					int pp, pm;
+					pp = point + 1;
+					pm = point - 1;
+					if (pp >= N_p) pp = 0;
+					if (pm < 0) pm = N_p - 1;
+
+					neighbors.push_back(all_layers[layer][pp]);
+					neighbors.push_back(all_layers[layer][pm]);
+
+					if (layer < N_l - 1)
+					{
+						neighbors.push_back(all_layers[layer + 1][pp]);
+						neighbors.push_back(all_layers[layer + 1][point]);
+						neighbors.push_back(all_layers[layer + 1][pm]);
+					}
+
+					if (layer > 0)
+					{
+						neighbors.push_back(all_layers[layer - 1][pp]);
+						neighbors.push_back(all_layers[layer - 1][point]);
+						neighbors.push_back(all_layers[layer - 1][pm]);
+					}
+
+					/*cout << "Start -----------------------" << endl;
+					cout << "p = " << p[0] << " " << p[1] << " " << p[2] << endl;
+					for (auto& aa : neighbors)
+					{
+						cout << "neighbor = " << aa[0] << " " << aa[1] << " " << aa[2] << endl;
+					}*/
+					Eigen::Vector3d nn = computeSurfaceNormal(p, neighbors);
+					//cout << "End ------------------------- " << endl;
+
+					if (nn[0] * 3.8759783635738505 + nn[1] * 30.64243272722684 + nn[2] * -30.631162372369808 < 0) nn = nn * -1.0;
+
+					const double dim_j = 1.743;
+
+					Eigen::Vector3d BB(parameters["Bx"], parameters["By"], parameters["Bz"]);
+					Eigen::Vector3d jj = 2.0 * nn.cross(BB);
+
 					tecfile << p.x() << " " << p.y() << " " << p.z()
-						<< " " << layer << endl;
+						<< " " << 2.0 * norm2(parameters["Bx"], parameters["By"], parameters["Bz"]) * dim_j << " " 
+						<< jj[0] << " " << jj[1] << " " << jj[2] << endl;
 				}
 			}
 
