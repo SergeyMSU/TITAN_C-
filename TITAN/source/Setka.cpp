@@ -4572,7 +4572,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 	normal[2] = c;
 
 	const double dim_r = 4.21132;
-	const double dim_j = 4.1536129;
+	const double dim_j = 4.15368;
 
 	double length = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
 	if (length > 0)

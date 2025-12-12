@@ -3,6 +3,120 @@
 #include <filesystem> // Для работы с файловой системой
 
 namespace fs = std::filesystem; // Создаем псевдоним для удобства
+using namespace Eigen;
+
+/**
+ * @brief Решает уравнение Лапласа для магнитного потенциала методом фиктивных источников (MFS)
+ *
+ * @param fict_points Координаты фиктивных источников (N x 3)
+ * @param bnd_points Координаты граничных точек (M x 3)
+ * @param bnd_normals Векторы нормалей в граничных точках (M x 3)
+ * @param bnd_Bn Значения нормальной компоненты Bn в граничных точках (M)
+ * @param use_svd Использовать SVD (true) или QR (false) для решения. SVD устойчивее к плохой обусловленности.
+ * @return VectorXd Вектор амплитуд источников q (N)
+ */
+VectorXd solveMFS(const MatrixXd& fict_points,    // N x 3
+	const MatrixXd& bnd_points,     // M x 3
+	const MatrixXd& bnd_normals,    // M x 3
+	const VectorXd& bnd_Bn,         // M
+	bool use_svd = true) {         // Переключатель метода решения
+
+	const int N = fict_points.rows();  // Количество фиктивных источников
+	const int M = bnd_points.rows();   // Количество граничных точек
+
+	// Проверка размеров
+	assert(fict_points.cols() == 3 && bnd_points.cols() == 3 && bnd_normals.cols() == 3);
+	assert(bnd_normals.rows() == M && bnd_Bn.size() == M);
+
+	// Матрица системы: M x N (плюс одна строка для условия однозначности)
+	MatrixXd A = MatrixXd::Zero(M + 1, N);
+	VectorXd b = VectorXd::Zero(M + 1);
+
+	cout << "Zapolnyaem " << endl;
+	// Заполняем основную часть матрицы A и вектора b
+	const double pi4 = 4.0 * M_PI;
+	for (int i = 0; i < M; i++) 
+	{
+		// Нормаль в i-й граничной точке
+		Vector3d ni = bnd_normals.row(i);
+
+		for (int j = 0; j < N; j++) {
+			// Вектор от фиктивного источника к граничной точке
+			Vector3d r_vec = bnd_points.row(i).transpose() - fict_points.row(j).transpose();
+			double R = r_vec.norm();
+
+			if (R < 1e-12) {
+				// Теоретически не должно происходить, если источники вне области
+				A(i, j) = 0.0;
+			}
+			else {
+				// Нормальная производная фундаментального решения: ?G/?n = -(n·r)/(4?R?)
+				A(i, j) = -ni.dot(r_vec) / (pi4 * R * R * R);
+			}
+		}
+
+		// Правая часть: заданное значение нормальной производной (Bn)
+		b(i) = bnd_Bn(i);
+	}
+
+	cout << "END Zapolnyaem " << endl;
+
+	// Условие для устранения неоднозначности (сумма амплитуд = 0)
+	A.row(M).setOnes();  // Последняя строка: все единицы
+	b(M) = 0.0;          // Сумма q_j = 0
+
+	// Решение системы A * q = b
+	VectorXd q;
+
+	cout << "solve" << endl;
+	if (use_svd) 
+	{
+		// SVD - наиболее устойчивый метод для плохо обусловленных матриц
+		JacobiSVD<MatrixXd> svd(A, ComputeThinU | ComputeThinV);
+
+		// Устанавливаем порог для сингулярных значений (можно регулировать)
+		double threshold = 1e-8 * svd.singularValues()(0);
+		q = svd.solve(b);
+	}
+	else {
+		// QR-разложение - быстрее, но может быть менее устойчивым
+		HouseholderQR<MatrixXd> qr(A);
+		q = qr.solve(b);
+	}
+	cout << "end solve" << endl;
+
+	return q;
+}
+
+/**
+ * @brief Вычисляет потенциал и поле в произвольной точке по найденным амплитудам
+ */
+void computeField(const VectorXd& q,
+	const MatrixXd& fict_points,
+	const Vector3d& point,
+	double& psi,      // Потенциал в точке
+	Vector3d& B) {    // Магнитное поле в точке
+
+	psi = 0.0;
+	B.setZero();
+	const double pi4 = 4.0 * M_PI;
+
+	for (int j = 0; j < q.size(); j++) 
+	{
+		Vector3d r_vec = point - fict_points.row(j).transpose();
+		double R = r_vec.norm();
+
+		if (R > 1e-12) {
+			// Потенциал: G = 1/(4?R)
+			psi += q(j) / (pi4 * R);
+
+			// Поле: ?G = -r/(4?R?)
+			B += -q(j) * r_vec / (pi4 * R * R * R);
+		}
+	}
+}
+
+
 
 void Setka::Algoritm(short int alg, Setka* Smain)
 {
@@ -21,6 +135,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 13 - просмотр источников S+/S- и сравнение их с флюидными источниками
 	// 14 - расчёт потенциальных токов в сверхзвуковом ветре от HCS
 	// 15 - расчёт геометрии HCS 
+	// 16 - расчёт потенциального поля во внутреннем слое и различных энергий
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -1079,7 +1194,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 				Eigen::Vector3d J = n.cross(B2 - B1);
 
-				J = J / (4.0 * const_pi);
+				J = J * 4.3614;
 
 				for (auto& j : i->yzels)
 				{
@@ -1201,7 +1316,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 
 		// Рисует тетраэдры в текплот
-		if (true)
+		if (false)
 		{
 			this->Save_for_interpolate_one_zone_only("For_intertpolate_work.bin", Type_cell::Zone_2);
 			Interpol SS = Interpol("For_intertpolate_work.bin");
@@ -1618,6 +1733,118 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			tecfile.close();
 
 		}
+
+	}
+	else if (alg == 16)
+	{
+		this->Set_MK_Zone();
+
+
+		// this->MK_Grans[zone_MK - 1].size();
+		// cell->MK_zone = 2;
+		double Volume = 0.0;
+		double E_B = 0.0;
+		double E_B_pot = 0.0;
+		double E_int = 0.0;
+		double E_kin = 0.0;
+
+		const int N = this->MK_Grans[2 - 1].size();   // Число фиктивных источников
+		const int M = N;                              // Число граничных точек
+
+		MatrixXd fict_points(N, 3);
+		MatrixXd bnd_points(M, 3);
+		MatrixXd bnd_normals(M, 3);
+		VectorXd bnd_Bn(M);
+
+		//    @param fict_points Координаты фиктивных источников(N x 3)
+		//	* @param bnd_points Координаты граничных точек(M x 3)
+		//	* @param bnd_normals Векторы нормалей в граничных точках(M x 3)
+		//	* @param bnd_Bn Значения нормальной компоненты Bn в граничных точках(M)
+		//	* @param use_svd Использовать SVD(true) или QR(false) для решения.SVD устойчивее к плохой обусловленности.
+		//	* @return VectorXd Вектор амплитуд источников q(N)
+
+		int i = 0;
+		for (auto& gr : this->MK_Grans[2 - 1])
+		{
+			Cell* A, * B;
+			double normal = 1.0;
+			if (gr->cells[0]->MK_zone != 2)
+			{
+				A = gr->cells[0];
+				B = gr->cells[1];
+				normal = -1.0;
+			}
+			else
+			{
+				A = gr->cells[1];
+				B = gr->cells[0];
+			}
+			// A - снаружи
+			// B - внутри
+
+
+			fict_points(i, 0) = A->center[0][0];
+			fict_points(i, 1) = A->center[0][1];
+			fict_points(i, 2) = A->center[0][2];
+
+			bnd_normals(i, 0) = gr->normal[0][0] * normal;
+			bnd_normals(i, 1) = gr->normal[0][1] * normal;
+			bnd_normals(i, 2) = gr->normal[0][2] * normal;
+
+			if (gr->type2 == Type_Gran_surf::HP)
+			{
+				bnd_points(i, 0) = gr->center[0][0];
+				bnd_points(i, 1) = gr->center[0][1];
+				bnd_points(i, 2) = gr->center[0][2];
+
+				bnd_Bn(i) = 0.0;
+			}
+			else
+			{
+				bnd_points(i, 0) = B->center[0][0];
+				bnd_points(i, 1) = B->center[0][1];
+				bnd_points(i, 2) = B->center[0][2];
+
+				bnd_Bn(i) = (B->parameters[0]["Bx"] * gr->normal[0][0] +
+					B->parameters[0]["By"] * gr->normal[0][1] +
+					B->parameters[0]["Bz"] * gr->normal[0][2]) * normal;
+			}
+
+			i++;
+		}
+
+		// Решение системы
+		cout << "Solve " << endl;
+		VectorXd q = solveMFS(fict_points, bnd_points, bnd_normals, bnd_Bn, false);
+		cout << "End Solve " << endl;
+
+
+
+		for (auto& cc : this->All_Cell)
+		{
+			if (cc->MK_zone != 2) continue;
+
+			Vector3d test_point(cc->center[0][0], cc->center[0][1], cc->center[0][2]);
+			double psi;
+			Vector3d B_pot;
+			computeField(q, fict_points, test_point, psi, B_pot);
+
+			Volume += cc->volume[0];
+			E_B = kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
+			E_B_pot = kv(B_pot.norm()) / (8.0 * const_pi) * cc->volume[0];
+			E_int = (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
+			E_kin = cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+		}
+
+		cout << "E = " << endl;
+		cout << "E_B = " << E_B << endl;
+		cout << "E_B_pot = " << E_B_pot << endl;
+		cout << "E_B - E_B_pot = " << E_B - E_B_pot << endl;
+		cout << "E_int = " << E_int << endl;
+		cout << "E_kin = " << E_kin << endl;
+		cout << "Volume = " << Volume << endl;
+
+
 
 	}
 
