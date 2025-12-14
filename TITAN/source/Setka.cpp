@@ -5054,24 +5054,49 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 		if (ik == 1) name_f = "TS_srez_" + name + ".txt";
 		if (ik == 2) name_f = "BS_srez_" + name + ".txt";
 
+		ofstream fout2;
+		string name_f2;
+		if (ik == 0) name_f2 = "HP_outer_white_" + name + ".txt";
+		if (ik == 1) name_f2 = "TS_inner_white_" + name + ".txt";
+		if (ik == 2) name_f2 = "BS_outer_white_" + name + ".txt";
+
 		fout.open(name_f);
 		fout << "TITLE = HP" << endl;
 		fout << "VARIABLES = xx, yy, X, Y" << endl;
 		fout << "ZONE T=HP, NODES = " << all_point_surf.size() << ", ELEMENTS = " << all_point_surf.size() / 2 << ", F = FEPOINT, ET = LINESEG" << endl;
 
+		fout2.open(name_f2);
+		fout2 << "TITLE = HP" << endl;
+		fout2 << "VARIABLES = xx, yy" << endl;
+		fout2 << "ZONE T=HP, NODES = " << all_point_surf.size() * 2 << ", ELEMENTS = " << all_point_surf.size() / 2 << ", F = FEPOINT, ET = quadrilateral" << endl;
+
+
 		for (auto& ii : all_point_surf)
 		{
 			Eigen::Vector3d C(ii[0], ii[1], ii[2]);
-			fout << (C - centr_sys).dot(eex) * dim_r << " " << (C - centr_sys).dot(eey) * dim_r << " ";
+			double xx = (C - centr_sys).dot(eex) * dim_r;
+			double yy = (C - centr_sys).dot(eey) * dim_r;
+
+
+			fout << xx << " " << yy << " ";
 			fout << ii[0] << " " << ii[1] << endl;
+
+			fout2 << xx << " " << yy << endl;
+
+			if (ik == 0) fout2 << 500.0 * xx << " " << 500.0 * yy << endl;
+			if (ik == 1) fout2 << 0.0 << " " << 0.0 << endl;
+			if (ik == 2) fout2 << 500.0 * xx << " " << 500.0 * yy << endl;
 		}
 
 		for (size_t ii = 0; ii < all_point_surf.size() / 2; ii++)
 		{
 			fout << 2 * ii + 1 << " " << 2 * ii + 2 << endl;
+
+			fout2 << 4 * ii + 1 << " " << 4 * ii + 3 << " " << 4 * ii + 4 << " " << 4 * ii + 2 << endl;
 		}
 
 		fout.close();
+		fout2.close();
 	}
 
 
@@ -5091,7 +5116,7 @@ void Setka::Tecplot_print_2D_for_HCS_potencial_1_zone(Interpol* Int1, const doub
 	normal[2] = c;
 
 	const double dim_r = 4.21132;
-	const double dim_j = 1.743;
+	const double dim_j = 1.74456;
 
 	double length = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
 	if (length > 0)
@@ -5513,24 +5538,49 @@ void Setka::Tecplot_print_2D_for_HCS_potencial_1_zone(Interpol* Int1, const doub
 		if (ik == 1) name_f = "TS_srez_" + name + ".txt";
 		if (ik == 2) name_f = "BS_srez_" + name + ".txt";
 
+		ofstream fout2;
+		string name_f2;
+		if (ik == 0) name_f2 = "HP_outer_white_" + name + ".txt";
+		if (ik == 1) name_f2 = "TS_inner_white_" + name + ".txt";
+		if (ik == 2) name_f2 = "BS_outer_white_" + name + ".txt";
+
 		fout.open(name_f);
 		fout << "TITLE = HP" << endl;
 		fout << "VARIABLES = xx, yy, X, Y" << endl;
 		fout << "ZONE T=HP, NODES = " << all_point_surf.size() << ", ELEMENTS = " << all_point_surf.size() / 2 << ", F = FEPOINT, ET = LINESEG" << endl;
 
+		fout2.open(name_f2);
+		fout2 << "TITLE = HP" << endl;
+		fout2 << "VARIABLES = xx, yy" << endl;
+		fout2 << "ZONE T=HP, NODES = " << all_point_surf.size() * 2 << ", ELEMENTS = " << all_point_surf.size() / 2 << ", F = FEPOINT, ET = quadrilateral" << endl;
+
 		for (auto& ii : all_point_surf)
 		{
 			Eigen::Vector3d C(ii[0], ii[1], ii[2]);
-			fout << (C - centr_sys).dot(eex) * dim_r << " " << (C - centr_sys).dot(eey) * dim_r << " ";
+
+			double xx = (C - centr_sys).dot(eex) * dim_r;
+			double yy = (C - centr_sys).dot(eey) * dim_r;
+
+			fout << xx << " " << yy << " ";
 			fout << ii[0] << " " << ii[1] << endl;
+
+			fout2 << xx << " " << yy << endl;
+
+			if (ik == 0) fout2 << 500.0 * xx << " " << 500.0 * yy << endl;
+			if (ik == 1) fout2 << 0.0 << " " << 0.0 << endl;
+			if (ik == 2) fout2 << 500.0 * xx << " " << 500.0 * yy << endl;
 		}
 
 		for (size_t ii = 0; ii < all_point_surf.size() / 2; ii++)
 		{
 			fout << 2 * ii + 1 << " " << 2 * ii + 2 << endl;
+
+			fout2 << 4 * ii + 1 << " " << 4 * ii + 3 << " " << 4 * ii + 4 << " " << 4 * ii + 2 << endl;
 		}
 
+
 		fout.close();
+		fout2.close();
 	}
 
 
