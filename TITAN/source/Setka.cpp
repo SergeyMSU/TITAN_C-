@@ -4799,7 +4799,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 	{
 		fout << ", " << nam;
 	}
-	fout << ", Mach, Mach_Alf, BB_8pi, rho_Th, p_Th, T_Th, J, Jxx, Jyy, J_an, Jxx_an, Jyy_an";
+	fout << ", Mach, Mach_Alf, BB_8pi, rho_Th, p_Th, T_Th, J, Jxx, Jyy, Jx, Jy, Jz, J_an, Jxx_an, Jyy_an";
 	fout << endl;
 
 	fout << "ZONE T=HP, ";
@@ -4968,7 +4968,8 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			Eigen::Vector3d JJ(parameters["rotB_x"], parameters["rotB_y"], parameters["rotB_z"]);
 				
 
-			fout << " " << JJ.norm() * dim_j << " " << JJ.dot(eex) * dim_j << " " << JJ.dot(eey) * dim_j;
+			fout << " " << JJ.norm() * dim_j << " " << JJ.dot(eex) * dim_j << " " << JJ.dot(eey) * dim_j << 
+				" " << JJ[0] * dim_j << " " << JJ[1] * dim_j << " " << JJ[2] * dim_j;
 
 			Eigen::Vector3d cc;
 			cc = this->phys_param->Matr2 * C;

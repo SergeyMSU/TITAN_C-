@@ -5915,7 +5915,7 @@ void Setka::Culc_usual_rotors_in_cell(void)
 {
 	cout << "Start: Culc_rotor_in_cell" << endl;
 
-	bool r_mult = true;  // Предварительное домножение магнитного поля на r
+	bool r_mult = false;  // Предварительное домножение магнитного поля на r
 
 	this->phys_param->param_names.push_back("rotB_x");
 	this->phys_param->param_names.push_back("rotB_y");
@@ -6098,6 +6098,444 @@ void Setka::Culc_usual_rotors_in_cell(void)
 			cell->parameters[0]["rotB_z"] = vvv[2];
 		}
 	
+
+		/*cout << F[0] << " " <<
+			F[1] << " " <<
+			F[2] << " " <<
+			F[3] << " " <<
+			F[4] << " " <<
+			F[5] << endl;
+
+		cout << M(0, 0) << " " << M(0, 1) << " " << M(0, 2) << endl;
+		cout << M(1, 0) << " " << M(1, 1) << " " << M(1, 2) << endl;
+		cout << M(2, 0) << " " << M(2, 1) << " " << M(2, 2) << endl;
+		cout << M(3, 0) << " " << M(3, 1) << " " << M(3, 2) << endl;
+		cout << M(4, 0) << " " << M(4, 1) << " " << M(4, 2) << endl;
+		cout << M(5, 0) << " " << M(5, 1) << " " << M(5, 2) << endl;
+
+		cout << vvv[0] << " " << vvv[1] << " " << vvv[2] << endl;
+
+		exit(-1);*/
+	}
+
+
+	if (r_mult == true)
+	{
+		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+		{
+			auto& cell = this->All_Cell[idx];
+			double r = norm2(cell->center[0][0], cell->center[0][1], cell->center[0][2]);
+			cell->parameters[0]["Bx"] *= r;
+			cell->parameters[0]["By"] *= r;
+			cell->parameters[0]["Bz"] *= r;
+		}
+	}
+
+	cout << "End: Culc_rotor_in_cell" << endl;
+}
+
+void Setka::Culc_usual_rotors_in_cell_2(void)
+{
+	cout << "Start: Culc_usual_rotors_in_cell_from_interpol" << endl;
+
+	this->Save_for_interpolate("For_intertpolate_0059-.bin", false);
+	//Interpol SS = Interpol("For_intertpolate_0059-.bin");
+	//std::unordered_map<string, double> parameters;
+	//bool fine_int;
+
+	//fine_int = SS.Get_param(C(0), C(1), C(2), parameters);
+
+	bool r_mult = false;  // Предварительное домножение магнитного поля на r
+
+	this->phys_param->param_names.push_back("rotB_x");
+	this->phys_param->param_names.push_back("rotB_y");
+	this->phys_param->param_names.push_back("rotB_z");
+	// Добавили переменную для интерполяции
+	unsigned int k1 = 0;
+
+
+	if (r_mult == true)
+	{
+		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+		{
+			auto& cell = this->All_Cell[idx];
+			double r = norm2(cell->center[0][0], cell->center[0][1], cell->center[0][2]);
+			cell->parameters[0]["Bx"] *= r;
+			cell->parameters[0]["By"] *= r;
+			cell->parameters[0]["Bz"] *= r;
+		}
+	}
+
+#pragma omp parallel for schedule(dynamic)
+	//for (auto& cell : this->All_Cell)
+	for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+	{
+		auto& cell = this->All_Cell[idx];
+#pragma omp critical (first) 
+		{
+			k1++;
+			if (k1 % 10000 == 0)
+			{
+				cout << "Gran = " << k1 << "    Iz: " << this->All_Cell.size() << endl;
+			}
+		}
+
+		int n = 0;  // Число элементов матрицы или граней в ячейке
+		n = cell->grans.size();
+		Eigen::MatrixXd M(n, 3);
+		Eigen::VectorXd F(n);
+
+		short int ig = -1;
+		for (auto gr : cell->grans)
+		{
+			ig++;
+			Eigen::Vector3d center_gr;
+			Eigen::Vector3d normal;
+			double B_on_gran = 0.0;
+			center_gr << gr->center[0][0], gr->center[0][1], gr->center[0][2];
+			normal << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
+
+			if (gr->cells[0] != cell) normal = -normal;
+
+
+			for (auto ed : gr->edges)
+			{
+				Eigen::Vector3d ll;
+				Eigen::Vector3d ed_center;
+				Eigen::Vector3d Vec;
+				Eigen::Vector3d Vec_all;
+				double v_all = 0.0;
+
+				Vec_all << 0.0, 0.0, 0.0;
+
+				ll << (ed->A->coord[0][0] - ed->B->coord[0][0]),
+					(ed->A->coord[0][1] - ed->B->coord[0][1]),
+					(ed->A->coord[0][2] - ed->B->coord[0][2]);
+
+				ed_center << (ed->A->coord[0][0] + ed->B->coord[0][0]) / 2.0,
+					(ed->A->coord[0][1] + ed->B->coord[0][1]) / 2.0,
+					(ed->A->coord[0][2] + ed->B->coord[0][2]) / 2.0;
+
+				if (true)
+				{
+					for (auto gr_ : ed->grans)
+					{
+						Eigen::Vector3d gr_center;
+						gr_center << gr_->center[0][0], gr_->center[0][1], gr_->center[0][2];
+						if (gr_->cells.size() == 1)
+						{
+							if (gr_->cells[0]->type != cell->type)
+							{
+								continue;
+							}
+						}
+						else
+						{
+							if (gr_->cells[0]->type != cell->type &&
+								gr_->cells[1]->type != cell->type)
+							{
+								continue;
+							}
+						}
+
+						unordered_map<string, double> par_left, par_right;
+						if (gr_->type == Type_Gran::Us)
+						{
+							this->Snos_on_Gran(gr_, par_left, par_right, 0, true);
+
+							if (gr_->type2 == Type_Gran_surf::Us)
+							{
+								Vec << (par_left["Bx"] + par_right["Bx"]) / 2.0,
+									(par_left["By"] + par_right["By"]) / 2.0,
+									(par_left["Bz"] + par_right["Bz"]) / 2.0;
+							}
+							else
+							{
+								if (gr_->cells[0]->type == cell->type)
+								{
+									Vec << par_right["Bx"],
+										par_right["By"],
+										par_right["Bz"];
+								}
+								else
+								{
+									Vec << par_left["Bx"],
+										par_left["By"],
+										par_left["Bz"];
+								}
+							}
+						}
+						else
+						{
+							Vec << cell->parameters[0]["Bx"], cell->parameters[0]["By"], cell->parameters[0]["Bz"];
+						}
+
+						double dfdf = (gr_center - ed_center).norm();
+						v_all += 1.0 / dfdf;
+						Vec_all += Vec / (dfdf);
+					}
+				}
+				else
+				{
+					for (auto ce : ed->cells)
+					{
+						v_all += 1.0;
+						Vec_all[0] += ce->parameters[0]["Bx"];
+						Vec_all[1] += ce->parameters[0]["By"];
+						Vec_all[2] += ce->parameters[0]["Bz"];
+					}
+				}
+
+
+				Vec_all /= v_all;
+
+				Eigen::Vector3d nn = (ed_center - center_gr).cross(ll);
+
+				if (nn.dot(normal) > 0)
+				{
+					B_on_gran += Vec_all.dot(ll);
+				}
+				else
+				{
+					B_on_gran -= Vec_all.dot(ll);
+				}
+			}
+
+			B_on_gran /= gr->area[0];
+
+
+			M(ig, 0) = normal[0];
+			M(ig, 1) = normal[1];
+			M(ig, 2) = normal[2];
+			F[ig] = B_on_gran;
+		}
+
+		Eigen::Vector3d vvv = M.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(F);
+
+		if (r_mult == true)
+		{
+			double r = norm2(cell->center[0][0], cell->center[0][1], cell->center[0][2]);
+			Eigen::Vector3d rr(cell->center[0][0], cell->center[0][1], cell->center[0][2]);
+			Eigen::Vector3d Bvec(cell->parameters[0]["Bx"], cell->parameters[0]["By"], cell->parameters[0]["Bz"]);
+			rr = rr / r;
+			Eigen::Vector3d otv = vvv / r - (rr.cross(Bvec)) / kv(r);
+			cell->parameters[0]["rotB_x"] = otv[0];
+			cell->parameters[0]["rotB_y"] = otv[1];
+			cell->parameters[0]["rotB_z"] = otv[2];
+		}
+		else
+		{
+			cell->parameters[0]["rotB_x"] = vvv[0];
+			cell->parameters[0]["rotB_y"] = vvv[1];
+			cell->parameters[0]["rotB_z"] = vvv[2];
+		}
+
+
+		/*cout << F[0] << " " <<
+			F[1] << " " <<
+			F[2] << " " <<
+			F[3] << " " <<
+			F[4] << " " <<
+			F[5] << endl;
+
+		cout << M(0, 0) << " " << M(0, 1) << " " << M(0, 2) << endl;
+		cout << M(1, 0) << " " << M(1, 1) << " " << M(1, 2) << endl;
+		cout << M(2, 0) << " " << M(2, 1) << " " << M(2, 2) << endl;
+		cout << M(3, 0) << " " << M(3, 1) << " " << M(3, 2) << endl;
+		cout << M(4, 0) << " " << M(4, 1) << " " << M(4, 2) << endl;
+		cout << M(5, 0) << " " << M(5, 1) << " " << M(5, 2) << endl;
+
+		cout << vvv[0] << " " << vvv[1] << " " << vvv[2] << endl;
+
+		exit(-1);*/
+	}
+
+
+	if (r_mult == true)
+	{
+		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+		{
+			auto& cell = this->All_Cell[idx];
+			double r = norm2(cell->center[0][0], cell->center[0][1], cell->center[0][2]);
+			cell->parameters[0]["Bx"] *= r;
+			cell->parameters[0]["By"] *= r;
+			cell->parameters[0]["Bz"] *= r;
+		}
+	}
+
+	cout << "End: Culc_rotor_in_cell" << endl;
+}
+
+void Setka::Culc_usual_rotors_in_cell_from_interpol(void)
+{
+	cout << "Start: Culc_usual_rotors_in_cell_from_interpol" << endl;
+
+	this->Save_for_interpolate("For_intertpolate_0059-.bin", false);
+	Interpol SS = Interpol("For_intertpolate_0059-.bin");
+
+	//fine_int = SS.Get_param(C(0), C(1), C(2), parameters);
+
+	bool r_mult = false;  // Предварительное домножение магнитного поля на r
+
+	this->phys_param->param_names.push_back("rotB_x");
+	this->phys_param->param_names.push_back("rotB_y");
+	this->phys_param->param_names.push_back("rotB_z");
+	// Добавили переменную для интерполяции
+	unsigned int k1 = 0;
+
+
+	if (r_mult == true)
+	{
+		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+		{
+			auto& cell = this->All_Cell[idx];
+			double r = norm2(cell->center[0][0], cell->center[0][1], cell->center[0][2]);
+			cell->parameters[0]["Bx"] *= r;
+			cell->parameters[0]["By"] *= r;
+			cell->parameters[0]["Bz"] *= r;
+		}
+	}
+
+#pragma omp parallel for schedule(dynamic)
+	//for (auto& cell : this->All_Cell)
+	for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+	{
+		std::unordered_map<string, double> parameters;
+		bool fine_int;
+
+		auto& cell = this->All_Cell[idx];
+#pragma omp critical (first) 
+		{
+			k1++;
+			if (k1 % 10000 == 0)
+			{
+				cout << "Gran = " << k1 << "    Iz: " << this->All_Cell.size() << endl;
+			}
+		}
+
+		int n = 0;  // Число элементов матрицы или граней в ячейке
+		n = cell->grans.size();
+		Eigen::MatrixXd M(n, 3);
+		Eigen::VectorXd F(n);
+
+		short int ig = -1;
+		for (auto gr : cell->grans)
+		{
+			ig++;
+			Eigen::Vector3d center_gr;
+			Eigen::Vector3d normal;
+			double B_on_gran = 0.0;
+			center_gr << gr->center[0][0], gr->center[0][1], gr->center[0][2];
+			normal << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
+
+			if (gr->cells[0] != cell) normal = -normal;
+
+
+			for (auto ed : gr->edges)
+			{
+				Eigen::Vector3d ll;
+				Eigen::Vector3d ed_center;
+				Eigen::Vector3d Vec;
+				Eigen::Vector3d Vec_all;
+				double v_all = 0.0;
+
+				Vec_all << 0.0, 0.0, 0.0;
+
+				ll << (ed->A->coord[0][0] - ed->B->coord[0][0]),
+					(ed->A->coord[0][1] - ed->B->coord[0][1]),
+					(ed->A->coord[0][2] - ed->B->coord[0][2]);
+
+				ed_center << (ed->A->coord[0][0] + ed->B->coord[0][0]) / 2.0,
+					(ed->A->coord[0][1] + ed->B->coord[0][1]) / 2.0,
+					(ed->A->coord[0][2] + ed->B->coord[0][2]) / 2.0;
+
+				/*vector<double> dxt_(4);
+				vector<double> dw_(4);
+
+				dxt_[0] = 0.0;
+				dxt_[1] = 1.0 / 3.0;
+				dxt_[2] = 2.0 / 3.0;
+				dxt_[3] = 1.0;
+
+				dw_[0] = 1.0 / 8.0;
+				dw_[1] = 3.0 / 8.0;
+				dw_[2] = 3.0 / 8.0;
+				dw_[3] = 1.0 / 8.0;*/
+
+				vector<double> dxt_(1);
+				vector<double> dw_(1);
+
+				dxt_[0] = 0.5;
+
+				dw_[0] = 1.0;
+				
+				for(short int ikk = 0; ikk < 1; ikk++)
+				{
+					double dxt = dxt_[ikk];
+					double dw = dw_[ikk];
+
+
+					fine_int = SS.Get_param(ed->B->coord[0][0] + ll[0] * dxt, 
+						ed->B->coord[0][1] + ll[1] * dxt, ed->B->coord[0][2] + ll[2] * dxt, parameters);
+					if (fine_int == false)
+					{
+						fine_int = SS.Get_param(0.999 * ed->B->coord[0][0] + ll[0] * dxt,
+							0.999 * ed->B->coord[0][1] + ll[1] * dxt, 0.999 * ed->B->coord[0][2] + ll[2] * dxt, parameters);
+
+						if (fine_int == false)
+						{
+							parameters["Bx"] = 0.0;
+							parameters["By"] = 0.0;
+							parameters["Bz"] = 0.0;
+						}
+					}
+					Vec_all[0] += parameters["Bx"] * dw;
+					Vec_all[1] += parameters["By"] * dw;
+					Vec_all[2] += parameters["Bz"] * dw;
+				}
+
+
+				Eigen::Vector3d nn = (ed_center - center_gr).cross(ll);
+
+				if (nn.dot(normal) > 0)
+				{
+					B_on_gran += Vec_all.dot(ll);
+				}
+				else
+				{
+					B_on_gran -= Vec_all.dot(ll);
+				}
+			}
+
+			B_on_gran /= gr->area[0];
+
+
+			M(ig, 0) = normal[0];
+			M(ig, 1) = normal[1];
+			M(ig, 2) = normal[2];
+			F[ig] = B_on_gran;
+		}
+
+		Eigen::Vector3d vvv = M.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(F);
+
+		if (r_mult == true)
+		{
+			double r = norm2(cell->center[0][0], cell->center[0][1], cell->center[0][2]);
+			Eigen::Vector3d rr(cell->center[0][0], cell->center[0][1], cell->center[0][2]);
+			Eigen::Vector3d Bvec(cell->parameters[0]["Bx"], cell->parameters[0]["By"], cell->parameters[0]["Bz"]);
+			rr = rr / r;
+			Eigen::Vector3d otv = vvv / r - (rr.cross(Bvec)) / kv(r);
+			cell->parameters[0]["rotB_x"] = otv[0];
+			cell->parameters[0]["rotB_y"] = otv[1];
+			cell->parameters[0]["rotB_z"] = otv[2];
+		}
+		else
+		{
+			cell->parameters[0]["rotB_x"] = vvv[0];
+			cell->parameters[0]["rotB_y"] = vvv[1];
+			cell->parameters[0]["rotB_z"] = vvv[2];
+		}
+
 
 		/*cout << F[0] << " " <<
 			F[1] << " " <<

@@ -201,8 +201,10 @@ public:
 
 	void Culc_rotors_in_cell(void);
 	void Culc_usual_rotors_in_cell(void);
+	void Culc_usual_rotors_in_cell_2(void);
 	// Считает ротор векторной величины в ячейке
 	// Пока зделал для ротора нормированного магнитного поля
+	void Culc_usual_rotors_in_cell_from_interpol(void);
 
 	void Culc_divergence_in_cell(void); 
 	// В каждой ячейке считает дивергенцию скорости

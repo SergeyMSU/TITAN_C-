@@ -137,7 +137,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 15 - расчёт геометрии HCS 
 	// 16 - расчёт потенциального поля во внутреннем слое и различных энергий
 	// 17 - расчёт потенциальных токов в гелиошизе от HCS
-	// 18 - расчёт геометрии HCS в гелиошизе
+	// 18 - расчёт геометрии HCS в гелиошизе (не работает, ничего не видно)
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -1276,7 +1276,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	{
 		// Вычислим ротор в центре каждой ячейки
 		this->Edges_create();
-		this->Culc_usual_rotors_in_cell();
+		//this->Culc_usual_rotors_in_cell();
+		//this->Culc_usual_rotors_in_cell_2();
+		this->Culc_usual_rotors_in_cell_from_interpol();
 
 
 		// Надо улучшить ротеры вблизи разрывов
@@ -1331,9 +1333,18 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			if (norm2(C4->center[0][0], C4->center[0][1], C4->center[0][2]) >
 				norm2(C2->center[0][0], C2->center[0][1], C2->center[0][2]))
 			{
-				C3->parameters[0]["rotB_x"] = C1->parameters[0]["rotB_x"];
-				C3->parameters[0]["rotB_y"] = C1->parameters[0]["rotB_y"];
-				C3->parameters[0]["rotB_z"] = C1->parameters[0]["rotB_z"];
+				if (false) // внутри
+				{
+					C3->parameters[0]["rotB_x"] = C1->parameters[0]["rotB_x"];
+					C3->parameters[0]["rotB_y"] = C1->parameters[0]["rotB_y"];
+					C3->parameters[0]["rotB_z"] = C1->parameters[0]["rotB_z"];
+				}
+				else
+				{
+					C1->parameters[0]["rotB_x"] = C3->parameters[0]["rotB_x"];
+					C1->parameters[0]["rotB_y"] = C3->parameters[0]["rotB_y"];
+					C1->parameters[0]["rotB_z"] = C3->parameters[0]["rotB_z"];
+				}
 			}
 		}
 
@@ -1343,16 +1354,26 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 		cout << "AAA" << endl;
 
-		this->Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_IHG_meridional_", false, 
-			Eigen::Vector3d(-0.9958639688067077, 0.07561695085992419, -0.05036896241933166), 
-			Eigen::Vector3d(0.08910295088675518, 0.7044237408557894, -0.7041646522383864), 
+		this->Tecplot_print_2D(&SS, 0.0177656909751554, 0.7057402284561816, 0.7082479157489927, -0.00001, "_IHG_meridional_", false,
+			Eigen::Vector3d(-0.9958639688067080, 0.0756169508599243, -0.0503689624193315),
+			Eigen::Vector3d(0.0891029508867553, 0.7044237408557898, -0.7041646522383865),
+			Eigen::Vector3d(0.0, 0.0, 0.0));
+
+		this->Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_XY_plane_", false,
+			Eigen::Vector3d(1.0, 0.0, 0.0),
+			Eigen::Vector3d(0.0, 1.0, 0.0),
+			Eigen::Vector3d(0.0, 0.0, 0.0));
+
+		this->Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_XZ_plane_", false,
+			Eigen::Vector3d(1.0, 0.0, 0.0),
+			Eigen::Vector3d(0.0, 0.0, 1.0),
 			Eigen::Vector3d(0.0, 0.0, 0.0));
 
 
 		// Рисует тетраэдры в текплот
 		if (false)
 		{
-			this->Save_for_interpolate_one_zone_only("For_intertpolate_work.bin", Type_cell::Zone_2);
+			this->Save_for_interpolate_one_zone_only("For_intertpolate_work.bin", Type_cell::Zone_3);
 			Interpol SS = Interpol("For_intertpolate_work.bin");
 
 			ofstream fout;
@@ -1890,6 +1911,11 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			Eigen::Vector3d(-0.9958639688067077, 0.07561695085992419, -0.05036896241933166),
 			Eigen::Vector3d(0.08910295088675518, 0.7044237408557894, -0.7041646522383864),
 			Eigen::Vector3d(0.0, 0.0, 0.0));
+
+		this->Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_IHG_meridional_", false,
+			Eigen::Vector3d(-0.9958639688067077, 0.07561695085992419, -0.05036896241933166),
+			Eigen::Vector3d(0.08910295088675518, 0.7044237408557894, -0.7041646522383864),
+			Eigen::Vector3d(0.0, 0.0, 0.0));
 	}
 	else if (alg == 18)
 	{
@@ -1939,7 +1965,6 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			// Теперь передвигаем точки
 			for (int j = 0; j < N_step; ++j)
 			{
-
 				#pragma omp parallel for
 				for (int i = 0; i < (int)all_layers.size(); ++i)
 				{
@@ -1952,6 +1977,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 					for (int j = 0; j < (int)all_layers[i].size(); ++j)
 					{
 						Eigen::Vector3d& point = all_layers[i][j];
+
+						if (polar_angle(point(0), norm2(0.0, point(1), point(2))) > const_pi / 9.0) continue;
 
 						double r = 1.0;
 						if (point.norm() < 3.0 * this->phys_param->R_0) r = 3.0 * this->phys_param->R_0 / point.norm();
@@ -1998,6 +2025,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				for (int j = 0; j < (int)all_layers[i].size(); ++j)
 				{
 					Eigen::Vector3d& point = all_layers[i][j];
+
+					if (polar_angle(point(0), norm2(0.0, point(1), point(2))) > const_pi / 9.0) continue;
 
 					double r = 1.0;
 					bool fine_int = SI_main.Get_param(r * point(0), r * point(1), r * point(2), parameters, prev_cell, next_cell);
@@ -2062,6 +2091,14 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				for (unsigned int point = 0; point < N_p; ++point)
 				{
 					const Eigen::Vector3d& p = all_layers[layer][point];
+
+					if (polar_angle(p(0), norm2(0.0, p(1), p(2))) > const_pi / 9.0)
+					{
+						tecfile << 0.0 << " " << 0.0 << " " << 0.0
+							<< " " << 0.0 << " "
+							<< 0.0 << " " << 0.0 << " " << 0.0 << endl;
+						continue;
+					}
 
 					double r = 1.0;
 					if (p.norm() < 3.0 * this->phys_param->R_0) r = 3.0 * this->phys_param->R_0 / p.norm();
