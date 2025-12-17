@@ -5085,7 +5085,8 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			fout2 << xx << " " << yy << endl;
 
 			if (ik == 0) fout2 << 500.0 * xx << " " << 500.0 * yy << endl;
-			if (ik == 1) fout2 << 500.0 * xx << " " << 500.0 * yy << endl; //fout2 << 0.0 << " " << 0.0 << endl;
+			//if (ik == 1) fout2 << 500.0 * xx << " " << 500.0 * yy << endl; //fout2 << 0.0 << " " << 0.0 << endl;
+			if (ik == 1) fout2 << 0.0 << " " << 0.0 << endl;
 			if (ik == 2) fout2 << 500.0 * xx << " " << 500.0 * yy << endl;
 		}
 

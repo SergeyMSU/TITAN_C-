@@ -6145,7 +6145,7 @@ void Setka::Culc_usual_rotors_in_cell_2(void)
 
 	//fine_int = SS.Get_param(C(0), C(1), C(2), parameters);
 
-	bool r_mult = true;  // ѕредварительное домножение магнитного пол€ на r
+	bool r_mult = false;  // ѕредварительное домножение магнитного пол€ на r
 
 	this->phys_param->param_names.push_back("rotB_x");
 	this->phys_param->param_names.push_back("rotB_y");

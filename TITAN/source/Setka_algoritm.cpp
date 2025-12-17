@@ -133,7 +133,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 11 - расчёт поверхностных токов на разрывах
 	// 12 - расчёт объёмных токов
 	// 13 - просмотр источников S+/S- и сравнение их с флюидными источниками
-	// 14 - расчёт потенциальных токов в сверхзвуковом ветре от HCS
+	// 14 - расчёт гипотетических токов в сверхзвуковом ветре от HCS
 	// 15 - расчёт геометрии HCS 
 	// 16 - расчёт потенциального поля во внутреннем слое и различных энергий
 	// 17 - расчёт потенциальных токов в гелиошизе от HCS
@@ -1298,7 +1298,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			C3->parameters[0]["rotB_z"] = C4->parameters[0]["rotB_z"];
 
 
-			if (true)
+			if (false)
 			{
 				C3->parameters[0]["rotB_x"] = C1->parameters[0]["rotB_x"];
 				C3->parameters[0]["rotB_y"] = C1->parameters[0]["rotB_y"];
@@ -1333,7 +1333,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			if (norm2(C4->center[0][0], C4->center[0][1], C4->center[0][2]) >
 				norm2(C2->center[0][0], C2->center[0][1], C2->center[0][2]))
 			{
-				if (false) // внутри
+				if (true) // внутри
 				{
 					C3->parameters[0]["rotB_x"] = C1->parameters[0]["rotB_x"];
 					C3->parameters[0]["rotB_y"] = C1->parameters[0]["rotB_y"];
@@ -1422,7 +1422,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		// Трассируем линии тока
-		if (false)
+		if (true)
 		{
 			std::ofstream file("I_IHS.txt");
 			file << "VARIABLES = X, Y, Z, I" << std::endl;
@@ -1485,7 +1485,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				{
 					kk++;
 					if (kk > 1000000) break;
-					double nnn = norm2(parameters["rotB_x"], parameters["rotB_y"], parameters["rotB_z"]);
+					double nnn = 4.15368 * norm2(parameters["rotB_x"], parameters["rotB_y"], parameters["rotB_z"]);
 					line.push_back({ x, y, z, nnn });
 
 					x = x + 0.02 * v * parameters["rotB_x"] / nnn;
@@ -1503,9 +1503,16 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 #pragma omp critical (dsds2) 
 				{
-					file << "ZONE T=\"Line" << line_count++ << "\" I=" << line.size() << " F=POINT" << std::endl;
+					int size_l = 0;
 					for (const auto& point : line)
 					{
+						if (point[0] < -52.24) continue;
+						size_l++;
+					}
+					file << "ZONE T=\"Line" << line_count++ << "\" I=" << size_l << " F=POINT" << std::endl;
+					for (const auto& point : line)
+					{
+						if (point[0] < -52.24) continue;
 						file << point[0] << " " << point[1] << " " << point[2] << " " << point[3] << std::endl;
 					}
 				}
