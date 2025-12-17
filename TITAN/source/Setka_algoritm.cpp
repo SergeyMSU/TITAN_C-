@@ -1277,8 +1277,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		// Вычислим ротор в центре каждой ячейки
 		this->Edges_create();
 		//this->Culc_usual_rotors_in_cell();
-		//this->Culc_usual_rotors_in_cell_2();
-		this->Culc_usual_rotors_in_cell_from_interpol();
+		this->Culc_usual_rotors_in_cell_2();
+		//this->Culc_usual_rotors_in_cell_from_interpol();
 
 
 		// Надо улучшить ротеры вблизи разрывов
@@ -1298,7 +1298,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			C3->parameters[0]["rotB_z"] = C4->parameters[0]["rotB_z"];
 
 
-			if (false)
+			if (true)
 			{
 				C3->parameters[0]["rotB_x"] = C1->parameters[0]["rotB_x"];
 				C3->parameters[0]["rotB_y"] = C1->parameters[0]["rotB_y"];
@@ -1577,9 +1577,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Save_for_interpolate("For_intertpolate_0059-.bin", false);
 		Interpol SS = Interpol("For_intertpolate_0059-.bin");
 
-		this->Tecplot_print_2D_for_HCS_potencial_1_zone(&SS, 0.0, 0.0, 1.0, -0.00001, "_IHG_meridional_HCS_", false,
-			Eigen::Vector3d(-0.9958639688067077, 0.07561695085992419, -0.05036896241933166),
-			Eigen::Vector3d(0.08910295088675518, 0.7044237408557894, -0.7041646522383864),
+		this->Tecplot_print_2D_for_HCS_potencial_1_zone(&SS, 0.0177656909751554, 0.7057402284561816, 0.7082479157489927, -0.00001, "_IHG_meridional_HCS_", false,
+			Eigen::Vector3d(-0.9958639688067080, 0.0756169508599243, -0.0503689624193315),
+			Eigen::Vector3d(0.0891029508867553, 0.7044237408557898, -0.7041646522383865),
 			Eigen::Vector3d(0.0, 0.0, 0.0));
 	}
 	else if (alg == 15)
