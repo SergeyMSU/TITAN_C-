@@ -5057,7 +5057,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 
 		ofstream fout2;
 		string name_f2;
-		if (ik == 0) name_f2 = "HP_outer_white_" + name + ".txt";
+		if (ik == 0) name_f2 = "HP_inner_white_" + name + ".txt";
 		if (ik == 1) name_f2 = "TS_outer_white_" + name + ".txt";
 		if (ik == 2) name_f2 = "BS_outer_white_" + name + ".txt";
 
@@ -5084,7 +5084,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 
 			fout2 << xx << " " << yy << endl;
 
-			if (ik == 0) fout2 << 500.0 * xx << " " << 500.0 * yy << endl;
+			if (ik == 0) fout2 << -500.0 << " " << 0.0 << endl; // fout2 << 500.0 * xx << " " << 500.0 * yy << endl;
 			//if (ik == 1) fout2 << 500.0 * xx << " " << 500.0 * yy << endl; //fout2 << 0.0 << " " << 0.0 << endl;
 			if (ik == 1) fout2 << 0.0 << " " << 0.0 << endl;
 			if (ik == 2) fout2 << 500.0 * xx << " " << 500.0 * yy << endl;

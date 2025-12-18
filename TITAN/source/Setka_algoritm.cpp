@@ -1097,9 +1097,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		//HP
 		if (true)
 		{
-			name_f = "HP_J.txt";
+			name_f = "HP_J_dissipation.txt";
 			fout.open(name_f);
-			fout << "TITLE = HP  VARIABLES = x, y, z, phi, the, Jx, Jy, Jz, |J|, J2x, J2y, J2z, |J2|, Bx_L, By_L, Bz_L, Bx_R, By_R, Bz_R" << endl;
+			fout << "TITLE = HP  VARIABLES = x, y, z, r, phi, the, Jx, Jy, Jz, |J|, J2x, J2y, J2z, |J2|, Bx_L, By_L, Bz_L, Bx_R, By_R, Bz_R" << endl;
 			fout << "ZONE T=HP, N = " << this->Gran_HP.size() * 4 << ", E = " << this->Gran_HP.size() << ", F=FEPOINT, ET=quadrilateral" << endl;
 
 			for (const auto& i : this->Gran_HP)
@@ -1123,9 +1123,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				}
 
 
-				B1[0] = A->parameters[0]["Bx"];
-				B1[1] = A->parameters[0]["By"];
-				B1[2] = A->parameters[0]["Bz"];
+				B1[0] = A->parameters[0]["Bx"] / 6.0;
+				B1[1] = A->parameters[0]["By"] / 6.0;
+				B1[2] = A->parameters[0]["Bz"] / 6.0;
 
 				B2[0] = B->parameters[0]["Bx"];
 				B2[1] = B->parameters[0]["By"];
@@ -1140,8 +1140,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				J2 = n.cross(BB2);
 				//cout << "posle = " << B1[0] << endl;
 
-				J = J / (4.0 * const_pi);
-				J2 = J2 / (4.0 * const_pi);
+				J = J * 3.73834;
+				J2 = J2 * 3.73834;
 
 				for (auto& j : i->yzels)
 				{
@@ -1149,7 +1149,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 					cc[1] = j->coord[0][1];
 					cc[2] = j->coord[0][2];
 
-					fout << cc[0] << " " << cc[1] << " " << cc[2] << " " <<
+					fout << cc[0] << " " << cc[1] << " " << cc[2] << " " << norm2(cc[0], cc[1], cc[2]) << " " <<
 						polar_angle(cc[1], cc[2]) << " " << polar_angle(cc[0], norm2(0.0, cc[1], cc[2])) << " " <<
 						J[0] << " " << J[1] << " " << J[2] << " " << J.norm() << " " <<
 						J2[0] << " " << J2[1] << " " << J2[2] << " " << J2.norm() << " " <<
@@ -1169,7 +1169,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		// TS
-		if (true)
+		if (false)
 		{
 			name_f = "TS_J.txt";
 			fout.open(name_f);
@@ -1221,7 +1221,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		// BS
-		if (true)
+		if (false)
 		{
 			name_f = "BS_J.txt";
 			fout.open(name_f);
@@ -1333,7 +1333,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			if (norm2(C4->center[0][0], C4->center[0][1], C4->center[0][2]) >
 				norm2(C2->center[0][0], C2->center[0][1], C2->center[0][2]))
 			{
-				if (true) // внутри
+				if (false) // внутри
 				{
 					C3->parameters[0]["rotB_x"] = C1->parameters[0]["rotB_x"];
 					C3->parameters[0]["rotB_y"] = C1->parameters[0]["rotB_y"];
@@ -1391,8 +1391,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				Int_point* params = SS.Cells_1[i];
 
 				fout << p.x() << " " << p.y() << " " << p.z() << " " <<
-					params->parameters["rotB_x"] << " " << params->parameters["rotB_y"] << " " << params->parameters["rotB_z"] << " " <<
-					kvv(params->parameters["rotB_x"], params->parameters["rotB_y"], params->parameters["rotB_z"]) << endl;
+					4.15368 * params->parameters["rotB_x"] << " " << 4.15368 * params->parameters["rotB_y"] << " " 
+					<< 4.15368 * params->parameters["rotB_z"] << " " <<
+					4.15368 * norm2(params->parameters["rotB_x"], params->parameters["rotB_y"], params->parameters["rotB_z"]) << endl;
 			}
 
 			// Выводим коннективность тетраэдров
@@ -1421,8 +1422,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			fout.close();
 		}
 
-		// Трассируем линии тока
-		if (true)
+		// Трассируем линии тока (вокруг TS раньше было, с HP так не работает
+		if (false)
 		{
 			std::ofstream file("I_IHS.txt");
 			file << "VARIABLES = X, Y, Z, I" << std::endl;
@@ -1436,7 +1437,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			cout << "Start trasser" << endl;
 
 			#pragma omp parallel for schedule(dynamic)
-			for (auto& gr : this->Gran_TS)
+			for (auto& gr : this->Gran_HP)
 			{
 				bool bb;
 				Cell* CC, * prev;
@@ -1455,6 +1456,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				}
 
 				if (my_N % 10 != 0) continue;
+
+				if (gr->center[0][0] < 0) continue;
 
 				double x, y, z, v;
 				x = gr->center[0][0] + 0.1 * gr->normal[0][0];
@@ -1495,7 +1498,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 					CC = nullptr;
 					CC = Find_cell_point(x, y, z, 0, prev);
 					if (CC == nullptr) break;
-					if (CC->type != Type_cell::Zone_2) break;
+					if (CC->type != Type_cell::Zone_3) break;
 
 					bb = SS.Get_param(x, y, z, parameters);
 					if (bb == false) break;
@@ -1509,15 +1512,91 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 						if (point[0] < -52.24) continue;
 						size_l++;
 					}
+					size_l = line.size();
+
 					file << "ZONE T=\"Line" << line_count++ << "\" I=" << size_l << " F=POINT" << std::endl;
 					for (const auto& point : line)
 					{
-						if (point[0] < -52.24) continue;
+						//if (point[0] < -52.24) continue;
 						file << point[0] << " " << point[1] << " " << point[2] << " " << point[3] << std::endl;
 					}
 				}
 
 			}
+
+			file.close();
+		}
+
+		// Трассируем линию тока
+		if (false)
+		{
+			std::ofstream file("Line_1.txt");
+			file << "VARIABLES = X, Y, Z, I" << std::endl;
+			int line_count = 0;
+
+			this->Save_for_interpolate("For_intertpolate_work.bin", false);
+			Interpol SS = Interpol("For_intertpolate_work.bin");
+
+			unsigned int NN = 0;
+
+			cout << "Start trasser" << endl;
+
+			bool bb;
+			Cell* CC, * prev;
+			prev = nullptr;
+			std::unordered_map<string, double> parameters;
+			int my_N;
+
+
+
+			double x, y, z, v;
+			x = 50.0;
+			y = 0.0;
+			z = 0.0;
+
+			bb = SS.Get_param(x, y, z, parameters);
+
+			if (bb == false)
+			{
+				cout << "Error bb  wergfwe4fr3gvbt4tevrgtefetw" << endl;
+				return;
+			}
+
+			v = 1.0;
+
+			std::vector<std::vector<double>> line;
+
+			unsigned int kk = 0;
+			while (true)
+			{
+				kk++;
+				if (kk > 1000000) break;
+				double nnn = 4.15368 * norm2(parameters["rotB_x"], parameters["rotB_y"], parameters["rotB_z"]);
+				line.push_back({ x, y, z, nnn });
+
+				x = x + 0.02 * v * parameters["rotB_x"] / nnn;
+				y = y + 0.02 * v * parameters["rotB_y"] / nnn;
+				z = z + 0.02 * v * parameters["rotB_z"] / nnn;
+
+				CC = nullptr;
+				CC = Find_cell_point(x, y, z, 0, prev);
+				if (CC == nullptr) break;
+				if (CC->type != Type_cell::Zone_3) break;
+
+				bb = SS.Get_param(x, y, z, parameters);
+				if (bb == false) break;
+			}
+
+			int size_l = 0;
+			size_l = line.size();
+
+			file << "ZONE T=\"Line" << line_count++ << "\" I=" << size_l << " F=POINT" << std::endl;
+			for (const auto& point : line)
+			{
+				file << point[0] << " " << point[1] << " " << point[2] << " " << point[3] << std::endl;
+			}
+
+			
 
 			file.close();
 		}
