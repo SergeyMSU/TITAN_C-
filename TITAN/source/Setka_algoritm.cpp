@@ -136,8 +136,11 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 14 - расчёт гипотетических токов в сверхзвуковом ветре от HCS
 	// 15 - расчёт геометрии HCS 
 	// 16 - расчёт потенциального поля во внутреннем слое и различных энергий
-	// 17 - расчёт потенциальных токов в гелиошизе от HCS
+	// 17 - расчёт гипотетических токов в гелиошизе от HCS
 	// 18 - расчёт геометрии HCS в гелиошизе (не работает, ничего не видно)
+	// 19 - расчёт потенциального поля во внутреннем слое методом контрольных объёмов
+	// 20 - расчёт потенциального поля в сверхзвуке методом контрольных объёмов
+	// 21 - расчёт потенциального поля во внешнем ударном слое методом контрольных объёмов
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -1095,7 +1098,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		string name_f;
 
 		//HP
-		if (true)
+		if (false)
 		{
 			name_f = "HP_J_dissipation.txt";
 			fout.open(name_f);
@@ -1221,11 +1224,11 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		// BS
-		if (false)
+		if (true)
 		{
 			name_f = "BS_J.txt";
 			fout.open(name_f);
-			fout << "TITLE = HP  VARIABLES = x, y, z, phi, the, Jx, Jy, Jz, |J|" << endl;
+			fout << "TITLE = HP  VARIABLES = x, y, z, r, phi, the, Jx, Jy, Jz, |J|" << endl;
 			fout << "ZONE T=HP, N = " << this->Gran_BS.size() * 4 << ", E = " << this->Gran_BS.size() << ", F=FEPOINT, ET=quadrilateral" << endl;
 
 			for (const auto& i : this->Gran_BS)
@@ -1248,7 +1251,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 				Eigen::Vector3d J = n.cross(B2 - B1);
 
-				J = J / (4.0 * const_pi);
+				J = J * 4.3614;
 
 				for (auto& j : i->yzels)
 				{
@@ -1256,9 +1259,18 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 					cc[1] = j->coord[0][1];
 					cc[2] = j->coord[0][2];
 
-					fout << cc[0] << " " << cc[1] << " " << cc[2] << " " <<
-						polar_angle(cc[1], cc[2]) << " " << polar_angle(cc[0], norm2(0.0, cc[1], cc[2])) << " " <<
-						J[0] << " " << J[1] << " " << J[2] << " " << J.norm() << endl;
+					if (n[0] > 0.2)
+					{
+						fout << cc[0] << " " << cc[1] << " " << cc[2] << " " << norm2(cc[0], cc[1], cc[2]) << " " <<
+							polar_angle(cc[1], cc[2]) << " " << polar_angle(cc[0], norm2(0.0, cc[1], cc[2])) << " " <<
+							J[0] << " " << J[1] << " " << J[2] << " " << J.norm() << endl;
+					}
+					else
+					{
+						fout << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 
+							polar_angle(cc[1], cc[2]) << " " << polar_angle(cc[0], norm2(0.0, cc[1], cc[2])) << " " <<
+							J[0] << " " << J[1] << " " << J[2] << " " << J.norm() << endl;
+					}
 				}
 			}
 
@@ -1924,9 +1936,13 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			// B - внутри
 
 
-			fict_points(i, 0) = A->center[0][0];
+			/*fict_points(i, 0) = A->center[0][0];
 			fict_points(i, 1) = A->center[0][1];
-			fict_points(i, 2) = A->center[0][2];
+			fict_points(i, 2) = A->center[0][2];*/
+
+			fict_points(i, 0) = gr->center[0][0];
+			fict_points(i, 1) = gr->center[0][1];
+			fict_points(i, 2) = gr->center[0][2];
 
 			bnd_normals(i, 0) = gr->normal[0][0] * normal;
 			bnd_normals(i, 1) = gr->normal[0][1] * normal;
@@ -1934,9 +1950,13 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 			if (gr->type2 == Type_Gran_surf::HP)
 			{
-				bnd_points(i, 0) = gr->center[0][0];
+				/*bnd_points(i, 0) = gr->center[0][0];
 				bnd_points(i, 1) = gr->center[0][1];
-				bnd_points(i, 2) = gr->center[0][2];
+				bnd_points(i, 2) = gr->center[0][2];*/
+
+				bnd_points(i, 0) = B->center[0][0];
+				bnd_points(i, 1) = B->center[0][1];
+				bnd_points(i, 2) = B->center[0][2];
 
 				bnd_Bn(i) = 0.0;
 			}
@@ -1971,22 +1991,19 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			computeField(q, fict_points, test_point, psi, B_pot);
 
 			Volume += cc->volume[0];
-			E_B = kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
-			E_B_pot = kv(B_pot.norm()) / (8.0 * const_pi) * cc->volume[0];
-			E_int = (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
-			E_kin = cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+			E_B += kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
+			E_B_pot += kv(B_pot.norm()) / (8.0 * const_pi) * cc->volume[0];
+			E_int += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
+			E_kin += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
 		}
 
 		cout << "E = " << endl;
-		cout << "E_B = " << E_B << endl;
-		cout << "E_B_pot = " << E_B_pot << endl;
-		cout << "E_B - E_B_pot = " << E_B - E_B_pot << endl;
-		cout << "E_int = " << E_int << endl;
-		cout << "E_kin = " << E_kin << endl;
+		cout << "E_B = " << E_B/ Volume << endl;
+		cout << "E_B_pot = " << E_B_pot/ Volume << endl;
+		cout << "E_B - E_B_pot = " << (E_B - E_B_pot)/ Volume << endl;
+		cout << "E_int = " << E_int/ Volume << endl;
+		cout << "E_kin = " << E_kin/ Volume << endl;
 		cout << "Volume = " << Volume << endl;
-
-
-
 	}
 	else if (alg == 17)
 	{
@@ -2278,6 +2295,743 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		}
+	else if (alg == 19)
+	{
+		this->Set_MK_Zone();
+
+		for (auto& cc : this->All_Cell)
+		{
+			cc->parameters[0]["phi_1"] = 0.0;
+			cc->parameters[0]["phi_2"] = 0.0;
+		}
+
+		for (auto& cc : this->All_Cell)
+		{
+			if (cc->MK_zone == 2) cc->MK_zone = 20;
+
+			if (cc->MK_zone == 3)
+			{
+				if(cc->center[0][0] > this->geo->L6) cc->MK_zone = 20;
+			}
+		}
+
+
+
+		int ZONE_now = 20;  // В какой зоне сейчас считаем
+
+
+		int step = 0;
+		double dphi_ = 100.0;
+		while (true)
+		{
+			step++;
+			if (step % 100 == 0)
+			{
+				cout << "step = " << step << "  nevyazka = " << dphi_ << endl;
+			}
+
+			// Пробегаемся по граням считаем нужные потоки
+#pragma omp parallel for schedule(dynamic)
+			for (auto& gr : this->All_Gran)
+			{
+				if (gr->cells.size() != 2) continue;
+				if (gr->cells[0]->MK_zone != ZONE_now && gr->cells[1]->MK_zone != ZONE_now) continue;
+
+				Cell* A, * B;
+				A = gr->cells[0];
+				B = gr->cells[1];
+
+				if (gr->type2 == Type_Gran_surf::HP)
+				{
+					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
+					gr->parameters["dPhi"] = 0.0;
+					gr->parameters["dSS"] = gr->area[0] / dl;
+					continue;
+				}
+
+
+				if (gr->cells[0]->MK_zone == ZONE_now && gr->cells[1]->MK_zone == ZONE_now)
+				{
+					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
+					gr->parameters["dPhi"] = (B->parameters[0]["phi_1"] - A->parameters[0]["phi_1"]) / dl * gr->area[0];
+					gr->parameters["dSS"] = gr->area[0] / dl;
+				}
+				else
+				{
+					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
+					if (gr->cells[0]->MK_zone == ZONE_now)
+					{
+						gr->parameters["dPhi"] = (A->parameters[0]["Bx"] * gr->normal[0][0] + A->parameters[0]["By"] * gr->normal[0][1] +
+							A->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
+					}
+					else
+					{
+						gr->parameters["dPhi"] = (B->parameters[0]["Bx"] * gr->normal[0][0] + B->parameters[0]["By"] * gr->normal[0][1] +
+							B->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
+					}
+					gr->parameters["dSS"] = gr->area[0] / dl;
+				}
+			}
+
+			// Пробегаемся по ячейкам
+#pragma omp parallel for schedule(dynamic)
+			for (auto& cc : this->All_Cell)
+			{
+				if (cc->MK_zone != ZONE_now) continue;
+				double dPhi = 0.0;
+				double dSS = 0.0;
+
+				for (auto& gr : cc->grans)
+				{
+					dSS += gr->parameters["dSS"];
+					if (gr->cells[0]->number == cc->number)
+					{
+						dPhi += gr->parameters["dPhi"];
+					}
+					else
+					{
+						dPhi -= gr->parameters["dPhi"];
+					}
+				}
+
+				cc->parameters[0]["phi_2"] = cc->parameters[0]["phi_1"] + 1.0 / dSS * dPhi;
+				
+			}
+
+			dphi_ = 0.0;
+
+
+#pragma omp parallel for schedule(dynamic)
+			for (auto& cc : this->All_Cell)
+			{
+				if (cc->MK_zone != ZONE_now) continue;
+
+				double ddd = fabs(cc->parameters[0]["phi_1"] - cc->parameters[0]["phi_2"]);
+				cc->parameters[0]["phi_1"] = cc->parameters[0]["phi_2"];
+				if (ddd > dphi_)
+				{
+					#pragma omp critical (sdfs)
+					{
+						if (ddd > dphi_)
+						{
+							dphi_ = ddd;
+						}
+					}
+				}
+			}
+
+			/*if (dphi_ < 0.1)
+			{
+				cout << "Yspex" << endl;
+				break;
+			}*/
+			if (step > 300000)
+			{
+				cout << "Yspex" << endl;
+				break;
+			}
+
+			if (step % 1000 == 0)
+			{
+				double Volume = 0.0;
+				double E_B = 0.0;
+				double E_B_pot = 0.0;
+				double E_int = 0.0;
+				double E_kin = 0.0;
+
+				double Volume2 = 0.0;
+				double E_B2 = 0.0;
+				double E_B_pot2 = 0.0;
+				double E_int2 = 0.0;
+				double E_kin2 = 0.0;
+
+				for (auto& cc : this->All_Cell)
+				{
+					if (cc->MK_zone != ZONE_now) continue;
+
+					double gr_x = 0.0;
+					double gr_y = 0.0;
+					double gr_z = 0.0;
+					double BB = 0.0;
+					bool bnb = false;
+
+					for (auto& gr : cc->grans)
+					{
+						if (gr->cells[0]->MK_zone != ZONE_now) bnb = true;
+						if (gr->cells[1]->MK_zone != ZONE_now) bnb = true;
+
+						double d1 = norm2(gr->cells[0]->center[0][0] - gr->center[0][0], gr->cells[0]->center[0][1] - gr->center[0][1],
+							gr->cells[0]->center[0][2] - gr->center[0][2]);
+						double d2 = norm2(gr->cells[1]->center[0][0] - gr->center[0][0], gr->cells[1]->center[0][1] - gr->center[0][1],
+							gr->cells[1]->center[0][2] - gr->center[0][2]);
+
+						BB = (gr->cells[0]->parameters[0]["phi_1"] * d2 + gr->cells[1]->parameters[0]["phi_1"] * d1) / (d1 + d2);
+						if (gr->cells[0]->number == cc->number)
+						{
+							gr_x += BB * gr->normal[0][0] * gr->area[0];
+							gr_y += BB * gr->normal[0][1] * gr->area[0];
+							gr_z += BB * gr->normal[0][2] * gr->area[0];
+						}
+						else
+						{
+							gr_x -= BB * gr->normal[0][0] * gr->area[0];
+							gr_y -= BB * gr->normal[0][1] * gr->area[0];
+							gr_z -= BB * gr->normal[0][2] * gr->area[0];
+						}
+					}
+
+					gr_x = gr_x / cc->volume[0];
+					gr_y = gr_y / cc->volume[0];
+					gr_z = gr_z / cc->volume[0];
+
+					if (bnb == true)
+					{
+						gr_x = cc->parameters[0]["Bx"];
+						gr_y = cc->parameters[0]["By"];
+						gr_z = cc->parameters[0]["Bz"];
+					}
+
+					if (cc->center[0][0] >= 0.0)
+					{
+						Volume += cc->volume[0];
+						E_B += kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
+						E_B_pot += kvv(gr_x, gr_y, gr_z) / (8.0 * const_pi) * cc->volume[0];
+						E_int += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
+						E_kin += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+					}
+					else
+					{
+						Volume2 += cc->volume[0];
+						E_B2 += kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
+						E_B_pot2 += kvv(gr_x, gr_y, gr_z) / (8.0 * const_pi) * cc->volume[0];
+						E_int2 += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
+						E_kin2 += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+					}
+				}
+
+				cout << "----------------------------------------" << endl;
+				cout << "rho E = " << (E_B + E_int + E_kin) / Volume << endl;
+				cout << "E_B % = " << E_B / (E_B + E_int + E_kin) * 100.0 << endl;
+				cout << "E_B_pot % = " << E_B_pot / (E_B + E_int + E_kin) * 100.0 << endl;
+				cout << "E_free % = " << (E_B - E_B_pot) / (E_B + E_int + E_kin) * 100.0 << endl;
+				cout << "E_int % = " << E_int / (E_B + E_int + E_kin) * 100.0 << endl;
+				cout << "E_kin % = " << E_kin / (E_B + E_int + E_kin) * 100.0 << endl;
+				cout << "Volume = " << Volume << endl;
+				cout << "----------------------------------------" << endl;
+				cout << "rho E = " << (E_B2 + E_int2 + E_kin2) / Volume2 << endl;
+				cout << "E_B % = " << E_B2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+				cout << "E_B_pot % = " << E_B_pot2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+				cout << "E_free % = " << (E_B2 - E_B_pot2) / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+				cout << "E_int % = " << E_int2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+				cout << "E_kin % = " << E_kin2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+				cout << "Volume = " << Volume2 << endl;
+				cout << "----------------------------------------" << endl;
+			}
+
+
+		}
+		
+
+		
+	}
+	else if (alg == 20)
+	{
+		this->Set_MK_Zone();
+
+		for (auto& cc : this->All_Cell)
+		{
+			cc->parameters[0]["phi_1"] = 0.0;
+			cc->parameters[0]["phi_2"] = 0.0;
+		}
+
+		int ZONE_now = 1;  // В какой зоне сейчас считаем
+
+
+		int step = 0;
+		double dphi_ = 100.0;
+		while (true)
+		{
+			step++;
+			if (step % 100 == 0)
+			{
+				cout << "step = " << step << "  nevyazka = " << dphi_ << endl;
+			}
+
+			//cout << "A" << endl;
+
+			// Пробегаемся по граням считаем нужные потоки
+#pragma omp parallel for schedule(dynamic)
+			for (auto& gr : this->All_Gran)
+			{
+				if (gr->cells.size() != 2 && gr->cells[0]->MK_zone != ZONE_now) continue;
+
+				if (gr->cells.size() != 2)
+				{
+					Cell* A;
+					A = gr->cells[0];
+					double dl = norm2(A->center[0][0] - gr->center[0][0], A->center[0][1] - gr->center[0][1], A->center[0][2] - gr->center[0][2]);
+					gr->parameters["dPhi"] = (A->parameters[0]["Bx"] * gr->normal[0][0] + A->parameters[0]["By"] * gr->normal[0][1] +
+						A->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
+					gr->parameters["dSS"] = gr->area[0] / dl;
+					continue;
+				}
+				
+
+				if (gr->cells[0]->MK_zone != ZONE_now && gr->cells[1]->MK_zone != ZONE_now) continue;
+
+				Cell* A, * B;
+				A = gr->cells[0];
+				B = gr->cells[1];
+
+
+				if (gr->cells[0]->MK_zone == ZONE_now && gr->cells[1]->MK_zone == ZONE_now)
+				{
+					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
+					gr->parameters["dPhi"] = (B->parameters[0]["phi_1"] - A->parameters[0]["phi_1"]) / dl * gr->area[0];
+					gr->parameters["dSS"] = gr->area[0] / dl;
+				}
+				else
+				{
+					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
+					if (gr->cells[0]->MK_zone == ZONE_now)
+					{
+						gr->parameters["dPhi"] = (A->parameters[0]["Bx"] * gr->normal[0][0] + A->parameters[0]["By"] * gr->normal[0][1] +
+							A->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
+					}
+					else
+					{
+						gr->parameters["dPhi"] = (B->parameters[0]["Bx"] * gr->normal[0][0] + B->parameters[0]["By"] * gr->normal[0][1] +
+							B->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
+					}
+					gr->parameters["dSS"] = gr->area[0] / dl;
+				}
+			}
+
+			//cout << "B" << endl;
+
+			// Пробегаемся по ячейкам
+#pragma omp parallel for schedule(dynamic)
+			for (auto& cc : this->All_Cell)
+			{
+				if (cc->MK_zone != ZONE_now) continue;
+				double dPhi = 0.0;
+				double dSS = 0.0;
+
+				for (auto& gr : cc->grans)
+				{
+					dSS += gr->parameters["dSS"];
+					if (gr->cells[0]->number == cc->number)
+					{
+						dPhi += gr->parameters["dPhi"];
+					}
+					else
+					{
+						dPhi -= gr->parameters["dPhi"];
+					}
+				}
+
+				cc->parameters[0]["phi_2"] = cc->parameters[0]["phi_1"] + 1.0 / dSS * dPhi;
+
+			}
+
+			dphi_ = 0.0;
+
+			//cout << "C" << endl;
+#pragma omp parallel for schedule(dynamic)
+			for (auto& cc : this->All_Cell)
+			{
+				if (cc->MK_zone != ZONE_now) continue;
+
+				double ddd = fabs(cc->parameters[0]["phi_1"] - cc->parameters[0]["phi_2"]);
+				cc->parameters[0]["phi_1"] = cc->parameters[0]["phi_2"];
+				if (ddd > dphi_)
+				{
+#pragma omp critical (sdfs)
+					{
+						if (ddd > dphi_)
+						{
+							dphi_ = ddd;
+						}
+					}
+				}
+			}
+
+			/*if (dphi_ < 0.1)
+			{
+				cout << "Yspex" << endl;
+				break;
+			}*/
+			if (step > 300000)
+			{
+				cout << "Yspex" << endl;
+				break;
+			}
+
+			if (step % 1000 == 0)
+			{
+				double Volume = 0.0;
+				double E_B = 0.0;
+				double E_B_pot = 0.0;
+				double E_int = 0.0;
+				double E_kin = 0.0;
+
+				double Volume2 = 0.0;
+				double E_B2 = 0.0;
+				double E_B_pot2 = 0.0;
+				double E_int2 = 0.0;
+				double E_kin2 = 0.0;
+
+				for (auto& cc : this->All_Cell)
+				{
+					if (cc->MK_zone != ZONE_now) continue;
+
+					double gr_x = 0.0;
+					double gr_y = 0.0;
+					double gr_z = 0.0;
+					double BB = 0.0;
+					bool bnb = false;
+
+					for (auto& gr : cc->grans)
+					{
+						if (gr->cells.size() < 2)
+						{
+							bnb = true;
+							break;
+						}
+
+						if (gr->cells[0]->MK_zone != ZONE_now) bnb = true;
+						if (gr->cells[1]->MK_zone != ZONE_now) bnb = true;
+
+						double d1 = norm2(gr->cells[0]->center[0][0] - gr->center[0][0], gr->cells[0]->center[0][1] - gr->center[0][1],
+							gr->cells[0]->center[0][2] - gr->center[0][2]);
+						double d2 = norm2(gr->cells[1]->center[0][0] - gr->center[0][0], gr->cells[1]->center[0][1] - gr->center[0][1],
+							gr->cells[1]->center[0][2] - gr->center[0][2]);
+
+						BB = (gr->cells[0]->parameters[0]["phi_1"] * d2 + gr->cells[1]->parameters[0]["phi_1"] * d1) / (d1 + d2);
+						if (gr->cells[0]->number == cc->number)
+						{
+							gr_x += BB * gr->normal[0][0] * gr->area[0];
+							gr_y += BB * gr->normal[0][1] * gr->area[0];
+							gr_z += BB * gr->normal[0][2] * gr->area[0];
+						}
+						else
+						{
+							gr_x -= BB * gr->normal[0][0] * gr->area[0];
+							gr_y -= BB * gr->normal[0][1] * gr->area[0];
+							gr_z -= BB * gr->normal[0][2] * gr->area[0];
+						}
+					}
+
+					gr_x = gr_x / cc->volume[0];
+					gr_y = gr_y / cc->volume[0];
+					gr_z = gr_z / cc->volume[0];
+
+					if (bnb == true)
+					{
+						gr_x = cc->parameters[0]["Bx"];
+						gr_y = cc->parameters[0]["By"];
+						gr_z = cc->parameters[0]["Bz"];
+					}
+
+					double r = norm2(cc->center[0][0], cc->center[0][1], cc->center[0][2]);
+
+					if (r * 4.21132 <= 20.0)
+					{
+						Volume += cc->volume[0];
+						E_B += kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
+						E_B_pot += kvv(gr_x, gr_y, gr_z) / (8.0 * const_pi) * cc->volume[0];
+						E_int += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
+						E_kin += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+					}
+					else
+					{
+						Volume2 += cc->volume[0];
+						E_B2 += kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
+						E_B_pot2 += kvv(gr_x, gr_y, gr_z) / (8.0 * const_pi) * cc->volume[0];
+						E_int2 += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
+						E_kin2 += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+					}
+				}
+
+				cout << "----------------------------------------" << endl;
+				cout << "rho E = " << (E_B + E_int + E_kin) / Volume << endl;
+				cout << "E_B % = " << E_B / (E_B + E_int + E_kin) * 100.0 << endl;
+				cout << "E_B_pot % = " << E_B_pot / (E_B + E_int + E_kin) * 100.0 << endl;
+				cout << "E_free % = " << (E_B - E_B_pot) / (E_B + E_int + E_kin) * 100.0 << endl;
+				cout << "E_int % = " << E_int / (E_B + E_int + E_kin) * 100.0 << endl;
+				cout << "E_kin % = " << E_kin / (E_B + E_int + E_kin) * 100.0 << endl;
+				cout << "Volume = " << Volume << endl;
+				cout << "----------------------------------------" << endl;
+				cout << "rho E = " << (E_B2 + E_int2 + E_kin2) / Volume2 << endl;
+				cout << "E_B % = " << E_B2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+				cout << "E_B_pot % = " << E_B_pot2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+				cout << "E_free % = " << (E_B2 - E_B_pot2) / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+				cout << "E_int % = " << E_int2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+				cout << "E_kin % = " << E_kin2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+				cout << "Volume = " << Volume2 << endl;
+				cout << "----------------------------------------" << endl;
+			}
+
+
+		}
+
+
+
+		}
+	else if (alg == 21)
+	{
+		this->Set_MK_Zone();
+
+		
+		for (auto& cc : this->All_Cell)
+		{
+			cc->parameters[0]["phi_1"] = 0.0;
+			cc->parameters[0]["phi_2"] = 0.0;
+		}
+
+		int ZONE_now = 4;  // В какой зоне сейчас считаем
+
+		// Найдём номер ячейки в которой надо проверить BЖ
+
+		int NMNM; 
+		if (this->Gran_BS[1]->cells_TVD[0]->MK_zone == ZONE_now) NMNM = this->Gran_BS[1]->cells_TVD[0]->number;
+		if (this->Gran_BS[1]->cells_TVD[1]->MK_zone == ZONE_now) NMNM = this->Gran_BS[1]->cells_TVD[1]->number;
+
+
+
+		int step = 0;
+		double dphi_ = 100.0;
+		while (true)
+		{
+			step++;
+			if (step % 100 == 0)
+			{
+				cout << "step = " << step << "  nevyazka = " << dphi_ << endl;
+			}
+
+			//cout << "A" << endl;
+
+			// Пробегаемся по граням считаем нужные потоки
+#pragma omp parallel for schedule(dynamic)
+			for (auto& gr : this->All_Gran)
+			{
+				if (gr->cells.size() != 2) continue;
+
+				if (gr->cells[0]->MK_zone != ZONE_now && gr->cells[1]->MK_zone != ZONE_now) continue;
+
+				Cell* A, * B;
+				A = gr->cells[0];
+				B = gr->cells[1];
+
+				/*if (gr->type2 == Type_Gran_surf::HP)
+				{
+					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
+					gr->parameters["dPhi"] = 0.0;
+					gr->parameters["dSS"] = gr->area[0] / dl;
+					continue;
+				}*/
+
+
+				if (gr->cells[0]->MK_zone == ZONE_now && gr->cells[1]->MK_zone == ZONE_now)
+				{
+					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
+
+					if (step < 3000)
+					{
+						gr->parameters["dPhi"] = (B->parameters[0]["phi_1"] - A->parameters[0]["phi_1"]) / dl * gr->area[0];
+					}
+					else
+					{
+						gr->parameters["dPhi"] = 0.5 * (A->parameters[0]["gr_x"] + B->parameters[0]["gr_x"]) * gr->normal[0][0] +
+							0.5 * (A->parameters[0]["gr_y"] + B->parameters[0]["gr_y"]) * gr->normal[0][1] +
+							0.5 * (A->parameters[0]["gr_z"] + B->parameters[0]["gr_z"]) * gr->normal[0][2];
+					}
+
+
+					gr->parameters["dSS"] = gr->area[0] / dl;
+				}
+				else
+				{
+					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
+					if (gr->cells[0]->MK_zone == ZONE_now)
+					{
+						//gr->parameters["dPhi"] = -(A->parameters[0]["Bx"] * gr->normal[0][0] + A->parameters[0]["By"] * gr->normal[0][1] +
+						//	A->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
+						gr->parameters["dPhi"] = -(1.0 * gr->normal[0][0]) * gr->area[0];
+					}
+					else
+					{
+						//gr->parameters["dPhi"] = -(B->parameters[0]["Bx"] * gr->normal[0][0] + B->parameters[0]["By"] * gr->normal[0][1] +
+						//	B->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
+						gr->parameters["dPhi"] = -(1.0 * gr->normal[0][0]) * gr->area[0];
+					}
+					gr->parameters["dSS"] = gr->area[0] / dl;
+				}
+			}
+
+			//cout << "B" << endl;
+
+			// Пробегаемся по ячейкам
+#pragma omp parallel for schedule(dynamic)
+			for (auto& cc : this->All_Cell)
+			{
+				if (cc->MK_zone != ZONE_now) continue;
+				double dPhi = 0.0;
+				double dSS = 0.0;
+
+				for (auto& gr : cc->grans)
+				{
+					dSS += gr->parameters["dSS"];
+					if (gr->cells[0]->number == cc->number)
+					{
+						dPhi += gr->parameters["dPhi"];
+					}
+					else
+					{
+						dPhi -= gr->parameters["dPhi"];
+					}
+				}
+
+				cc->parameters[0]["phi_2"] = cc->parameters[0]["phi_1"] + 1.2 / dSS * dPhi;
+
+			}
+
+			dphi_ = 0.0;
+
+			//cout << "C" << endl;
+#pragma omp parallel for schedule(dynamic)
+			for (auto& cc : this->All_Cell)
+			{
+				if (cc->MK_zone != ZONE_now) continue;
+
+				double ddd = fabs(cc->parameters[0]["phi_1"] - cc->parameters[0]["phi_2"]);
+				cc->parameters[0]["phi_1"] = cc->parameters[0]["phi_2"];
+				if (ddd > dphi_)
+				{
+#pragma omp critical (sdfs)
+					{
+						if (ddd > dphi_)
+						{
+							dphi_ = ddd;
+						}
+					}
+				}
+			}
+
+			/*if (dphi_ < 0.1)
+			{
+				cout << "Yspex" << endl;
+				break;
+			}*/
+			if (step > 300000)
+			{
+				cout << "Yspex" << endl;
+				break;
+			}
+
+			if (true)
+			{
+				double Volume = 0.0;
+				double E_B = 0.0;
+				double E_B_pot = 0.0;
+				double E_int = 0.0;
+				double E_kin = 0.0;
+
+#pragma omp parallel for schedule(dynamic)
+				for (auto& cc : this->All_Cell)
+				{
+					if (cc->MK_zone != ZONE_now) continue;
+
+					double gr_x = 0.0;
+					double gr_y = 0.0;
+					double gr_z = 0.0;
+					double BB = 0.0;
+					bool bnb = false;
+
+					for (auto& gr : cc->grans)
+					{
+						if (gr->cells[0]->MK_zone != ZONE_now) bnb = true;
+						if (gr->cells[1]->MK_zone != ZONE_now) bnb = true;
+
+						double d1 = norm2(gr->cells[0]->center[0][0] - gr->center[0][0], gr->cells[0]->center[0][1] - gr->center[0][1],
+							gr->cells[0]->center[0][2] - gr->center[0][2]);
+						double d2 = norm2(gr->cells[1]->center[0][0] - gr->center[0][0], gr->cells[1]->center[0][1] - gr->center[0][1],
+							gr->cells[1]->center[0][2] - gr->center[0][2]);
+
+						BB = (gr->cells[0]->parameters[0]["phi_1"] * d2 + gr->cells[1]->parameters[0]["phi_1"] * d1) / (d1 + d2);
+						if (gr->cells[0]->number == cc->number)
+						{
+							gr_x += BB * gr->normal[0][0] * gr->area[0];
+							gr_y += BB * gr->normal[0][1] * gr->area[0];
+							gr_z += BB * gr->normal[0][2] * gr->area[0];
+						}
+						else
+						{
+							gr_x -= BB * gr->normal[0][0] * gr->area[0];
+							gr_y -= BB * gr->normal[0][1] * gr->area[0];
+							gr_z -= BB * gr->normal[0][2] * gr->area[0];
+						}
+					}
+
+					gr_x = gr_x / cc->volume[0];
+					gr_y = gr_y / cc->volume[0];
+					gr_z = gr_z / cc->volume[0];
+
+					if (bnb == true)
+					{
+						gr_x = -cc->parameters[0]["Bx"];
+						gr_y = -cc->parameters[0]["By"];
+						gr_z = -cc->parameters[0]["Bz"];
+					}
+
+					cc->parameters[0]["gr_x"] = gr_x;
+					cc->parameters[0]["gr_y"] = gr_y;
+					cc->parameters[0]["gr_z"] = gr_z;
+
+					if (step % 1000 == 0)
+					{
+						if (cc->number == NMNM)
+						{
+							cout << cc->parameters[0]["Bx"] << " " << cc->parameters[0]["By"] << " " << cc->parameters[0]["Bz"] << endl;
+							cout << gr_x << " " << gr_y << " " << gr_z << endl;
+						}
+						
+						#pragma omp critical (dwedewfwef)
+						{
+							Volume += cc->volume[0];
+							E_B += kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
+							E_B_pot += kvv(gr_x, gr_y, gr_z) / (8.0 * const_pi) * cc->volume[0];
+							E_int += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
+							E_kin += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+						}
+					}
+					
+				}
+
+
+				if (step % 1000 == 0)
+				{
+					cout << "----------------------------------------" << endl;
+					cout << "rho E = " << (E_B + E_int + E_kin) / Volume << endl;
+					cout << "E_B % = " << E_B / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "E_B_pot % = " << E_B_pot / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "E_free % = " << (E_B - E_B_pot) / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "E_int % = " << E_int / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "E_kin % = " << E_kin / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "Volume = " << Volume << endl;
+					cout << "----------------------------------------" << endl;
+				}
+			}
+
+
+		}
+
+
+
+		}
+
+
+		
 
 	cout << "End Algoritm " << alg << endl;
 }
