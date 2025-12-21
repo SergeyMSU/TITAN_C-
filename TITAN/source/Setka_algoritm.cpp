@@ -141,6 +141,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 19 - расчёт потенциального поля во внутреннем слое методом контрольных объёмов
 	// 20 - расчёт потенциального поля в сверхзвуке методом контрольных объёмов
 	// 21 - расчёт потенциального поля во внешнем ударном слое методом контрольных объёмов
+	// 22 - расчёт потенциального поля в сверхзвуке методом контрольных объёмов - второй порядок
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -2299,11 +2300,39 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	{
 		this->Set_MK_Zone();
 
+		this->phys_param->param_names.push_back("gr_x");
+		this->phys_param->param_names.push_back("gr_y");
+		this->phys_param->param_names.push_back("gr_z");
+
 		for (auto& cc : this->All_Cell)
 		{
 			cc->parameters[0]["phi_1"] = 0.0;
 			cc->parameters[0]["phi_2"] = 0.0;
+
+			cc->parameters[0]["gr_x"] = 0.0;
+			cc->parameters[0]["gr_y"] = 0.0;
+			cc->parameters[0]["gr_z"] = 0.0;
 		}
+
+		std::ifstream in_file("cell_data.bin", std::ios::binary);
+
+		if (in_file.is_open()) 
+		{
+			for (auto& cc : this->All_Cell) 
+			{
+				double gr_x, gr_y, gr_z;
+
+				in_file.read(reinterpret_cast<char*>(&gr_x), sizeof(double));
+				in_file.read(reinterpret_cast<char*>(&gr_y), sizeof(double));
+				in_file.read(reinterpret_cast<char*>(&gr_z), sizeof(double));
+
+				cc->parameters[0]["gr_x"] = gr_x;
+				cc->parameters[0]["gr_y"] = gr_y;
+				cc->parameters[0]["gr_z"] = gr_z;
+			}
+			in_file.close();
+		}
+
 
 		for (auto& cc : this->All_Cell)
 		{
@@ -2322,12 +2351,17 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 		int step = 0;
 		double dphi_ = 100.0;
-		while (true)
+		double x_max = 0.0;
+		double y_max = 0.0;
+		double z_max = 0.0;
+
+		while (false)
 		{
 			step++;
 			if (step % 100 == 0)
 			{
 				cout << "step = " << step << "  nevyazka = " << dphi_ << endl;
+				cout << "x_max = " << x_max << "  y_max = " << y_max << "  z_max = " << z_max << endl;
 			}
 
 			// Пробегаемся по граням считаем нужные потоки
@@ -2353,7 +2387,21 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				if (gr->cells[0]->MK_zone == ZONE_now && gr->cells[1]->MK_zone == ZONE_now)
 				{
 					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
-					gr->parameters["dPhi"] = (B->parameters[0]["phi_1"] - A->parameters[0]["phi_1"]) / dl * gr->area[0];
+					double dl1 = norm2(A->center[0][0] - gr->center[0][0], A->center[0][1] - gr->center[0][1], A->center[0][2] - gr->center[0][2]);
+					double dl2 = norm2(B->center[0][0] - gr->center[0][0], B->center[0][1] - gr->center[0][1], B->center[0][2] - gr->center[0][2]);
+
+					if (step < 1000)
+					{
+						gr->parameters["dPhi"] = (B->parameters[0]["phi_1"] - A->parameters[0]["phi_1"]) / dl * gr->area[0];
+					}
+					else
+					{
+						gr->parameters["dPhi"] = ((A->parameters[0]["gr_x"] * dl2 + B->parameters[0]["gr_x"] * dl1) / (dl1 + dl2) * gr->normal[0][0] +
+							(A->parameters[0]["gr_y"] * dl2 + B->parameters[0]["gr_y"] * dl1) / (dl1 + dl2) * gr->normal[0][1] +
+							(A->parameters[0]["gr_z"] * dl2 + B->parameters[0]["gr_z"] * dl1) / (dl1 + dl2) * gr->normal[0][2]) * gr->area[0];
+					}
+					
+					//gr->parameters["dPhi"] = (B->parameters[0]["phi_1"] - A->parameters[0]["phi_1"]) / dl * gr->area[0];
 					gr->parameters["dSS"] = gr->area[0] / dl;
 				}
 				else
@@ -2361,12 +2409,12 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
 					if (gr->cells[0]->MK_zone == ZONE_now)
 					{
-						gr->parameters["dPhi"] = (A->parameters[0]["Bx"] * gr->normal[0][0] + A->parameters[0]["By"] * gr->normal[0][1] +
+						gr->parameters["dPhi"] = -(A->parameters[0]["Bx"] * gr->normal[0][0] + A->parameters[0]["By"] * gr->normal[0][1] +
 							A->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
 					}
 					else
 					{
-						gr->parameters["dPhi"] = (B->parameters[0]["Bx"] * gr->normal[0][0] + B->parameters[0]["By"] * gr->normal[0][1] +
+						gr->parameters["dPhi"] = -(B->parameters[0]["Bx"] * gr->normal[0][0] + B->parameters[0]["By"] * gr->normal[0][1] +
 							B->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
 					}
 					gr->parameters["dSS"] = gr->area[0] / dl;
@@ -2415,6 +2463,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 						if (ddd > dphi_)
 						{
 							dphi_ = ddd;
+							x_max = cc->center[0][0];
+							y_max = cc->center[0][1];
+							z_max = cc->center[0][2];
 						}
 					}
 				}
@@ -2425,26 +2476,29 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				cout << "Yspex" << endl;
 				break;
 			}*/
-			if (step > 300000)
+			if (step > 10000)
 			{
 				cout << "Yspex" << endl;
 				break;
 			}
 
-			if (step % 1000 == 0)
+			if (true)
 			{
 				double Volume = 0.0;
 				double E_B = 0.0;
 				double E_B_pot = 0.0;
+				double dE_B = 0.0;
 				double E_int = 0.0;
 				double E_kin = 0.0;
 
 				double Volume2 = 0.0;
 				double E_B2 = 0.0;
 				double E_B_pot2 = 0.0;
+				double dE_B2 = 0.0;
 				double E_int2 = 0.0;
 				double E_kin2 = 0.0;
 
+#pragma omp parallel for schedule(dynamic)
 				for (auto& cc : this->All_Cell)
 				{
 					if (cc->MK_zone != ZONE_now) continue;
@@ -2486,52 +2540,108 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 					if (bnb == true)
 					{
-						gr_x = cc->parameters[0]["Bx"];
-						gr_y = cc->parameters[0]["By"];
-						gr_z = cc->parameters[0]["Bz"];
+						//gr_x = -1.0; //-cc->parameters[0]["Bx"];
+						//gr_y = 0.0;  //-cc->parameters[0]["By"];
+						//gr_z = 0.0;  // -cc->parameters[0]["Bz"];
+
+						gr_x = -cc->parameters[0]["Bx"];
+						gr_y = -cc->parameters[0]["By"];
+						gr_z = -cc->parameters[0]["Bz"];
 					}
 
-					if (cc->center[0][0] >= 0.0)
+					cc->parameters[0]["gr_x"] = gr_x;
+					cc->parameters[0]["gr_y"] = gr_y;
+					cc->parameters[0]["gr_z"] = gr_z;
+
+					if (step % 1000 == 0)
 					{
-						Volume += cc->volume[0];
-						E_B += kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
-						E_B_pot += kvv(gr_x, gr_y, gr_z) / (8.0 * const_pi) * cc->volume[0];
-						E_int += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
-						E_kin += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
-					}
-					else
-					{
-						Volume2 += cc->volume[0];
-						E_B2 += kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
-						E_B_pot2 += kvv(gr_x, gr_y, gr_z) / (8.0 * const_pi) * cc->volume[0];
-						E_int2 += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
-						E_kin2 += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+						if (cc->center[0][0] >= 0.0)
+						{
+							#pragma omp critical (dwedewfwef)
+							{
+								Volume += cc->volume[0];
+								E_B += kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
+								E_B_pot += kvv(gr_x, gr_y, gr_z) / (8.0 * const_pi) * cc->volume[0];
+								E_int += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
+								E_kin += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+								dE_B += kv(norm2(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) -
+									norm2(gr_x, gr_y, gr_z)) / (8.0 * const_pi);
+							}
+						}
+						else
+						{
+							#pragma omp critical (dwedewfwef2)
+							{
+								Volume2 += cc->volume[0];
+								E_B2 += kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
+								E_B_pot2 += kvv(gr_x, gr_y, gr_z) / (8.0 * const_pi) * cc->volume[0];
+								E_int2 += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
+								E_kin2 += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+								dE_B2 += kv(norm2(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) -
+									norm2(gr_x, gr_y, gr_z)) / (8.0 * const_pi);
+							}
+						}
 					}
 				}
 
-				cout << "----------------------------------------" << endl;
-				cout << "rho E = " << (E_B + E_int + E_kin) / Volume << endl;
-				cout << "E_B % = " << E_B / (E_B + E_int + E_kin) * 100.0 << endl;
-				cout << "E_B_pot % = " << E_B_pot / (E_B + E_int + E_kin) * 100.0 << endl;
-				cout << "E_free % = " << (E_B - E_B_pot) / (E_B + E_int + E_kin) * 100.0 << endl;
-				cout << "E_int % = " << E_int / (E_B + E_int + E_kin) * 100.0 << endl;
-				cout << "E_kin % = " << E_kin / (E_B + E_int + E_kin) * 100.0 << endl;
-				cout << "Volume = " << Volume << endl;
-				cout << "----------------------------------------" << endl;
-				cout << "rho E = " << (E_B2 + E_int2 + E_kin2) / Volume2 << endl;
-				cout << "E_B % = " << E_B2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
-				cout << "E_B_pot % = " << E_B_pot2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
-				cout << "E_free % = " << (E_B2 - E_B_pot2) / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
-				cout << "E_int % = " << E_int2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
-				cout << "E_kin % = " << E_kin2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
-				cout << "Volume = " << Volume2 << endl;
-				cout << "----------------------------------------" << endl;
+				if (step % 1000 == 0)
+				{
+					cout << "----------------------------------------" << endl;
+					cout << "rho E = " << (E_B + E_int + E_kin) / Volume << endl;
+					cout << "E_B % = " << E_B / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "dE_B % = " << dE_B / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "E_B_pot % = " << E_B_pot / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "E_free % = " << (E_B - E_B_pot) / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "E_int % = " << E_int / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "E_kin % = " << E_kin / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "Volume = " << Volume << endl;
+					cout << "----------------------------------------" << endl;
+					cout << "rho E = " << (E_B2 + E_int2 + E_kin2) / Volume2 << endl;
+					cout << "E_B % = " << E_B2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+					cout << "dE_B % = " << dE_B2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+					cout << "E_B_pot % = " << E_B_pot2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+					cout << "E_free % = " << (E_B2 - E_B_pot2) / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+					cout << "E_int % = " << E_int2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+					cout << "E_kin % = " << E_kin2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+					cout << "Volume = " << Volume2 << endl;
+					cout << "----------------------------------------" << endl;
+				}
 			}
 
 
 		}
 		
+		// Запись значений в бинарный файл
+		if (false)
+		{
+			std::ofstream out_file("cell_data.bin", std::ios::binary);
 
+			if (out_file.is_open())
+			{
+				for (auto& cc : this->All_Cell)
+				{
+					// Записываем в файл
+					double gr_x = cc->parameters[0]["gr_x"];
+					double gr_y = cc->parameters[0]["gr_y"];
+					double gr_z = cc->parameters[0]["gr_z"];
+
+					out_file.write(reinterpret_cast<const char*>(&gr_x), sizeof(double));
+					out_file.write(reinterpret_cast<const char*>(&gr_y), sizeof(double));
+					out_file.write(reinterpret_cast<const char*>(&gr_z), sizeof(double));
+				}
+				out_file.close();
+			}
+		}
+
+		this->Save_for_interpolate("For_intertpolate_0059-.bin", false);
+		Interpol SS = Interpol("For_intertpolate_0059-.bin");
+
+		this->Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_");
+
+		this->Tecplot_print_2D(&SS, 0.0891029508867553, 0.7044237408557898, -0.7041646522383865, -0.00001, "_IHG_polar_", false,
+			Eigen::Vector3d(-0.9958639688067080, 0.0756169508599243, -0.0503689624193315),
+			Eigen::Vector3d(0.0177656909751554, 0.7057402284561816, 0.7082479157489927),
+			Eigen::Vector3d(0.0, 0.0, 0.0));
 		
 	}
 	else if (alg == 20)
@@ -2782,11 +2892,26 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	{
 		this->Set_MK_Zone();
 
+		for (auto& cc : this->All_Cell)
+		{
+			if (cc->MK_zone == 5)
+			{
+				if (cc->center[0][0] > this->geo->L6) cc->MK_zone = 4;
+			}
+		}
+
+		this->phys_param->param_names.push_back("gr_x");
+		this->phys_param->param_names.push_back("gr_y");
+		this->phys_param->param_names.push_back("gr_z");
 		
 		for (auto& cc : this->All_Cell)
 		{
 			cc->parameters[0]["phi_1"] = 0.0;
 			cc->parameters[0]["phi_2"] = 0.0;
+
+			cc->parameters[0]["gr_x"] = 0.0;
+			cc->parameters[0]["gr_y"] = 0.0;
+			cc->parameters[0]["gr_z"] = 0.0;
 		}
 
 		int ZONE_now = 4;  // В какой зоне сейчас считаем
@@ -2797,16 +2922,33 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		if (this->Gran_BS[1]->cells_TVD[0]->MK_zone == ZONE_now) NMNM = this->Gran_BS[1]->cells_TVD[0]->number;
 		if (this->Gran_BS[1]->cells_TVD[1]->MK_zone == ZONE_now) NMNM = this->Gran_BS[1]->cells_TVD[1]->number;
 
+		int NMNM2;
+		int jk = 0;
+		for (auto& cc : this->All_Cell)
+		{
+			if (cc->MK_zone != ZONE_now) continue;
+			jk++;
+			if (jk == 1000)
+			{
+				NMNM2 = cc->number;
+				break;
+			}
+		}
 
 
 		int step = 0;
 		double dphi_ = 100.0;
+		double x_max = 0.0;
+		double y_max = 0.0;
+		double z_max = 0.0;
+
 		while (true)
 		{
 			step++;
 			if (step % 100 == 0)
 			{
 				cout << "step = " << step << "  nevyazka = " << dphi_ << endl;
+				cout << "x_max = " << x_max << "  y_max = " << y_max << "  z_max = " << z_max << endl;
 			}
 
 			//cout << "A" << endl;
@@ -2823,28 +2965,30 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				A = gr->cells[0];
 				B = gr->cells[1];
 
-				/*if (gr->type2 == Type_Gran_surf::HP)
+				if (gr->type2 == Type_Gran_surf::HP)
 				{
 					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
 					gr->parameters["dPhi"] = 0.0;
 					gr->parameters["dSS"] = gr->area[0] / dl;
 					continue;
-				}*/
+				}
 
 
 				if (gr->cells[0]->MK_zone == ZONE_now && gr->cells[1]->MK_zone == ZONE_now)
 				{
 					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
+					double dl1 = norm2(A->center[0][0] - gr->center[0][0], A->center[0][1] - gr->center[0][1], A->center[0][2] - gr->center[0][2]);
+					double dl2 = norm2(B->center[0][0] - gr->center[0][0], B->center[0][1] - gr->center[0][1], B->center[0][2] - gr->center[0][2]);
 
-					if (step < 3000)
+					if (step < 1000)
 					{
 						gr->parameters["dPhi"] = (B->parameters[0]["phi_1"] - A->parameters[0]["phi_1"]) / dl * gr->area[0];
 					}
 					else
 					{
-						gr->parameters["dPhi"] = 0.5 * (A->parameters[0]["gr_x"] + B->parameters[0]["gr_x"]) * gr->normal[0][0] +
-							0.5 * (A->parameters[0]["gr_y"] + B->parameters[0]["gr_y"]) * gr->normal[0][1] +
-							0.5 * (A->parameters[0]["gr_z"] + B->parameters[0]["gr_z"]) * gr->normal[0][2];
+						gr->parameters["dPhi"] = ((A->parameters[0]["gr_x"] * dl2 + B->parameters[0]["gr_x"] * dl1) / (dl1 + dl2) * gr->normal[0][0] +
+							(A->parameters[0]["gr_y"] * dl2 + B->parameters[0]["gr_y"] * dl1) / (dl1 + dl2) * gr->normal[0][1] +
+							(A->parameters[0]["gr_z"] * dl2 + B->parameters[0]["gr_z"] * dl1) / (dl1 + dl2) * gr->normal[0][2]) * gr->area[0];
 					}
 
 
@@ -2855,15 +2999,15 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
 					if (gr->cells[0]->MK_zone == ZONE_now)
 					{
-						//gr->parameters["dPhi"] = -(A->parameters[0]["Bx"] * gr->normal[0][0] + A->parameters[0]["By"] * gr->normal[0][1] +
-						//	A->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
-						gr->parameters["dPhi"] = -(1.0 * gr->normal[0][0]) * gr->area[0];
+						gr->parameters["dPhi"] = -(A->parameters[0]["Bx"] * gr->normal[0][0] + A->parameters[0]["By"] * gr->normal[0][1] +
+							A->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
+						//gr->parameters["dPhi"] = -(1.0 * gr->normal[0][0]) * gr->area[0];
 					}
 					else
 					{
-						//gr->parameters["dPhi"] = -(B->parameters[0]["Bx"] * gr->normal[0][0] + B->parameters[0]["By"] * gr->normal[0][1] +
-						//	B->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
-						gr->parameters["dPhi"] = -(1.0 * gr->normal[0][0]) * gr->area[0];
+						gr->parameters["dPhi"] = -(B->parameters[0]["Bx"] * gr->normal[0][0] + B->parameters[0]["By"] * gr->normal[0][1] +
+							B->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
+						//gr->parameters["dPhi"] = -(1.0 * gr->normal[0][0]) * gr->area[0];
 					}
 					gr->parameters["dSS"] = gr->area[0] / dl;
 				}
@@ -2892,7 +3036,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 					}
 				}
 
-				cc->parameters[0]["phi_2"] = cc->parameters[0]["phi_1"] + 1.2 / dSS * dPhi;
+				cc->parameters[0]["phi_2"] = cc->parameters[0]["phi_1"] + 1.0 / dSS * dPhi;
 
 			}
 
@@ -2913,6 +3057,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 						if (ddd > dphi_)
 						{
 							dphi_ = ddd;
+							x_max = cc->center[0][0];
+							y_max = cc->center[0][1];
+							z_max = cc->center[0][2];
 						}
 					}
 				}
@@ -2923,7 +3070,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				cout << "Yspex" << endl;
 				break;
 			}*/
-			if (step > 300000)
+			if (step > 7000)
 			{
 				cout << "Yspex" << endl;
 				break;
@@ -2934,6 +3081,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				double Volume = 0.0;
 				double E_B = 0.0;
 				double E_B_pot = 0.0;
+				double dE_B = 0.0;
 				double E_int = 0.0;
 				double E_kin = 0.0;
 
@@ -2979,6 +3127,10 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 					if (bnb == true)
 					{
+						//gr_x = -1.0; //-cc->parameters[0]["Bx"];
+						//gr_y = 0.0;  //-cc->parameters[0]["By"];
+						//gr_z = 0.0;  // -cc->parameters[0]["Bz"];
+
 						gr_x = -cc->parameters[0]["Bx"];
 						gr_y = -cc->parameters[0]["By"];
 						gr_z = -cc->parameters[0]["Bz"];
@@ -2993,7 +3145,13 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 						if (cc->number == NMNM)
 						{
 							cout << cc->parameters[0]["Bx"] << " " << cc->parameters[0]["By"] << " " << cc->parameters[0]["Bz"] << endl;
-							cout << gr_x << " " << gr_y << " " << gr_z << endl;
+							cout << -gr_x << " " << -gr_y << " " << -gr_z << endl;
+						}
+
+						if (cc->number == NMNM2)
+						{
+							cout << " = " << cc->parameters[0]["Bx"] << " " << cc->parameters[0]["By"] << " " << cc->parameters[0]["Bz"] << endl;
+							cout << -gr_x << " " << -gr_y << " " << -gr_z << endl;
 						}
 						
 						#pragma omp critical (dwedewfwef)
@@ -3003,6 +3161,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 							E_B_pot += kvv(gr_x, gr_y, gr_z) / (8.0 * const_pi) * cc->volume[0];
 							E_int += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
 							E_kin += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+							dE_B += kv(norm2(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) -
+								norm2(gr_x, gr_y, gr_z)) / (8.0 * const_pi);
 						}
 					}
 					
@@ -3013,6 +3173,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				{
 					cout << "----------------------------------------" << endl;
 					cout << "rho E = " << (E_B + E_int + E_kin) / Volume << endl;
+					cout << "dE_B % = " << dE_B / (E_B + E_int + E_kin) * 100.0 << endl;
 					cout << "E_B % = " << E_B / (E_B + E_int + E_kin) * 100.0 << endl;
 					cout << "E_B_pot % = " << E_B_pot / (E_B + E_int + E_kin) * 100.0 << endl;
 					cout << "E_free % = " << (E_B - E_B_pot) / (E_B + E_int + E_kin) * 100.0 << endl;
@@ -3026,9 +3187,395 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 		}
 
+		for (auto& cc : this->All_Cell)
+		{
+			cc->parameters[0]["gr_x"] *= -1.0;
+			cc->parameters[0]["gr_y"] *= -1.0;
+			cc->parameters[0]["gr_z"] *= -1.0;
+		}
+
+
+		// Запись значений в бинарный файл
+		std::ofstream out_file("cell_data.bin", std::ios::binary);
+
+		if (out_file.is_open()) 
+		{
+			for (auto& cc : this->All_Cell) 
+			{
+				// Записываем в файл
+				double gr_x = cc->parameters[0]["gr_x"];
+				double gr_y = cc->parameters[0]["gr_y"];
+				double gr_z = cc->parameters[0]["gr_z"];
+
+				out_file.write(reinterpret_cast<const char*>(&gr_x), sizeof(double));
+				out_file.write(reinterpret_cast<const char*>(&gr_y), sizeof(double));
+				out_file.write(reinterpret_cast<const char*>(&gr_z), sizeof(double));
+			}
+			out_file.close();
+		}
+
+		this->Save_for_interpolate("For_intertpolate_0059-.bin", false);
+		Interpol SS = Interpol("For_intertpolate_0059-.bin");
+		this->Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_");
+
+	}
+	else if (alg == 22)
+	{
+		this->Set_MK_Zone();
+
+		this->phys_param->param_names.push_back("gr_x");
+		this->phys_param->param_names.push_back("gr_y");
+		this->phys_param->param_names.push_back("gr_z");
+
+		for (auto& cc : this->All_Cell)
+		{
+			cc->parameters[0]["phi_1"] = 0.0;
+			cc->parameters[0]["phi_2"] = 0.0;
+
+			cc->parameters[0]["gr_x"] = 0.0;
+			cc->parameters[0]["gr_y"] = 0.0;
+			cc->parameters[0]["gr_z"] = 0.0;
+		}
+
+		std::ifstream in_file("cell_data.bin", std::ios::binary);
+
+		if (in_file.is_open())
+		{
+			for (auto& cc : this->All_Cell)
+			{
+				double gr_x, gr_y, gr_z;
+
+				in_file.read(reinterpret_cast<char*>(&gr_x), sizeof(double));
+				in_file.read(reinterpret_cast<char*>(&gr_y), sizeof(double));
+				in_file.read(reinterpret_cast<char*>(&gr_z), sizeof(double));
+
+				cc->parameters[0]["gr_x"] = gr_x;
+				cc->parameters[0]["gr_y"] = gr_y;
+				cc->parameters[0]["gr_z"] = gr_z;
+			}
+			in_file.close();
+		}
+
+
+		int ZONE_now = 1;  // В какой зоне сейчас считаем
+
+
+		int step = 0;
+		double dphi_ = 100.0;
+		double x_max = 0.0;
+		double y_max = 0.0;
+		double z_max = 0.0;
+
+		while (true)
+		{
+			step++;
+			if (step % 100 == 0)
+			{
+				cout << "step = " << step << "  nevyazka = " << dphi_ << endl;
+				cout << "x_max = " << x_max << "  y_max = " << y_max << "  z_max = " << z_max << endl;
+			}
+
+			// Пробегаемся по граням считаем нужные потоки
+#pragma omp parallel for schedule(dynamic)
+			for (auto& gr : this->All_Gran)
+			{
+				if (gr->cells.size() != 2 && gr->cells[0]->MK_zone != ZONE_now) continue;
+
+				if (gr->cells.size() != 2)
+				{
+					Cell* A;
+					A = gr->cells[0];
+					double dl = norm2(A->center[0][0] - gr->center[0][0], A->center[0][1] - gr->center[0][1], A->center[0][2] - gr->center[0][2]);
+					gr->parameters["dPhi"] = -(A->parameters[0]["Bx"] * gr->normal[0][0] + A->parameters[0]["By"] * gr->normal[0][1] +
+						A->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
+					gr->parameters["dSS"] = gr->area[0] / dl;
+					continue;
+				}
+
+
+				if (gr->cells[0]->MK_zone != ZONE_now && gr->cells[1]->MK_zone != ZONE_now) continue;
+
+				Cell* A, * B;
+				A = gr->cells[0];
+				B = gr->cells[1];
+
+				if (gr->type2 == Type_Gran_surf::HP)
+				{
+					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
+					gr->parameters["dPhi"] = 0.0;
+					gr->parameters["dSS"] = gr->area[0] / dl;
+					continue;
+				}
+
+
+				if (gr->cells[0]->MK_zone == ZONE_now && gr->cells[1]->MK_zone == ZONE_now)
+				{
+					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
+					double dl1 = norm2(A->center[0][0] - gr->center[0][0], A->center[0][1] - gr->center[0][1], A->center[0][2] - gr->center[0][2]);
+					double dl2 = norm2(B->center[0][0] - gr->center[0][0], B->center[0][1] - gr->center[0][1], B->center[0][2] - gr->center[0][2]);
+
+					if (step < 1000)
+					{
+						gr->parameters["dPhi"] = (B->parameters[0]["phi_1"] - A->parameters[0]["phi_1"]) / dl * gr->area[0];
+					}
+					else
+					{
+						gr->parameters["dPhi"] = ((A->parameters[0]["gr_x"] * dl2 + B->parameters[0]["gr_x"] * dl1) / (dl1 + dl2) * gr->normal[0][0] +
+							(A->parameters[0]["gr_y"] * dl2 + B->parameters[0]["gr_y"] * dl1) / (dl1 + dl2) * gr->normal[0][1] +
+							(A->parameters[0]["gr_z"] * dl2 + B->parameters[0]["gr_z"] * dl1) / (dl1 + dl2) * gr->normal[0][2]) * gr->area[0];
+					}
+
+					//gr->parameters["dPhi"] = (B->parameters[0]["phi_1"] - A->parameters[0]["phi_1"]) / dl * gr->area[0];
+					gr->parameters["dSS"] = gr->area[0] / dl;
+				}
+				else
+				{
+					double dl = norm2(A->center[0][0] - B->center[0][0], A->center[0][1] - B->center[0][1], A->center[0][2] - B->center[0][2]);
+					if (gr->cells[0]->MK_zone == ZONE_now)
+					{
+						gr->parameters["dPhi"] = -(A->parameters[0]["Bx"] * gr->normal[0][0] + A->parameters[0]["By"] * gr->normal[0][1] +
+							A->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
+					}
+					else
+					{
+						gr->parameters["dPhi"] = -(B->parameters[0]["Bx"] * gr->normal[0][0] + B->parameters[0]["By"] * gr->normal[0][1] +
+							B->parameters[0]["Bz"] * gr->normal[0][2]) * gr->area[0];
+					}
+					gr->parameters["dSS"] = gr->area[0] / dl;
+				}
+			}
+
+			// Пробегаемся по ячейкам
+#pragma omp parallel for schedule(dynamic)
+			for (auto& cc : this->All_Cell)
+			{
+				if (cc->MK_zone != ZONE_now) continue;
+				double dPhi = 0.0;
+				double dSS = 0.0;
+
+				for (auto& gr : cc->grans)
+				{
+					dSS += gr->parameters["dSS"];
+					if (gr->cells[0]->number == cc->number)
+					{
+						dPhi += gr->parameters["dPhi"];
+					}
+					else
+					{
+						dPhi -= gr->parameters["dPhi"];
+					}
+				}
+
+				cc->parameters[0]["phi_2"] = cc->parameters[0]["phi_1"] + 1.0 / dSS * dPhi;
+
+			}
+
+			dphi_ = 0.0;
+
+
+#pragma omp parallel for schedule(dynamic)
+			for (auto& cc : this->All_Cell)
+			{
+				if (cc->MK_zone != ZONE_now) continue;
+
+				double ddd = fabs(cc->parameters[0]["phi_1"] - cc->parameters[0]["phi_2"]);
+				cc->parameters[0]["phi_1"] = cc->parameters[0]["phi_2"];
+				if (ddd > dphi_)
+				{
+#pragma omp critical (sdfs)
+					{
+						if (ddd > dphi_)
+						{
+							dphi_ = ddd;
+							x_max = cc->center[0][0];
+							y_max = cc->center[0][1];
+							z_max = cc->center[0][2];
+						}
+					}
+				}
+			}
+
+			/*if (dphi_ < 0.1)
+			{
+				cout << "Yspex" << endl;
+				break;
+			}*/
+			if (step > 10000)
+			{
+				cout << "Yspex" << endl;
+				break;
+			}
+
+			if (true)
+			{
+				double Volume = 0.0;
+				double E_B = 0.0;
+				double E_B_pot = 0.0;
+				double dE_B = 0.0;
+				double E_int = 0.0;
+				double E_kin = 0.0;
+
+				double Volume2 = 0.0;
+				double E_B2 = 0.0;
+				double E_B_pot2 = 0.0;
+				double dE_B2 = 0.0;
+				double E_int2 = 0.0;
+				double E_kin2 = 0.0;
+
+#pragma omp parallel for schedule(dynamic)
+				for (auto& cc : this->All_Cell)
+				{
+					if (cc->MK_zone != ZONE_now) continue;
+
+					double gr_x = 0.0;
+					double gr_y = 0.0;
+					double gr_z = 0.0;
+					double BB = 0.0;
+					bool bnb = false;
+
+					for (auto& gr : cc->grans)
+					{
+						if (gr->cells.size() < 2)
+						{
+							bnb = true;
+							break;
+						}
+
+						if (gr->cells[0]->MK_zone != ZONE_now) bnb = true;
+						if (gr->cells[1]->MK_zone != ZONE_now) bnb = true;
+
+						double d1 = norm2(gr->cells[0]->center[0][0] - gr->center[0][0], gr->cells[0]->center[0][1] - gr->center[0][1],
+							gr->cells[0]->center[0][2] - gr->center[0][2]);
+						double d2 = norm2(gr->cells[1]->center[0][0] - gr->center[0][0], gr->cells[1]->center[0][1] - gr->center[0][1],
+							gr->cells[1]->center[0][2] - gr->center[0][2]);
+
+						BB = (gr->cells[0]->parameters[0]["phi_1"] * d2 + gr->cells[1]->parameters[0]["phi_1"] * d1) / (d1 + d2);
+						if (gr->cells[0]->number == cc->number)
+						{
+							gr_x += BB * gr->normal[0][0] * gr->area[0];
+							gr_y += BB * gr->normal[0][1] * gr->area[0];
+							gr_z += BB * gr->normal[0][2] * gr->area[0];
+						}
+						else
+						{
+							gr_x -= BB * gr->normal[0][0] * gr->area[0];
+							gr_y -= BB * gr->normal[0][1] * gr->area[0];
+							gr_z -= BB * gr->normal[0][2] * gr->area[0];
+						}
+					}
+
+					gr_x = gr_x / cc->volume[0];
+					gr_y = gr_y / cc->volume[0];
+					gr_z = gr_z / cc->volume[0];
+
+					if (bnb == true)
+					{
+						//gr_x = -1.0; //-cc->parameters[0]["Bx"];
+						//gr_y = 0.0;  //-cc->parameters[0]["By"];
+						//gr_z = 0.0;  // -cc->parameters[0]["Bz"];
+
+						gr_x = -cc->parameters[0]["Bx"];
+						gr_y = -cc->parameters[0]["By"];
+						gr_z = -cc->parameters[0]["Bz"];
+					}
+
+					cc->parameters[0]["gr_x"] = gr_x;
+					cc->parameters[0]["gr_y"] = gr_y;
+					cc->parameters[0]["gr_z"] = gr_z;
+
+					if (step % 1000 == 0)
+					{
+
+						double r = norm2(cc->center[0][0], cc->center[0][1], cc->center[0][2]);
+						if (r * 4.21132 <= 20.0)
+						{
+#pragma omp critical (dwedewfwef)
+							{
+								Volume += cc->volume[0];
+								E_B += kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
+								E_B_pot += kvv(gr_x, gr_y, gr_z) / (8.0 * const_pi) * cc->volume[0];
+								E_int += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
+								E_kin += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+								dE_B += kv(norm2(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) -
+									norm2(gr_x, gr_y, gr_z)) / (8.0 * const_pi);
+							}
+						}
+						else
+						{
+#pragma omp critical (dwedewfwef2)
+							{
+								Volume2 += cc->volume[0];
+								E_B2 += kvv(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) / (8.0 * const_pi) * cc->volume[0];
+								E_B_pot2 += kvv(gr_x, gr_y, gr_z) / (8.0 * const_pi) * cc->volume[0];
+								E_int2 += (cc->parameters[0]["p"]) / (this->phys_param->gamma - 1.0) * cc->volume[0];
+								E_kin2 += cc->parameters[0]["rho"] * kvv(cc->parameters[0]["Vx"], cc->parameters[0]["Vy"], cc->parameters[0]["Vz"]) / (2.0) * cc->volume[0];
+								dE_B2 += kv(norm2(cc->parameters[0]["Bx"], cc->parameters[0]["By"], cc->parameters[0]["Bz"]) -
+									norm2(gr_x, gr_y, gr_z)) / (8.0 * const_pi);
+							}
+						}
+					}
+				}
+
+				if (step % 1000 == 0)
+				{
+					cout << "----------------------------------------" << endl;
+					cout << "rho E = " << (E_B + E_int + E_kin) / Volume << endl;
+					cout << "E_B % = " << E_B / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "dE_B % = " << dE_B / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "E_B_pot % = " << E_B_pot / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "E_free % = " << (E_B - E_B_pot) / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "E_int % = " << E_int / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "E_kin % = " << E_kin / (E_B + E_int + E_kin) * 100.0 << endl;
+					cout << "Volume = " << Volume << endl;
+					cout << "----------------------------------------" << endl;
+					cout << "rho E = " << (E_B2 + E_int2 + E_kin2) / Volume2 << endl;
+					cout << "E_B % = " << E_B2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+					cout << "dE_B % = " << dE_B2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+					cout << "E_B_pot % = " << E_B_pot2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+					cout << "E_free % = " << (E_B2 - E_B_pot2) / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+					cout << "E_int % = " << E_int2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+					cout << "E_kin % = " << E_kin2 / (E_B2 + E_int2 + E_kin2) * 100.0 << endl;
+					cout << "Volume = " << Volume2 << endl;
+					cout << "----------------------------------------" << endl;
+				}
+			}
 
 
 		}
+
+		// Запись значений в бинарный файл
+		if (true)
+		{
+			std::ofstream out_file("cell_data.bin", std::ios::binary);
+
+			if (out_file.is_open())
+			{
+				for (auto& cc : this->All_Cell)
+				{
+					// Записываем в файл
+					double gr_x = cc->parameters[0]["gr_x"];
+					double gr_y = cc->parameters[0]["gr_y"];
+					double gr_z = cc->parameters[0]["gr_z"];
+
+					out_file.write(reinterpret_cast<const char*>(&gr_x), sizeof(double));
+					out_file.write(reinterpret_cast<const char*>(&gr_y), sizeof(double));
+					out_file.write(reinterpret_cast<const char*>(&gr_z), sizeof(double));
+				}
+				out_file.close();
+			}
+		}
+
+		this->Save_for_interpolate("For_intertpolate_0059-.bin", false);
+		Interpol SS = Interpol("For_intertpolate_0059-.bin");
+
+		this->Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_");
+
+		this->Tecplot_print_2D(&SS, 0.0891029508867553, 0.7044237408557898, -0.7041646522383865, -0.00001, "_IHG_polar_", false,
+			Eigen::Vector3d(-0.9958639688067080, 0.0756169508599243, -0.0503689624193315),
+			Eigen::Vector3d(0.0177656909751554, 0.7057402284561816, 0.7082479157489927),
+			Eigen::Vector3d(0.0, 0.0, 0.0));
+
+			}
 
 
 		
