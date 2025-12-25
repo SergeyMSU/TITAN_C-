@@ -1185,7 +1185,7 @@ void Setka::New_initial(string name_setka_2d, string name_setka_krug)
 	//ifstream ffin("SDK2_2D_Setka.bin", ios::binary | ios::in);
 	if (!ffin)
 	{
-		cout << "Net takogo fajla (fajl 2D setki)" << endl;
+		cout << "Net takogo fajla (fajl 2D setki):  " << name_setka_2d << endl;
 		exit(-1);
 	}
 

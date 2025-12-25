@@ -130,6 +130,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 8  - Вычисление поглощения вдоль заданных лучей (новая реализация через вспомогательную сетку)
 	// 9  - (не работает) Перемасштабирование функций распредления водорода (речь про число ячеек AMR), без потери значений (СТАРАЯ реализация - надо адаптировать)
 	// 10 - Монте-Карло (новая реализация через вспомогательную сетку)
+	// 101 - Монте-Карло (новая реализация через вспомогательную сетку) - полностью имитационный метод без AMR накапливания
 	// 11 - расчёт поверхностных токов на разрывах
 	// 12 - расчёт объёмных токов
 	// 13 - просмотр источников S+/S- и сравнение их с флюидными источниками
@@ -1093,6 +1094,218 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 	}
+	else if (alg == 101)
+	{
+		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
+		cout << "Create Setka Smc" << endl;
+		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
+		Setka Smc = Setka("SDK_40_2D_Setka.bin", "SDK_40_krug_setka.bin", 40);
+
+		cout << "Create SI_main" << endl;
+		// Из основной сетки создаём интерполяционную сетку
+		this->Save_for_interpolate("For_intertpolate_work.bin", false);
+		Interpol SI_main = Interpol("For_intertpolate_work.bin");
+
+		cout << "Move Setka Smc" << endl;
+		// Двигаем поверхности вспомогательной сетки к поверхностям основной
+		Smc.Move_to_surf(&SI_main);
+		// Точно задаём положение внутренней границы сетки
+		Smc.geo->R0 = Smc.phys_param->R_0;
+
+		// Автоматически подстраиваем геометрические параметры сетки (сгущение и т.д.) под новые поверхности
+		Smc.auto_set_luch_geo_parameter(0, true);
+		// Настраиваем новую сетку (также как и основную)   [обязательно]
+		if (true)
+		{
+			// Считаем объёмы, площади и другие геометрические характеристики
+			Smc.Calculating_measure(0);
+			Smc.Calculating_measure(1);
+
+			// Задаём граничные грани
+			Smc.Init_boundary_grans();
+
+			// Проверки
+			if (this->phys_param->is_PUI != Smc.phys_param->is_PUI)
+			{
+				cout << "Error eijrgfouiehg384tfg7gf" << endl;
+				exit(-1);
+			}
+		}
+
+		// Визуализация новой сетки для проверки   [опционально]
+		if (true)
+		{
+			Smc.Tecplot_print_all_lush_in_2D();
+			Smc.Tecplot_print_2D_setka(0.0, 0.0, 1.0, -0.00001, "Smc_setka_2d_(0, 0, 1, 0)_");
+			Smc.Tecplot_print_2D_setka(0.0, 1.0, 0.0, -0.00001, "Smc_setka_2d_(0, 1, 0, 0)_");
+			Smc.Tecplot_print_2D_setka(0.0, 1.0, 1.0, -0.00001, "Smc_setka_2d_(0, 1, 1, 0)_");
+			Smc.Tecplot_print_all_gran_in_surface("TS");
+			Smc.Tecplot_print_all_gran_in_surface("HP");
+			Smc.Tecplot_print_all_gran_in_surface("BS");
+		}
+
+		// В сетке для MK очистим ненужные имена переменных 
+		if (true)
+		{
+			Smc.phys_param->param_names.assign(Smc.phys_param->MK_param.begin(), Smc.phys_param->MK_param.end());
+		}
+
+		// Заполним сетку МК значениями плазмы из основной сетки (чтобы вместо интерполяции в МК использовать значения в центрах ячеек - так быстрее)
+		// переинтерполяция
+		if (true)
+		{
+			Smc.PereInterpolate(&SI_main, false);
+		}
+
+		Smc.Test_geometr();
+
+		// Настройка всех массивов для расчёта пикапов
+		if (Smc.phys_param->is_PUI == true)
+		{
+			cout << "Download PUI" << endl;
+			// Загружаем h0
+			Smc.Init_h0_and_read_from_file();
+			this->Init_h0_and_read_from_file();
+
+			// Загружаем все интеграллы пикапов
+			unsigned int st = 0;
+			#pragma omp parallel for schedule(dynamic)
+			for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+			{
+				#pragma omp critical (gergergerg4) 
+				{
+					st++;
+					if (st % 50000 == 0)
+					{
+						cout << "step = " << st << "   from " << this->All_Cell.size() << endl;
+					}
+				}
+
+			auto A = this->All_Cell[idx];
+			short int zone = determ_zone(A, 0);
+			A->Init_pui_integral(this->phys_param->pui_F_n, zone);
+			A->read_pui_integral_FromFile(this->phys_param);
+			A->Init_f_pui(this->phys_param->pui_nW, zone);
+			A->read_pui_FromFile();
+			if (false)//(idx == 2200)
+			{
+				//A->pui_integral_Culc(this->phys_param);
+				A->print_pui(this->phys_param->pui_wR, "2200_pui");
+
+				cout << "FF = " << A->pui_get_f(40.0, 0, phys_param->pui_wR) << " " <<
+					A->pui_get_f(10.0, 0, phys_param->pui_wR) << " " <<
+					A->pui_get_f(0.0, 0, phys_param->pui_wR) << " " <<
+					A->pui_get_f(-10.0, 0, phys_param->pui_wR) << " " <<
+					A->pui_get_f(199.8, 0, phys_param->pui_wR) << " " <<
+					A->pui_get_f(160.0, 0, phys_param->pui_wR) << " " << endl;
+			}
+			A->culc_pui_n_T(this->phys_param->pui_wR);
+			A->Delete_f_pui();
+			}
+		}
+
+		// Проверим, загрузились ли массивы
+		if (Smc.phys_param->is_PUI == true)
+		{
+			cout << "Proverka chastot pui" << endl;
+			Cell* CC;
+			Cell* prev = nullptr;
+			CC = this->Find_cell_point(20.0, 0.0, 0.0, 0, prev);
+			//CC = this->All_Cell[2200];
+
+			CC->print_nu_integr_pui(this->phys_param);
+			CC->print_F_integr_pui();
+
+			double nu = CC->pui_get_nu(5.0, 0, this->phys_param->pui_wR);
+			if (nu <= 0.0)
+			{
+				cout << "Warning iudrhguseroigfsegsr" << endl;
+				cout << CC->center[0][0] << " " << CC->center[0][1] << " " << CC->center[0][2] << endl;
+				cout << int(CC->type) << endl;
+			}
+			//cout << "nu1 = " << nu << endl;
+			nu = CC->pui_get_nu(5.0, 1, this->phys_param->pui_wR);
+			if (nu <= 0.0)
+			{
+				cout << "Warning ghietgy87tg98e9g98e" << endl;
+				cout << CC->center[0][0] << " " << CC->center[0][1] << " " << CC->center[0][2] << endl;
+				cout << int(CC->type) << endl;
+			}
+		}
+
+		//return;
+
+		// Удаляем какие-то функции распределения
+		if (false)
+		{
+			for (auto& gr : Smc.All_Gran)
+			{
+				for (int ii = 0; ii <= 1; ii++)
+				{
+					string name_f = Smc.phys_param->AMR_folder + "/" + "func_grans_AMR_" + to_string(ii) + "_H" +
+						to_string(8) + "_" + to_string(gr->number) + ".bin";
+
+					if (std::filesystem::exists(name_f))
+					{
+						std::filesystem::remove(name_f);
+					}
+				}
+			}
+		}
+
+		cout << "Set MK zone" << endl;
+		// Определим зоны для МК
+		Smc.Set_MK_Zone();
+
+		//Проверим зоны   [опционально]
+		if (true)
+		{
+			Smc.Tecplot_print_gran_with_condition(0);
+			Smc.Tecplot_print_gran_with_condition(1);
+			Smc.Tecplot_print_gran_with_condition(2);
+			Smc.Tecplot_print_gran_with_condition(3);
+			Smc.Tecplot_print_gran_with_condition(4);
+			Smc.Tecplot_print_gran_with_condition(5);
+			Smc.Tecplot_print_gran_with_condition(6);
+		}
+
+
+		vector<short int> zones_number;
+		vector<double> zones_n_koeff;        // Можно для каждой зоны настроить своё количество частиц
+
+		cout << "Start zones_number push_back" << endl;
+
+
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+
+		short int ijij = 0;
+		for (const auto& zone_play : zones_number)
+		{
+			cout << "Start zone = " << zone_play << endl;
+			Smc.MK_prepare(zone_play, false);
+			//Smc.MK_go(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), &SI_main);
+			Smc.MK_go_Imit(zone_play, int(this->phys_param->N_per_gran * zones_n_koeff[ijij]), nullptr, Smain);
+			Smc.MK_delete(zone_play, false);
+			ijij++;
+		}
+
+		// Очистка
+		if (Smc.phys_param->is_PUI == true)
+		{
+			// Загружаем h0
+			Smc.Delete_h0();
+			this->Delete_h0();
+
+			// Загружаем все интеграллы пикапов
+			for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
+			{
+				auto A = this->All_Cell[idx];
+				short int zone = determ_zone(A, 0);
+				A->Delete_pui_integral();
+			}
+		}
+
+		}
 	else if (alg == 11)
 	{
 		ofstream fout;

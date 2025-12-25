@@ -271,11 +271,16 @@ public:
 	void Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA);
 
 	// Монте карло ***********************************************************
-	void MK_prepare(short int zone_MK); // Настройка всего для Монте-Карло
-	void MK_delete(short int zone_MK); 
+	void MK_prepare(short int zone_MK, bool AMR_need = true); // Настройка всего для Монте-Карло
+	void MK_delete(short int zone_MK, bool AMR_need = true);
 	void MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*& S_main);      // Запуск всех частиц
-	void MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, 
+	void MK_go_Imit(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*& S_main);
+
+	void MK_fly_immit_no_AMR(MK_particle& P, short int zone_MK, Sensor* Sens,
 						Interpol* Interpol, Setka*& S_main);  // Запуск частицы, имитационный метод
+	void MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens,
+		Interpol* Interpol, Setka*& S_main);  // Запуск частицы, имитационный метод
+
 	void M_K_Change_Velosity(Sensor* sens, const double& Ur, const double& Uthe,
 		const double& Uphi, const double& Vr, const double& Vthe,
 		const double& Vphi, double& Wr, double& Wthe, double& Wphi, const double& cp);

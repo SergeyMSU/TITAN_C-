@@ -58,7 +58,7 @@ void Cell::read_mas_pogl_FromFile(Phys_param* phys_param)
 
 	if (file_exists(filename) == false)
 	{
-		//cout << "Not file: " << filename << endl;
+		cout << "Not file: " << filename << endl;
 		// cout << "Not file: " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][2] << endl;
 		return;
 	}
@@ -111,7 +111,8 @@ void Cell::read_mas_pogl_FromFile(Phys_param* phys_param)
 
 		file.close();
 	}
-	catch (const std::exception& e) {
+	catch (const std::exception& e) 
+	{
 		std::cerr << "Error rthrtyhgrt45ty45t " << e.what() << std::endl;
 		file.close();
 		exit(-19);
