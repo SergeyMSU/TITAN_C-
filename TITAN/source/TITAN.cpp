@@ -12,6 +12,7 @@ int main()
 
     // Создаём основную сетку из файлов вспомогательных сеток
     Setka S1 = Setka("SDK1_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
+    //Setka S1 = Setka("SDK2_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
 
     // Обязательный блок настройки основной сетки
     if (true)
@@ -36,7 +37,8 @@ int main()
     // Считываем физические параметры и геометрическое положение узлов из файла (предыдущего расчёта)
     //S1.Download_cell_parameters("parameters_0060.bin");   
 
-    S1.Download_cell_parameters("parameters_0065.bin");
+    //S1.Download_cell_parameters("parameters_0065.bin");
+    S1.Download_cell_parameters("parameters_0219.bin");
 
 
     //S1.Download_cell_parameters("parameters_promeg_1124.bin");
@@ -106,10 +108,11 @@ int main()
 
     // Выбор основного алгоритма расчёта (в данной функции представлены все варианты расчёта: атомы, мгд и т.д.), см. саму функцию
     //S1.Algoritm(22, &S1);
-    S1.Algoritm(101, &S1);
-    //S1.Algoritm(8, &S1);
+    
+    //S1.Algoritm(101, &S1);
+    S1.Algoritm(11, &S1);
 
-    //return 0;
+    return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 

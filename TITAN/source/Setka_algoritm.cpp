@@ -1312,9 +1312,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		string name_f;
 
 		//HP
-		if (false)
+		if (true)
 		{
-			name_f = "HP_J_dissipation.txt";
+			name_f = "HP_J_dissipation_6_year.txt";
 			fout.open(name_f);
 			fout << "TITLE = HP  VARIABLES = x, y, z, r, phi, the, Jx, Jy, Jz, |J|, J2x, J2y, J2z, |J2|, Bx_L, By_L, Bz_L, Bx_R, By_R, Bz_R" << endl;
 			fout << "ZONE T=HP, N = " << this->Gran_HP.size() * 4 << ", E = " << this->Gran_HP.size() << ", F=FEPOINT, ET=quadrilateral" << endl;
@@ -1388,7 +1388,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		// TS
 		if (false)
 		{
-			name_f = "TS_J.txt";
+			name_f = "TS_J_with_polatiry.txt";
 			fout.open(name_f);
 			fout << "TITLE = HP  VARIABLES = x, y, z, phi, the, Jx, Jy, Jz, |J|" << endl;
 			fout << "ZONE T=HP, N = " << this->Gran_TS.size() * 4 << ", E = " << this->Gran_TS.size() << ", F=FEPOINT, ET=quadrilateral" << endl;
@@ -1415,15 +1415,40 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 				J = J * 4.3614;
 
+				bool llk = true;
+				if (i->center[0][0] * 0.0891029508867553 + i->center[0][1] * 0.7044237408557898 + i->center[0][2] * (-0.7041646522383865) < 0.0)
+				{
+					J = -J;
+					llk = false;
+				}
+
 				for (auto& j : i->yzels)
 				{
 					cc[0] = j->coord[0][0];
 					cc[1] = j->coord[0][1];
 					cc[2] = j->coord[0][2];
 
+					Eigen::Vector3d JJ;
+					Eigen::Vector3d PP;
+
+					PP << 0.0891029508867553, 0.7044237408557898, -0.7041646522383865;
+					PP = PP * 25.0;
+					if (llk == false)
+					{
+						PP *= -1.0;
+					}
+					
+					JJ = PP - cc;
+
+
+					if (JJ.norm() > 7.0)
+					{
+						JJ = J;
+					}
+
 					fout << cc[0] << " " << cc[1] << " " << cc[2] << " " <<
 						polar_angle(cc[1], cc[2]) << " " << polar_angle(cc[0], norm2(0.0, cc[1], cc[2])) << " " <<
-						J[0] << " " << J[1] << " " << J[2] << " " << J.norm() << endl;
+						JJ[0] << " " << JJ[1] << " " << JJ[2] << " " << J.norm() << endl;
 				}
 			}
 
@@ -1438,7 +1463,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		// BS
-		if (true)
+		if (false)
 		{
 			name_f = "BS_J.txt";
 			fout.open(name_f);
