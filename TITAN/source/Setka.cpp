@@ -4799,7 +4799,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 	{
 		fout << ", " << nam;
 	}
-	fout << ", Mach, Mach_Alf, BB_8pi, rho_Th, p_Th, T_Th, J, Jxx, Jyy, Jx, Jy, Jz, J_an, Jxx_an, Jyy_an, Bxx_pot, Byy_pot";
+	fout << ", Mach, Mach_Alf, |B|/8pi, rho_Th, p_Th, T_Th, J, Jxx, Jyy, Jx, Jy, Jz, J_an, Jxx_an, Jyy_an, Bxx_pot, Byy_pot";
 	fout << endl;
 
 	fout << "ZONE T=HP, ";
