@@ -652,7 +652,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 
 		// В сетке для MK очистим ненужные имена переменных 
-		if (true)
+		if (false)
 		{
 			Smc.phys_param->param_names.assign(Smc.phys_param->MK_param.begin(), Smc.phys_param->MK_param.end());
 		}
@@ -686,7 +686,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 		// Считываем моменты
 		cout << "Reading moments from " << Smc.phys_param->MK_file << endl;
-		if (Smc.phys_param->culc_cell_moments == true)
+		if (true)
 		{
 			if (file_exists(Smc.phys_param->MK_file))
 			{
@@ -699,14 +699,25 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		cout << "Arrays read successfully" << endl;
 
 		Smc.mas_pogl_Culc(1.0, 0.0, 0.0, "upwind");
+		cout << "start mas_pogl_Culc_fluid: " << endl;
+		this->mas_pogl_Culc_fluid(1.0, 0.0, 0.0, "upwind");
+		cout << "end mas_pogl_Culc_fluid: " << endl;
 		Smc.mas_pogl_Culc(1.0, 0.1, 0.0, "sim_upwind");
+		this->mas_pogl_Culc_fluid(1.0, 0.1, 0.0, "sim_upwind");
 		Smc.mas_pogl_Culc(0.0, 1.0, 0.0, "crosswind1");
+		this->mas_pogl_Culc_fluid(0.0, 1.0, 0.0, "crosswind1");
 		Smc.mas_pogl_Culc(0.0, 1.0, 1.0, "crosswind2");
+		this->mas_pogl_Culc_fluid(0.0, 1.0, 1.0, "crosswind2");
 		Smc.mas_pogl_Culc(0.0, 0.0, 1.0, "crosswind3");
+		this->mas_pogl_Culc_fluid(0.0, 0.0, 1.0, "crosswind3");
 		Smc.mas_pogl_Culc(-1.0, 0.0, 0.0, "downwind");
+		this->mas_pogl_Culc_fluid(-1.0, 0.0, 0.0, "downwind");
 		Smc.mas_pogl_Culc(-1.0, 1.0, 0.0, "tail1");
+		this->mas_pogl_Culc_fluid(-1.0, 1.0, 0.0, "tail1");
 		Smc.mas_pogl_Culc(-1.0, 0.70710678, 0.70710678, "tail2");
+		this->mas_pogl_Culc_fluid(-1.0, 0.70710678, 0.70710678, "tail2");
 		Smc.mas_pogl_Culc(-1.0, 0.0, 1.0, "tail3");
+		this->mas_pogl_Culc_fluid(-1.0, 0.0, 1.0, "tail3");
 
 		cout << "Removing arrays" << endl;
 
