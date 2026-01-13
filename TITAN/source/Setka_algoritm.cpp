@@ -730,6 +730,20 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		Smc.Print_f_proect_in_gran(1);
 		Smc.Print_f_proect_in_gran(2);
 		Smc.Print_f_proect_in_gran(3);
+
+		Smc.Print_f_proect_in_cell(13.0, 0.0, 0.0);
+		Smc.Print_f_proect_in_cell(20.0, 0.0, 0.0);
+		Smc.Print_f_proect_in_cell(35.0, 0.0, 0.0);
+		Smc.Print_f_proect_in_cell(40.0, 0.0, 0.0);
+		Smc.Print_f_proect_in_cell(45.0, 0.0, 0.0);
+		Smc.Print_f_proect_in_cell(50.0, 0.0, 0.0);
+		Smc.Print_f_proect_in_cell(55.0, 0.0, 0.0);
+		Smc.Print_f_proect_in_cell(60.0, 0.0, 0.0);
+		Smc.Print_f_proect_in_cell(70.0, 0.0, 0.0);
+		Smc.Print_f_proect_in_cell(80.0, 0.0, 0.0);
+		Smc.Print_f_proect_in_cell(90.0, 0.0, 0.0);
+		Smc.Print_f_proect_in_cell(-40.0, 0.0, 0.0);
+		Smc.Print_f_proect_in_cell(-80.0, 0.0, 0.0);
 	}
 	else if (alg == 9)
 	{
@@ -1061,11 +1075,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		
 
 
