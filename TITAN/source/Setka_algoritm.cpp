@@ -168,14 +168,14 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			cout << "All time = " << this->phys_param->ALL_Time << endl;
 			cout << "All time (in days) = " << this->phys_param->ALL_Time / 0.00142358 << endl;
 			cout << "All time (in years) = " << this->phys_param->ALL_Time / 0.519607 << endl;
-			this->Go(false, 400, 1); // 400   1
+			this->Go(false, 100, 1); // 400   1
 			if (i % 100000 == 0)
 			{
 				this->Go(true, 1000, 1); // 400   1 
 			}
 			else
 			{
-				this->Go(true, 100, 1); // 400   1 
+				this->Go(true, 1000, 1); // 400   1 
 			}
 			this->Smooth_head_HP3();
 			this->Smooth_head_TS3();
