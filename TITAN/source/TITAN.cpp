@@ -9,6 +9,48 @@ using namespace std;
 int main()
 {
     cout << "Start Programm" << endl;
+    if (false)
+    {
+        Eigen::Vector3d vec, cc, vv;
+        Eigen::Vector3d vec2, cc2, vv2;
+        Eigen::Matrix3d Matr;              // Матрица перехода из HGI в мои
+        Eigen::Matrix3d Matr2;             // Матрица перехода моих в HGI
+        Eigen::Matrix3d Matr3;             // Матрица перехода из Эклиптических координат в мои
+
+        Matr << -0.9958639688067077, 0.01776569097515556, 0.08910295088675518,
+            0.07561695085992419, 0.7057402284561812, 0.7044237408557894,
+            -0.05036896241933166, 0.7082479157489926, -0.7041646522383864;
+
+        Matr2 << -0.9958639688067080, 0.0756169508599243, -0.0503689624193315,
+            0.0177656909751554, 0.7057402284561816, 0.7082479157489927,
+            0.0891029508867553, 0.7044237408557898, -0.7041646522383865;
+
+
+
+        vec << -0.9952, -0.0669, -0.0709;
+        vv << 1.0, 0.0, 0.0;
+
+        cc = Matr * vec;
+
+        cout << cc[0] << " " << cc[1] << " " << cc[2] << endl;
+        double cosAngle = cc.dot(vv) / (cc.norm() * vv.norm());
+        cosAngle = std::clamp(cosAngle, -1.0, 1.0);
+        cout << std::acos(cosAngle) * 180.0 / const_pi << endl;
+
+        Matr3 << -0.2510319412434562, -0.9637264652805977, 0.0906325801977802,
+            -0.5738471722585876, 0.2235689862406300, 0.7878555269096995,
+            -0.7795398561756577, 0.1457676524785322, -0.6091546635498517;
+
+
+        vec2 << -0.173236, -0.982923, -0.062060;
+        cc = Matr3 * vec2;
+        cout << cc[0] << " " << cc[1] << " " << cc[2] << endl;
+        cosAngle = cc.dot(vv) / (cc.norm() * vv.norm());
+        cosAngle = std::clamp(cosAngle, -1.0, 1.0);
+        cout << std::acos(cosAngle) * 180.0 / const_pi << endl;
+
+        return 0;
+    }
 
     // Создаём основную сетку из файлов вспомогательных сеток
     Setka S1 = Setka("SDK1_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
@@ -37,7 +79,10 @@ int main()
     // Считываем физические параметры и геометрическое положение узлов из файла (предыдущего расчёта)
     //S1.Download_cell_parameters("parameters_0060.bin");   
 
-    S1.Download_cell_parameters("parameters_0065.bin");
+    //S1.Download_cell_parameters("parameters_0065.bin");
+    S1.Download_cell_parameters("parameters_0066.bin");
+
+
     //S1.Download_cell_parameters("parameters_0219.bin");
 
 
@@ -111,8 +156,7 @@ int main()
     
     //S1.Algoritm(101, &S1);
     //S1.Algoritm(10, &S1);
-    S1.Algoritm(1, &S1);
-    //S1.Algoritm(8, &S1);
+    S1.Algoritm(8, &S1);
     //S1.Algoritm(5, &S1);
 
     //return 0;
@@ -171,8 +215,7 @@ int main()
     }
 
 
-
-    S1.Save_cell_parameters("parameters_0066.bin");
+    //S1.Save_cell_parameters("parameters_0066.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

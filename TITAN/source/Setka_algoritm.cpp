@@ -159,7 +159,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Smooth_head_TS3();
 
 
-		for (int i = 1; i <= 6 * 6; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 6 * 3; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
 			cout << "IIIII = " << i << endl;
@@ -702,6 +702,13 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		cout << "start mas_pogl_Culc_fluid: " << endl;
 		this->mas_pogl_Culc_fluid(1.0, 0.0, 0.0, "upwind");
 		cout << "end mas_pogl_Culc_fluid: " << endl;
+
+
+		Smc.mas_pogl_Culc(0.985132, -0.169234, 0.0295701, "36Oph");
+		cout << "start mas_pogl_Culc_fluid: " << endl;
+		this->mas_pogl_Culc_fluid(0.985132, -0.169234, 0.0295701, "36Oph");
+		cout << "end mas_pogl_Culc_fluid: " << endl;
+
 		Smc.mas_pogl_Culc(1.0, 0.1, 0.0, "sim_upwind");
 		this->mas_pogl_Culc_fluid(1.0, 0.1, 0.0, "sim_upwind");
 		Smc.mas_pogl_Culc(0.0, 1.0, 0.0, "crosswind1");
