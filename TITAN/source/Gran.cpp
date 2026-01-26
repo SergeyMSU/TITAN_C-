@@ -43,6 +43,11 @@ short int Gran::Get_method()
 		}
 	}
 
+	if (this->cells[0]->type == Type_cell::Zone_2 && this->center[0][0] < -60.0)
+	{
+		return 0;
+	}
+
 	return 3;
 }
 

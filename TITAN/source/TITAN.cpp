@@ -82,7 +82,6 @@ int main()
     //S1.Download_cell_parameters("parameters_0065.bin");
     S1.Download_cell_parameters("parameters_0066.bin");
 
-
     //S1.Download_cell_parameters("parameters_0219.bin");
 
 
@@ -100,7 +99,6 @@ int main()
         // Инициализируем TVD (находим соседей и т.д.)
         S1.Init_TVD();
     }
-
 
     //  Ручное изменение BS
     if (false)
@@ -152,15 +150,14 @@ int main()
     }
 
     // Выбор основного алгоритма расчёта (в данной функции представлены все варианты расчёта: атомы, мгд и т.д.), см. саму функцию
-    //S1.Algoritm(22, &S1);
+    S1.Algoritm(1, &S1);
     
     //S1.Algoritm(101, &S1);
     //S1.Algoritm(10, &S1);
-    S1.Algoritm(5, &S1);
-    S1.Algoritm(8, &S1);
     //S1.Algoritm(5, &S1);
-
-    return 0;
+    //S1.Algoritm(8, &S1);
+    //S1.Algoritm(5, &S1);
+    //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 
@@ -216,7 +213,7 @@ int main()
     }
 
 
-    //S1.Save_cell_parameters("parameters_0066.bin");
+    S1.Save_cell_parameters("parameters_0067.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -283,9 +280,9 @@ int main()
 
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0066.bin", false);
+    S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0066.bin");
+    Interpol SS = Interpol("For_intertpolate_0059-.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");
