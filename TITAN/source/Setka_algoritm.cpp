@@ -694,6 +694,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			}
 		}
 
+		Smc.Set_MK_Zone();
+
 		cout << "2 Sum = " << A->mas_pogl.sum() << endl;
 
 		cout << "Arrays read successfully" << endl;
@@ -751,6 +753,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		Smc.Print_f_proect_in_cell(90.0, 0.0, 0.0);
 		Smc.Print_f_proect_in_cell(-40.0, 0.0, 0.0);
 		Smc.Print_f_proect_in_cell(-80.0, 0.0, 0.0);
+
+		Smc.Print_fH(2, Type_Gran_surf::TS, 1.0, 0.0, 0.0, 7.0 * const_pi / 180.0);
+		Smc.Print_fH(2, Type_Gran_surf::HP, 1.0, 0.0, 0.0, 7.0 * const_pi / 180.0);
 	}
 	else if (alg == 9)
 	{

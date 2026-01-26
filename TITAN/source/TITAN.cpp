@@ -156,10 +156,11 @@ int main()
     
     //S1.Algoritm(101, &S1);
     //S1.Algoritm(10, &S1);
+    S1.Algoritm(5, &S1);
     S1.Algoritm(8, &S1);
     //S1.Algoritm(5, &S1);
 
-    //return 0;
+    return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 
@@ -282,11 +283,12 @@ int main()
 
     }
 
-    //S1.Save_for_interpolate("For_intertpolate_0065.bin", true);
-    //Interpol SS = Interpol("For_intertpolate_0064.bin");
+    S1.Save_for_interpolate("For_intertpolate_0066.bin", false);
+    //return 0;
+    Interpol SS = Interpol("For_intertpolate_0066.bin");
 
-    S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
-    Interpol SS = Interpol("For_intertpolate_0059-.bin");
+    //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
+    //Interpol SS = Interpol("For_intertpolate_0059-.bin");
 
     cout << "AAA" << endl;
 
