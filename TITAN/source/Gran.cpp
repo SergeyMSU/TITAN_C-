@@ -48,6 +48,11 @@ short int Gran::Get_method()
 		return 0;
 	}
 
+	if (this->cells[0]->type == Type_cell::Zone_2 && this->center[0][0] < -30.0 && norm2(0.0, this->center[0][1], this->center[0][2]) > 55.0)
+	{
+		return 0;
+	}
+
 	return 3;
 }
 
