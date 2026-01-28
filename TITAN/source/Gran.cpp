@@ -41,17 +41,19 @@ short int Gran::Get_method()
 				return 0;                            // Лакс во втором ряду от гелиопаузы
 			}
 		}
-	}
 
-	if (this->cells[0]->type == Type_cell::Zone_2 && this->center[0][0] < -60.0)
+
+		if (this->cells[0]->type == Type_cell::Zone_2 && this->center[0][0] < 10.0)
+		{
+			return 0;
+		}
+
+	}
+	else if (this->type2 == Type_Gran_surf::HP && this->center[0][0] < 10.0)
 	{
 		return 0;
 	}
 
-	/*if (this->cells[0]->type == Type_cell::Zone_2 && this->center[0][0] < -30.0 && norm2(0.0, this->center[0][1], this->center[0][2]) > 55.0)
-	{
-		return 0;
-	}*/
 
 	return 3;
 }
