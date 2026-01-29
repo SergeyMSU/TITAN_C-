@@ -43,16 +43,16 @@ short int Gran::Get_method()
 		}
 
 
-		if (this->cells[0]->type == Type_cell::Zone_2 && this->center[0][0] < 10.0)
+		/*if (this->cells[0]->type == Type_cell::Zone_2 && this->center[0][0] < 10.0)
 		{
 			return 0;
-		}
+		}*/
 
 	}
-	else if (this->type2 == Type_Gran_surf::HP && this->center[0][0] < 10.0)
+	/*else if (this->type2 == Type_Gran_surf::HP && this->center[0][0] < 10.0)
 	{
 		return 0;
-	}
+	}*/
 
 
 	return 3;
