@@ -159,7 +159,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Smooth_head_TS3();
 
 
-		for (int i = 1; i <= 12 * 9; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 16 * 15; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
 			cout << "IIIII = " << i << endl;
@@ -169,7 +169,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			cout << "All time (in days) = " << this->phys_param->ALL_Time / 0.00142358 << endl;
 			cout << "All time (in years) = " << this->phys_param->ALL_Time / 0.519607 << endl;
 			this->Go(false, 400, 1); // 400   1
-			if (i % 100000 == 0)
+			if (i % 16 == 0)
 			{
 				this->Go(true, 1000, 1); // 400   1 
 			}

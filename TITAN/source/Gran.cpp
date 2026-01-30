@@ -7,6 +7,7 @@ short int Gran::Get_method()
 	// 2 - HLLC
 	// 3 - HLLD
 
+
 	//if (this->type2 != Type_Gran_surf::Us) return 3;
 	//return 0;
 
@@ -48,11 +49,16 @@ short int Gran::Get_method()
 			return 0;
 		}*/
 
+		//if (this->cells[0]->type == Type_cell::Zone_2)   // Лакс во второй зоне
+		//{
+		//	return 0;
+		//}
+
 	}
-	/*else if (this->type2 == Type_Gran_surf::HP && this->center[0][0] < 10.0)
-	{
-		return 0;
-	}*/
+	//else if (this->type2 == Type_Gran_surf::HP)    // Лакс на гелиопаузе
+	//{
+	//	return 0;
+	//}
 
 
 	return 3;
