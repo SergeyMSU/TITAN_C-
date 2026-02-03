@@ -80,7 +80,7 @@ int main()
     //S1.Download_cell_parameters("parameters_0060.bin"); 
     //  
 
-    S1.Download_cell_parameters("parameters_0073.bin");   
+    S1.Download_cell_parameters("parameters_0074.bin");   
     // S1.Download_cell_parameters("parameters_promeg_1112.bin");
     //S1.Download_cell_parameters("parameters_promeg_1118.bin");
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");
