@@ -44,10 +44,10 @@ short int Gran::Get_method()
 		}
 
 
-		/*if (this->cells[0]->type == Type_cell::Zone_2 && this->center[0][0] < 10.0)
+		if (this->center[0][0] < -100.0)
 		{
 			return 0;
-		}*/
+		}
 
 		//if (this->cells[0]->type == Type_cell::Zone_2)   // Лакс во второй зоне
 		//{
