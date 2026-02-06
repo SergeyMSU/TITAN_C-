@@ -80,7 +80,7 @@ int main()
     //S1.Download_cell_parameters("parameters_0060.bin"); 
     //  
 
-    S1.Download_cell_parameters("parameters_0078.bin");    
+    S1.Download_cell_parameters("parameters_0079.bin");    
     // S1.Download_cell_parameters("parameters_promeg_1112.bin");
     //S1.Download_cell_parameters("parameters_promeg_1118.bin");
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");
@@ -153,14 +153,14 @@ int main()
     }
 
     // Выбор основного алгоритма расчёта (в данной функции представлены все варианты расчёта: атомы, мгд и т.д.), см. саму функцию
-    S1.Algoritm(1, &S1);
+    S1.Algoritm(10, &S1);
     
     //S1.Algoritm(101, &S1);
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(5, &S1);
     //S1.Algoritm(8, &S1);
     //S1.Algoritm(5, &S1);
-    //return 0;
+    return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 
@@ -216,7 +216,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0079.bin");
+    //S1.Save_cell_parameters("parameters_0079.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -283,9 +283,9 @@ int main()
 
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0079-no_razriv.bin", false);
+    S1.Save_for_interpolate("For_intertpolate_0079-no_razriv-with_MK.bin", false);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0079-no_razriv.bin");
+    Interpol SS = Interpol("For_intertpolate_0079-no_razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");
