@@ -143,6 +143,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 20 - расчёт потенциального поля в сверхзвуке методом контрольных объёмов
 	// 21 - расчёт потенциального поля во внешнем ударном слое методом контрольных объёмов
 	// 22 - расчёт потенциального поля в сверхзвуке методом контрольных объёмов - второй порядок
+	// 23 - печатаем мини-интерполяционную сетку и источники Sp Sm для Игоря
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -3850,6 +3851,108 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			Eigen::Vector3d(0.0, 0.0, 0.0));
 
 			}
+	else if (alg == 23)
+	{
+		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
+		cout << "Create Setka Smc" << endl;
+		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
+		Setka Smc = Setka("SDK_40_2D_Setka.bin", "SDK_40_krug_setka.bin", 40);
+
+		cout << "Create SI_main" << endl;
+		// Из основной сетки создаём интерполяционную сетку
+		this->Save_for_interpolate("For_intertpolate_work.bin", false);
+		Interpol SI_main = Interpol("For_intertpolate_work.bin");
+
+		cout << "Move Setka Smc" << endl;
+		// Двигаем поверхности вспомогательной сетки к поверхностям основной
+		Smc.Move_to_surf(&SI_main);
+		// Точно задаём положение внутренней границы сетки
+		Smc.geo->R0 = Smc.phys_param->R_0;
+
+		// Автоматически подстраиваем геометрические параметры сетки (сгущение и т.д.) под новые поверхности
+		Smc.auto_set_luch_geo_parameter(0, true);
+		// Настраиваем новую сетку (также как и основную)   [обязательно]
+		if (true)
+		{
+			// Считаем объёмы, площади и другие геометрические характеристики
+			Smc.Calculating_measure(0);
+			Smc.Calculating_measure(1);
+
+			// Задаём граничные грани
+			Smc.Init_boundary_grans();
+		}
+
+		// В сетке для MK очистим ненужные имена переменных 
+		if (false)
+		{
+			Smc.phys_param->param_names.assign(Smc.phys_param->MK_param.begin(), Smc.phys_param->MK_param.end());
+		}
+
+		// Заполним сетку МК значениями плазмы из основной сетки (чтобы вместо интерполяции в МК использовать значения в центрах ячеек - так быстрее)
+		// переинтерполяция
+		if (true)
+		{
+			Smc.PereInterpolate(&SI_main, false);
+		}
+
+		Smc.Test_geometr();
+
+		std::ofstream out("Sp_Sm_for_work_MK", std::ios::binary);
+		if (!out.is_open()) 
+		{
+			throw std::runtime_error("Cannot open file for writing");
+		}
+
+		size_t num_cells = Smc.All_Cell.size();
+		out.write(reinterpret_cast<const char*>(&num_cells), sizeof(size_t));
+
+		size_t num_ = Smc.phys_param->pui_nW;
+		out.write(reinterpret_cast<const char*>(&num_), sizeof(size_t));
+
+		// Загружаем S+ S- для всей сетки
+		for (auto& A : Smc.All_Cell)
+		{
+			A->Init_S(2, Smc.phys_param->pui_nW);
+			A->read_S_FromFile(Smc.phys_param->par_n_H_LISM);
+
+			out.write(reinterpret_cast<const char*>(A->pui_Sm.data()), num_ * sizeof(double));
+
+			// Всегда записываем как матрицу 2 x n
+			int rows = A->pui_Sp.rows();
+
+			// Записываем первую строку
+			for (size_t j = 0; j < num_; ++j)
+			{
+				double val = A->pui_Sp(0, j);
+				out.write(reinterpret_cast<const char*>(&val), sizeof(double));
+			}
+
+			// Первая строка матрицы
+			if (rows == 2) 
+			{
+				for (size_t j = 0; j < num_; ++j)
+				{
+					double val = A->pui_Sp(1, j);
+					out.write(reinterpret_cast<const char*>(&val), sizeof(double));
+				}
+			}
+			else 
+			{
+				for (size_t j = 0; j < num_; ++j)
+				{
+					double zero = 0.0;
+					out.write(reinterpret_cast<const char*>(&zero), sizeof(double));
+				}
+			}
+		}
+
+		int vall = 148;
+		out.write(reinterpret_cast<const char*>(&vall), sizeof(int));
+
+		out.close();
+
+		Smc.Save_for_interpolate("For_intertpolate_work_MK.bin", false);
+	}
 
 
 		

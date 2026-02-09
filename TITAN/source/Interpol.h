@@ -53,6 +53,12 @@ public:
 	double L6;  // До какого расстояния слева выделяется контакт
 	bool razriv;       // Есть ли особая интерполяция на разрывах?
 
+	// Массивы для источников Sp Sm (работает только при razriv = false)
+	Eigen::MatrixXd pui_Sm;   // (k, n)
+	Eigen::MatrixXd pui_Sp1;   // (k, n)
+	Eigen::MatrixXd pui_Sp2;   // (k, n)
+
+
 	Interpol(string name);
 	~Interpol();
 

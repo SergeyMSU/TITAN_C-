@@ -156,8 +156,8 @@ int main()
     //S1.Algoritm(10, &S1);
     
     //S1.Algoritm(101, &S1);
-    S1.Algoritm(10, &S1);
-    //S1.Algoritm(5, &S1);
+    //S1.Algoritm(10, &S1);
+    S1.Algoritm(5, &S1);
     //S1.Algoritm(8, &S1);
     return 0;
 
@@ -282,9 +282,9 @@ int main()
 
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0079-no_razriv-with_MK.bin", false);
+    S1.Save_for_interpolate("For_intertpolate_0079-razriv-with_MK.bin", true);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0079-no_razriv-with_MK.bin");
+    Interpol SS = Interpol("For_intertpolate_0079-razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");
