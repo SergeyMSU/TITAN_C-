@@ -1161,3 +1161,120 @@ bool Interpol::Get_BS(const double& x, const double& y, const double& z,
         return true;
     }
 }
+
+void Interpol::Read_Sp_Sm(string filename)
+{
+    std::ifstream in(filename, std::ios::binary);
+    if (!in.is_open()) {
+        throw std::runtime_error("Cannot open file for reading");
+    }
+
+    // 1. Читаем количество ячеек (n)
+    size_t num_cells = 0;
+    in.read(reinterpret_cast<char*>(&num_cells), sizeof(size_t));
+
+    // 2. Читаем количество элементов в массиве (k)
+    size_t num_elements = 0;
+    in.read(reinterpret_cast<char*>(&num_elements), sizeof(size_t));
+    this->pui_nW = num_elements;
+
+    // 3. Выделяем память под матрицы: размерность (k, n)
+    this->pui_Sm.resize(num_elements, num_cells);
+    this->pui_Sp1.resize(num_elements, num_cells);
+    this->pui_Sp2.resize(num_elements, num_cells);
+
+    // 4. Читаем данные для каждой ячейки
+    std::vector<double> temp_buffer(num_elements);
+
+    for (size_t cell_idx = 0; cell_idx < num_cells; ++cell_idx) {
+        // Читаем pui_Sm для текущей ячейки
+        in.read(reinterpret_cast<char*>(temp_buffer.data()),
+            num_elements * sizeof(double));
+
+        // Копируем в столбец матрицы pui_Sm
+        for (size_t elem_idx = 0; elem_idx < num_elements; ++elem_idx) {
+            this->pui_Sm(elem_idx, cell_idx) = temp_buffer[elem_idx];
+        }
+
+        // Читаем первую строку pui_Sp (всегда присутствует)
+        in.read(reinterpret_cast<char*>(temp_buffer.data()),
+            num_elements * sizeof(double));
+
+        // Копируем в столбец матрицы pui_Sp1
+        for (size_t elem_idx = 0; elem_idx < num_elements; ++elem_idx) {
+            this->pui_Sp1(elem_idx, cell_idx) = temp_buffer[elem_idx];
+        }
+
+        // Читаем вторую строку pui_Sp (может быть заполнена нулями)
+        in.read(reinterpret_cast<char*>(temp_buffer.data()),
+            num_elements * sizeof(double));
+
+        // Копируем в столбец матрицы pui_Sp2
+        for (size_t elem_idx = 0; elem_idx < num_elements; ++elem_idx) {
+            this->pui_Sp2(elem_idx, cell_idx) = temp_buffer[elem_idx];
+        }
+    }
+
+    // 5. Проверяем целостность данных
+    int check_value = 0;
+    in.read(reinterpret_cast<char*>(&check_value), sizeof(int));
+
+    if (check_value != 148) 
+    {
+        throw std::runtime_error("Data integrity check failed: expected 148, got " +
+            std::to_string(check_value));
+    }
+
+    // Проверяем, что дочитали до конца файла
+    if (!in.eof()) {
+        // Можно вывести предупреждение, если в файле остались данные
+        std::cout << "Warning: extra data in file after expected end" << std::endl;
+    }
+
+    in.close();
+
+}
+
+bool Interpol::Get_Source(const double& x, const double& y, const double& z, const Cell_handle& prev_cell, Cell_handle& next_cell, vector<double>& mas_Sm,
+    vector<double>& mas_Sp1, vector<double>& mas_Sp2)
+{
+    vector<int> num_cell(4);
+    vector<double> koeff_cell(4);
+
+    bool b = this->Get_real_cells(x, y, z, num_cell, koeff_cell, prev_cell, next_cell);
+
+    if (b == false)
+    {
+        for (int jj = 0; jj < this->pui_nW; jj++)
+        {
+            mas_Sm[jj] = 0.0;
+            mas_Sp1[jj] = 0.0;
+            mas_Sp2[jj] = 0.0;
+        }
+
+        return b;
+    }
+
+    for (int jj = 0; jj < this->pui_nW; jj++)
+    {
+        double S = 0.0;
+        double SS = 0.0;
+        double SSS = 0.0;
+
+        for (int i = 0; i < num_cell.size(); i++)
+        {
+            int j = num_cell[i];
+            double k = koeff_cell[i];
+
+            S += this->pui_Sm(jj, j) * k;
+            SS += this->pui_Sp1(jj, j) * k;
+            SSS += this->pui_Sp2(jj, j) * k;
+        }
+
+        mas_Sm[jj] = S;
+        mas_Sp1[jj] = SS;
+        mas_Sp2[jj] = SSS;
+    }
+
+    return b;
+}

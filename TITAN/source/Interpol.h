@@ -57,6 +57,8 @@ public:
 	Eigen::MatrixXd pui_Sm;   // (k, n)
 	Eigen::MatrixXd pui_Sp1;   // (k, n)
 	Eigen::MatrixXd pui_Sp2;   // (k, n)
+	int pui_nW = 100;  // -количество ячеек в массиве S
+	double pui_wR = 200.0;  // -до какой скорости посчитаны источники
 
 
 	Interpol(string name);
@@ -81,6 +83,14 @@ public:
 		std::unordered_map<string, double>& parameters);
 	bool Get_BS(const double& x, const double& y, const double& z,
 		std::unordered_map<string, double>& parameters);
+
+	void Read_Sp_Sm(string filename);
+
+	bool Get_Source(const double& x, const double& y, const double& z, 
+		const Cell_handle& prev_cell, Cell_handle& next_cell, 
+		vector<double>& mas_Sm, 
+		vector<double>& mas_Sp1, 
+		vector<double>& mas_Sp2);
 
 	bool Get_real_cells(const double& x, const double& y, const double& z,
 		vector<int>& num_cell, vector<double>& koeff_cell, const Cell_handle& prev_cell, Cell_handle& next_cell);
