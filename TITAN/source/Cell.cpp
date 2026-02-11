@@ -249,7 +249,8 @@ void Cell::write_S_ToFile(void)
 
 		file.close();
 	}
-	catch (const std::exception& e) {
+	catch (const std::exception& e) 
+	{
 		std::cerr << "Error  KJHfuiyregbuyifbeihrfyugwuhuerf" << e.what() << std::endl;
 		file.close();
 		exit(-1);
@@ -635,10 +636,12 @@ void Cell::read_S_FromFile(const double& n_H_lism)
 		// Проверяем соответствие размеров
 		if (rows != this->pui_Sp.rows() || cols != this->pui_Sp.cols())
 		{
-			std::cerr << "Error ejighieurgerg54t4t5"
-				<< "fail: " << rows << "  x   " << cols << ", "
+			cout << "Error ejighieurgerg54t4t5 " << endl 
+				<< "fail: " << rows << "  x   " << cols << "   x   " << size << ", "
 				<< "expect: " << this->pui_Sp.rows() << "  x  " << this->pui_Sp.cols() << std::endl;
+			cout << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][2] << endl;
 			file.close();
+			//return;
 			exit(-10);
 		}
 
@@ -660,7 +663,8 @@ void Cell::read_S_FromFile(const double& n_H_lism)
 		this->pui_Sp = this->pui_Sp * n_H_lism;
 
 	}
-	catch (const std::exception& e) {
+	catch (const std::exception& e) 
+	{
 		std::cerr << "Error 384try78geurgfuegf " << e.what() << std::endl;
 		file.close();
 		exit(-19);
@@ -1767,6 +1771,12 @@ void Cell::MK_Add_pui_source(MK_particle& P, const double& wr, const double& nu_
 	this->mut.lock();
 	this->pui_Sm[index] += mu * time;
 	this->mut.unlock();
+
+	// Если надо просто какие-то Sp записать
+	this->mut.lock();
+	this->pui_Sp(0, index) += mu * time * nu_ex;
+	this->mut.unlock();
+	return;
 
 	// Надо понять, в какой S записываем 
 	short int k = 0;

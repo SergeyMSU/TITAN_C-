@@ -1434,7 +1434,8 @@ void Setka::MK_prepare(short int zone_MK, bool AMR_need)
 		{
 			if (i->MK_zone == zone_MK)
 			{
-				i->Init_S(this->phys_param->num_pui, this->phys_param->pui_nW);
+				//i->Init_S(this->phys_param->num_pui, this->phys_param->pui_nW);
+				i->Init_S(2, this->phys_param->pui_nW);
 			}
 		}
 	}

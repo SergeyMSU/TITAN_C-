@@ -562,7 +562,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		cout << "Create SI_MK" << endl;
-		// Из основной сетки создаём интерполяционную сетку
+		// Из MK сетки создаём интерполяционную сетку
 		Smc.Save_for_interpolate("For_intertpolate_work_MK.bin", false);
 
 		// Переинтерполируем параметры Монте-Карло из вспомогательной сетки в основную
@@ -1085,13 +1085,10 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		//zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		
 
@@ -3897,7 +3894,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 		Smc.Test_geometr();
 
-		std::ofstream out("Sp_Sm_for_work_MK", std::ios::binary);
+		std::ofstream out("Sp_Sm_for_work_MK.bin", std::ios::binary);
 		if (!out.is_open()) 
 		{
 			throw std::runtime_error("Cannot open file for writing");
@@ -3944,7 +3941,18 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 					out.write(reinterpret_cast<const char*>(&zero), sizeof(double));
 				}
 			}
+
+			A->pui_Sm.resize(0);
+			A->pui_Sp.resize(0, 0);
 		}
+
+		Smc.Print_SpSm(17.0, 0.0, 0.0);
+		Smc.Print_SpSm(20.0, 0.0, 0.0);
+		Smc.Print_SpSm(25.0, 0.0, 0.0);
+		Smc.Print_SpSm(1.0, 0.0, 0.0);
+		Smc.Print_SpSm(5.0, 0.0, 0.0);
+		Smc.Print_SpSm(10.0, 0.0, 0.0);
+		Smc.Print_SpSm(15.0, 0.0, 0.0);
 
 		int vall = 148;
 		out.write(reinterpret_cast<const char*>(&vall), sizeof(int));
@@ -3952,6 +3960,24 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		out.close();
 
 		Smc.Save_for_interpolate("For_intertpolate_work_MK.bin", false);
+
+		cout << "End - proverka" << endl;
+		Interpol SS = Interpol("For_intertpolate_work_MK.bin");
+		SS.Read_Sp_Sm("Sp_Sm_for_work_MK.bin");
+		Cell_handle prev_cell = Cell_handle();
+		Cell_handle next_cell;
+		vector<double> mas_Sm(SS.pui_nW);
+		vector<double> mas_Sp1(SS.pui_nW);
+		vector<double> mas_Sp2(SS.pui_nW);
+		bool b = SS.Get_Source(25.0, 0.0, 0.0, prev_cell, next_cell,
+			mas_Sm, mas_Sp1, mas_Sp2);
+		if (b == true)
+		{
+			for (int i = 0; i < SS.pui_nW; i++)
+			{
+				cout << i << " " << mas_Sm[i] << " " << mas_Sp1[i] << endl;
+			}
+		}
 	}
 
 

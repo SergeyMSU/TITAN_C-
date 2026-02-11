@@ -970,7 +970,7 @@ unsigned int AMR_f::Refine(short int H_n)
 			if (H_n == 7)  dd = 3.0;
 			if (H_n == 6)  dd = 4.5;
 			if (H_n == 5)  dd = 4.5;
-			if (H_n == 4)  dd = 0.7;
+			if (H_n == 4)  dd = 0.5;  // 0.7
 			if (H_n == 3)  dd = 0.7;
 			if (H_n == 2)  dd = 3.0;
 			if (H_n == 1)  dd = 2.0;
