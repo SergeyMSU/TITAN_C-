@@ -157,9 +157,10 @@ int main()
 
     
     //S1.Algoritm(101, &S1);
-    S1.Algoritm(23, &S1);
+    //S1.Algoritm(23, &S1);
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(23, &S1);
+    //S1.Algoritm(101, &S1);
     S1.Algoritm(5, &S1);
     //return 0;
 
