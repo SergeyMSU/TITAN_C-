@@ -80,8 +80,8 @@ int main()
     //S1.Download_cell_parameters("parameters_0060.bin"); 
     //  
 
-    //S1.Download_cell_parameters("parameters_0079.bin");    
-    S1.Download_cell_parameters("parameters_0219.bin");    
+    S1.Download_cell_parameters("parameters_0079.bin");    
+    //S1.Download_cell_parameters("parameters_0219.bin");    
     // S1.Download_cell_parameters("parameters_promeg_1112.bin");
     //S1.Download_cell_parameters("parameters_promeg_1118.bin");
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");
@@ -162,8 +162,9 @@ int main()
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(23, &S1);
     //S1.Algoritm(101, &S1);
-    S1.Algoritm(19, &S1);
-    return 0;
+    S1.Algoritm(10, &S1);
+    S1.Algoritm(5, &S1);
+    //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 
@@ -219,7 +220,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0080.bin");
+    //S1.Save_cell_parameters("parameters_0080.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

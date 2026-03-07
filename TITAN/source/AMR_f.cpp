@@ -1,6 +1,22 @@
 #include "AMR_f.h"
 using namespace std;
 
+void AMR_f::Set_moment_null(void)
+{
+	std::vector<AMR_cell*> cells;
+	this->Get_all_cells(cells);
+	for (const auto& i : cells)
+	{
+		i->active_data->param["Sx"] = 0.0;
+		i->active_data->param["Sy"] = 0.0;
+		i->active_data->param["Sz"] = 0.0;
+		i->active_data->param["Sxx"] = 0.0;
+		i->active_data->param["Syy"] = 0.0;
+		i->active_data->param["Szz"] = 0.0;
+	}
+
+}
+
 void AMR_f::Culk_SpotokV(const double& Squ)
 {
 	std::vector<AMR_cell*> cells;
@@ -352,6 +368,15 @@ void AMR_f::Add_particle(const double& Vx, const double& Vy, const double& Vz, c
 	}
 
 	this->mut.lock();
+
+	cell->active_data->param["Sx"] += (mu * x);
+	cell->active_data->param["Sy"] += (mu * y);
+	cell->active_data->param["Sz"] += (mu * z);
+	cell->active_data->param["Sxx"] += (mu * x * x);
+	cell->active_data->param["Syy"] += (mu * y * y);
+	cell->active_data->param["Szz"] += (mu * z * z);
+
+
 	//cell->f += mu/Vnn;
 	cell->setF(cell->getF() + mu);    // Убираем нормировку на Vnn, будем нормировать потоком на границе
 	this->mut.unlock();
@@ -374,6 +399,23 @@ void AMR_f::Normir_velocity_volume(const double& squ)
 		//cel->f /= (razmer[0] * razmer[1] * razmer[2] * squ);
 		cel->setF(cel->getF() / (razmer[0] * razmer[1] * razmer[2] * squ * center[0])); 
 		// нормировка еще и на элемент Vx (деления источника заново выведены)
+
+
+		if (cel->active_data->param.find("Sx") != cel->active_data->param.end()) cel->active_data->param["Sx"] /= 
+			(razmer[0] * razmer[1] * razmer[2] * squ * center[0]);
+		if (cel->active_data->param.find("Sy") != cel->active_data->param.end()) cel->active_data->param["Sy"] /=
+			(razmer[0] * razmer[1] * razmer[2] * squ * center[0]);
+		if (cel->active_data->param.find("Sz") != cel->active_data->param.end()) cel->active_data->param["Sz"] /=
+			(razmer[0] * razmer[1] * razmer[2] * squ * center[0]);
+		if (cel->active_data->param.find("Sxx") != cel->active_data->param.end()) cel->active_data->param["Sxx"] /=
+			(razmer[0] * razmer[1] * razmer[2] * squ * center[0]);
+		if (cel->active_data->param.find("Syy") != cel->active_data->param.end()) cel->active_data->param["Syy"] /=
+			(razmer[0] * razmer[1] * razmer[2] * squ * center[0]);
+		if (cel->active_data->param.find("Szz") != cel->active_data->param.end()) cel->active_data->param["Szz"] /=
+			(razmer[0] * razmer[1] * razmer[2] * squ * center[0]);
+		// Это для того, чтобы их потом можно было спокойно делаить на f
+
+
 	}
 }
 
@@ -1198,12 +1240,75 @@ void AMR_f::Save(string namef)
 	}
 
 	out.close();
+
+	// Записываем дополнительные моменты только у основных ячеек (неразделённых) 
+	out = std::ofstream(namef + "_add_moment.bin", std::ios::binary);
+	if (!out) 
+	{
+		throw std::runtime_error("Cannot open file for writing: " + namef + "_add_moment.bin");
+	}
+
+	std::vector<AMR_cell*> cells;
+	this->Get_all_cells(cells);
+	int size = cells.size();
+	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+
+	for (const auto& i : cells)
+	{
+		a = i->active_data->param["Sx"];
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = i->active_data->param["Sy"];
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = i->active_data->param["Sz"];
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = i->active_data->param["Sxx"];
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = i->active_data->param["Syy"];
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = i->active_data->param["Szz"];
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = 0.0;
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = 0.0;
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = 0.0;
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = 0.0;
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = 0.0;
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = 0.0;
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = 0.0;
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = 0.0;
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+
+		a = 0.0;
+		out.write(reinterpret_cast<const char*>(&a), sizeof(double));
+	}
+
+	out.close();
 }
 
 void AMR_f::Read(string namef)
 {
 	std::ifstream in(namef, std::ios::binary);
-	if (!in) {
+	if (!in) 
+	{
 		throw std::runtime_error("Cannot open file for reading: " + namef);
 	}
 
@@ -1266,6 +1371,62 @@ void AMR_f::Read(string namef)
 	}
 
 	in.close();
+
+	if (file_exists(namef + "_add_moment.bin"))
+	{
+		in = std::ifstream(namef + "_add_moment.bin", std::ios::binary);
+		if (!in)
+		{
+			throw std::runtime_error("Cannot open file for reading: " + namef + "_add_moment.bin");
+		}
+
+		// Сохраняем важные параметры сетки
+		int size;
+		in.read(reinterpret_cast<char*>(&size), sizeof(size));
+
+		std::vector<AMR_cell*> cells;
+		this->Get_all_cells(cells);
+
+		if (cells.size() != size)
+		{
+			cout << "Error huneriugouwerrfui3e478go3u4r " << endl;
+			exit(-1);
+		}
+
+		for (const auto& i : cells)
+		{
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			i->active_data->param["Sx"] = a;
+
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			i->active_data->param["Sy"] = a;
+
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			i->active_data->param["Sz"] = a;
+
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			i->active_data->param["Sxx"] = a;
+
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			i->active_data->param["Syy"] = a;
+
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			i->active_data->param["Szz"] = a;
+
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+			in.read(reinterpret_cast<char*>(&a), sizeof(double));
+		}
+
+
+		in.close();
+	}
 }
 
 unsigned int AMR_f::Size(void)

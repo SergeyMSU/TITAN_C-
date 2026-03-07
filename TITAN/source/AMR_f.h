@@ -40,6 +40,9 @@ public:
 
 	boost::multi_array<AMR_cell*, 3> cells;
 
+	void Set_moment_null(void);
+	// заполн€ет вспомогательные моменты в активных €чейках нулЄм, дл€ того, чтобы в них можно было накапливать моменты
+
 	void Culk_SpotokV(const double& Squ);
 	// —читает поток функции распределени€ через границу
 	// “акже вычисл€ет поток в родительских (разделЄнных) €чейках
@@ -110,6 +113,7 @@ public:
 	void Read(string namef);
 
 	unsigned int Size(void);
+
 
 	// ‘ункци€ анализа использовани€ пам€ти
 	void Analyze_memory_usage(bool detailed_output = true);

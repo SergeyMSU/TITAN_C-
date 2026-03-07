@@ -165,7 +165,7 @@ void Setka::Print_fH(short int zoneMK, Type_Gran_surf type, const double ex, con
 		{
 			for (short int iH = 1; iH <= this->phys_param->num_H; iH++)
 			{
-				gr2->Read_AMR(ii, iH, this->phys_param, false);
+				gr2->Read_AMR(ii, iH, this->phys_param, false, false);
 			}
 		}
 	}
@@ -1662,8 +1662,9 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*&
 					{
 						ni = 0;
 					}
-					gr->Read_AMR(ni, j + 1, this->phys_param, this->phys_param->refine_AMR);
+					gr->Read_AMR(ni, j + 1, this->phys_param, this->phys_param->refine_AMR, this->phys_param->de_refine_AMR);
 					gr->AMR[j][ni]->Fill_null();
+					gr->AMR[j][ni]->Set_moment_null();
 					N_vixod[j] += gr->AMR[j][ni]->Size();
 					N2[j]++;
 
@@ -1683,8 +1684,8 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*&
 	unsigned int k1 = 0;
 
 	// 2. Разыгрываем каждый сорт отдельно, так как для него нужны свои массивы
-	for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
-	//for (short int nh_ = 3; nh_ <= 3; ++nh_)                                                // DELETE
+	//for (short int nh_ = 0; nh_ < this->phys_param->num_H; ++nh_)
+	for (short int nh_ = 3; nh_ <= 3; ++nh_)                                                // DELETE
 	{
 		// Для каждого запускаемого сорта надо загрузить выходяющии функции распределения на всех гранях
 		// и входящую функуию только для текущей грани
@@ -1704,8 +1705,9 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*&
 				{
 					ni = 0;
 				}
-				gr->Read_AMR(ni, nh_ + 1, this->phys_param, this->phys_param->refine_AMR);
+				gr->Read_AMR(ni, nh_ + 1, this->phys_param, this->phys_param->refine_AMR, this->phys_param->de_refine_AMR);
 				gr->AMR[nh_][ni]->Fill_null();
+				gr->AMR[nh_][ni]->Set_moment_null();
 				N_vixod[nh_] += gr->AMR[nh_][ni]->Size();
 				N2[nh_]++;
 
@@ -1772,13 +1774,13 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*&
 
 			if (gr->type == Type_Gran::Us)
 			{
-				gr->Read_AMR(ni, nh_ + 1, this->phys_param, false);
+				gr->Read_AMR(ni, nh_ + 1, this->phys_param, false, false);
 				func->Culk_SpotokV(gr->area[0]);
 				func->Culc_gradients();                   // Считаем градиенты для второго порядка (minmod)
 			}
 			else
 			{
-				gr->Read_AMR(ni, nh_ + 1, this->phys_param, false);
+				gr->Read_AMR(ni, nh_ + 1, this->phys_param, false, false);
 				func->SpotokV = 0.0;
 				if (nh_ == 3) // Так как поток есть только у атомов 4-го сорта
 				{
@@ -2066,7 +2068,9 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*&
 
 				//cout << "Normir_velocity_volume" << endl;
 				gr->AMR[nh_][ni]->Normir_velocity_volume(gr->area[0]);
-				if (this->phys_param->de_refine_AMR == true)
+
+				//if (this->phys_param->de_refine_AMR == true)
+				if (false)
 				{
 					gr->AMR[nh_][ni]->de_Refine(nh_ + 1);
 				}

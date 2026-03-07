@@ -343,7 +343,7 @@ void Print_AMR(short int nH, vector<Gran*>& Gran_for_print)
 	outfile << "Gran centr: " << Gran_for_print[0]->center[0][0] << " " << Gran_for_print[0]->center[0][1] << " " << Gran_for_print[0]->center[0][1] << endl;
 }
 
-void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_refine)
+void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_refine, bool need_de_refine)
 {
 	// nH - начинается с 1 !!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -430,20 +430,12 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 			{
 				this->AMR[nH - 1][ni]->Refine(nH);
 			}
+		}
 
-			/*if (kvv(this->center[0][1], 0.0, this->center[0][2]) < 20.0)
-			{
-				cout << "x = " << this->center[0][0] << "   nH = " << nH << "     Do = " << 
-					N << "    Posle = " << this->AMR[nH - 1][ni]->Size() << endl;
-			}*/
 
-			/*else
-			{
-				cout << "Warning:  AMR = " << N << endl;
-				cout << "Info: nH >  " << Nmax << "   =  " << nH << "   gran -> " << this->center[0][0] << " " << this->center[0][1] << " " <<
-					this->center[0][2] << endl;
-				cout << "gran number = " << this->number << endl;
-			}*/
+		if (need_de_refine == true)
+		{
+			this->AMR[nH - 1][ni]->de_Refine(nH);
 		}
 
 		//this->AMR[nH - 1][ni]->Clean_low();

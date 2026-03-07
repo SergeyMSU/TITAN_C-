@@ -543,14 +543,158 @@ void AMR_cell::Get_random_velosity_in_cell(AMR_f* AMR, const double& ksi,
 				Sens->MakeRandom() * (razmer[1]);
 			Vel[2] = (center[2] - razmer[2] / 2.0) +
 				Sens->MakeRandom() * (razmer[2]);
+
+			return;
 		}
+
+		double ff = this->getF();
+
+		if (ff > 0.000001 && (fabs(this->active_data->param["Sx"]) > 0.000001 || fabs(this->active_data->param["Sy"]) > 0.000001 ||
+			fabs(this->active_data->param["Sz"]) > 0.000001 || fabs(this->active_data->param["Sxx"]) > 0.000001))
+		{
+			double vx_sr = this->active_data->param["Sx"] / ff;
+			double vy_sr = this->active_data->param["Sy"] / ff;
+			double vz_sr = this->active_data->param["Sz"] / ff;
+
+			double sig_x = this->active_data->param["Sxx"] / ff - kv(vx_sr);
+			double sig_y = this->active_data->param["Syy"] / ff - kv(vy_sr);
+			double sig_z = this->active_data->param["Szz"] / ff - kv(vz_sr);
+
+			if (sig_x < 0.0) sig_x = 0.0;
+			if (sig_y < 0.0) sig_y = 0.0;
+			if (sig_z < 0.0) sig_z = 0.0;
+
+			// метод Марсальи для получения распределения N[0, 1]
+			double u, v, s;
+			do 
+			{
+				// Преобразуем равномерные [0,1] в [-1,1]
+				u = 2.0 * Sens->MakeRandom() - 1.0;
+				v = 2.0 * Sens->MakeRandom() - 1.0;
+				s = u * u + v * v;
+			} while (s >= 1.0 || s == 0.0); // проверка на единичный круг
+			s = sqrt(-2.0 * log(s) / s);
+			double ksi1 = v * s;
+			double ksi2 = u * s;
+			do
+			{
+				// Преобразуем равномерные [0,1] в [-1,1]
+				u = 2.0 * Sens->MakeRandom() - 1.0;
+				v = 2.0 * Sens->MakeRandom() - 1.0;
+				s = u * u + v * v;
+			} while (s >= 1.0 || s == 0.0); // проверка на единичный круг
+			s = sqrt(-2.0 * log(s) / s);
+			double ksi3 = v * s;
+			double ksi4 = u * s;
+
+			Vel[0] = vx_sr + sqrt(sig_x) * ksi1;
+			Vel[1] = vy_sr + sqrt(sig_y) * ksi2;
+			Vel[2] = vz_sr + sqrt(sig_z) * ksi3;
+
+			if (Vel[0] < center[0] - razmer[0] / 2.0 || Vel[0] > center[0] + razmer[0] / 2.0)
+			{
+				Vel[0] = vx_sr + sqrt(sig_x) * ksi4;
+			}
+
+			// Усекаем распределение
+			while(Vel[0] < center[0] - razmer[0] / 2.0 || Vel[0] > center[0] + razmer[0] / 2.0)
+			{
+				do
+				{
+					// Преобразуем равномерные [0,1] в [-1,1]
+					u = 2.0 * Sens->MakeRandom() - 1.0;
+					v = 2.0 * Sens->MakeRandom() - 1.0;
+					s = u * u + v * v;
+				} while (s >= 1.0 || s == 0.0); // проверка на единичный круг
+				s = sqrt(-2.0 * log(s) / s);
+				double ksi3 = v * s;
+				double ksi4 = u * s;
+
+				Vel[0] = vx_sr + sqrt(sig_x) * ksi3;
+
+				if (Vel[0] < center[0] - razmer[0] / 2.0 || Vel[0] > center[0] + razmer[0] / 2.0)
+				{
+					Vel[0] = vx_sr + sqrt(sig_x) * ksi4;
+				}
+			}
+
+			while (Vel[1] < center[1] - razmer[1] / 2.0 || Vel[1] > center[1] + razmer[1] / 2.0)
+			{
+				do
+				{
+					// Преобразуем равномерные [0,1] в [-1,1]
+					u = 2.0 * Sens->MakeRandom() - 1.0;
+					v = 2.0 * Sens->MakeRandom() - 1.0;
+					s = u * u + v * v;
+				} while (s >= 1.0 || s == 0.0); // проверка на единичный круг
+				s = sqrt(-2.0 * log(s) / s);
+				double ksi3 = v * s;
+				double ksi4 = u * s;
+
+				Vel[1] = vy_sr + sqrt(sig_y) * ksi3;
+
+				if (Vel[1] < center[1] - razmer[1] / 2.0 || Vel[1] > center[1] + razmer[1] / 2.0)
+				{
+					Vel[1] = vy_sr + sqrt(sig_y) * ksi4;
+				}
+			}
+
+			while (Vel[2] < center[2] - razmer[2] / 2.0 || Vel[2] > center[2] + razmer[2] / 2.0)
+			{
+				do
+				{
+					// Преобразуем равномерные [0,1] в [-1,1]
+					u = 2.0 * Sens->MakeRandom() - 1.0;
+					v = 2.0 * Sens->MakeRandom() - 1.0;
+					s = u * u + v * v;
+				} while (s >= 1.0 || s == 0.0); // проверка на единичный круг
+				s = sqrt(-2.0 * log(s) / s);
+				double ksi3 = v * s;
+				double ksi4 = u * s;
+
+				Vel[2] = vz_sr + sqrt(sig_z) * ksi3;
+
+				if (Vel[2] < center[2] - razmer[2] / 2.0 || Vel[2] > center[2] + razmer[2] / 2.0)
+				{
+					Vel[2] = vz_sr + sqrt(sig_z) * ksi4;
+				}
+			}
+
+
+			return;
+		}
+		else
+		{
+			// Равномерный розыгрышь 
+
+			Vel[0] = (center[0] - razmer[0] / 2.0) +
+				Sens->MakeRandom() * (razmer[0]);
+			Vel[1] = (center[1] - razmer[1] / 2.0) +
+				Sens->MakeRandom() * (razmer[1]);
+			Vel[2] = (center[2] - razmer[2] / 2.0) +
+				Sens->MakeRandom() * (razmer[2]);
+
+			return;
+		}
+
+
+
 		// Розыгрышь с плотностью: Vx  -  точно нужен для ячеек вблизи нуля!
-		else if (center[0] - razmer[0] / 2.0 <= 0.0001)
+		if (center[0] - razmer[0] / 2.0 <= 0.0001)
 		{
 			double L = center[0] - razmer[0] / 2.0;
 			double R = center[0] + razmer[0] / 2.0;
 			Vel[0] = sqrt(kv(L) + Sens->MakeRandom() * (kv(R) - kv(L)));
 
+			Vel[1] = (center[1] - razmer[1] / 2.0) +
+				Sens->MakeRandom() * (razmer[1]);
+			Vel[2] = (center[2] - razmer[2] / 2.0) +
+				Sens->MakeRandom() * (razmer[2]);
+		}
+		else if (false)
+		{
+			Vel[0] = (center[0] - razmer[0] / 2.0) +
+				Sens->MakeRandom() * (razmer[0]);
 			Vel[1] = (center[1] - razmer[1] / 2.0) +
 				Sens->MakeRandom() * (razmer[1]);
 			Vel[2] = (center[2] - razmer[2] / 2.0) +

@@ -32,7 +32,8 @@ public:
 	uint8_t ny = 0;
 	uint8_t nz = 0;
 
-	struct Flags {
+	struct Flags 
+	{
 		unsigned is_divided : 1;     // 1 бит  // Разделена ли ячейка
 	} flags;  // Размер: 1 байт
 
