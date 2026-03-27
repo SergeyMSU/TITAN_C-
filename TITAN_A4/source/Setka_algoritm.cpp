@@ -562,6 +562,14 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			cout << "Error 94ut9yegfh9perfg8yvowjrgf9348" << endl;
 		}
 
+		//ПРОВЕРКА
+
+		Cell* prev = nullptr;
+		Cell* C = Smc.Find_cell_point(20.0, 0.0, 0.0, 0, prev);
+		cout << "!!!!!!! Proverka = " << C->parameters[0]["MK_IVx_H"] << " " << C->parameters[0]["MK_IVx_H_pui_1"] << " " <<
+			C->parameters[0]["MK_IVx_H_pui_2"] << endl;
+
+
 		cout << "Create SI_MK" << endl;
 		// Из MK сетки создаём интерполяционную сетку
 		Smc.Save_for_interpolate("For_intertpolate_work_MK.bin", false);
@@ -1017,16 +1025,18 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			//CC = this->All_Cell[2200];
 
 			CC->print_nu_integr_pui(this->phys_param);
+			CC->print_Mz_integr_pui(this->phys_param);
 			CC->print_F_integr_pui();
 
 			double nu = CC->pui_get_nu(5.0, 0, this->phys_param->pui_wR);
+			double Mz = CC->pui_get_Mz(5.0, 0, this->phys_param->pui_wR);
 			if (nu <= 0.0)
 			{
 				cout << "Warning iudrhguseroigfsegsr" << endl;
 				cout << CC->center[0][0] << " " << CC->center[0][1] << " " << CC->center[0][2] << endl;
 				cout << int(CC->type) << endl;
 			}
-			//cout << "nu1 = " << nu << endl;
+			cout << "nu1 = " << nu << " " << Mz << endl;
 			nu = CC->pui_get_nu(5.0, 1, this->phys_param->pui_wR);
 			if (nu <= 0.0)
 			{

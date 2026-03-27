@@ -582,6 +582,37 @@ void Cell::print_nu_integr_pui(Phys_param* phys_param, string name)
 	file2.close();
 }
 
+void Cell::print_Mz_integr_pui(Phys_param* phys_param, string name)
+{
+	std::ofstream file(name + "_1_print_Mz_integr_pui_" + to_string(this->number) + ".txt");
+	if (!file.is_open()) {
+		cout << "Error uehgrifbghvuoyerfowhefwef" << endl;
+		exit(-1);
+	}
+
+	for (int i = 0; i < Mz_integr_pui_1.size(); i++)
+	{
+		double w = (i + 0.5) * phys_param->pui_wR / Mz_integr_pui_1.size();
+		file << w << "\t" << Mz_integr_pui_1[i] << "\n";
+	}
+
+	file.close();
+
+	std::ofstream  file2(name + "_2_print_Mz_integr_pui_" + to_string(this->number) + ".txt");
+	if (!file2.is_open()) {
+		cout << "Error dthgretget345" << endl;
+		exit(-1);
+	}
+
+	for (int i = 0; i < Mz_integr_pui_2.size(); i++)
+	{
+		double w = (i + 0.5) * phys_param->pui_wR / Mz_integr_pui_2.size();
+		file2 << w << "\t" << Mz_integr_pui_2[i] << "\n";
+	}
+
+	file2.close();
+}
+
 void Cell::write_pui_ToFile(void)
 {
 	std::string filename = "data_pui/func_cells_pui_" + to_string(this->number) + ".bin";
@@ -1880,6 +1911,8 @@ void Cell::MK_Add_moment_pui(MK_particle& P, const double& cp, const double& mu_
 
 			double kM = (1.0 - Mz / nu * 1.0 / (max(u, 0.0000001)));
 			double skk = vx * (-u1) * kM + vy * (-u2) * kM + vz * (-u3) * kM;
+
+			//cout << "AAA = " << mu_ex_pui_1 * (-u1) * kM << endl;
 
 			this->mut.lock();
 			this->parameters[0]["MK_IVx_H_pui_1"] += mu_ex_pui_1 * (-u1) * kM;
