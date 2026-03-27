@@ -919,23 +919,23 @@ void Setka::Init_TVD(void)
 	}
 }
 
-double U_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
-{
-	double uu = (V1 - V2).norm();
-	return sqrt((4.0 / const_pi) * (T1 + T2) + kv(uu));
-}
-
-double Um_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
-{
-	double uu = (V1 - V2).norm();
-	return sqrt((16.0 / const_pi) * T1 + (9.0 * const_pi / 4.0) * T2 + 4.0 * kv(uu));
-}
-
-double UE_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
-{
-	double uu = (V1 - V2).norm();
-	return sqrt((4.0 / const_pi) * T1 + (64.0 / 9.0 / const_pi) * T2 + kv(uu));
-}
+//double U_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
+//{
+//	double uu = (V1 - V2).norm();
+//	return sqrt((4.0 / const_pi) * (T1 + T2) + kv(uu));
+//}
+//
+//double Um_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
+//{
+//	double uu = (V1 - V2).norm();
+//	return sqrt((16.0 / const_pi) * T1 + (9.0 * const_pi / 4.0) * T2 + 4.0 * kv(uu));
+//}
+//
+//double UE_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
+//{
+//	double uu = (V1 - V2).norm();
+//	return sqrt((4.0 / const_pi) * T1 + (64.0 / 9.0 / const_pi) * T2 + kv(uu));
+//}
 
 
 

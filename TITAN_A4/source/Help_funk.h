@@ -84,3 +84,10 @@ bool Get_param_amr(const double& x, const double& y, const double& z,
 Eigen::Vector3d computeSurfaceNormal(
 	const Eigen::Vector3d& p,
 	const std::vector<Eigen::Vector3d>& neighbors);
+
+
+double U_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2);
+
+double Um_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2);
+
+double UE_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2);

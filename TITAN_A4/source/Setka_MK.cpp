@@ -1382,8 +1382,7 @@ void Setka::MK_prepare(short int zone_MK, bool AMR_need)
 		for (auto& i : this->All_Cell)
 		{
 			i->Set_Cell_Geo_for_MK();
-			if (i->MK_zone == zone_MK && this->phys_param->culc_cell_moments == true)
-			//if(true)
+			if (i->MK_zone == zone_MK)
 			{
 				for (const auto& nam : this->phys_param->MK_param)
 				{
@@ -2891,9 +2890,23 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 
 				if (this->phys_param->culc_cell_source == true)
 				{
-					double kappa = nu_ex * time;
-					double mu_ex = P.mu * (1.0 - exp(-kappa));   // ¬ес перезар€женного атома (фиктивна€ часть)
-					P.cel->MK_Add_moment(P, cp_sr, u_sr, mu_ex, u1_sr, u2_sr, u3_sr, skalar_sr, this->phys_param);
+					if (this->phys_param->is_PUI == false)
+					{
+						// ≈сли нет пикапов, то источники только дл€ протонов
+						double kappa = nu_ex * time;
+						double mu_ex = P.mu * (1.0 - exp(-kappa));   // ¬ес перезар€женного атома (фиктивна€ часть)
+						P.cel->MK_Add_moment(P, cp_sr, u_sr, mu_ex, u1_sr, u2_sr, u3_sr, skalar_sr, this->phys_param);
+					}
+					else
+					{
+						double mu_ex = P.mu * (1.0 - exp(-nu_ex * time));   
+						double mu_ex_pui_1 = P.mu * (1.0 - exp(-nu_ex_pui_1 * time));  
+						double mu_ex_pui_2 = P.mu * (1.0 - exp(-nu_ex_pui_2 * time));  
+
+						P.cel->MK_Add_moment_pui(P, cp_sr,
+							mu_ex, mu_ex_pui_1, mu_ex_pui_2,
+							vx, vy, vz, this->phys_param);
+					}
 				}
 
 
@@ -2983,11 +2996,26 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 					P.cel->MK_Add_particle(P, t_ex, this->phys_param);
 				}
 
+
 				if (this->phys_param->culc_cell_source == true)
 				{
-					double kappa = nu_ex * t_ex;
-					double mu_ex = P.mu * (1.0 - exp(-kappa));   // ¬ес перезар€женного атома (фиктивна€ часть)
-					P.cel->MK_Add_moment(P, cp_sr, u_sr, mu_ex, u1_sr, u2_sr, u3_sr, skalar_sr, this->phys_param);
+					if (this->phys_param->is_PUI == false)
+					{
+						// ≈сли нет пикапов, то источники только дл€ протонов
+						double kappa = nu_ex * t_ex;
+						double mu_ex = P.mu * (1.0 - exp(-kappa));   // ¬ес перезар€женного атома (фиктивна€ часть)
+						P.cel->MK_Add_moment(P, cp_sr, u_sr, mu_ex, u1_sr, u2_sr, u3_sr, skalar_sr, this->phys_param);
+					}
+					else
+					{
+						double mu_ex = P.mu * (1.0 - exp(-nu_ex * t_ex));
+						double mu_ex_pui_1 = P.mu * (1.0 - exp(-nu_ex_pui_1 * t_ex));
+						double mu_ex_pui_2 = P.mu * (1.0 - exp(-nu_ex_pui_2 * t_ex));
+
+						P.cel->MK_Add_moment_pui(P, cp_sr,
+							mu_ex, mu_ex_pui_1, mu_ex_pui_2,
+							vx, vy, vz, this->phys_param);
+					}
 				}
 
 				if (this->phys_param->MK_source_S == true)

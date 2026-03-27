@@ -56,10 +56,12 @@ public:
 	vector<double> f_pui_2;   // (n)
 
 
-	vector<double> F_integr_pui_1;   // (pui_F_n)
-	vector<double> nu_integr_pui_1;   // (pui_F_n)
-	vector<double> Mz_integr_pui_1;   // (pui_F_n)
-	vector<double> E_integr_pui_1;   // (pui_F_n)
+	vector<double> F_integr_pui_1;   // (pui_F_n)     это первообразная f_pui, чтобы было легко частичные интеграллы вычислять - для розыгрыша
+	vector<double> nu_integr_pui_1;   // (pui_F_n)    это частота перезарядки
+	vector<double> Mz_integr_pui_1;   // (pui_F_n)    это источник импульса
+	vector<double> E_integr_pui_1;   // (pui_F_n)     это источник энергии
+
+	// Массивы для второго сорта
 	vector<double> F_integr_pui_2;   // (pui_F_n)
 	vector<double> nu_integr_pui_2;   // (pui_F_n)
 	vector<double> Mz_integr_pui_2;   // (pui_F_n)
@@ -77,6 +79,9 @@ public:
 
 
 	void Init_pui_integral(short int n, short int zone);  // Инициализация интеграллов для розыгрыша pui
+	// Инициализирует F, nu, Mz, E
+
+
 	void Delete_pui_integral(void);
 	void write_pui_integral_ToFile(void);
 	void read_pui_integral_FromFile(Phys_param*& Phys_param);
@@ -90,7 +95,7 @@ public:
 	void write_pui_ToFile(void);
 	void read_pui_FromFile(void);
 	void print_pui(double Wmax, string nam);
-	void culc_pui_n_T(const double& pui_wR);
+	void culc_pui_n_T(const double& pui_wR);       // Вычисление концентрации и температуры пикапов
 	
 	double pui_get_f(const double& w, short int ii, const double& Wmax);  // Возвращает значение f_pui в данной точке // TODO!!!
 	/// @brief Возвращает значение функции распределения пикапов в заданной точке
@@ -140,7 +145,11 @@ public:
 	
 	
 	double pui_get_nu(const double& w, short int ii, const double& Wmax);
+	double pui_get_Mz(const double& w, short int ii, const double& Wmax);
+	double pui_get_E(const double& w, short int ii, const double& Wmax);
 	double PUI_get_F_integer(const double& ksi, short int ii);
+
+
 
 	void MK_pui_charge_exchange_velocity(Sensor* sens, Setka* SS, Phys_param* Phys,
 		const double& Upx, const double& Upy,
@@ -243,11 +252,16 @@ public:
 	void Tecplot_print_cell(void);
 
 	void MK_Add_moment(MK_particle& P, const double& cp, const double& u, const double& mu_ex,
-		const double& u1, const double& u2, const double& u3, const double& skalar, Phys_param* phys_param);
+		const double& u1, const double& u2, const double& u3, const double& skalar, Phys_param* phys_param); // Эта функция если нет пикапов, просто
+	// стандартная перезарядка со средними параметрами
+
+	void MK_Add_moment_pui(MK_particle& P, const double& cp, const double& mu_ex, const double& mu_ex_pui_1, const double& mu_ex_pui_2,
+		const double& vx, const double& vy, const double& vz, Phys_param* phys_param);
 
 	void MK_Add_particle(MK_particle& P, const double& time, Phys_param* phys_param);
 	void MK_Add_pui_source(MK_particle& P, const double& wr, const double& nu_ex, const double& mu,
 		const double& time, Phys_param* phys_param, short int zone, short int parent);
+
 
 	void MK_calc_Sm(Phys_param* phys_param);
 	void MK_normir_Moments(Phys_param* phys_param);

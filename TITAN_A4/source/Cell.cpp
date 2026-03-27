@@ -1140,6 +1140,86 @@ double Cell::PUI_get_F_integer(const double& w, short int ii)
 	return max(vec[left_index] * (1.0 - t) + vec[right_index] * t, 0.0);
 }
 
+double Cell::pui_get_Mz(const double& w, short int ii, const double& Wmax)
+{
+	// Выбор нужного вектора
+	const auto& vec = (ii == 0) ? this->Mz_integr_pui_1 : (ii == 1) ? this->Mz_integr_pui_2 : [&]() -> const vector<double>&
+		{
+			cout << "ERROR ey4556uy564556ty4y453dfsde" << endl;
+			exit(-1);
+			return f_pui_1; // заглушка, никогда не выполнится
+		}();
+
+	const short int N = vec.size();
+	if (N == 0) return 0.0;
+
+	// Проверка граничных значений
+	if (w <= 0.0) return vec[0];
+	if (w >= Wmax) return vec[N - 1];
+
+	const double cell_size = Wmax / N;
+	int left_index = static_cast<int>(w / cell_size);
+
+	// Корректировка индексов
+	if (w < (left_index + 0.5) * cell_size)
+	{
+		left_index--;
+	}
+	int right_index = left_index + 1;
+
+	// Проверка скорректированных индексов
+	if (left_index < 0) return vec[0];
+	if (right_index >= N) return vec[N - 1];
+
+	// Линейная интерполяция
+	const double left_center = (left_index + 0.5) * cell_size;
+	const double right_center = (right_index + 0.5) * cell_size;
+	const double t = (w - left_center) / (right_center - left_center);
+
+	return max(vec[left_index] * (1.0 - t) + vec[right_index] * t, 0.0);
+}
+
+double Cell::pui_get_E(const double& w, short int ii, const double& Wmax)
+{
+	// Выбор нужного вектора
+	const auto& vec = (ii == 0) ? this->E_integr_pui_1 : (ii == 1) ? this->E_integr_pui_2 : [&]() -> const vector<double>&
+		{
+			cout << "ERROR ey4556uy564556ty4y453dfsde" << endl;
+			exit(-1);
+			return f_pui_1; // заглушка, никогда не выполнится
+		}();
+
+	const short int N = vec.size();
+	if (N == 0) return 0.0;
+
+	// Проверка граничных значений
+	if (w <= 0.0) return vec[0];
+	if (w >= Wmax) return vec[N - 1];
+
+	const double cell_size = Wmax / N;
+	int left_index = static_cast<int>(w / cell_size);
+
+	// Корректировка индексов
+	if (w < (left_index + 0.5) * cell_size)
+	{
+		left_index--;
+	}
+	int right_index = left_index + 1;
+
+	// Проверка скорректированных индексов
+	if (left_index < 0) return vec[0];
+	if (right_index >= N) return vec[N - 1];
+
+	// Линейная интерполяция
+	const double left_center = (left_index + 0.5) * cell_size;
+	const double right_center = (right_index + 0.5) * cell_size;
+	const double t = (w - left_center) / (right_center - left_center);
+
+	return max(vec[left_index] * (1.0 - t) + vec[right_index] * t, 0.0);
+}
+
+
+
 void Cell::MK_pui_charge_exchange_velocity(Sensor* sens, Setka* SS, Phys_param* Phys,
 	const double& Upx, const double& Upy, 
 	const double& Upz, const double& UHx, const double& UHy, const double& UHz, 
@@ -1689,6 +1769,166 @@ void Cell::MK_Add_moment(MK_particle& P, const double& cp, const double& u, cons
 
 }
 
+
+// Для источников с пикапами
+void Cell::MK_Add_moment_pui(MK_particle& P, const double& cp, const double& mu_ex, const double& mu_ex_pui_1, const double& mu_ex_pui_2,
+	const double& vx, const double& vy, const double& vz, Phys_param* phys_param)
+{
+	string name_H;
+
+
+	// Определяем сорт водорода для записи моментов
+	switch (P.sort)
+	{
+	case 1:
+		name_H = "H1";
+		break;
+	case 2:
+		name_H = "H2";
+		break;
+	case 3:
+		name_H = "H3";
+		break;
+	case 4:
+		name_H = "H4";
+		break;
+	case 5:
+		name_H = "H5";
+		break;
+	case 6:
+		name_H = "H6";
+		break;
+	case 7:
+		name_H = "H7";
+		break;
+	case 8:
+		name_H = "H8";
+		break;
+	case 9:
+		name_H = "H9";
+		break;
+	case 10:
+		name_H = "H10";
+		break;
+	default:
+		cout << "ERROR NO SUCH MOMENT j9egrhg9u34980tuf9hwe9prggfewr" << endl;
+		exit(-1);
+		break;
+	}
+
+	double u = sqrt(kvv(P.Vel[0] - vx, P.Vel[1] - vy, P.Vel[2] - vz));
+	double u1 = vx - P.Vel[0];
+	double u2 = vy - P.Vel[1];
+	double u3 = vz - P.Vel[2];
+	double skalar = u1 * P.Vel[0] + u2 * P.Vel[1] + u3 * P.Vel[2];
+
+	// Вычисляем источники с тепловыми протонами
+	if (u / cp > 7.0)
+	{
+		double uz = Velosity_1(u, cp);
+		double uz_M = Velosity_2(u, cp) / (uz * kv(cp) * cp * const_pi * sqrt_pi);
+		double uz_E = Velosity_3(u, cp);
+
+		this->mut.lock();
+		this->parameters[0]["MK_IVx_H"] -= mu_ex * uz_M * u1 / u;
+		this->parameters[0]["MK_IVy_H"] -= mu_ex * uz_M * u2 / u;
+		this->parameters[0]["MK_IVz_H"] -= mu_ex * uz_M * u3 / u;
+		this->parameters[0]["MK_IT_H"] += mu_ex * (-0.25 * (3.0 * kv(cp) + 2.0 * kv(u)) * (uz_E / uz) - uz_M * skalar / u);
+
+		this->parameters[0]["MK_IVx_" + name_H] -= mu_ex * uz_M * u1 / u;
+		this->parameters[0]["MK_IVy_" + name_H] -= mu_ex * uz_M * u2 / u;
+		this->parameters[0]["MK_IVz_" + name_H] -= mu_ex * uz_M * u3 / u;
+		this->parameters[0]["MK_IT_" + name_H] += mu_ex * (-0.25 * (3.0 * kv(cp) + 2.0 * kv(u)) * (uz_E / uz) - uz_M * skalar / u);
+
+		this->mut.unlock();
+	}
+	else
+	{
+		double k1 = phys_param->MK_int_1(u, cp);
+		double k2 = phys_param->MK_int_2(u, cp);
+		double k3 = phys_param->MK_int_3(u, cp);
+
+		this->mut.lock();
+		this->parameters[0]["MK_IVx_H"] += mu_ex * (k2 / k1) * u1 / u;
+		this->parameters[0]["MK_IVy_H"] += mu_ex * (k2 / k1) * u2 / u;
+		this->parameters[0]["MK_IVz_H"] += mu_ex * (k2 / k1) * u3 / u;
+		this->parameters[0]["MK_IT_H"] += mu_ex * (-0.5 * k3 / k1 + k2 / k1 * skalar / u);
+
+		this->parameters[0]["MK_IVx_" + name_H] += mu_ex * (k2 / k1) * u1 / u;
+		this->parameters[0]["MK_IVy_" + name_H] += mu_ex * (k2 / k1) * u2 / u;
+		this->parameters[0]["MK_IVz_" + name_H] += mu_ex * (k2 / k1) * u3 / u;
+		this->parameters[0]["MK_IT_" + name_H] += mu_ex * (-0.5 * k3 / k1 + k2 / k1 * skalar / u);
+		this->mut.unlock();
+	}
+
+
+	// Вычисляем источники с пикапами 1
+	if (mu_ex_pui_1 > 0.000000001)
+	{
+		double nu = this->pui_get_nu(u, 0, phys_param->pui_wR) / phys_param->par_Kn;
+		if (nu > 0.00000000001)
+		{
+			double Mz = this->pui_get_Mz(u, 0, phys_param->pui_wR) / phys_param->par_Kn;
+			double E = this->pui_get_E(u, 0, phys_param->pui_wR) / phys_param->par_Kn;
+
+			if (std::isnan(Mz) || std::isnan(E) || std::isinf(Mz) || std::isinf(E))
+			{
+				cout << "Error 90456u78tehyufwergvfdtywef34g453eg" << endl;
+				exit(-1);
+			}
+
+
+			double kM = (1.0 - Mz / nu * 1.0 / (max(u, 0.0000001)));
+			double skk = vx * (-u1) * kM + vy * (-u2) * kM + vz * (-u3) * kM;
+
+			this->mut.lock();
+			this->parameters[0]["MK_IVx_H_pui_1"] += mu_ex_pui_1 * (-u1) * kM;
+			this->parameters[0]["MK_IVy_H_pui_1"] += mu_ex_pui_1 * (-u2) * kM;
+			this->parameters[0]["MK_IVz_H_pui_1"] += mu_ex_pui_1 * (-u3) * kM;
+			this->parameters[0]["MK_IT_H_pui_1"] += mu_ex_pui_1 * (kv(u) / 2.0 + skk - E / nu);
+
+			this->parameters[0]["MK_IVx_" + name_H + "_pui_1"] += mu_ex_pui_1 * (-u1) * kM;
+			this->parameters[0]["MK_IVy_" + name_H + "_pui_1"] += mu_ex_pui_1 * (-u2) * kM;
+			this->parameters[0]["MK_IVz_" + name_H + "_pui_1"] += mu_ex_pui_1 * (-u3) * kM;
+			this->parameters[0]["MK_IT_" + name_H + "_pui_1"] += mu_ex_pui_1 * (kv(u) / 2.0 + skk - E / nu);
+			this->mut.unlock();
+		}
+	}
+
+	// Вычисляем источники с пикапами 2
+	if (mu_ex_pui_2 > 0.000000001)
+	{
+		double nu = this->pui_get_nu(u, 1, phys_param->pui_wR) / phys_param->par_Kn;
+		if (nu > 0.00000000001)
+		{
+			double Mz = this->pui_get_Mz(u, 1, phys_param->pui_wR) / phys_param->par_Kn;
+			double E = this->pui_get_E(u, 1, phys_param->pui_wR) / phys_param->par_Kn;
+
+			if (std::isnan(Mz) || std::isnan(E) || std::isinf(Mz) || std::isinf(E))
+			{
+				cout << "Error 904u59ty8ehpgo4i589t34ttfsfs" << endl;
+				exit(-1);
+			}
+
+			double kM = (1.0 - Mz / nu * 1.0 / (max(u, 0.0000001)));
+			double skk = vx * (-u1) * kM + vy * (-u2) * kM + vz * (-u3) * kM;
+
+			this->mut.lock();
+			this->parameters[0]["MK_IVx_H_pui_2"] += mu_ex_pui_2 * (-u1) * kM;
+			this->parameters[0]["MK_IVy_H_pui_2"] += mu_ex_pui_2 * (-u2) * kM;
+			this->parameters[0]["MK_IVz_H_pui_2"] += mu_ex_pui_2 * (-u3) * kM;
+			this->parameters[0]["MK_IT_H_pui_2"] += mu_ex_pui_2 * (kv(u) / 2.0 + skk - E / nu);
+
+			this->parameters[0]["MK_IVx_" + name_H + "_pui_2"] += mu_ex_pui_2 * (-u1) * kM;
+			this->parameters[0]["MK_IVy_" + name_H + "_pui_2"] += mu_ex_pui_2 * (-u2) * kM;
+			this->parameters[0]["MK_IVz_" + name_H + "_pui_2"] += mu_ex_pui_2 * (-u3) * kM;
+			this->parameters[0]["MK_IT_" + name_H + "_pui_2"] += mu_ex_pui_2 * (kv(u) / 2.0 + skk - E / nu);
+			this->mut.unlock();
+		}
+	}
+}
+
+
 void Cell::MK_Add_particle(MK_particle& P, const double& time, Phys_param* phys_param)
 {
 	// Поглощение
@@ -1910,6 +2150,19 @@ void Cell::MK_normir_Moments(Phys_param* phys_param)
 		this->parameters[0]["MK_IVy_H"] *= (phys_param->par_n_H_LISM/this->volume[0]);
 		this->parameters[0]["MK_IVz_H"] *= (phys_param->par_n_H_LISM/this->volume[0]);
 		this->parameters[0]["MK_IT_H"] *= (phys_param->par_n_H_LISM/this->volume[0]);
+
+		if (phys_param->is_PUI == true)
+		{
+			this->parameters[0]["MK_IVx_H_pui_1"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+			this->parameters[0]["MK_IVy_H_pui_1"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+			this->parameters[0]["MK_IVz_H_pui_1"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+			this->parameters[0]["MK_IT_H_pui_1"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+
+			this->parameters[0]["MK_IVx_H_pui_2"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+			this->parameters[0]["MK_IVy_H_pui_2"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+			this->parameters[0]["MK_IVz_H_pui_2"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+			this->parameters[0]["MK_IT_H_pui_2"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+		}
 	}
 
 	// Моменты по сортам водорода
@@ -1918,6 +2171,25 @@ void Cell::MK_normir_Moments(Phys_param* phys_param)
 	{
 		if (this->parameters[0].find("MK_n_" + name) != this->parameters[0].end())
 		{
+
+			this->parameters[0]["MK_IVx_" + name] *= (phys_param->par_n_H_LISM / this->volume[0]);
+			this->parameters[0]["MK_IVy_" + name] *= (phys_param->par_n_H_LISM / this->volume[0]);
+			this->parameters[0]["MK_IVz_" + name] *= (phys_param->par_n_H_LISM / this->volume[0]);
+			this->parameters[0]["MK_IT_" + name] *= (phys_param->par_n_H_LISM / this->volume[0]);
+
+			if (phys_param->is_PUI == true)
+			{
+				this->parameters[0]["MK_IVx_" + name + "_pui_1"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+				this->parameters[0]["MK_IVy_" + name + "_pui_1"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+				this->parameters[0]["MK_IVz_" + name + "_pui_1"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+				this->parameters[0]["MK_IT_" + name + "_pui_1"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+
+				this->parameters[0]["MK_IVx_" + name + "_pui_2"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+				this->parameters[0]["MK_IVy_" + name + "_pui_2"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+				this->parameters[0]["MK_IVz_" + name + "_pui_2"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+				this->parameters[0]["MK_IT_" + name + "_pui_2"] *= (phys_param->par_n_H_LISM / this->volume[0]);
+			}
+
 			if (this->parameters[0]["MK_n_" + name] > 0.0000000001)
 			{
 				this->parameters[0]["MK_Vx_" + name] /= (this->parameters[0]["MK_n_" + name]);
