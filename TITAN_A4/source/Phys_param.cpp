@@ -747,6 +747,7 @@ void Phys_param::Plasma_components_2(const short int& zone,
     unordered_map<string, double>& param_in_cell,
     unordered_map<string, double>& param, bool fluid)
 {
+    // fluid показывает какие параметры пикапов брать - из флюидного решени€ или кинетического
     // ѕротоны, гелий, пикапы (два сорта)
     // Te == Tth
 

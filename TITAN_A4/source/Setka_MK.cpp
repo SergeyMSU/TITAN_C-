@@ -1717,7 +1717,7 @@ void Setka::MK_go(short int zone_MK, int N_per_gran, Interpol* Interpol, Setka*&
 
 		// 4. Теперь бежим по граням и делаем основной алгоритм
 		k1 = 0;
-		#pragma omp parallel for schedule(dynamic)                                                   // DELETE
+		#pragma omp parallel for schedule(dynamic)                                                   // DELETE omp
 		for (size_t idx = 0; idx < this->MK_Grans[zone_MK - 1].size(); ++idx)
 		//for (size_t idx = 2700; idx < 2701; ++idx)
 		{
@@ -2905,7 +2905,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 
 						P.cel->MK_Add_moment_pui(P, cp_sr,
 							mu_ex, mu_ex_pui_1, mu_ex_pui_2,
-							vx, vy, vz, this->phys_param);
+							vx, vy, vz, this->phys_param, Cell_main);
 					}
 				}
 
@@ -3014,7 +3014,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 
 						P.cel->MK_Add_moment_pui(P, cp_sr,
 							mu_ex, mu_ex_pui_1, mu_ex_pui_2,
-							vx, vy, vz, this->phys_param);
+							vx, vy, vz, this->phys_param, Cell_main);
 					}
 				}
 

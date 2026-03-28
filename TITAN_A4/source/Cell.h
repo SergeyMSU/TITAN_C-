@@ -257,7 +257,7 @@ public:
 	// стандартная перезарядка со средними параметрами
 
 	void MK_Add_moment_pui(MK_particle& P, const double& cp, const double& mu_ex, const double& mu_ex_pui_1, const double& mu_ex_pui_2,
-		const double& vx, const double& vy, const double& vz, Phys_param* phys_param);
+		const double& vx, const double& vy, const double& vz, Phys_param* phys_param, Cell* Cell_main);
 
 	void MK_Add_particle(MK_particle& P, const double& time, Phys_param* phys_param);
 	void MK_Add_pui_source(MK_particle& P, const double& wr, const double& nu_ex, const double& mu,

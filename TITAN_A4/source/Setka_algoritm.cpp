@@ -1036,7 +1036,12 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				cout << CC->center[0][0] << " " << CC->center[0][1] << " " << CC->center[0][2] << endl;
 				cout << int(CC->type) << endl;
 			}
-			cout << "nu1 = " << nu << " " << Mz << endl;
+
+			cout << "!!! Mz = " << CC->pui_get_Mz(5.0, 0, this->phys_param->pui_wR) << " " << 
+				CC->pui_get_Mz(10.0, 0, this->phys_param->pui_wR) << " " << 
+				CC->pui_get_Mz(15.0, 0, this->phys_param->pui_wR) << " " << 
+				CC->pui_get_Mz(25.0, 0, this->phys_param->pui_wR) << endl;
+
 			nu = CC->pui_get_nu(5.0, 1, this->phys_param->pui_wR);
 			if (nu <= 0.0)
 			{
@@ -1097,19 +1102,23 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		cout << "Start zones_number push_back" << endl;
 
 		//zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 
 
+		zones_number.push_back(6); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(2.0);
 
-		//zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		//zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		//zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		//zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		//zones_number.push_back(7); zones_n_koeff.push_back(1.0);
-		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		//zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(2.0);
 
 
 		
@@ -4005,192 +4014,222 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	{
 		// Перед запуском этого алгоритма нужно обязательно вызвать алгоритм #5
 
-		Cell* prev = nullptr;
-		Cell* C = Find_cell_point(20.0, 0.0, 0.0, 0, prev);
 
-		short int zone = determ_zone(C, 0);
-		short int zone_ = zone - 1;
-		// Названия жидкостей
-		// p, Pui1, Pui2, ....
-		// H1, H2, H3, H4, .....
-		// 
-		// Для каждой жидкости нужна rho, T
-		// Также нужна средняя скорость плазмы и Скорости всех сортов водорода
-		unordered_map<string, double> rho;  // "_p", "_Pui_1", .... , "_H1", ...
-		unordered_map<string, double> T;    // "_p", "_Pui_1", ...., "_H1", ...
-		unordered_map<string, Eigen::Vector3d> V;    // "_p", "_H1", ...
+		 // Задаём наборы координат и соответствующие им имена файлов
+		 struct InputData 
+		 {
+			 double x, y, z;
+			 std::string filename;
+		 };
 
-		// Получаем переменные -----------------------------------------------------------------
-		unordered_map<string, double> param;
-
-		this->phys_param->Plasma_components(zone_, C->parameters[0], param, true);
-
-
-		rho["_p"] = param["rho_Th"];
-		T["_p"] = param["T_Th"];
-		V["_p"] = Eigen::Vector3d(C->parameters[0]["Vx"],
-			C->parameters[0]["Vy"], C->parameters[0]["Vz"]);
-
-		if (rho["_p"] <= 1e-8) rho["_p"] = 1e-8;
-		if (T["_p"] <= 1e-8) T["_p"] = 1e-8;
-
-		if (T["_p"] > 1e5) T["_p"] = 1e5;
-
-		//cout << "B1 " << endl;
-
-		short int pui_n = -1;
-		for (const auto& nam1 : this->phys_param->pui_name)
-		{
-			pui_n++;
-			if (this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-
-			rho[nam1] = C->parameters[0]["rho" + nam1];
-			T[nam1] = 2.0 * C->parameters[0]["p" + nam1] / rho[nam1];
-			if (rho[nam1] <= 1e-8) rho[nam1] = 1e-8;
-			if (T[nam1] <= 1e-8) T[nam1] = 1e-8;
-		}
-		//cout << "B2 " << endl;
-		for (const auto& nam2 : this->phys_param->H_name)
-		{
-			rho[nam2] = C->parameters[0]["rho" + nam2];
-			T[nam2] = 2.0 * C->parameters[0]["p" + nam2] / max(rho[nam2], 1e-9);
-			V[nam2] = Eigen::Vector3d(C->parameters[0]["Vx" + nam2],
-				C->parameters[0]["Vy" + nam2], C->parameters[0]["Vz" + nam2]);
-		}
-
-		//cout << "B3 " << endl;
-		// Все переменные получены -------------------------------------------------------------
+		 std::vector<InputData> datasets = 
+		 {
+			 {20.0, 0.0, 0.0, "20-0-0-source_comparison.txt"},
+			 {30.0, 0.0, 0.0, "30-0-0-source_comparison.txt"},
+			 {12.0, 0.0, 0.00001, "12-0-0-source_comparison.txt"},
+			 {-40.02, 0.00001, 0.0001, "-40-0-0-source_comparison.txt"},
+			 {0.0, 40.0, 0.00001, "0-40-0-source_comparison.txt"},
+			 {-150.0, 0.0, 0.000001, "-150-0-0-source_comparison.txt"},
+			 {-100.0, 50.0, 0.000001, "-100-50-0-source_comparison.txt"}
+			 // Добавьте нужные вам наборы
+		 };
 
 
-		// Скорости - это симметричные функции
-		unordered_map<string, double> U;    // _p_H1, _p_H2, ...., _Pui_1_H1, ...
-		unordered_map<string, double> Um;   // _p_H1, _p_H2, ...., _Pui_1_H1, ...
-		unordered_map<string, double> UE;   // _p_H1, _p_H2, ...., _Pui_1_H1, ...
-		unordered_map<string, double> sig;  // _p_H1, _p_H2, ...., _Pui_1_H1, ...
+		 for (const auto& data : datasets)
+		 {
+			 Cell* prev = nullptr;
+			 Cell* C = Find_cell_point(data.x, data.y, data.z, 0, prev);
 
-		if (true)
-		{
-			pui_n = -2;
-			for (const auto& nam1 : this->phys_param->p_pui_name)
-			{
-				pui_n++;
-				if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-				for (const auto& nam2 : this->phys_param->H_name)
-				{
-					U[nam1 + nam2] = U_bera(T[nam1], T[nam2], V["_p"], V[nam2]);
-					U[nam2 + nam1] = U_bera(T[nam2], T[nam1], V[nam2], V["_p"]);
+			 if (C == nullptr)
+			 {
+				 cout << "Not found Cell " << data.x << " " << data.y << " " << data.z << endl;
+				 continue;
+			 }
 
-					Um[nam1 + nam2] = Um_bera(T[nam1], T[nam2], V["_p"], V[nam2]);
-					Um[nam2 + nam1] = Um_bera(T[nam2], T[nam1], V[nam2], V["_p"]);
+			 short int zone = determ_zone(C, 0);
+			 short int zone_ = zone - 1;
+			 // Названия жидкостей
+			 // p, Pui1, Pui2, ....
+			 // H1, H2, H3, H4, .....
+			 // 
+			 // Для каждой жидкости нужна rho, T
+			 // Также нужна средняя скорость плазмы и Скорости всех сортов водорода
+			 unordered_map<string, double> rho;  // "_p", "_Pui_1", .... , "_H1", ...
+			 unordered_map<string, double> T;    // "_p", "_Pui_1", ...., "_H1", ...
+			 unordered_map<string, Eigen::Vector3d> V;    // "_p", "_H1", ...
 
-					UE[nam1 + nam2] = UE_bera(T[nam1], T[nam2], V["_p"], V[nam2]);
-					UE[nam2 + nam1] = UE_bera(T[nam2], T[nam1], V[nam2], V["_p"]);
+			 // Получаем переменные -----------------------------------------------------------------
+			 unordered_map<string, double> param;
 
-					sig[nam1 + nam2] = kv(1.0 - this->phys_param->par_a_2 * log(U[nam1 + nam2]));
-					sig[nam2 + nam1] = kv(1.0 - this->phys_param->par_a_2 * log(U[nam2 + nam1]));
-				}
-			}
+			 this->phys_param->Plasma_components(zone_, C->parameters[0], param, true);
 
-		}
 
-		unordered_map<string, double> Hrho;
-		unordered_map<string, double> HE;
-		unordered_map<string, Eigen::Vector3d> Hm;
-		unordered_map<string, double> Hp;
+			 rho["_p"] = param["rho_Th"];
+			 T["_p"] = param["T_Th"];
+			 V["_p"] = Eigen::Vector3d(C->parameters[0]["Vx"],
+				 C->parameters[0]["Vy"], C->parameters[0]["Vz"]);
 
-		if (true)
-		{
-			pui_n = -2;
-			for (const auto& nam1 : this->phys_param->p_pui_name)
-			{
-				pui_n++;
-				if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-				for (const auto& nam2 : this->phys_param->H_name)
-				{
-					Hrho[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * U[nam1 + nam2];
-					Hrho[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * U[nam2 + nam1];
+			 if (rho["_p"] <= 1e-8) rho["_p"] = 1e-8;
+			 if (T["_p"] <= 1e-8) T["_p"] = 1e-8;
 
-					Hm[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * (U[nam2 + nam1] * V["_p"] +
-						T[nam1] / Um[nam2 + nam1] * (V["_p"] - V[nam2]));
-					Hm[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * (U[nam1 + nam2] * V[nam2] -
-						T[nam2] / Um[nam1 + nam2] * (V["_p"] - V[nam2]));
+			 if (T["_p"] > 1e5) T["_p"] = 1e5;
 
-					HE[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * (0.5 * U[nam2 + nam1] * V["_p"].squaredNorm() +
-						T[nam1] / Um[nam2 + nam1] * V["_p"].dot(V["_p"] - V[nam2]) +
-						3.0 / 4.0 * T[nam1] * UE[nam2 + nam1]);
+			 //cout << "B1 " << endl;
 
-					HE[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * (0.5 * U[nam1 + nam2] * V[nam2].squaredNorm() -
-						T[nam2] / Um[nam1 + nam2] * V[nam2].dot(V["_p"] - V[nam2]) +
-						3.0 / 4.0 * T[nam2] * UE[nam1 + nam2]);
+			 short int pui_n = -1;
+			 for (const auto& nam1 : this->phys_param->pui_name)
+			 {
+				 pui_n++;
+				 if (this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
 
-					Hp[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * this->phys_param->g1 * 3.0 / 4.0 *
-						T[nam1] * UE[nam2 + nam1];
+				 rho[nam1] = C->parameters[0]["rho" + nam1];
+				 T[nam1] = 2.0 * C->parameters[0]["p" + nam1] / rho[nam1];
+				 if (rho[nam1] <= 1e-8) rho[nam1] = 1e-8;
+				 if (T[nam1] <= 1e-8) T[nam1] = 1e-8;
+			 }
+			 //cout << "B2 " << endl;
+			 for (const auto& nam2 : this->phys_param->H_name)
+			 {
+				 rho[nam2] = C->parameters[0]["rho" + nam2];
+				 T[nam2] = 2.0 * C->parameters[0]["p" + nam2] / max(rho[nam2], 1e-9);
+				 V[nam2] = Eigen::Vector3d(C->parameters[0]["Vx" + nam2],
+					 C->parameters[0]["Vy" + nam2], C->parameters[0]["Vz" + nam2]);
+			 }
 
-					Hp[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * this->phys_param->g1 *
-						((0.5 * U[nam1 + nam2] + T[nam2] / Um[nam1 + nam2]) * (V["_p"] - V[nam2]).squaredNorm() +
-							3.0 / 4.0 * T[nam2] * UE[nam1 + nam2]);
-				}
-			}
+			 //cout << "B3 " << endl;
+			 // Все переменные получены -------------------------------------------------------------
 
-		}
 
-		unordered_map<string, double> SOURSE;
-		SOURSE["m_x"] = 0.0;
-		SOURSE["m_y"] = 0.0;
-		SOURSE["m_z"] = 0.0;
-		SOURSE["E"] = 0.0;
+			 // Скорости - это симметричные функции
+			 unordered_map<string, double> U;    // _p_H1, _p_H2, ...., _Pui_1_H1, ...
+			 unordered_map<string, double> Um;   // _p_H1, _p_H2, ...., _Pui_1_H1, ...
+			 unordered_map<string, double> UE;   // _p_H1, _p_H2, ...., _Pui_1_H1, ...
+			 unordered_map<string, double> sig;  // _p_H1, _p_H2, ...., _Pui_1_H1, ...
 
-		// Заполняем общие суммарные источники для плазмы  --------------------------------------
+			 if (true)
+			 {
+				 pui_n = -2;
+				 for (const auto& nam1 : this->phys_param->p_pui_name)
+				 {
+					 pui_n++;
+					 if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
+					 for (const auto& nam2 : this->phys_param->H_name)
+					 {
+						 U[nam1 + nam2] = U_bera(T[nam1], T[nam2], V["_p"], V[nam2]);
+						 U[nam2 + nam1] = U_bera(T[nam2], T[nam1], V[nam2], V["_p"]);
 
-		ofstream fout;
-		fout.open("source_comparison.txt");
-		double ddp = (this->phys_param->par_n_H_LISM / this->phys_param->par_Kn);
-		
-		pui_n = -2;
-		for (const auto& nam1 : this->phys_param->p_pui_name)
-		{
-			pui_n++;
-			if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
+						 Um[nam1 + nam2] = Um_bera(T[nam1], T[nam2], V["_p"], V[nam2]);
+						 Um[nam2 + nam1] = Um_bera(T[nam2], T[nam1], V[nam2], V["_p"]);
 
-			for (const auto& nam2 : this->phys_param->H_name)
-			{
-				auto SS = (-Hm[nam2 + nam1] + Hm[nam1 + nam2]);
-				SOURSE["m_x"] += SS[0] * ddp;
-				SOURSE["m_y"] += SS[1] * ddp;
-				SOURSE["m_z"] += SS[2] * ddp;
-				SOURSE["E"] += (-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp;
+						 UE[nam1 + nam2] = UE_bera(T[nam1], T[nam2], V["_p"], V[nam2]);
+						 UE[nam2 + nam1] = UE_bera(T[nam2], T[nam1], V[nam2], V["_p"]);
 
-				double a1 = 0.0, a2 = 0.0, a3 = 0.0, a4 = 0.0;
-				if (nam1 == "_p")
-				{
-					a1 = C->parameters[0]["MK_IVx" + nam2];
-					a2 = C->parameters[0]["MK_IVy" + nam2];
-					a3 = C->parameters[0]["MK_IVz" + nam2];
-					a4 = C->parameters[0]["MK_IT" + nam2];
-				}
-				else if (nam1 == "_Pui_1")
-				{
-					a1 = C->parameters[0]["MK_IVx" + nam2 + "_pui_1"];
-					a2 = C->parameters[0]["MK_IVy" + nam2 + "_pui_1"];
-					a3 = C->parameters[0]["MK_IVz" + nam2 + "_pui_1"];
-					a4 = C->parameters[0]["MK_IT" + nam2 + "_pui_1"];
-				}
-				else if (nam1 == "_Pui_2")
-				{
-					a1 = C->parameters[0]["MK_IVx" + nam2 + "_pui_2"];
-					a2 = C->parameters[0]["MK_IVy" + nam2 + "_pui_2"];
-					a3 = C->parameters[0]["MK_IVz" + nam2 + "_pui_2"];
-					a4 = C->parameters[0]["MK_IT" + nam2 + "_pui_2"];
-				}
+						 sig[nam1 + nam2] = kv(1.0 - this->phys_param->par_a_2 * log(U[nam1 + nam2]));
+						 sig[nam2 + nam1] = kv(1.0 - this->phys_param->par_a_2 * log(U[nam2 + nam1]));
+					 }
+				 }
 
-				fout << nam1 << " " << nam2 << " " << SS[0] * ddp << " " << a1 << " "  << SS[1] * ddp << " " << a2 << " "
-					<< SS[2] * ddp << " " << a3
-					<< " " << (-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp << " " << a4 << endl;
-			}
-		}
+			 }
 
-		fout.close();
-		cout << "SOURSE = " << SOURSE["m_x"] << " " << SOURSE["m_y"] << " " << SOURSE["m_z"] << " " << SOURSE["E"] << endl;
+			 unordered_map<string, double> Hrho;
+			 unordered_map<string, double> HE;
+			 unordered_map<string, Eigen::Vector3d> Hm;
+			 unordered_map<string, double> Hp;
+
+			 if (true)
+			 {
+				 pui_n = -2;
+				 for (const auto& nam1 : this->phys_param->p_pui_name)
+				 {
+					 pui_n++;
+					 if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
+					 for (const auto& nam2 : this->phys_param->H_name)
+					 {
+						 Hrho[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * U[nam1 + nam2];
+						 Hrho[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * U[nam2 + nam1];
+
+						 Hm[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * (U[nam2 + nam1] * V["_p"] +
+							 T[nam1] / Um[nam2 + nam1] * (V["_p"] - V[nam2]));
+						 Hm[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * (U[nam1 + nam2] * V[nam2] -
+							 T[nam2] / Um[nam1 + nam2] * (V["_p"] - V[nam2]));
+
+						 HE[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * (0.5 * U[nam2 + nam1] * V["_p"].squaredNorm() +
+							 T[nam1] / Um[nam2 + nam1] * V["_p"].dot(V["_p"] - V[nam2]) +
+							 3.0 / 4.0 * T[nam1] * UE[nam2 + nam1]);
+
+						 HE[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * (0.5 * U[nam1 + nam2] * V[nam2].squaredNorm() -
+							 T[nam2] / Um[nam1 + nam2] * V[nam2].dot(V["_p"] - V[nam2]) +
+							 3.0 / 4.0 * T[nam2] * UE[nam1 + nam2]);
+
+						 Hp[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * this->phys_param->g1 * 3.0 / 4.0 *
+							 T[nam1] * UE[nam2 + nam1];
+
+						 Hp[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * this->phys_param->g1 *
+							 ((0.5 * U[nam1 + nam2] + T[nam2] / Um[nam1 + nam2]) * (V["_p"] - V[nam2]).squaredNorm() +
+								 3.0 / 4.0 * T[nam2] * UE[nam1 + nam2]);
+					 }
+				 }
+
+			 }
+
+			 unordered_map<string, double> SOURSE;
+			 SOURSE["m_x"] = 0.0;
+			 SOURSE["m_y"] = 0.0;
+			 SOURSE["m_z"] = 0.0;
+			 SOURSE["E"] = 0.0;
+
+			 // Заполняем общие суммарные источники для плазмы  --------------------------------------
+
+			 ofstream fout;
+			 fout.open(data.filename);
+			 double ddp = (this->phys_param->par_n_H_LISM / this->phys_param->par_Kn);
+
+			 pui_n = -2;
+			 for (const auto& nam1 : this->phys_param->p_pui_name)
+			 {
+				 pui_n++;
+				 if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
+
+				 for (const auto& nam2 : this->phys_param->H_name)
+				 {
+					 auto SS = (-Hm[nam2 + nam1] + Hm[nam1 + nam2]);
+					 SOURSE["m_x"] += SS[0] * ddp;
+					 SOURSE["m_y"] += SS[1] * ddp;
+					 SOURSE["m_z"] += SS[2] * ddp;
+					 SOURSE["E"] += (-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp;
+
+					 double a1 = 0.0, a2 = 0.0, a3 = 0.0, a4 = 0.0;
+					 if (nam1 == "_p")
+					 {
+						 a1 = C->parameters[0]["MK_IVx" + nam2];
+						 a2 = C->parameters[0]["MK_IVy" + nam2];
+						 a3 = C->parameters[0]["MK_IVz" + nam2];
+						 a4 = C->parameters[0]["MK_IT" + nam2];
+					 }
+					 else if (nam1 == "_Pui_1")
+					 {
+						 a1 = C->parameters[0]["MK_IVx" + nam2 + "_pui_1"];
+						 a2 = C->parameters[0]["MK_IVy" + nam2 + "_pui_1"];
+						 a3 = C->parameters[0]["MK_IVz" + nam2 + "_pui_1"];
+						 a4 = C->parameters[0]["MK_IT" + nam2 + "_pui_1"];
+					 }
+					 else if (nam1 == "_Pui_2")
+					 {
+						 a1 = C->parameters[0]["MK_IVx" + nam2 + "_pui_2"];
+						 a2 = C->parameters[0]["MK_IVy" + nam2 + "_pui_2"];
+						 a3 = C->parameters[0]["MK_IVz" + nam2 + "_pui_2"];
+						 a4 = C->parameters[0]["MK_IT" + nam2 + "_pui_2"];
+					 }
+
+					 fout << nam1 << " " << nam2 << " " << SS[0] * ddp << " " << a1 << " " << SS[1] * ddp << " " << a2 << " "
+						 << SS[2] * ddp << " " << a3
+						 << " " << (-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp << " " << a4 << endl;
+				 }
+			 }
+
+			 fout.close();
+			 cout << "SOURSE = " << SOURSE["m_x"] << " " << SOURSE["m_y"] << " " << SOURSE["m_z"] << " " << SOURSE["E"] << endl;
+		 }
 	}
 
 
