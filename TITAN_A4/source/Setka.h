@@ -94,7 +94,7 @@ public:
 	vector <double> MK_Potoks;  // Потоки через зоны (через вышеопределённые наборы граней)
 	vector <vector <double>> MK_Potoks_on_sort;  // [zone][iH] Потоки через зоны для каждого сорта водорода
 
-
+	bool is_sourse_popravka_MK_Mf;   // Внутренняя проверка, что коэффициенты поправки источников были загружены в сетку, если они нужны
 
 	Setka(string name_setka_2d, string name_setka_krug, int N_phi_);
 	~Setka();
@@ -221,6 +221,9 @@ public:
 
 	void Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 		short int now, short int zone);
+
+	void Calc_sourse_popravka_MK_Mf_Bera();
+	void Read_sourse_popravka_MK_Mf();
 
 	void Init_h0_and_read_from_file(void);
 	void Delete_h0(void);

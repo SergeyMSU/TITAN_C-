@@ -100,6 +100,8 @@ Setka::Setka(string name_setka_2d, string name_setka_krug, int N_phi_)
 	this->name_luch.push_back("H_Luch");
 	this->name_luch.push_back("G_Luch");
 
+	this->is_sourse_popravka_MK_Mf = false;
+
 	this->Cell_Center = new Cell;
 
 	this->New_initial(name_setka_2d, name_setka_krug);                     // Начальное создание узлов и ячеек

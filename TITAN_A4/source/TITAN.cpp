@@ -80,7 +80,8 @@ int main()
     //S1.Download_cell_parameters("parameters_0060.bin"); 
     //  
 
-    S1.Download_cell_parameters("parameters_0081.bin");    
+    //S1.Download_cell_parameters("parameters_0081.bin");  // Стартовали согласование с 81  
+    S1.Download_cell_parameters("parameters_0083.bin");    
     //S1.Download_cell_parameters("parameters_0219.bin");    
     // S1.Download_cell_parameters("parameters_promeg_1112.bin");
     //S1.Download_cell_parameters("parameters_promeg_1118.bin");
@@ -163,7 +164,12 @@ int main()
     //S1.Algoritm(23, &S1);
     //S1.Algoritm(101, &S1);
 
-    S1.Algoritm(10, &S1);
+
+    S1.Algoritm(1, &S1);
+
+
+    //S1.Algoritm(5, &S1);
+    //S1.Algoritm(25, &S1);
 
 
     //S1.Algoritm(5, &S1);
@@ -174,7 +180,7 @@ int main()
     //S1.Algoritm(3, &S1);
     //S1.Algoritm(4, &S1);
     //S1.Algoritm(5, &S1);
-    return 0;
+    //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 
@@ -230,7 +236,7 @@ int main()
     }
 
 
-    //S1.Save_cell_parameters("parameters_0080.bin");
+    S1.Save_cell_parameters("parameters_0084.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -297,9 +303,9 @@ int main()
 
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0081-no_razriv-with_MK.bin", false);
+    S1.Save_for_interpolate("For_intertpolate_0082-no_razriv-with_MK.bin", false);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0081-no_razriv-with_MK.bin");
+    Interpol SS = Interpol("For_intertpolate_0082-no_razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");

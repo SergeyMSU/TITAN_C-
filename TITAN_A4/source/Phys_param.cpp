@@ -310,82 +310,84 @@ Phys_param::Phys_param()
 
 
     // Параметры в ячейках для Монте-Карло
-    this->MK_param.push_back("MK_n_H"); this->param_names.push_back("MK_n_H");
-    this->MK_param.push_back("MK_IVx_H"); this->param_names.push_back("MK_IVx_H");
-    this->MK_param.push_back("MK_IVy_H"); this->param_names.push_back("MK_IVy_H");
-    this->MK_param.push_back("MK_IVz_H"); this->param_names.push_back("MK_IVz_H");
-    this->MK_param.push_back("MK_IT_H"); this->param_names.push_back("MK_IT_H");
-
-    if (this->is_PUI == true)
+    if (need_MK_param == true)
     {
-        this->MK_param.push_back("MK_IVx_H_pui_1"); this->param_names.push_back("MK_IVx_H_pui_1");
-        this->MK_param.push_back("MK_IVy_H_pui_1"); this->param_names.push_back("MK_IVy_H_pui_1");
-        this->MK_param.push_back("MK_IVz_H_pui_1"); this->param_names.push_back("MK_IVz_H_pui_1");
-        this->MK_param.push_back("MK_IT_H_pui_1"); this->param_names.push_back("MK_IT_H_pui_1");
-
-        this->MK_param.push_back("MK_IVx_H_pui_2"); this->param_names.push_back("MK_IVx_H_pui_2");
-        this->MK_param.push_back("MK_IVy_H_pui_2"); this->param_names.push_back("MK_IVy_H_pui_2");
-        this->MK_param.push_back("MK_IVz_H_pui_2"); this->param_names.push_back("MK_IVz_H_pui_2");
-        this->MK_param.push_back("MK_IT_H_pui_2"); this->param_names.push_back("MK_IT_H_pui_2");
-    }
-
-    for (size_t ii = 1; ii <= this->num_H; ii++)
-    {
-        string nii = "MK_n_H" + to_string(ii);
-        this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-        nii = "MK_Vx_H" + to_string(ii);
-        this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-        nii = "MK_Vy_H" + to_string(ii);
-        this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-        nii = "MK_Vz_H" + to_string(ii);
-        this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-        nii = "MK_T_H" + to_string(ii);
-        this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-        nii = "MK_IVx_H" + to_string(ii);
-        this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-        nii = "MK_IVy_H" + to_string(ii);
-        this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-        nii = "MK_IVz_H" + to_string(ii);
-        this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-        nii = "MK_IT_H" + to_string(ii);
-        this->MK_param.push_back(nii); this->param_names.push_back(nii);
+        this->MK_param.push_back("MK_n_H"); this->param_names.push_back("MK_n_H");
+        this->MK_param.push_back("MK_IVx_H"); this->param_names.push_back("MK_IVx_H");
+        this->MK_param.push_back("MK_IVy_H"); this->param_names.push_back("MK_IVy_H");
+        this->MK_param.push_back("MK_IVz_H"); this->param_names.push_back("MK_IVz_H");
+        this->MK_param.push_back("MK_IT_H"); this->param_names.push_back("MK_IT_H");
 
         if (this->is_PUI == true)
         {
-            nii = "MK_IVx_H" + to_string(ii) + "_pui_1";
+            this->MK_param.push_back("MK_IVx_H_pui_1"); this->param_names.push_back("MK_IVx_H_pui_1");
+            this->MK_param.push_back("MK_IVy_H_pui_1"); this->param_names.push_back("MK_IVy_H_pui_1");
+            this->MK_param.push_back("MK_IVz_H_pui_1"); this->param_names.push_back("MK_IVz_H_pui_1");
+            this->MK_param.push_back("MK_IT_H_pui_1"); this->param_names.push_back("MK_IT_H_pui_1");
+
+            this->MK_param.push_back("MK_IVx_H_pui_2"); this->param_names.push_back("MK_IVx_H_pui_2");
+            this->MK_param.push_back("MK_IVy_H_pui_2"); this->param_names.push_back("MK_IVy_H_pui_2");
+            this->MK_param.push_back("MK_IVz_H_pui_2"); this->param_names.push_back("MK_IVz_H_pui_2");
+            this->MK_param.push_back("MK_IT_H_pui_2"); this->param_names.push_back("MK_IT_H_pui_2");
+        }
+
+        for (size_t ii = 1; ii <= this->num_H; ii++)
+        {
+            string nii = "MK_n_H" + to_string(ii);
             this->MK_param.push_back(nii); this->param_names.push_back(nii);
 
-            nii = "MK_IVy_H" + to_string(ii) + "_pui_1";
+            nii = "MK_Vx_H" + to_string(ii);
             this->MK_param.push_back(nii); this->param_names.push_back(nii);
 
-            nii = "MK_IVz_H" + to_string(ii) + "_pui_1";
+            nii = "MK_Vy_H" + to_string(ii);
             this->MK_param.push_back(nii); this->param_names.push_back(nii);
 
-            nii = "MK_IT_H" + to_string(ii) + "_pui_1";
+            nii = "MK_Vz_H" + to_string(ii);
             this->MK_param.push_back(nii); this->param_names.push_back(nii);
 
-            nii = "MK_IVx_H" + to_string(ii) + "_pui_2";
+            nii = "MK_T_H" + to_string(ii);
             this->MK_param.push_back(nii); this->param_names.push_back(nii);
 
-            nii = "MK_IVy_H" + to_string(ii) + "_pui_2";
+            nii = "MK_IVx_H" + to_string(ii);
             this->MK_param.push_back(nii); this->param_names.push_back(nii);
 
-            nii = "MK_IVz_H" + to_string(ii) + "_pui_2";
+            nii = "MK_IVy_H" + to_string(ii);
             this->MK_param.push_back(nii); this->param_names.push_back(nii);
 
-            nii = "MK_IT_H" + to_string(ii) + "_pui_2";
+            nii = "MK_IVz_H" + to_string(ii);
             this->MK_param.push_back(nii); this->param_names.push_back(nii);
+
+            nii = "MK_IT_H" + to_string(ii);
+            this->MK_param.push_back(nii); this->param_names.push_back(nii);
+
+            if (this->is_PUI == true)
+            {
+                nii = "MK_IVx_H" + to_string(ii) + "_pui_1";
+                this->MK_param.push_back(nii); this->param_names.push_back(nii);
+
+                nii = "MK_IVy_H" + to_string(ii) + "_pui_1";
+                this->MK_param.push_back(nii); this->param_names.push_back(nii);
+
+                nii = "MK_IVz_H" + to_string(ii) + "_pui_1";
+                this->MK_param.push_back(nii); this->param_names.push_back(nii);
+
+                nii = "MK_IT_H" + to_string(ii) + "_pui_1";
+                this->MK_param.push_back(nii); this->param_names.push_back(nii);
+
+                nii = "MK_IVx_H" + to_string(ii) + "_pui_2";
+                this->MK_param.push_back(nii); this->param_names.push_back(nii);
+
+                nii = "MK_IVy_H" + to_string(ii) + "_pui_2";
+                this->MK_param.push_back(nii); this->param_names.push_back(nii);
+
+                nii = "MK_IVz_H" + to_string(ii) + "_pui_2";
+                this->MK_param.push_back(nii); this->param_names.push_back(nii);
+
+                nii = "MK_IT_H" + to_string(ii) + "_pui_2";
+                this->MK_param.push_back(nii); this->param_names.push_back(nii);
+            }
         }
     }
-
     
 
 
@@ -514,6 +516,8 @@ void Phys_param::initVarMap()
     {"rho_LISM", VarRef(&this->rho_LISM)},
     {"rho_HE_LISM", VarRef(&this->rho_HE_LISM)},
     {"rho_p_LISM", VarRef(&this->rho_p_LISM)},
+    {"sourse_popravka_MK_Mf", VarRef(&this->sourse_popravka_MK_Mf)},
+    {"need_MK_param", VarRef(&this->need_MK_param)},
 
     {"MK_source_S", VarRef(&this->MK_source_S)}
     };

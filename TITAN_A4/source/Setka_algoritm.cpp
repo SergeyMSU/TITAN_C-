@@ -144,7 +144,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 21 - расчёт потенциального поля во внешнем ударном слое методом контрольных объёмов
 	// 22 - расчёт потенциального поля в сверхзвуке методом контрольных объёмов - второй порядок
 	// 23 - печатаем мини-интерполяционную сетку и источники Sp Sm для Игоря
-	// 24 - сравнивам кинетические источники с источниками Беры
+	// 24 - сравнивам кинетические источники с источниками Беры (вывод в файл)
+	// 25 - считаем и сохраняем коэффициенты-поправки к флюидным источникам через кинетику
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -161,7 +162,14 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Smooth_head_TS3();
 
 
-		for (int i = 1; i <= 11 * 12; i++) // 6 * 2   12 * 5
+		// Если нужны поправочные коэффициенты для флюидных источников
+		if (this->phys_param->sourse_popravka_MK_Mf == true)
+		{
+			this->Read_sourse_popravka_MK_Mf();
+		}
+
+
+		for (int i = 1; i <= 6 * 9; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
 			cout << "IIIII = " << i << endl;
@@ -4230,6 +4238,10 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			 fout.close();
 			 cout << "SOURSE = " << SOURSE["m_x"] << " " << SOURSE["m_y"] << " " << SOURSE["m_z"] << " " << SOURSE["E"] << endl;
 		 }
+	}
+	else if (alg == 25)
+	{
+		this->Calc_sourse_popravka_MK_Mf_Bera();
 	}
 
 
