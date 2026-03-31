@@ -219,6 +219,9 @@ public:
 	void Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		short int now, short int zone);
 
+	void Average_sourse_MF();
+	// ќсредн€ет поправки к источникам, использу€ соседние €чейки
+
 	void Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 		short int now, short int zone);
 

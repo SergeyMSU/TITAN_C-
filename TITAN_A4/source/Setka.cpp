@@ -4566,6 +4566,22 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 	const double& b, const double& c, const double& d, string name, bool razmer,
 	const Eigen::Vector3d& eex, const Eigen::Vector3d& eey, const Eigen::Vector3d& centr_sys)
 {
+	// Какие параметры печатать
+	vector<string> param_names_for_print;
+
+	param_names_for_print.push_back("rho");  
+	param_names_for_print.push_back("p"); 
+	param_names_for_print.push_back("Vx"); 
+	param_names_for_print.push_back("Vy"); 
+	param_names_for_print.push_back("Vz"); 
+	param_names_for_print.push_back("Bx");
+	param_names_for_print.push_back("By");
+	param_names_for_print.push_back("Bz");
+	param_names_for_print.push_back("Q"); 
+	param_names_for_print.push_back("rho_He"); 
+
+
+
 	// Находим нормаль к плоскости
 	cout << "Start: Tecplot_print_2D " << name << endl;
 	std::array<double, 3> normal;
@@ -4797,7 +4813,10 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 	fout << "TITLE = HP" << endl;
 	fout << "VARIABLES = xx, yy, X, Y, Z";
 
-	for (auto& nam : Int1->param_names)
+
+	
+
+	for (auto& nam : param_names_for_print)
 	{
 		fout << ", " << nam;
 	}
@@ -4876,7 +4895,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			}
 
 
-			for (auto& nam : Int1->param_names)
+			for (auto& nam : param_names_for_print)
 			{
 				if (fine_int == true && visible == true)
 				{

@@ -166,10 +166,11 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		if (this->phys_param->sourse_popravka_MK_Mf == true)
 		{
 			this->Read_sourse_popravka_MK_Mf();
+			this->Average_sourse_MF();
 		}
 
 
-		for (int i = 1; i <= 6 * 1; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 6 * 9; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
 			cout << "IIIII = " << i << endl;

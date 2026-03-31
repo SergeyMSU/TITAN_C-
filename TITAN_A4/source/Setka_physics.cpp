@@ -1895,6 +1895,154 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 	}
 }
 
+
+void Setka::Average_sourse_MF()
+{
+	cout << "Start: Average_sourse_MF" << endl;
+	// Векторы для новых значений четырёх коэффициентов
+	std::vector<double> new_k1(this->All_Cell.size());
+	std::vector<double> new_k2(this->All_Cell.size());
+	std::vector<double> new_k3(this->All_Cell.size());
+	std::vector<double> new_k4(this->All_Cell.size());
+
+
+	for (const auto& nam1 : this->phys_param->p_pui_name)
+	{
+		for (const auto& nam2 : this->phys_param->H_name)
+		{
+			cout << "Average: " << nam1 << "   " << nam2 << endl;
+			std::string suffix = nam1 + nam2;
+
+			// Обнуляем вектора
+			for (size_t i = 0; i < this->All_Cell.size(); ++i)
+			{
+				new_k1[i] = 1.0;
+				new_k2[i] = 1.0;
+				new_k3[i] = 1.0;
+				new_k4[i] = 1.0;
+			}
+
+			for (size_t i = 0; i < this->All_Cell.size(); ++i)
+			{
+				Cell* C = this->All_Cell[i];
+
+				// Сбор окрестности радиуса 2 (уникальные ячейки)
+				std::vector<Cell*> neighborhood;
+				// Добавляем саму ячейку
+				neighborhood.push_back(C);
+
+				// Соседи первого уровня
+				for (Gran* gr : C->grans) 
+				{
+					Cell* s1 = C->Get_Sosed(gr);
+					if (s1 != nullptr && std::find(neighborhood.begin(), neighborhood.end(), s1) == neighborhood.end()) 
+					{
+						if (C->type == s1->type)
+						{
+							neighborhood.push_back(s1);
+						}
+					}
+				}
+
+				// Соседи второго уровня (через соседей первого уровня)
+				size_t currentSize = neighborhood.size();
+				for (size_t j = 1; j < currentSize; ++j) 
+				{
+					Cell* cur = neighborhood[j];
+					for (Gran* gr : cur->grans) 
+					{
+						Cell* s2 = cur->Get_Sosed(gr);
+						if (s2 != nullptr && std::find(neighborhood.begin(), neighborhood.end(), s2) == neighborhood.end()) 
+						{
+							if (C->type == s2->type)
+							{
+								neighborhood.push_back(s2);
+							}
+						}
+					}
+				}
+
+				// Теперь вычисляем взвешенное среднее для каждого коэффициента
+				double sumV = 0.0;
+				double sumVK1 = 0.0, sumVK2 = 0.0, sumVK3 = 0.0, sumVK4 = 0.0;
+				for (Cell* cell : neighborhood) 
+				{
+					double vol = cell->volume[0];        // объём ячейки
+					sumV += vol;
+
+					string nnn = "S_k1_" + suffix;
+					if (cell->parameters[0].find(nnn) != cell->parameters[0].end())
+					{
+						sumVK1 += vol * cell->parameters[0][nnn];
+					}
+					else
+					{
+						sumVK1 += vol;
+					}
+
+					nnn = "S_k2_" + suffix;
+					if (cell->parameters[0].find(nnn) != cell->parameters[0].end())
+					{
+						sumVK2 += vol * cell->parameters[0][nnn];
+					}
+					else
+					{
+						sumVK2 += vol;
+					}
+
+					nnn = "S_k3_" + suffix;
+					if (cell->parameters[0].find(nnn) != cell->parameters[0].end())
+					{
+						sumVK3 += vol * cell->parameters[0][nnn];
+					}
+					else
+					{
+						sumVK3 += vol;
+					}
+
+					nnn = "S_k4_" + suffix;
+					if (cell->parameters[0].find(nnn) != cell->parameters[0].end())
+					{
+						sumVK4 += vol * cell->parameters[0][nnn];
+					}
+					else
+					{
+						sumVK4 += vol;
+					}
+
+					if (sumV > 0.0) 
+					{
+						new_k1[i] = sumVK1 / sumV;
+						new_k2[i] = sumVK2 / sumV;
+						new_k3[i] = sumVK3 / sumV;
+						new_k4[i] = sumVK4 / sumV;
+					}
+
+
+				}
+
+			}
+
+
+			// Заполняем коэффициенты
+			for (size_t i = 0; i < this->All_Cell.size(); ++i) 
+			{
+				Cell* C = this->All_Cell[i];
+				if (fabs(1.0 - new_k1[i]) > 0.001) C->parameters[0]["S_k1_" + suffix] = new_k1[i];
+				if (fabs(1.0 - new_k2[i]) > 0.001) C->parameters[0]["S_k2_" + suffix] = new_k2[i];
+				if (fabs(1.0 - new_k3[i]) > 0.001) C->parameters[0]["S_k3_" + suffix] = new_k3[i];
+				if (fabs(1.0 - new_k4[i]) > 0.001) C->parameters[0]["S_k4_" + suffix] = new_k4[i];
+			}
+
+		}
+	}
+
+
+	cout << "END: Average_sourse_MF" << endl;
+}
+
+
+
 int Setka::determ_zone(Cell* C, short int now)
 {
 	// 1, 2, 3, 4
