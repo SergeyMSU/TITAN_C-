@@ -271,6 +271,12 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(2, 4);
 			a1->dist_from_HP = 4;
+
+			a1 = i->get_yzel_near_opor(2, -5);
+			a1->dist_from_HP = 5;
+
+			a1 = i->get_yzel_near_opor(2, 5);
+			a1->dist_from_HP = 5;
 		}
 		else if (i->type == "E_Luch")
 		{
@@ -285,6 +291,9 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->Yzels[4];
 			a1->dist_from_HP = 4;
+
+			a1 = i->Yzels[5];
+			a1->dist_from_HP = 5;
 		}
 		else if (i->type == "G_Luch")
 		{
@@ -299,6 +308,9 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(2, -4);
 			a1->dist_from_HP = 4;
+
+			a1 = i->get_yzel_near_opor(2, -5);
+			a1->dist_from_HP = 5;
 		}
 		else if (i->type == "D_Luch")
 		{
@@ -326,6 +338,12 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(1, 4);
 			a1->dist_from_HP = 4;
+
+			a1 = i->get_yzel_near_opor(1, -5);
+			a1->dist_from_HP = 5;
+
+			a1 = i->get_yzel_near_opor(1, 5);
+			a1->dist_from_HP = 5;
 		}
 	}
 }
@@ -1670,10 +1688,8 @@ void Setka::Calc_sourse_popravka_MK_Mf_Bera()
 				if (fabs(SS[0] * ddp) > 0.000001)
 				{
 					S_k = a1 / SS[0] * ddp;
-					if (S_k < 0.1 || S_k > 10.0)
-					{
-						S_k = 1.0;
-					}
+					if (S_k < 0.25) S_k = 0.25;
+					if (S_k > 4.0) S_k = 4.0;
 				}
 				file.write(reinterpret_cast<const char*>(&S_k), sizeof(S_k));
 
@@ -1682,10 +1698,8 @@ void Setka::Calc_sourse_popravka_MK_Mf_Bera()
 				if (fabs(SS[1] * ddp) > 0.000001)
 				{
 					S_k = a2 / SS[1] * ddp;
-					if (S_k < 0.1 || S_k > 10.0)
-					{
-						S_k = 1.0;
-					}
+					if (S_k < 0.25) S_k = 0.25;
+					if (S_k > 4.0) S_k = 4.0;
 				}
 				file.write(reinterpret_cast<const char*>(&S_k), sizeof(S_k));
 
@@ -1694,10 +1708,8 @@ void Setka::Calc_sourse_popravka_MK_Mf_Bera()
 				if (fabs(SS[2] * ddp) > 0.000001)
 				{
 					S_k = a3 / SS[2] * ddp;
-					if (S_k < 0.1 || S_k > 10.0)
-					{
-						S_k = 1.0;
-					}
+					if (S_k < 0.25) S_k = 0.25;
+					if (S_k > 4.0) S_k = 4.0;
 				}
 				file.write(reinterpret_cast<const char*>(&S_k), sizeof(S_k));
 
@@ -1706,10 +1718,8 @@ void Setka::Calc_sourse_popravka_MK_Mf_Bera()
 				if (fabs((-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp) > 0.000001)
 				{
 					S_k = a4 / ((-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp);
-					if (S_k < 0.1 || S_k > 10.0)
-					{
-						S_k = 1.0;
-					}
+					if (S_k < 0.25) S_k = 0.25;
+					if (S_k > 4.0) S_k = 4.0;
 				}
 				file.write(reinterpret_cast<const char*>(&S_k), sizeof(S_k));
 
@@ -1771,10 +1781,59 @@ void Setka::Read_sourse_popravka_MK_Mf()
 		// Формирование ключей и добавление в parameters[0]
 		std::string suffix = nam1 + nam2;
 
-		if (fabs(1.0 - a1) > 0.0001) C->parameters[0]["S_k1_" + suffix] = a1;
-		if (fabs(1.0 - a2) > 0.0001) C->parameters[0]["S_k2_" + suffix] = a2;
-		if (fabs(1.0 - a3) > 0.0001) C->parameters[0]["S_k3_" + suffix] = a3;
-		if (fabs(1.0 - a4) > 0.0001) C->parameters[0]["S_k4_" + suffix] = a4;
+		if (fabs(1.0 - a1) > 0.0001)
+		{
+			C->parameters[0]["S_k1_" + suffix] = a1;
+			//cout << "TUT" << endl;
+		}
+		else
+		{
+			if (C->parameters[0].find("S_k1_" + suffix) != C->parameters[0].end())
+			{
+				C->parameters[0].erase("S_k1_" + suffix);
+			}
+		}
+
+
+
+		if (fabs(1.0 - a2) > 0.0001)
+		{
+			C->parameters[0]["S_k2_" + suffix] = a2;
+			//cout << "TUT" << endl;
+		}
+		else
+		{
+			if (C->parameters[0].find("S_k2_" + suffix) != C->parameters[0].end())
+			{
+				C->parameters[0].erase("S_k2_" + suffix);
+			}
+		}
+
+		if (fabs(1.0 - a3) > 0.0001)
+		{
+			C->parameters[0]["S_k3_" + suffix] = a3;
+			//cout << "TUT" << endl;
+		}
+		else
+		{
+			if (C->parameters[0].find("S_k3_" + suffix) != C->parameters[0].end())
+			{
+				C->parameters[0].erase("S_k3_" + suffix);
+			}
+		}
+
+		if (fabs(1.0 - a4) > 0.0001)
+		{
+			C->parameters[0]["S_k4_" + suffix] = a4;
+			//cout << "TUT" << endl;
+		}
+		else
+		{
+			if (C->parameters[0].find("S_k4_" + suffix) != C->parameters[0].end())
+			{
+				C->parameters[0].erase("S_k4_" + suffix);
+			}
+		}
 	}
 
 	file.close();
@@ -3249,9 +3308,9 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	out.write(reinterpret_cast<const char*>(&this->geo->L6), sizeof(double));
 
 	// Добавляем ещё переменные для вывода  "BB/8pi"
-	if (true)
+	if (false)
 	{
-		this->phys_param->param_names.push_back("BB/8pi");
+		this->phys_param->param_names_for_print.push_back("BB/8pi");
 		for (const auto& Cel : this->All_Cell)
 		{
 			Cel->parameters[0]["BB/8pi"] = kvv(Cel->parameters[0]["Bx"],
@@ -3263,11 +3322,11 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 
 	// Записываем количество строк
-	size_t size = this->phys_param->param_names.size() + 1;
+	size_t size = this->phys_param->param_names_for_print.size() + 1;
 	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 	// Записываем каждую строку
-	for (const auto& str : this->phys_param->param_names) {
+	for (const auto& str : this->phys_param->param_names_for_print) {
 		// Сначала записываем длину строки
 		size_t str_size = str.size();
 		out.write(reinterpret_cast<const char*>(&str_size), sizeof(str_size));
@@ -3276,7 +3335,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	}
 
 	cout << "All parameters (send): " << endl;
-	for (const auto& i : this->phys_param->param_names)
+	for (const auto& i : this->phys_param->param_names_for_print)
 	{
 		cout << i << "  ";
 	}
@@ -3319,7 +3378,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 
@@ -3358,7 +3417,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 
@@ -3378,7 +3437,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = par_left[i];
 					bb = C1->parameters[0][i];
@@ -3401,7 +3460,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 					if (this->Cell_Center->parameters[0].find(i) != this->Cell_Center->parameters[0].end())
@@ -3443,7 +3502,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 
@@ -3480,7 +3539,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 
@@ -3500,7 +3559,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = par_right[i];
 					bb = C2->parameters[0][i];
@@ -3538,7 +3597,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 					out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 					out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-					for (const auto& i : this->phys_param->param_names)
+					for (const auto& i : this->phys_param->param_names_for_print)
 					{
 						aa = 0.0;
 
@@ -3562,7 +3621,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 						out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(double));
 						out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(double));
 
-						for (const auto& i : this->phys_param->param_names)
+						for (const auto& i : this->phys_param->param_names_for_print)
 						{
 							aa = par_left[i];
 							bb = C1->parameters[0][i];
@@ -3602,7 +3661,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 
@@ -3643,7 +3702,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 					out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 					out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-					for (const auto& i : this->phys_param->param_names)
+					for (const auto& i : this->phys_param->param_names_for_print)
 					{
 						aa = 0.0;
 
@@ -3665,7 +3724,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 						out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 						out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-						for (const auto& i : this->phys_param->param_names)
+						for (const auto& i : this->phys_param->param_names_for_print)
 						{
 							aa = par_right[i];
 							bb = C2->parameters[0][i];
@@ -3698,7 +3757,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 
@@ -3718,7 +3777,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = par_left[i];
 					bb = C1->parameters[0][i];
@@ -3757,7 +3816,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 
@@ -3794,7 +3853,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 
@@ -3814,7 +3873,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = par_right[i];
 					bb = C2->parameters[0][i];
@@ -3831,7 +3890,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = par_right[i];
 					bb = C2->parameters[0][i];
@@ -3872,7 +3931,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 
@@ -3908,7 +3967,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 
@@ -3928,7 +3987,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = par_right[i];
 					bb = C2->parameters[0][i];
@@ -3969,7 +4028,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-			for (const auto& i : this->phys_param->param_names)
+			for (const auto& i : this->phys_param->param_names_for_print)
 			{
 				aa = 0.0;
 
@@ -4010,7 +4069,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 
@@ -4037,7 +4096,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 					if (this->Cell_Center->parameters[0].find(i) != this->Cell_Center->parameters[0].end())
@@ -4077,7 +4136,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : this->phys_param->param_names)
+				for (const auto& i : this->phys_param->param_names_for_print)
 				{
 					aa = 0.0;
 					if (A->parameters[0].find(i) != A->parameters[0].end())
@@ -4132,7 +4191,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 
-			for (const auto& str : this->phys_param->param_names)
+			for (const auto& str : this->phys_param->param_names_for_print)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -4149,7 +4208,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			for (const auto& str : this->phys_param->param_names)
+			for (const auto& str : this->phys_param->param_names_for_print)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -4167,7 +4226,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			for (const auto& str : this->phys_param->param_names)
+			for (const auto& str : this->phys_param->param_names_for_print)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -4185,7 +4244,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			for (const auto& str : this->phys_param->param_names)
+			for (const auto& str : this->phys_param->param_names_for_print)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -4202,7 +4261,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			for (const auto& str : this->phys_param->param_names)
+			for (const auto& str : this->phys_param->param_names_for_print)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -4220,7 +4279,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			for (const auto& str : this->phys_param->param_names)
+			for (const auto& str : this->phys_param->param_names_for_print)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -4239,7 +4298,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			for (const auto& str : this->phys_param->param_names)
+			for (const auto& str : this->phys_param->param_names_for_print)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));

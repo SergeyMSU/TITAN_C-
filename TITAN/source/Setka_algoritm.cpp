@@ -144,6 +144,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 21 - расчЄт потенциального пол€ во внешнем ударном слое методом контрольных объЄмов
 	// 22 - расчЄт потенциального пол€ в сверхзвуке методом контрольных объЄмов - второй пор€док
 	// 23 - печатаем мини-интерпол€ционную сетку и источники Sp Sm дл€ »гор€
+	// 24 - печатаем карты в Ћинии H-alpha
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -3980,6 +3981,57 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				cout << i << " " << mas_Sm[i] << " " << mas_Sp1[i] << endl;
 			}
 		}
+	}
+	else if (alg == 24)
+	{
+		this->Save_for_interpolate("For_intertpolate_work.bin", false);
+		Interpol SS = Interpol("For_intertpolate_work.bin");
+
+		double dX = 2.0;
+		double dY = 2.0;
+		double dZ = 0.2;
+
+		double ne, T;
+
+		ofstream fout;
+		fout.open("H_alpha_Y_Z.txt");
+
+		for (double X = 200.0; X > -200.0; X = X - dX)
+		{
+			cout << "Culk H_alpha for X = "<< X << endl;
+			for (double Y = -200.0; Y < 200.0; Y = Y + dY)
+			{
+				std::array<Cell_handle, 6> prev_cell;
+				std::array<Cell_handle, 6> next_cell;
+				for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
+				std::unordered_map<string, double> parameters;
+				bool fine_int;
+
+				double IH = 0.0;
+				//fine_int = SS.Get_param(X, Y, 0.0, parameters, prev_cell, next_cell);
+				//fine_int = SS.Get_param(X, 0.0, Y, parameters, prev_cell, next_cell);
+				fine_int = SS.Get_param(0.0, X, Y, parameters, prev_cell, next_cell);
+				if (fine_int != false)
+				{
+					for (double Z = -200.0; Z < 200.0; Z = Z + dZ)
+					{
+						//fine_int = SS.Get_param(X, Y, Z + dZ/2.0, parameters, prev_cell, next_cell);
+						//fine_int = SS.Get_param(X, Z + dZ / 2.0, Y, parameters, prev_cell, next_cell);
+						fine_int = SS.Get_param(Z + dZ / 2.0, X, Y, parameters, prev_cell, next_cell);
+						if (fine_int == false) continue;
+						for (short int i = 0; i < 6; i++) next_cell[i] = prev_cell[i];
+
+						ne = parameters["rho"];
+						T = parameters["p"] / parameters["rho"];
+						IH += kv(ne) * this->phys_param->interpolate_alpha_eff_Ha(T * 6530.0) * dZ;
+					}
+				}
+
+				fout << X * 4.21132 << " " << Y * 4.21132 << " " << IH * 2.91892*1E10 << endl;
+			}
+		}
+
+		fout.close();
 	}
 
 

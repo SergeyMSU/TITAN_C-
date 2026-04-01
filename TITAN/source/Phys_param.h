@@ -225,6 +225,15 @@ public:
     std::vector<double> T_K;
 
 
+    // Данные для считывания alpha_eff_Ha_cm3_s для расчёта поглощения в линии H-alpha
+    std::vector<double> T_vec_eff_Ha, alpha_vec_eff_Ha;
+    std::vector<double> lnT_vec_eff_Ha, lnAlpha_vec_eff_Ha;
+
+    void Read_alpha_eff();
+    double interpolate_alpha_eff_Ha(double T);
+    // -------------------
+
+
     Phys_param();
     void set_parameters(void);
 

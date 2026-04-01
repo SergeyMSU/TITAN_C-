@@ -18,6 +18,7 @@
 Phys_param::Phys_param()
 {
     this->initVarMap();
+    this->Read_alpha_eff();
 
     this->set_parameters();
 
@@ -2947,4 +2948,118 @@ double Phys_param::MK_int_3_f3(const double& x)
             7.170549820159753 * pow4(x) - 0.32568903981020303 * pow5(x) + 0.007955090180048264 * pow6(x);
     }
     return 0.0;
+}
+
+
+void Phys_param::Read_alpha_eff()
+{
+    std::string filename = "alpha_eff_Ha_MK.txt"; // имя файла с данными
+    std::ifstream file(filename);
+    if (!file.is_open()) 
+    {
+        std::cerr << "Error: cannot open file " << filename << std::endl;
+        exit(-1);
+    }
+
+
+    std::string line;
+
+    // Пропускаем первую строку (заголовок)
+    std::getline(file, line);
+
+    // Чтение данных
+    while (std::getline(file, line))
+    {
+        // Пропускаем пустые строки
+        if (line.empty()) continue;
+
+        std::istringstream iss(line);
+        double T, alpha;
+        if (!(iss >> T >> alpha)) {
+            std::cerr << "Warning: skipped invalid line: " << line << std::endl;
+            continue;
+        }
+        T_vec_eff_Ha.push_back(T);
+        alpha_vec_eff_Ha.push_back(alpha);
+    }
+
+    file.close();
+
+    if (T_vec_eff_Ha.empty())
+    {
+        std::cerr << "Error: no data read from file." << std::endl;
+        exit(-1);
+    }
+
+    // Предварительно вычисляем логарифмы для ускорения
+    //std::vector<double> lnT_vec_eff_Ha, lnAlpha_vec_eff_Ha;
+    lnT_vec_eff_Ha.reserve(T_vec_eff_Ha.size());
+    lnAlpha_vec_eff_Ha.reserve(alpha_vec_eff_Ha.size());
+    for (size_t i = 0; i < T_vec_eff_Ha.size(); ++i)
+    {
+        lnT_vec_eff_Ha.push_back(std::log(T_vec_eff_Ha[i]));
+        lnAlpha_vec_eff_Ha.push_back(std::log(alpha_vec_eff_Ha[i]));
+    }
+
+    // Проверка монотонности (необязательно, но полезно)
+    if (!std::is_sorted(lnT_vec_eff_Ha.begin(), lnT_vec_eff_Ha.end()))
+    {
+        std::cerr << "Warning: temperatures are not in increasing order." << std::endl;
+    }
+}
+
+
+// Функция интерполяции (или экстраполяции) в логарифмическом масштабе
+double Phys_param::interpolate_alpha_eff_Ha(double T)
+{
+
+    //const std::vector<double>& T_vec,
+    //    const std::vector<double>& alpha_vec,
+    //    const std::vector<double>& lnT_vec,
+    //    const std::vector<double>& lnAlpha_vec
+
+
+    // Преобразуем T в логарифм
+    double lnT = std::log(T);
+
+    // Если T меньше минимального – экстраполяция по первым двум точкам
+    if (lnT <= lnT_vec_eff_Ha.front())
+    {
+        // Используем первые две точки для линейной экстраполяции
+        const double& lnT0 = lnT_vec_eff_Ha[0];
+        const double& lnT1 = lnT_vec_eff_Ha[1];
+        const double& lnAlpha0 = lnAlpha_vec_eff_Ha[0];
+        const double& lnAlpha1 = lnAlpha_vec_eff_Ha[1];
+        double lnAlpha = lnAlpha0 + (lnT - lnT0) * (lnAlpha1 - lnAlpha0) / (lnT1 - lnT0);
+        return std::exp(lnAlpha);
+    }
+
+    // Если T больше максимального – экстраполяция по последним двум точкам
+    if (lnT >= lnT_vec_eff_Ha.back()) {
+        size_t n = lnT_vec_eff_Ha.size();
+        const double& lnT0 = lnT_vec_eff_Ha[n - 2];
+        const double& lnT1 = lnT_vec_eff_Ha[n - 1];
+        const double& lnAlpha0 = lnAlpha_vec_eff_Ha[n - 2];
+        const double& lnAlpha1 = lnAlpha_vec_eff_Ha[n - 1];
+        double lnAlpha = lnAlpha0 + (lnT - lnT0) * (lnAlpha1 - lnAlpha0) / (lnT1 - lnT0);
+        return std::exp(lnAlpha);
+    }
+
+    // Ищем интервал, содержащий lnT
+    auto it = std::lower_bound(lnT_vec_eff_Ha.begin(), lnT_vec_eff_Ha.end(), lnT);
+    size_t idx = it - lnT_vec_eff_Ha.begin(); // индекс первого элемента >= lnT
+
+    // Если точное совпадение с узлом
+    if (std::fabs(*it - lnT) < 1e-12) {
+        return alpha_vec_eff_Ha[idx];
+    }
+
+    // Интерполяция между idx-1 и idx
+    const double& lnT0 = lnT_vec_eff_Ha[idx - 1];
+    const double& lnT1 = lnT_vec_eff_Ha[idx];
+    const double& lnAlpha0 = lnAlpha_vec_eff_Ha[idx - 1];
+    const double& lnAlpha1 = lnAlpha_vec_eff_Ha[idx];
+
+    double lnAlpha = lnAlpha0 + (lnT - lnT0) * (lnAlpha1 - lnAlpha0) / (lnT1 - lnT0);
+    return std::exp(lnAlpha);
 }

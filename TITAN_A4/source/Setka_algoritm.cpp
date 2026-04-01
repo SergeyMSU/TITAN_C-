@@ -170,7 +170,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 
-		for (int i = 1; i <= 6 * 9; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 1; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
 			cout << "IIIII = " << i << endl;
@@ -1113,21 +1113,14 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		//zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 
 
-		zones_number.push_back(6); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(2.0);
-
-		zones_number.push_back(6); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(2.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(2.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
 
 
 		

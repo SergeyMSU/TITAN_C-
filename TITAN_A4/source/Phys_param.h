@@ -14,6 +14,7 @@ class Phys_param
 public:
 
     vector<string> param_names;
+    vector<string> param_names_for_print;
     // Все имена параметров, наличие которых мы ожидаем в ячейках!
     vector<string> plasma_name; // Имена плазменных значений
     vector<string> plasma_pui_name; // Имена плазменных значений
