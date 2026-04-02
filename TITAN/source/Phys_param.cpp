@@ -19,6 +19,7 @@ Phys_param::Phys_param()
 {
     this->initVarMap();
     this->Read_alpha_eff();
+    this->Read_Xray_emiss();
 
     this->set_parameters();
 
@@ -3062,4 +3063,193 @@ double Phys_param::interpolate_alpha_eff_Ha(double T)
 
     double lnAlpha = lnAlpha0 + (lnT - lnT0) * (lnAlpha1 - lnAlpha0) / (lnT1 - lnT0);
     return std::exp(lnAlpha);
+}
+
+
+void Phys_param::Read_Xray_emiss()
+{
+    std::string filename = "apec_emissivity.txt"; // имя вашего файла
+    std::ifstream file(filename);
+    if (!file.is_open())
+    {
+        std::cerr << "Error: cannot open file " << filename << std::endl;
+        exit(-1);
+    }
+
+    std::string line;
+    // Пропускаем заголовок
+    std::getline(file, line);
+
+    T_Xray.clear();
+    soft_Xray.clear();
+    hard_Xray.clear();
+
+    while (std::getline(file, line))
+    {
+        if (line.empty()) continue;
+        std::istringstream iss(line);
+        double T, soft, hard;
+        if (!(iss >> T >> soft >> hard))
+        {
+            std::cerr << "Warning: skipped invalid line: " << line << std::endl;
+            continue;
+        }
+        T_Xray.push_back(T);
+        soft_Xray.push_back(soft);
+        hard_Xray.push_back(hard);
+    }
+    file.close();
+
+    if (T_Xray.empty())
+    {
+        std::cerr << "Error: no data read from file." << std::endl;
+        exit(-1);
+    }
+
+    // Проверка монотонности температур
+    if (!std::is_sorted(T_Xray.begin(), T_Xray.end()))
+    {
+        std::cerr << "Warning: temperatures are not in increasing order." << std::endl;
+    }
+
+    // --- Подготовка для мягкого рентгена (все значения > 0) ---
+    lnT_Xray.resize(T_Xray.size());
+    lnSoft_Xray.resize(soft_Xray.size());
+    for (size_t i = 0; i < T_Xray.size(); ++i)
+    {
+        lnT_Xray[i] = std::log(T_Xray[i]);
+        lnSoft_Xray[i] = std::log(soft_Xray[i]);
+    }
+
+    // --- Подготовка для жёсткого рентгена (только положительные значения) ---
+    // Находим первый и последний индекс, где hard > 0
+    size_t first_pos = 0;
+    while (first_pos < hard_Xray.size() && hard_Xray[first_pos] <= 0.0)
+        ++first_pos;
+    size_t last_pos = hard_Xray.size() - 1;
+    while (last_pos > first_pos && hard_Xray[last_pos] <= 0.0)
+        --last_pos;
+
+    if (first_pos >= hard_Xray.size() || first_pos > last_pos)
+    {
+        std::cerr << "Warning: no positive hard X-ray values found." << std::endl;
+        T_hard_pos.clear();
+        lnT_hard_pos.clear();
+        lnHard_pos.clear();
+        return;
+    }
+
+    // Копируем положительные значения
+    size_t n_pos = last_pos - first_pos + 1;
+    T_hard_pos.resize(n_pos);
+    lnT_hard_pos.resize(n_pos);
+    lnHard_pos.resize(n_pos);
+    for (size_t i = 0; i < n_pos; ++i)
+    {
+        T_hard_pos[i] = T_Xray[first_pos + i];
+        lnT_hard_pos[i] = std::log(T_hard_pos[i]);
+        lnHard_pos[i] = std::log(hard_Xray[first_pos + i]);
+    }
+
+    std::string out_filename = "check_xray_interp.txt";
+    std::ofstream out(out_filename);
+    if (!out.is_open())
+    {
+        std::cerr << "Error: cannot open output file " << out_filename << std::endl;
+        return;
+    }
+    for (size_t i = 0; i < T_Xray.size(); ++i)
+    {
+        double T = T_Xray[i];
+        double soft, hard;
+        interpolate_Xray(T, soft, hard);
+        out << std::scientific << std::setprecision(7) << T << " " << soft << " " << hard << "\n";
+    }
+
+    // Опционально: добавим несколько промежуточных точек между узлами, чтобы увидеть интерполяцию
+
+    for (size_t i = 0; i < T_Xray.size() - 1; ++i)
+    {
+        double T_mid = (T_Xray[i] + T_Xray[i + 1]) * 0.5;
+        double soft_mid, hard_mid;
+        interpolate_Xray(T_mid, soft_mid, hard_mid);
+        out << std::scientific << std::setprecision(7) << T_mid << " " << soft_mid << " " << hard_mid << "\n";
+    }
+
+    std::cout << "Check file written: " << out_filename << std::endl;
+    out.close();
+
+}
+
+
+void Phys_param::interpolate_Xray(double T, double& soft, double& hard)
+{
+    // ----- Мягкий рентген (логарифмическая интерполяция по всем точкам) -----
+    double lnT = std::log(T);
+
+    // Экстраполяция влево
+    if (lnT <= lnT_Xray.front())
+    {
+        double lnSoft = lnSoft_Xray[0] + (lnT - lnT_Xray[0]) *
+            (lnSoft_Xray[1] - lnSoft_Xray[0]) / (lnT_Xray[1] - lnT_Xray[0]);
+        soft = std::exp(lnSoft);
+    }
+    // Экстраполяция вправо
+    else if (lnT >= lnT_Xray.back())
+    {
+        size_t n = lnT_Xray.size();
+        double lnSoft = lnSoft_Xray[n - 2] + (lnT - lnT_Xray[n - 2]) *
+            (lnSoft_Xray[n - 1] - lnSoft_Xray[n - 2]) / (lnT_Xray[n - 1] - lnT_Xray[n - 2]);
+        soft = std::exp(lnSoft);
+    }
+    // Интерполяция внутри диапазона
+    else
+    {
+        auto it = std::lower_bound(lnT_Xray.begin(), lnT_Xray.end(), lnT);
+        size_t idx = it - lnT_Xray.begin();
+        if (std::fabs(*it - lnT) < 1e-12)
+        {
+            soft = soft_Xray[idx];
+        }
+        else
+        {
+            double lnSoft = lnSoft_Xray[idx - 1] + (lnT - lnT_Xray[idx - 1]) *
+                (lnSoft_Xray[idx] - lnSoft_Xray[idx - 1]) / (lnT_Xray[idx] - lnT_Xray[idx - 1]);
+            soft = std::exp(lnSoft);
+        }
+    }
+
+    // ----- Жёсткий рентген -----
+    // Если нет положительных значений, возвращаем 0
+    if (T_hard_pos.empty())
+    {
+        hard = 0.0;
+        return;
+    }
+
+    // Если температура вне диапазона положительных значений – возвращаем 0
+    if (T <= T_hard_pos.front() || T >= T_hard_pos.back())
+    {
+        hard = 0.0;
+        return;
+    }
+
+    // Ищем интервал для интерполяции в логарифмическом масштабе
+    auto it = std::lower_bound(T_hard_pos.begin(), T_hard_pos.end(), T);
+    size_t idx = it - T_hard_pos.begin();
+
+    // Точное совпадение с узлом
+    if (std::fabs(T_hard_pos[idx] - T) < 1e-12)
+    {
+        hard = std::exp(lnHard_pos[idx]);
+        return;
+    }
+
+    // Интерполяция между idx-1 и idx
+    double lnT0 = lnT_hard_pos[idx - 1];
+    double lnT1 = lnT_hard_pos[idx];
+    double lnHard0 = lnHard_pos[idx - 1];
+    double lnHard1 = lnHard_pos[idx];
+    double lnHard = lnHard0 + (lnT - lnT0) * (lnHard1 - lnHard0) / (lnT1 - lnT0);
+    hard = std::exp(lnHard);
 }

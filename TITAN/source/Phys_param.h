@@ -233,6 +233,25 @@ public:
     double interpolate_alpha_eff_Ha(double T);
     // -------------------
 
+    // ƒанные дл€ м€гкого и жЄсткого рентгена (полные из файла)
+    std::vector<double> T_Xray;           // температура
+    std::vector<double> soft_Xray;        // м€гкий рентген (всегда >0)
+    std::vector<double> hard_Xray;        // жЄсткий рентген (может быть 0 на кра€х)
+
+    // ƒл€ интерпол€ции м€гкого рентгена (логарифмический масштаб)
+    std::vector<double> lnT_Xray;         // log(T_Xray[i])
+    std::vector<double> lnSoft_Xray;      // log(soft_Xray[i])
+
+    // ƒл€ интерпол€ции жЄсткого рентгена (только положительные значени€)
+    std::vector<double> T_hard_pos;       // T, где hard_Xray > 0
+    std::vector<double> lnT_hard_pos;     // log(T_hard_pos[i])
+    std::vector<double> lnHard_pos;       // log(hard_Xray[i]) дл€ этих T
+
+    void Read_Xray_emiss();
+    void interpolate_Xray(double T, double& soft, double& hard);
+
+
+
 
     Phys_param();
     void set_parameters(void);

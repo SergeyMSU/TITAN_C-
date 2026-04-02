@@ -167,7 +167,7 @@ int main()
     //S1.Algoritm(5, &S1);
 
 
-    S1.Algoritm(24, &S1);
+    //S1.Algoritm(24, &S1);
 
     return 0;
 

@@ -3994,11 +3994,17 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		double ne, T;
 
 		ofstream fout;
-		fout.open("H_alpha_Y_Z.txt");
+		fout.open("H_alpha_X_Y.txt");
+
+		ofstream fout2;
+		fout2.open("soft_X-ray_X_Y.txt");
+
+		ofstream fout3;
+		fout3.open("hard_X-ray_X_Y.txt");
 
 		for (double X = 200.0; X > -200.0; X = X - dX)
 		{
-			cout << "Culk H_alpha for X = "<< X << endl;
+			cout << "Culk for X = "<< X << endl;
 			for (double Y = -200.0; Y < 200.0; Y = Y + dY)
 			{
 				std::array<Cell_handle, 6> prev_cell;
@@ -4008,30 +4014,40 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				bool fine_int;
 
 				double IH = 0.0;
-				//fine_int = SS.Get_param(X, Y, 0.0, parameters, prev_cell, next_cell);
+				double I_soft_X_ray = 0.0;
+				double I_hard_X_ray = 0.0;
+				double a1, a2;
+				fine_int = SS.Get_param(X, Y, 0.0, parameters, prev_cell, next_cell);
 				//fine_int = SS.Get_param(X, 0.0, Y, parameters, prev_cell, next_cell);
-				fine_int = SS.Get_param(0.0, X, Y, parameters, prev_cell, next_cell);
+				//fine_int = SS.Get_param(0.0, X, Y, parameters, prev_cell, next_cell);
 				if (fine_int != false)
 				{
 					for (double Z = -200.0; Z < 200.0; Z = Z + dZ)
 					{
-						//fine_int = SS.Get_param(X, Y, Z + dZ/2.0, parameters, prev_cell, next_cell);
+						fine_int = SS.Get_param(X, Y, Z + dZ/2.0, parameters, prev_cell, next_cell);
 						//fine_int = SS.Get_param(X, Z + dZ / 2.0, Y, parameters, prev_cell, next_cell);
-						fine_int = SS.Get_param(Z + dZ / 2.0, X, Y, parameters, prev_cell, next_cell);
+						//fine_int = SS.Get_param(Z + dZ / 2.0, X, Y, parameters, prev_cell, next_cell);
 						if (fine_int == false) continue;
 						for (short int i = 0; i < 6; i++) next_cell[i] = prev_cell[i];
 
 						ne = parameters["rho"];
 						T = parameters["p"] / parameters["rho"];
 						IH += kv(ne) * this->phys_param->interpolate_alpha_eff_Ha(T * 6530.0) * dZ;
+						this->phys_param->interpolate_Xray(T * 6530.0, a1, a2);
+						I_soft_X_ray += kv(ne) * a1 * dZ;
+						I_hard_X_ray += kv(ne) * a2 * dZ;
 					}
 				}
 
 				fout << X * 4.21132 << " " << Y * 4.21132 << " " << IH * 2.91892*1E10 << endl;
+				fout2 << X * 4.21132 << " " << Y * 4.21132 << " " << I_soft_X_ray * 33.2504 << endl;
+				fout3 << X * 4.21132 << " " << Y * 4.21132 << " " << I_hard_X_ray * 173.48 << endl;
 			}
 		}
 
 		fout.close();
+		fout2.close();
+		fout3.close();
 	}
 
 

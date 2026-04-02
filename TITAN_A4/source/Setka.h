@@ -273,7 +273,9 @@ public:
 	// Позволяет переинтерполировать толь MK переменные если MK_only == true
 	void PereInterpolate(Interpol* SS, bool move, bool MK_only = false);
 
-	void Save_for_interpolate(string filename, bool razriv = false);
+	void Save_for_interpolate(string filename, bool razriv = false, bool is_param_names = false);
+	// is_param_names - говорит о том, какие параметры сохранять, все, или только для печати
+
 	void Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA);
 
 	// Монте карло ***********************************************************

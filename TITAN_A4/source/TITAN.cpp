@@ -80,7 +80,7 @@ int main()
     //S1.Download_cell_parameters("parameters_0060.bin"); 
     //  
 
-    S1.Download_cell_parameters("parameters_0081.bin");  // Стартовали согласование с 81  
+    S1.Download_cell_parameters("parameters_0082.bin");  // Стартовали согласование с 81  
     //S1.Download_cell_parameters("parameters_0082.bin");    
 
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");    
@@ -166,16 +166,11 @@ int main()
     //S1.Algoritm(101, &S1);
 
 
-    S1.Algoritm(10, &S1);
+    S1.Algoritm(1, &S1);
 
 
     //S1.Algoritm(5, &S1);
     //S1.Algoritm(25, &S1);
-
-
-    //S1.Algoritm(5, &S1);
-    //S1.Algoritm(24, &S1);
-
 
 
     //S1.Algoritm(3, &S1);
@@ -237,7 +232,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0082.bin");
+    S1.Save_cell_parameters("parameters_0083.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -320,6 +315,8 @@ int main()
         S1.phys_param->param_names_for_print.push_back("rho_He");
 
 
+        S1.phys_param->param_names_for_print.push_back("S_k1__p_H1");
+        S1.phys_param->param_names_for_print.push_back("S_k1__p_H2");
         S1.phys_param->param_names_for_print.push_back("S_k1__p_H3");
         S1.phys_param->param_names_for_print.push_back("S_k1__p_H4");
         S1.phys_param->param_names_for_print.push_back("S_k1__Pui_1_H3");
@@ -327,6 +324,8 @@ int main()
         S1.phys_param->param_names_for_print.push_back("S_k1__Pui_2_H3");
         S1.phys_param->param_names_for_print.push_back("S_k1__Pui_2_H4");
 
+        S1.phys_param->param_names_for_print.push_back("S_k2__p_H1");
+        S1.phys_param->param_names_for_print.push_back("S_k2__p_H2");
         S1.phys_param->param_names_for_print.push_back("S_k2__p_H3");
         S1.phys_param->param_names_for_print.push_back("S_k2__p_H4");
         S1.phys_param->param_names_for_print.push_back("S_k2__Pui_1_H3");
@@ -334,7 +333,7 @@ int main()
         S1.phys_param->param_names_for_print.push_back("S_k2__Pui_2_H3");
         S1.phys_param->param_names_for_print.push_back("S_k2__Pui_2_H4");
 
-        S1.phys_param->param_names_for_print.push_back("S_k3__p_H3");
+        /*S1.phys_param->param_names_for_print.push_back("S_k3__p_H3");
         S1.phys_param->param_names_for_print.push_back("S_k3__p_H4");
         S1.phys_param->param_names_for_print.push_back("S_k3__Pui_1_H3");
         S1.phys_param->param_names_for_print.push_back("S_k3__Pui_1_H4");
@@ -346,10 +345,10 @@ int main()
         S1.phys_param->param_names_for_print.push_back("S_k4__Pui_1_H3");
         S1.phys_param->param_names_for_print.push_back("S_k4__Pui_1_H4");
         S1.phys_param->param_names_for_print.push_back("S_k4__Pui_2_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k4__Pui_2_H4");
+        S1.phys_param->param_names_for_print.push_back("S_k4__Pui_2_H4");*/
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0082-no_razriv-with_MK.bin", false);
+    S1.Save_for_interpolate("For_intertpolate_0082-no_razriv-with_MK.bin", false, true);
     //return 0;
     Interpol SS = Interpol("For_intertpolate_0082-no_razriv-with_MK.bin");
 
