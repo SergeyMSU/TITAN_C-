@@ -80,10 +80,10 @@ int main()
     //S1.Download_cell_parameters("parameters_0060.bin"); 
     //  
 
-    S1.Download_cell_parameters("parameters_0082.bin");  // Стартовали согласование с 81  
+    S1.Download_cell_parameters("parameters_0083.bin");  // Стартовали согласование с 81  
     //S1.Download_cell_parameters("parameters_0082.bin");    
 
-    //S1.Download_cell_parameters("parameters_promeg_1112.bin");    
+    //S1.Download_cell_parameters("parameters_promeg_113.bin");    
     //S1.Download_cell_parameters("parameters_promeg_1130.bin");
     //S1.Download_cell_parameters("parameters_promeg_1118.bin");
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");
@@ -232,7 +232,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0083.bin");
+    S1.Save_cell_parameters("parameters_0084.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
