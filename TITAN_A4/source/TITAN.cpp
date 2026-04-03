@@ -80,7 +80,7 @@ int main()
     //S1.Download_cell_parameters("parameters_0060.bin"); 
     //  
 
-    S1.Download_cell_parameters("parameters_0083.bin");  // Стартовали согласование с 81  
+    S1.Download_cell_parameters("parameters_0085.bin");  // Стартовали согласование с 81  
     //S1.Download_cell_parameters("parameters_0082.bin");    
 
     //S1.Download_cell_parameters("parameters_promeg_113.bin");    
@@ -232,7 +232,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0084.bin");
+    S1.Save_cell_parameters("parameters_0086.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -313,6 +313,16 @@ int main()
         S1.phys_param->param_names_for_print.push_back("Bz");
         S1.phys_param->param_names_for_print.push_back("Q");
         S1.phys_param->param_names_for_print.push_back("rho_He");
+
+        S1.phys_param->param_names_for_print.push_back("rho_H1");
+        S1.phys_param->param_names_for_print.push_back("rho_H2");
+        S1.phys_param->param_names_for_print.push_back("rho_H3");
+        S1.phys_param->param_names_for_print.push_back("rho_H4");
+        S1.phys_param->param_names_for_print.push_back("rho_H5");
+        S1.phys_param->param_names_for_print.push_back("rho_H6");
+        S1.phys_param->param_names_for_print.push_back("rho_H7");
+        S1.phys_param->param_names_for_print.push_back("rho_H8");
+        S1.phys_param->param_names_for_print.push_back("rho_H9");
 
 
         S1.phys_param->param_names_for_print.push_back("S_k1__p_H1");

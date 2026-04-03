@@ -303,8 +303,10 @@ Phys_param::Phys_param()
         this->Culc_hidrogen[nii] = true;
     }
 
+
     // TODO!
-    //this->Culc_hidrogen["_H6"] = false;
+    this->Culc_hidrogen["_H8"] = false;
+    this->Culc_hidrogen["_H9"] = false;
     //this->Culc_hidrogen["_H5"] = false;
 
 
