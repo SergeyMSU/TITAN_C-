@@ -15,6 +15,8 @@
 
 #define zone_info false
 
+
+
 Phys_param::Phys_param()
 {
     this->initVarMap();
@@ -305,8 +307,9 @@ Phys_param::Phys_param()
 
 
     // TODO!
-    this->Culc_hidrogen["_H8"] = false;
-    this->Culc_hidrogen["_H9"] = false;
+    //this->Culc_hidrogen["_H8"] = false;
+    //this->Culc_hidrogen["_H9"] = false;
+    // 
     //this->Culc_hidrogen["_H5"] = false;
 
 
@@ -523,6 +526,15 @@ void Phys_param::initVarMap()
 
     {"MK_source_S", VarRef(&this->MK_source_S)}
     };
+}
+
+bool Phys_param::need_bn_in_p_on_HP(const double x)
+{
+    if (this->bn_in_p_on_HP == false) return false;
+
+    if (x > -15.0) return true;
+
+    return false;
 }
 
 // Функция для парсинга значения из строки и записи в переменную

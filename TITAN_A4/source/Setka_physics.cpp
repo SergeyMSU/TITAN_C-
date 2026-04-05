@@ -2799,6 +2799,16 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				{
 					cell->parameters[now2]["rho_He"] = rho_He3;
 				}
+
+
+				// «апрещаем положительные скорости в хвосте!!!
+				if (cell->center[now1][0] < -30.0 && u3 > 0.0)  
+				{
+					cout << "U3 > 0!!!!    " << u3 << endl;
+					cout << cell->center[now1][0] << " " << cell->center[now1][1] << " " << cell->center[now1][2] << endl;
+					u3 = -1.0;
+				}
+
 				cell->parameters[now2]["Vx"] = u3;
 				cell->parameters[now2]["Vy"] = v3;
 				cell->parameters[now2]["Vz"] = w3;
@@ -3167,7 +3177,8 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 		// ≈сли это контакт, записываем магнитное давление в обычное
 		// » удал€ем магнитные пол€
-		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
+
+		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_bn_in_p_on_HP(gr->center[now][0])) //this->phys_param->bn_in_p_on_HP == true)
 		{
 			if (metod_ == 3) metod_ = 2;
 
@@ -3183,7 +3194,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 		//metod_ = 2;
 		
-		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
+		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_bn_in_p_on_HP(gr->center[now][0])) //this->phys_param->bn_in_p_on_HP == true)
 		{
 			std::vector<double> n(3);
 			n[0] = gr->normal[now][0];
@@ -3260,7 +3271,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		}
 
 		// ƒл€ контакта поток Bn равен нулю
-		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
+		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_bn_in_p_on_HP(gr->center[now][0])) //this->phys_param->bn_in_p_on_HP == true)
 		{
 			gr->parameters["PdivB"] = 0.0;
 		}

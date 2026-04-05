@@ -46,10 +46,10 @@ short int Gran::Get_method()
 		}
 
 
-		/*if (this->center[0][0] < -45.0)
+		if (this->center[0][0] < -15.0)
 		{
 			return 0;
-		}*/
+		}
 
 		//if (this->cells[0]->type == Type_cell::Zone_2)   // Лакс во второй зоне
 		//{
@@ -59,11 +59,11 @@ short int Gran::Get_method()
 	}
 	else if (this->type2 == Type_Gran_surf::HP)    // Лакс на гелиопаузе
 	{
-		if (this->center[0][0] > -10.0)
+		if (this->center[0][0] > -15.0)
 		{
 			return 3;
 		}
-		return 1;
+		return 0;
 	}
 
 

@@ -231,6 +231,8 @@ public:
     std::vector<double> V_kms;
     std::vector<double> T_K;
 
+    bool need_bn_in_p_on_HP(const double x);
+
 
     Phys_param();
     void set_parameters(void);

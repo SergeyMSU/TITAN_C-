@@ -300,7 +300,8 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			// Записываем магнитное давление в обычное
 			// И удаляем магнитные поля
-			if (this->phys_param->bn_in_p_on_HP == true)
+			//if (this->phys_param->bn_in_p_on_HP == true)
+			if(this->phys_param->need_bn_in_p_on_HP(gr->center[now][0]))
 			{
 				metod_ = 2;
 
@@ -311,7 +312,8 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				qqq2[5] = qqq2[6] = qqq2[7] = 0.0;
 			}
 
-			if (this->phys_param->bn_in_p_on_HP == true)
+			//if (this->phys_param->bn_in_p_on_HP == true)
+			if (this->phys_param->need_bn_in_p_on_HP(gr->center[now][0]))
 			{
 				//cout << "A" << endl;
 				std::vector<double> n(3);
@@ -508,6 +510,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				}
 			}
 		}
+
 
 		if (false)
 		{
@@ -711,7 +714,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 #pragma omp parallel for private(A, B, V) schedule(dynamic)
 			for (size_t i = 0; i < nn; i++)
 			{
-				if (i > 4 && i < nn - 4) continue;
+				//if (i > 4 && i < nn - 4) continue;
 
 				for (size_t j = 0; j < mm; j++)
 				{
