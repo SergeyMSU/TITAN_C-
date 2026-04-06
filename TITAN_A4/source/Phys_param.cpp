@@ -532,7 +532,7 @@ bool Phys_param::need_bn_in_p_on_HP(const double x)
 {
     if (this->bn_in_p_on_HP == false) return false;
 
-    if (x > -20.0) return true;
+    if (x > -30.0) return true;
 
     return false;
 }
@@ -542,7 +542,7 @@ bool Phys_param::need_null_bn_on_HP(const double x)
 {
     if (this->null_bn_on_HP == false) return false;
 
-    if (x > -20.0) return true;
+    if (x > -30.0) return true;
 
     return false;
 }

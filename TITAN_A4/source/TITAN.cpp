@@ -82,7 +82,7 @@ int main()
 
 
     // На всей гелиопаузе сделал HLLC и чуть-чуть подвмнул границу для HLLD+bn
-    S1.Download_cell_parameters("parameters_0086.bin");  // Стартовали согласование с 81  
+    S1.Download_cell_parameters("parameters_0088.bin");  // Стартовали согласование с 81  
     //S1.Download_cell_parameters("parameters_0082.bin");    //86  
 
     //S1.Download_cell_parameters("parameters_promeg_1118.bin");    
@@ -234,7 +234,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0087.bin");  
+    S1.Save_cell_parameters("parameters_0089.bin");  
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
