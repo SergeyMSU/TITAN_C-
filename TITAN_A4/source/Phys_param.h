@@ -232,7 +232,7 @@ public:
     std::vector<double> T_K;
 
     bool need_bn_in_p_on_HP(const double x);
-
+    bool need_null_bn_on_HP(const double x);
 
     Phys_param();
     void set_parameters(void);

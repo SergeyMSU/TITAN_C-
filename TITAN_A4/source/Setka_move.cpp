@@ -203,7 +203,8 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			if (gr->type2 != Type_Gran_surf::HP) cout << "Error 7823467276345679264978234" << endl;
 
 
-			if (this->phys_param->null_bn_on_HP == true)
+			//if (this->phys_param->null_bn_on_HP == true)
+			if (this->phys_param->need_null_bn_on_HP(gr->center[now][0]) == true)
 			{
 				// ќбнул€ем bn в €чейках
 				Eigen::Vector3d nnn;
@@ -276,7 +277,8 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				qqq2[7] = par_right["Bz"];
 
 				// ƒл€ снесЄнных значений надо также обнулить Bn
-				if (this->phys_param->null_bn_on_HP == true)
+				//if (this->phys_param->null_bn_on_HP == true)
+				if (this->phys_param->need_null_bn_on_HP(gr->center[now][0]) == true)
 				{
 					// ќбнул€ем bn в €чейках
 					Eigen::Vector3d nnn;

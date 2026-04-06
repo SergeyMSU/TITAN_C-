@@ -59,11 +59,11 @@ short int Gran::Get_method()
 	}
 	else if (this->type2 == Type_Gran_surf::HP)    // Ëàêñ íà ãåëèîïàóçå
 	{
-		if (this->center[0][0] > -15.0)
+		if (this->center[0][0] > -20.0)
 		{
 			return 3;
 		}
-		return 0;
+		return 2;
 	}
 
 
