@@ -13,7 +13,7 @@ short int Gran::Get_method()
 
 	//if (norm2(0.0, this->center[0][1], this->center[0][2]) >= 330.0) return 0;
 
-	if (this->center[0][0] < -85.0)
+	if (this->center[0][0] < -60.0)
 	{
 		return 0;
 	}
@@ -65,11 +65,11 @@ short int Gran::Get_method()
 	}
 	else if (this->type2 == Type_Gran_surf::HP)    // Лакс на гелиопаузе
 	{
-		if (this->center[0][0] > -30.0)
+		/*if (this->center[0][0] > -30.0)
 		{
 			return 3;
-		}
-		return 1;
+		}*/
+		return 3;
 	}
 
 

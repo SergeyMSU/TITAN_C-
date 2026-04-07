@@ -84,8 +84,8 @@ int main()
     // На всей гелиопаузе сделал HLLC и чуть-чуть подвмнул границу для HLLD+bn
     // Вкдючил от -50 все три костыля на HP (до этого было от -30 кажется) и везде на гелиопаузе влючил HLLD
     // 
-    S1.Download_cell_parameters("parameters_promeg_1142.bin");  // Стартовали согласование с 81  
-    //S1.Download_cell_parameters("parameters_0090.bin");    //начиная с 90 могут быть серьёзные изменения
+    //S1.Download_cell_parameters("parameters_promeg_1112.bin");  // Стартовали согласование с 81  
+    S1.Download_cell_parameters("parameters_0091.bin");    //начиная с 90 могут быть серьёзные изменения
 
     //S1.Download_cell_parameters("parameters_promeg_1118.bin");    
     //S1.Download_cell_parameters("parameters_promeg_1130.bin");
@@ -236,7 +236,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0091.bin");  
+    S1.Save_cell_parameters("parameters_0092.bin");  
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -381,6 +381,7 @@ int main()
         Eigen::Vector3d(0.0, 1.0, 0.0), "_(0, 1, 0)_", 500.0);
 
     S1.Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_");
+    S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_");
 
 
     cout << "F " << endl;

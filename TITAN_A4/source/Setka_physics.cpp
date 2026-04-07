@@ -1185,23 +1185,29 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 					double k3 = 1.0;
 					double k4 = 1.0;
 
-					if (this->phys_param->sourse_popravka_MK_Mf == true && C->center[now][0] > -80.0)
+					if (this->phys_param->sourse_popravka_MK_Mf == true)
 					{
-						string nnn = "S_k1_" + nam1 + nam2;
-						if (C->parameters[0].find(nnn) != C->parameters[0].end()) k1 = C->parameters[0][nnn];
+						if ((C->type == Type_cell::Zone_2) || // && C->center[now][0] > -60.0
+							(C->type == Type_cell::Zone_3 && C->center[now][0] > 0.0) ||
+							(C->type == Type_cell::Zone_4 && C->center[now][0] > 0.0) || 
+							(C->type == Type_cell::Zone_1))
+						{
+							string nnn = "S_k1_" + nam1 + nam2;
+							if (C->parameters[0].find(nnn) != C->parameters[0].end()) k1 = C->parameters[0][nnn];
 
-						nnn = "S_k2_" + nam1 + nam2;
-						if (C->parameters[0].find(nnn) != C->parameters[0].end()) k2 = C->parameters[0][nnn];
+							nnn = "S_k2_" + nam1 + nam2;
+							if (C->parameters[0].find(nnn) != C->parameters[0].end()) k2 = C->parameters[0][nnn];
 
-						//nnn = "S_k3_" + nam1 + nam2;
-						//if (C->parameters[0].find(nnn) != C->parameters[0].end()) k3 = C->parameters[0][nnn];
+							//nnn = "S_k3_" + nam1 + nam2;
+							//if (C->parameters[0].find(nnn) != C->parameters[0].end()) k3 = C->parameters[0][nnn];
 
-						//nnn = "S_k4_" + nam1 + nam2;
-						//if (C->parameters[0].find(nnn) != C->parameters[0].end())
-						//{
-						//	k4 = C->parameters[0][nnn];
-						//	//cout << "No source = " << k1 << " " << k2 << " " << k3 << " " << k4 << endl;  // Проверил, сюда программа попадает!
-						//}
+							//nnn = "S_k4_" + nam1 + nam2;
+							//if (C->parameters[0].find(nnn) != C->parameters[0].end())
+							//{
+							//	k4 = C->parameters[0][nnn];
+							//	//cout << "No source = " << k1 << " " << k2 << " " << k3 << " " << k4 << endl;  // Проверил, сюда программа попадает!
+							//}
+						}
 					}
 
 
