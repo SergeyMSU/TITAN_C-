@@ -15,11 +15,11 @@
 
 #define zone_info false
 
-
-
 Phys_param::Phys_param()
 {
     this->initVarMap();
+    this->Read_alpha_eff();
+    this->Read_Xray_emiss();
 
     this->set_parameters();
 
@@ -232,32 +232,35 @@ Phys_param::Phys_param()
     this->param_names.push_back("By"); this->plasma_name.push_back("By"); this->plasma_pui_name.push_back("By");
     this->param_names.push_back("Bz"); this->plasma_name.push_back("Bz"); this->plasma_pui_name.push_back("Bz");
     this->param_names.push_back("Q"); this->plasma_name.push_back("Q"); this->plasma_pui_name.push_back("Q");
-    this->param_names.push_back("rho_He"); this->plasma_name.push_back("rho_He"); this->plasma_pui_name.push_back("rho_He");
+    //this->param_names.push_back("rho_He"); this->plasma_name.push_back("rho_He"); this->plasma_pui_name.push_back("rho_He");
 
 
 
     // Добавляем водород
-    for (size_t ii = 1; ii <= this->num_H; ii++)
+    if (false)
     {
-        string nii = "rho_H" + to_string(ii);
-        this->param_names.push_back(nii);
-        this->H_param_names.push_back(nii);
+        for (size_t ii = 1; ii <= this->num_H; ii++)
+        {
+            string nii = "rho_H" + to_string(ii);
+            this->param_names.push_back(nii);
+            this->H_param_names.push_back(nii);
 
-        nii = "Vx_H" + to_string(ii);
-        this->param_names.push_back(nii);
-        this->H_param_names.push_back(nii);
+            nii = "Vx_H" + to_string(ii);
+            this->param_names.push_back(nii);
+            this->H_param_names.push_back(nii);
 
-        nii = "Vy_H" + to_string(ii);
-        this->param_names.push_back(nii);
-        this->H_param_names.push_back(nii);
+            nii = "Vy_H" + to_string(ii);
+            this->param_names.push_back(nii);
+            this->H_param_names.push_back(nii);
 
-        nii = "Vz_H" + to_string(ii);
-        this->param_names.push_back(nii);
-        this->H_param_names.push_back(nii);
+            nii = "Vz_H" + to_string(ii);
+            this->param_names.push_back(nii);
+            this->H_param_names.push_back(nii);
 
-        nii = "p_H" + to_string(ii);
-        this->param_names.push_back(nii);
-        this->H_param_names.push_back(nii);
+            nii = "p_H" + to_string(ii);
+            this->param_names.push_back(nii);
+            this->H_param_names.push_back(nii);
+        }
     }
 
     // Добавляем пикапы
@@ -298,43 +301,30 @@ Phys_param::Phys_param()
 
 
     // Задаём имена дополнительных жидкостей водорода
-    for (size_t ii = 1; ii <= this->num_H; ii++)
+    if (false)
     {
-        string nii = "_H" + to_string(ii);
-        this->H_name.push_back(nii);
-        this->Culc_hidrogen[nii] = true;
+        for (size_t ii = 1; ii <= this->num_H; ii++)
+        {
+            string nii = "_H" + to_string(ii);
+            this->H_name.push_back(nii);
+            this->Culc_hidrogen[nii] = true;
+        }
     }
 
-
     // TODO!
-    //this->Culc_hidrogen["_H8"] = false;
-    //this->Culc_hidrogen["_H9"] = false;
-    // 
+    //this->Culc_hidrogen["_H6"] = false;
     //this->Culc_hidrogen["_H5"] = false;
 
 
 
     // Параметры в ячейках для Монте-Карло
-    if (need_MK_param == true)
+    if (false)
     {
         this->MK_param.push_back("MK_n_H"); this->param_names.push_back("MK_n_H");
         this->MK_param.push_back("MK_IVx_H"); this->param_names.push_back("MK_IVx_H");
         this->MK_param.push_back("MK_IVy_H"); this->param_names.push_back("MK_IVy_H");
         this->MK_param.push_back("MK_IVz_H"); this->param_names.push_back("MK_IVz_H");
         this->MK_param.push_back("MK_IT_H"); this->param_names.push_back("MK_IT_H");
-
-        if (this->is_PUI == true)
-        {
-            this->MK_param.push_back("MK_IVx_H_pui_1"); this->param_names.push_back("MK_IVx_H_pui_1");
-            this->MK_param.push_back("MK_IVy_H_pui_1"); this->param_names.push_back("MK_IVy_H_pui_1");
-            this->MK_param.push_back("MK_IVz_H_pui_1"); this->param_names.push_back("MK_IVz_H_pui_1");
-            this->MK_param.push_back("MK_IT_H_pui_1"); this->param_names.push_back("MK_IT_H_pui_1");
-
-            this->MK_param.push_back("MK_IVx_H_pui_2"); this->param_names.push_back("MK_IVx_H_pui_2");
-            this->MK_param.push_back("MK_IVy_H_pui_2"); this->param_names.push_back("MK_IVy_H_pui_2");
-            this->MK_param.push_back("MK_IVz_H_pui_2"); this->param_names.push_back("MK_IVz_H_pui_2");
-            this->MK_param.push_back("MK_IT_H_pui_2"); this->param_names.push_back("MK_IT_H_pui_2");
-        }
 
         for (size_t ii = 1; ii <= this->num_H; ii++)
         {
@@ -364,33 +354,6 @@ Phys_param::Phys_param()
 
             nii = "MK_IT_H" + to_string(ii);
             this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-            if (this->is_PUI == true)
-            {
-                nii = "MK_IVx_H" + to_string(ii) + "_pui_1";
-                this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-                nii = "MK_IVy_H" + to_string(ii) + "_pui_1";
-                this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-                nii = "MK_IVz_H" + to_string(ii) + "_pui_1";
-                this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-                nii = "MK_IT_H" + to_string(ii) + "_pui_1";
-                this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-                nii = "MK_IVx_H" + to_string(ii) + "_pui_2";
-                this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-                nii = "MK_IVy_H" + to_string(ii) + "_pui_2";
-                this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-                nii = "MK_IVz_H" + to_string(ii) + "_pui_2";
-                this->MK_param.push_back(nii); this->param_names.push_back(nii);
-
-                nii = "MK_IT_H" + to_string(ii) + "_pui_2";
-                this->MK_param.push_back(nii); this->param_names.push_back(nii);
-            }
         }
     }
     
@@ -521,42 +484,10 @@ void Phys_param::initVarMap()
     {"rho_LISM", VarRef(&this->rho_LISM)},
     {"rho_HE_LISM", VarRef(&this->rho_HE_LISM)},
     {"rho_p_LISM", VarRef(&this->rho_p_LISM)},
-    {"sourse_popravka_MK_Mf", VarRef(&this->sourse_popravka_MK_Mf)},
-    {"need_MK_param", VarRef(&this->need_MK_param)},
 
     {"MK_source_S", VarRef(&this->MK_source_S)}
     };
 }
-
-bool Phys_param::need_bn_in_p_on_HP(const double& x)
-{
-    if (this->bn_in_p_on_HP == false) return false;
-
-    if (x > -30.0) return true;
-
-    return false;
-}
-
-
-bool Phys_param::need_null_bn_on_HP(const double& x)
-{
-    if (this->null_bn_on_HP == false) return false;
-
-    if (x > -30.0) return true;
-
-    return false;
-}
-
-
-bool Phys_param::need_contact_hard(const double& x)
-{
-    if (this->contact_hard == false) return false;
-
-    if (x > 0.0) return true;
-
-    return false;
-}
-
 
 // Функция для парсинга значения из строки и записи в переменную
 void Phys_param::parseAndAssign(VarRef varRef, const std::string& valueStr)
@@ -699,45 +630,47 @@ void Phys_param::set_parameters(void)
 
         file.close();
 
-
-        // Теперь физически параметры самой модели
-        file = std::ifstream("set_model_parameters.txt");
-
-        if (!file.is_open()) {
-            cerr << "Error: Could not open file!   set_model_parameters.txt" << endl;
-            exit(-1);
-        }
-
-        while (std::getline(file, line))
+        if (false)
         {
-            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-            // Пропускаем пустые строки
-            if (line.empty() || line.find_first_not_of(" \t") == std::string::npos) {
-                continue;
+            // Теперь физически параметры самой модели
+            file = std::ifstream("set_model_parameters.txt");
+
+            if (!file.is_open()) {
+                cerr << "Error: Could not open file!   set_model_parameters.txt" << endl;
+                exit(-1);
             }
 
-            std::istringstream iss(line);
-            std::string varName, valueStr;
+            while (std::getline(file, line))
+            {
+                line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+                // Пропускаем пустые строки
+                if (line.empty() || line.find_first_not_of(" \t") == std::string::npos) {
+                    continue;
+                }
 
-            // Извлекаем имя и значение (с поддержкой кавычек)
-            if ((iss >> varName >> std::ws) && std::getline(iss >> std::ws, valueStr)) {
-                // Удаляем пробелы в начале/конце значения
-                valueStr.erase(0, valueStr.find_first_not_of(" \t"));
-                valueStr.erase(valueStr.find_last_not_of(" \t") + 1);
+                std::istringstream iss(line);
+                std::string varName, valueStr;
 
-                if (varMap.count(varName)) {
-                    parseAndAssign(varMap[varName], valueStr);
+                // Извлекаем имя и значение (с поддержкой кавычек)
+                if ((iss >> varName >> std::ws) && std::getline(iss >> std::ws, valueStr)) {
+                    // Удаляем пробелы в начале/конце значения
+                    valueStr.erase(0, valueStr.find_first_not_of(" \t"));
+                    valueStr.erase(valueStr.find_last_not_of(" \t") + 1);
+
+                    if (varMap.count(varName)) {
+                        parseAndAssign(varMap[varName], valueStr);
+                    }
+                    else {
+                        std::cerr << "Unknown variable: " << varName << "\n";
+                    }
                 }
                 else {
-                    std::cerr << "Unknown variable: " << varName << "\n";
+                    std::cerr << "Invalid line format: " << line << "\n";
                 }
             }
-            else {
-                std::cerr << "Invalid line format: " << line << "\n";
-            }
-        }
 
-        file.close();
+            file.close();
+        }
     }
 
 }
@@ -786,7 +719,6 @@ void Phys_param::Plasma_components_2(const short int& zone,
     unordered_map<string, double>& param_in_cell,
     unordered_map<string, double>& param, bool fluid)
 {
-    // fluid показывает какие параметры пикапов брать - из флюидного решения или кинетического
     // Протоны, гелий, пикапы (два сорта)
     // Te == Tth
 
@@ -3027,4 +2959,307 @@ double Phys_param::MK_int_3_f3(const double& x)
             7.170549820159753 * pow4(x) - 0.32568903981020303 * pow5(x) + 0.007955090180048264 * pow6(x);
     }
     return 0.0;
+}
+
+
+void Phys_param::Read_alpha_eff()
+{
+    std::string filename = "alpha_eff_Ha_MK.txt"; // имя файла с данными
+    std::ifstream file(filename);
+    if (!file.is_open()) 
+    {
+        std::cerr << "Error: cannot open file " << filename << std::endl;
+        exit(-1);
+    }
+
+
+    std::string line;
+
+    // Пропускаем первую строку (заголовок)
+    std::getline(file, line);
+
+    // Чтение данных
+    while (std::getline(file, line))
+    {
+        // Пропускаем пустые строки
+        if (line.empty()) continue;
+
+        std::istringstream iss(line);
+        double T, alpha;
+        if (!(iss >> T >> alpha)) {
+            std::cerr << "Warning: skipped invalid line: " << line << std::endl;
+            continue;
+        }
+        T_vec_eff_Ha.push_back(T);
+        alpha_vec_eff_Ha.push_back(alpha);
+    }
+
+    file.close();
+
+    if (T_vec_eff_Ha.empty())
+    {
+        std::cerr << "Error: no data read from file." << std::endl;
+        exit(-1);
+    }
+
+    // Предварительно вычисляем логарифмы для ускорения
+    //std::vector<double> lnT_vec_eff_Ha, lnAlpha_vec_eff_Ha;
+    lnT_vec_eff_Ha.reserve(T_vec_eff_Ha.size());
+    lnAlpha_vec_eff_Ha.reserve(alpha_vec_eff_Ha.size());
+    for (size_t i = 0; i < T_vec_eff_Ha.size(); ++i)
+    {
+        lnT_vec_eff_Ha.push_back(std::log(T_vec_eff_Ha[i]));
+        lnAlpha_vec_eff_Ha.push_back(std::log(alpha_vec_eff_Ha[i]));
+    }
+
+    // Проверка монотонности (необязательно, но полезно)
+    if (!std::is_sorted(lnT_vec_eff_Ha.begin(), lnT_vec_eff_Ha.end()))
+    {
+        std::cerr << "Warning: temperatures are not in increasing order." << std::endl;
+    }
+}
+
+
+// Функция интерполяции (или экстраполяции) в логарифмическом масштабе
+double Phys_param::interpolate_alpha_eff_Ha(double T)
+{
+
+    //const std::vector<double>& T_vec,
+    //    const std::vector<double>& alpha_vec,
+    //    const std::vector<double>& lnT_vec,
+    //    const std::vector<double>& lnAlpha_vec
+
+
+    // Преобразуем T в логарифм
+    double lnT = std::log(T);
+
+    // Если T меньше минимального – экстраполяция по первым двум точкам
+    if (lnT <= lnT_vec_eff_Ha.front())
+    {
+        // Используем первые две точки для линейной экстраполяции
+        const double& lnT0 = lnT_vec_eff_Ha[0];
+        const double& lnT1 = lnT_vec_eff_Ha[1];
+        const double& lnAlpha0 = lnAlpha_vec_eff_Ha[0];
+        const double& lnAlpha1 = lnAlpha_vec_eff_Ha[1];
+        double lnAlpha = lnAlpha0 + (lnT - lnT0) * (lnAlpha1 - lnAlpha0) / (lnT1 - lnT0);
+        return std::exp(lnAlpha);
+    }
+
+    // Если T больше максимального – экстраполяция по последним двум точкам
+    if (lnT >= lnT_vec_eff_Ha.back()) {
+        size_t n = lnT_vec_eff_Ha.size();
+        const double& lnT0 = lnT_vec_eff_Ha[n - 2];
+        const double& lnT1 = lnT_vec_eff_Ha[n - 1];
+        const double& lnAlpha0 = lnAlpha_vec_eff_Ha[n - 2];
+        const double& lnAlpha1 = lnAlpha_vec_eff_Ha[n - 1];
+        double lnAlpha = lnAlpha0 + (lnT - lnT0) * (lnAlpha1 - lnAlpha0) / (lnT1 - lnT0);
+        return std::exp(lnAlpha);
+    }
+
+    // Ищем интервал, содержащий lnT
+    auto it = std::lower_bound(lnT_vec_eff_Ha.begin(), lnT_vec_eff_Ha.end(), lnT);
+    size_t idx = it - lnT_vec_eff_Ha.begin(); // индекс первого элемента >= lnT
+
+    // Если точное совпадение с узлом
+    if (std::fabs(*it - lnT) < 1e-12) {
+        return alpha_vec_eff_Ha[idx];
+    }
+
+    // Интерполяция между idx-1 и idx
+    const double& lnT0 = lnT_vec_eff_Ha[idx - 1];
+    const double& lnT1 = lnT_vec_eff_Ha[idx];
+    const double& lnAlpha0 = lnAlpha_vec_eff_Ha[idx - 1];
+    const double& lnAlpha1 = lnAlpha_vec_eff_Ha[idx];
+
+    double lnAlpha = lnAlpha0 + (lnT - lnT0) * (lnAlpha1 - lnAlpha0) / (lnT1 - lnT0);
+    return std::exp(lnAlpha);
+}
+
+
+void Phys_param::Read_Xray_emiss()
+{
+    std::string filename = "apec_emissivity.txt"; // имя вашего файла
+    std::ifstream file(filename);
+    if (!file.is_open())
+    {
+        std::cerr << "Error: cannot open file " << filename << std::endl;
+        exit(-1);
+    }
+
+    std::string line;
+    // Пропускаем заголовок
+    std::getline(file, line);
+
+    T_Xray.clear();
+    soft_Xray.clear();
+    hard_Xray.clear();
+
+    while (std::getline(file, line))
+    {
+        if (line.empty()) continue;
+        std::istringstream iss(line);
+        double T, soft, hard;
+        if (!(iss >> T >> soft >> hard))
+        {
+            std::cerr << "Warning: skipped invalid line: " << line << std::endl;
+            continue;
+        }
+        T_Xray.push_back(T);
+        soft_Xray.push_back(soft);
+        hard_Xray.push_back(hard);
+    }
+    file.close();
+
+    if (T_Xray.empty())
+    {
+        std::cerr << "Error: no data read from file." << std::endl;
+        exit(-1);
+    }
+
+    // Проверка монотонности температур
+    if (!std::is_sorted(T_Xray.begin(), T_Xray.end()))
+    {
+        std::cerr << "Warning: temperatures are not in increasing order." << std::endl;
+    }
+
+    // --- Подготовка для мягкого рентгена (все значения > 0) ---
+    lnT_Xray.resize(T_Xray.size());
+    lnSoft_Xray.resize(soft_Xray.size());
+    for (size_t i = 0; i < T_Xray.size(); ++i)
+    {
+        lnT_Xray[i] = std::log(T_Xray[i]);
+        lnSoft_Xray[i] = std::log(soft_Xray[i]);
+    }
+
+    // --- Подготовка для жёсткого рентгена (только положительные значения) ---
+    // Находим первый и последний индекс, где hard > 0
+    size_t first_pos = 0;
+    while (first_pos < hard_Xray.size() && hard_Xray[first_pos] <= 0.0)
+        ++first_pos;
+    size_t last_pos = hard_Xray.size() - 1;
+    while (last_pos > first_pos && hard_Xray[last_pos] <= 0.0)
+        --last_pos;
+
+    if (first_pos >= hard_Xray.size() || first_pos > last_pos)
+    {
+        std::cerr << "Warning: no positive hard X-ray values found." << std::endl;
+        T_hard_pos.clear();
+        lnT_hard_pos.clear();
+        lnHard_pos.clear();
+        return;
+    }
+
+    // Копируем положительные значения
+    size_t n_pos = last_pos - first_pos + 1;
+    T_hard_pos.resize(n_pos);
+    lnT_hard_pos.resize(n_pos);
+    lnHard_pos.resize(n_pos);
+    for (size_t i = 0; i < n_pos; ++i)
+    {
+        T_hard_pos[i] = T_Xray[first_pos + i];
+        lnT_hard_pos[i] = std::log(T_hard_pos[i]);
+        lnHard_pos[i] = std::log(hard_Xray[first_pos + i]);
+    }
+
+    std::string out_filename = "check_xray_interp.txt";
+    std::ofstream out(out_filename);
+    if (!out.is_open())
+    {
+        std::cerr << "Error: cannot open output file " << out_filename << std::endl;
+        return;
+    }
+    for (size_t i = 0; i < T_Xray.size(); ++i)
+    {
+        double T = T_Xray[i];
+        double soft, hard;
+        interpolate_Xray(T, soft, hard);
+        out << std::scientific << std::setprecision(7) << T << " " << soft << " " << hard << "\n";
+    }
+
+    // Опционально: добавим несколько промежуточных точек между узлами, чтобы увидеть интерполяцию
+
+    for (size_t i = 0; i < T_Xray.size() - 1; ++i)
+    {
+        double T_mid = (T_Xray[i] + T_Xray[i + 1]) * 0.5;
+        double soft_mid, hard_mid;
+        interpolate_Xray(T_mid, soft_mid, hard_mid);
+        out << std::scientific << std::setprecision(7) << T_mid << " " << soft_mid << " " << hard_mid << "\n";
+    }
+
+    std::cout << "Check file written: " << out_filename << std::endl;
+    out.close();
+
+}
+
+
+void Phys_param::interpolate_Xray(double T, double& soft, double& hard)
+{
+    // ----- Мягкий рентген (логарифмическая интерполяция по всем точкам) -----
+    double lnT = std::log(T);
+
+    // Экстраполяция влево
+    if (lnT <= lnT_Xray.front())
+    {
+        double lnSoft = lnSoft_Xray[0] + (lnT - lnT_Xray[0]) *
+            (lnSoft_Xray[1] - lnSoft_Xray[0]) / (lnT_Xray[1] - lnT_Xray[0]);
+        soft = std::exp(lnSoft);
+    }
+    // Экстраполяция вправо
+    else if (lnT >= lnT_Xray.back())
+    {
+        size_t n = lnT_Xray.size();
+        double lnSoft = lnSoft_Xray[n - 2] + (lnT - lnT_Xray[n - 2]) *
+            (lnSoft_Xray[n - 1] - lnSoft_Xray[n - 2]) / (lnT_Xray[n - 1] - lnT_Xray[n - 2]);
+        soft = std::exp(lnSoft);
+    }
+    // Интерполяция внутри диапазона
+    else
+    {
+        auto it = std::lower_bound(lnT_Xray.begin(), lnT_Xray.end(), lnT);
+        size_t idx = it - lnT_Xray.begin();
+        if (std::fabs(*it - lnT) < 1e-12)
+        {
+            soft = soft_Xray[idx];
+        }
+        else
+        {
+            double lnSoft = lnSoft_Xray[idx - 1] + (lnT - lnT_Xray[idx - 1]) *
+                (lnSoft_Xray[idx] - lnSoft_Xray[idx - 1]) / (lnT_Xray[idx] - lnT_Xray[idx - 1]);
+            soft = std::exp(lnSoft);
+        }
+    }
+
+    // ----- Жёсткий рентген -----
+    // Если нет положительных значений, возвращаем 0
+    if (T_hard_pos.empty())
+    {
+        hard = 0.0;
+        return;
+    }
+
+    // Если температура вне диапазона положительных значений – возвращаем 0
+    if (T <= T_hard_pos.front() || T >= T_hard_pos.back())
+    {
+        hard = 0.0;
+        return;
+    }
+
+    // Ищем интервал для интерполяции в логарифмическом масштабе
+    auto it = std::lower_bound(T_hard_pos.begin(), T_hard_pos.end(), T);
+    size_t idx = it - T_hard_pos.begin();
+
+    // Точное совпадение с узлом
+    if (std::fabs(T_hard_pos[idx] - T) < 1e-12)
+    {
+        hard = std::exp(lnHard_pos[idx]);
+        return;
+    }
+
+    // Интерполяция между idx-1 и idx
+    double lnT0 = lnT_hard_pos[idx - 1];
+    double lnT1 = lnT_hard_pos[idx];
+    double lnHard0 = lnHard_pos[idx - 1];
+    double lnHard1 = lnHard_pos[idx];
+    double lnHard = lnHard0 + (lnT - lnT0) * (lnHard1 - lnHard0) / (lnT1 - lnT0);
+    hard = std::exp(lnHard);
 }

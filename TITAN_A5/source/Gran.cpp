@@ -9,15 +9,9 @@ short int Gran::Get_method()
 
 
 	//if (this->type2 != Type_Gran_surf::Us) return 3;
-	//return 0;
+	return 0;
 
 	//if (norm2(0.0, this->center[0][1], this->center[0][2]) >= 330.0) return 0;
-
-	if (this->center[0][0] < -85.0)
-	{
-		return 0;
-	}
-
 
 	if (this->type2 == Type_Gran_surf::Us)
 	{
@@ -31,7 +25,6 @@ short int Gran::Get_method()
 		bool b2 = false;
 		bool b3 = false;
 		bool b4 = false;
-		bool b5 = false;
 		for (auto& i : this->yzels)
 		{
 			if (i->type == Type_yzel::HP)
@@ -43,16 +36,15 @@ short int Gran::Get_method()
 			if (i->dist_from_HP == 2) b2 = true;
 			if (i->dist_from_HP == 3) b3 = true;
 			if (i->dist_from_HP == 4) b4 = true;
-			if (i->dist_from_HP == 5) b5 = true;
 
-			if (b1 == true || b2 == true || b3 == true || b4 == true || b5 == true)            // Сейчас вообще почти три ряда ячеек считаем Лаксом
+			if (b1 == true || b2 == true || b3 == true || b4 == true)            // Сейчас вообще почти три ряда ячеек считаем Лаксом
 			{
 				return 0;                            // Лакс во втором ряду от гелиопаузы
 			}
 		}
 
 
-		/*if (this->center[0][0] < -15.0)
+		/*if (this->center[0][0] < -100.0)
 		{
 			return 0;
 		}*/
@@ -63,14 +55,10 @@ short int Gran::Get_method()
 		//}
 
 	}
-	else if (this->type2 == Type_Gran_surf::HP)    // Лакс на гелиопаузе
-	{
-		if (this->center[0][0] > -30.0)
-		{
-			return 3;
-		}
-		return 1;
-	}
+	//else if (this->type2 == Type_Gran_surf::HP)    // Лакс на гелиопаузе
+	//{
+	//	return 0;
+	//}
 
 
 	return 3;

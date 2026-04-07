@@ -271,12 +271,6 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(2, 4);
 			a1->dist_from_HP = 4;
-
-			a1 = i->get_yzel_near_opor(2, -5);
-			a1->dist_from_HP = 5;
-
-			a1 = i->get_yzel_near_opor(2, 5);
-			a1->dist_from_HP = 5;
 		}
 		else if (i->type == "E_Luch")
 		{
@@ -291,9 +285,6 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->Yzels[4];
 			a1->dist_from_HP = 4;
-
-			a1 = i->Yzels[5];
-			a1->dist_from_HP = 5;
 		}
 		else if (i->type == "G_Luch")
 		{
@@ -308,9 +299,6 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(2, -4);
 			a1->dist_from_HP = 4;
-
-			a1 = i->get_yzel_near_opor(2, -5);
-			a1->dist_from_HP = 5;
 		}
 		else if (i->type == "D_Luch")
 		{
@@ -338,12 +326,6 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(1, 4);
 			a1->dist_from_HP = 4;
-
-			a1 = i->get_yzel_near_opor(1, -5);
-			a1->dist_from_HP = 5;
-
-			a1 = i->get_yzel_near_opor(1, 5);
-			a1->dist_from_HP = 5;
 		}
 	}
 }
@@ -456,35 +438,70 @@ void Setka::Init_physics(void)
 	}
 
 
-	std::unordered_set<std::string> no_names;
-	// Проверяем наличие всех необходимых переменных
-	for (auto& i : this->All_Cell)
+	// Очистим ненужные переменные
+	if (false)
 	{
-		for (auto& num : this->phys_param->param_names)
+		for (auto& i : this->All_Cell)
 		{
-			if (i->parameters[0].find(num) == i->parameters[0].end())
+
+			for (int idx = 0; idx < 2; ++idx) 
 			{
-				i->parameters[0][num] = 1e-7;
-
-				if (no_names.find(num) == no_names.end()) no_names.insert(num);
+				auto& dict = i->parameters[idx];
+				for (auto it = dict.begin(); it != dict.end(); ) 
+				{
+					if (it->first.find('H') != std::string::npos) 
+					{
+						it = dict.erase(it);              // erase возвращает следующий итератор
+					}
+					else 
+					{
+						++it;
+					}
+				}
 			}
-		}
 
-		i->parameters[1] = i->parameters[0];
+
+			//i->parameters[0].erase("rho_He");
+			//i->parameters[1].erase("rho_He");
+
+			//i->parameters[0].erase("rho_H1");
+			//i->parameters[1].erase("rho_H1");
+		}
 	}
 
-	if (!no_names.empty()) 
+
+	if (false)
 	{
-		std::cout << "Ne bilo nekotorix peremennix v yacheikax, oni bili opredeleni nulem. Elements:" << std::endl;
-		// Вариант 1: Через range-based for (C++11)
-		for (const auto& str : no_names) 
+		std::unordered_set<std::string> no_names;
+		// Проверяем наличие всех необходимых переменных
+		for (auto& i : this->All_Cell)
 		{
-			std::cout << " - " << str << std::endl;
+			for (auto& num : this->phys_param->param_names)
+			{
+				if (i->parameters[0].find(num) == i->parameters[0].end())
+				{
+					i->parameters[0][num] = 1e-7;
+
+					if (no_names.find(num) == no_names.end()) no_names.insert(num);
+				}
+			}
+
+			i->parameters[1] = i->parameters[0];
+		}
+
+
+		if (!no_names.empty())
+		{
+			std::cout << "Ne bilo nekotorix peremennix v yacheikax, oni bili opredeleni nulem. Elements:" << std::endl;
+			// Вариант 1: Через range-based for (C++11)
+			for (const auto& str : no_names) {
+				std::cout << " - " << str << std::endl;
+			}
 		}
 	}
 
 	// Задаём начальные условия на сетке
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -493,64 +510,42 @@ void Setka::Init_physics(void)
 			z = i->center[0][2];
 			r = i->func_R(0);
 
-			if (r < 2.0)
+			if (r < 20.0)
 			{
-				vec << x, y, z;
+				the = acos(z / r);
 
-				cc = this->phys_param->Matr2 * vec;
-				the = acos(cc(2) / r);
+				BR = -124293.0 * kv(0.0000253971 / r);
+				BPHI = -0.2 * BR * sin(the) * (r / 0.0000253971);
 
-				BR = -this->phys_param->B_0 * kv(this->phys_param->R_0 / r);
-				BPHI = -BR * sin(the) * (r / this->phys_param->R_0);
+				dekard_skorost(z, x, y, BR, BPHI, 0.0, V3, V1, V2);
 
-				dekard_skorost(cc(2), cc(0), cc(1), BR, BPHI, 0.0, V3, V1, V2);
+				mV = 66.6667;
 
-				vv << V1, V2, V3;
-
-				the = -the + const_pi / 2.0;   // Т.к.в данных по СВ на 1 а.е.угол от - 90 до 90 у Алексашова
-				cc = this->phys_param->Matr * vv;
-
-				mV = this->phys_param->Get_v_0(the / const_pi * 180.0);
-
-				double Tp = this->phys_param->Get_T_0(the / const_pi * 180.0); // Температура
-
-				double np = this->phys_param->Get_rho_0(the / const_pi * 180.0);
-
-				double rho = (this->phys_param->mep + 2.0 * this->phys_param->mrho_He_0 *
-					this->phys_param->mep +
-					1.0 + 4.0 * this->phys_param->mrho_He_0) * np;
+				i->parameters[0]["rho"] = 0.0348829 * pow(this->phys_param->R_0 / r, 2);
+				i->parameters[0]["p"] = 3.72085 * pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
 
 
+				i->parameters[0]["Vx"] = mV * x / r;
+				i->parameters[0]["Vy"] = mV * y / r;
+				i->parameters[0]["Vz"] = mV * z / r;
 
-				/*i->parameters[0]["rho"] = rho * pow(this->phys_param->R_0 / r, 2);
-				i->parameters[0]["rho_He"] = 4.0 * this->phys_param->mrho_He_0 * np * pow(this->phys_param->R_0 / r, 2);
-				i->parameters[0]["p"] = (1.0 + 3.0 * this->phys_param->mrho_He_0 / 2.0) * np * Tp *
-					pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
-				i->parameters[0]["Vx"] = mV * vec(0)/r;
-				i->parameters[0]["Vy"] = mV * vec(1)/r;
-				i->parameters[0]["Vz"] = mV * vec(2)/r;
-				i->parameters[0]["Bx"] = cc(0);
-				i->parameters[0]["By"] = cc(1);
-				i->parameters[0]["Bz"] = cc(2);
-				i->parameters[0]["Q"] = i->parameters[0]["rho"];*/
+				i->parameters[0]["Bx"] = V1;
+				i->parameters[0]["By"] = V2;
+				i->parameters[0]["Bz"] = V3;
 
-				i->parameters[0]["rho_H1"] = 0.00001;
-				i->parameters[0]["Vx_H1"] = mV * vec(0) / r;
-				i->parameters[0]["Vy_H1"] = mV * vec(1) / r;
-				i->parameters[0]["Vz_H1"] = mV * vec(2) / r;
-				i->parameters[0]["p_H1"] = 0.00001;
+				i->parameters[0]["Q"] = i->parameters[0]["rho"];
 			}
 			else
 			{
-				/*i->parameters[0]["rho"] = 1.0;
-				i->parameters[0]["p"] = 1.0;
+				i->parameters[0]["rho"] = this->phys_param->rho_LISM; 
+				i->parameters[0]["p"] = this->phys_param->rho_p_LISM; 
 				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters[0]["Vy"] = 0.0;
 				i->parameters[0]["Vz"] = 0.0;
-				i->parameters[0]["Bx"] = -this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
-				i->parameters[0]["By"] = -this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
+				i->parameters[0]["Bx"] = this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
+				i->parameters[0]["By"] = this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
 				i->parameters[0]["Bz"] = 0.0;
-				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];*/
+				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
 			}
 
 			for (short unsigned int j = 1; j < i->parameters.size(); j++)
@@ -568,7 +563,6 @@ void Setka::Init_physics(void)
 			if (i->type == Type_Gran::Outer_Hard)
 			{
 				i->parameters["rho"] = this->phys_param->rho_LISM; // 1.60063; // 1.0 * (1.0 + this->phys_param->mrho_He_inf);
-				i->parameters["rho_He"] = this->phys_param->rho_HE_LISM; // 0.6; // this->phys_param->mrho_He_inf;
 				i->parameters["p"] = this->phys_param->rho_p_LISM; // 1 + (i->parameters["rho_He"]) /
 					//(i->parameters["rho"] - i->parameters["rho_He"]);
 				i->parameters["Vx"] = this->phys_param->Velosity_inf;
@@ -578,30 +572,6 @@ void Setka::Init_physics(void)
 				i->parameters["By"] = this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
 				i->parameters["Bz"] = 0.0;
 				i->parameters["Q"] = 100.0 * i->parameters["rho"];
-
-				i->parameters["rho_H4"] = 1.0;
-				i->parameters["Vx_H4"] = this->phys_param->Velosity_inf;
-				i->parameters["Vy_H4"] = 0.0;
-				i->parameters["Vz_H4"] = 0.0;
-				i->parameters["p_H4"] = 0.5;
-
-				if (this->phys_param->num_H >= 9)
-				{
-					i->parameters["rho_H9"] = 0.000001;
-					i->parameters["Vx_H9"] = this->phys_param->Velosity_inf;
-					i->parameters["Vy_H9"] = 0.0;
-					i->parameters["Vz_H9"] = 0.0;
-					i->parameters["p_H9"] = 0.000001;
-				}
-
-				if (this->phys_param->is_PUI == true)
-				{
-					for (const auto& nam : this->phys_param->pui_name)
-					{
-						i->parameters["rho" + nam] = 0.0;
-						i->parameters["p" + nam] = 0.0;
-					}
-				}
 			}
 			else if(i->type == Type_Gran::Inner_Hard)
 			{
@@ -610,69 +580,28 @@ void Setka::Init_physics(void)
 				z = i->center[0][2];
 				r = norm2(x, y, z);
 
-				vec << x, y, z;
+				the = acos(z / r);
 
-				cc = this->phys_param->Matr2 * vec;
-				the = acos(cc(2) / r);
+				BR = -124293.0 * kv(0.0000253971 / r);
+				BPHI = -0.2 * BR * sin(the) * (r / 0.0000253971);
 
-				BR = -this->phys_param->B_0 * kv(this->phys_param->R_0 / r);
-				BPHI = -BR * sin(the) * (r / this->phys_param->R_0);
+				dekard_skorost(z, x, y, BR, BPHI, 0.0, V3, V1, V2);
 
-				dekard_skorost(cc(2), cc(0), cc(1), BR, BPHI, 0.0, V3, V1, V2);
+				mV = 66.6667;
 
-				vv << V1, V2, V3;
-
-				the = -the + const_pi / 2.0;   // Т.к.в данных по СВ на 1 а.е.угол от - 90 до 90 у Алексашова
-				cc = this->phys_param->Matr * vv;
-
-				mV = this->phys_param->Get_v_0(the / const_pi * 180.0);
-
-				double Tp = this->phys_param->Get_T_0(the / const_pi * 180.0); // Температура
-
-				double np = this->phys_param->Get_rho_0(the / const_pi * 180.0);
-
-				double rho = (this->phys_param->mep + 2.0 * this->phys_param->mrho_He_0 * 
-					this->phys_param->mep + 
-					1.0 + 4.0 * this->phys_param->mrho_He_0) * np;
+				i->parameters["rho"] = 0.0348829 * pow(this->phys_param->R_0 / r, 2);
+				i->parameters["p"] = 3.72085 * pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
 
 
+				i->parameters["Vx"] = mV * x/r;
+				i->parameters["Vy"] = mV * y/r;
+				i->parameters["Vz"] = mV * z/r;
 
-				i->parameters["rho"] = rho * pow(this->phys_param->R_0 / r, 2);
-				i->parameters["rho_He"] = 4.0 * this->phys_param->mrho_He_0 * np * pow(this->phys_param->R_0 / r, 2);
-				i->parameters["p"] = (1.0 + 3.0 * this->phys_param->mrho_He_0 /2.0) * np * Tp *
-					pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
-				i->parameters["Vx"] = mV * vec(0)/r;
-				i->parameters["Vy"] = mV * vec(1)/r;
-				i->parameters["Vz"] = mV * vec(2)/r;
-				i->parameters["Bx"] = cc(0);
-				i->parameters["By"] = cc(1);
-				i->parameters["Bz"] = cc(2);
+				i->parameters["Bx"] = V1;
+				i->parameters["By"] = V2;
+				i->parameters["Bz"] = V3;
+
 				i->parameters["Q"] = i->parameters["rho"];
-
-				i->parameters["rho_H1"] = 0.0001;
-				i->parameters["Vx_H1"] = mV * vec(0) / r;
-				i->parameters["Vy_H1"] = mV * vec(1) / r;
-				i->parameters["Vz_H1"] = mV * vec(2) / r;
-				i->parameters["p_H1"] = 0.0001;
-				
-
-				if (this->phys_param->num_H >= 5)
-				{
-					i->parameters["rho_H5"] = 0.0001;
-					i->parameters["Vx_H5"] = mV * vec(0) / r;
-					i->parameters["Vy_H5"] = mV * vec(1) / r;
-					i->parameters["Vz_H5"] = mV * vec(2) / r;
-					i->parameters["p_H5"] = 0.0001;
-				}
-
-				if (this->phys_param->is_PUI == true)
-				{
-					for (const auto& nam : this->phys_param->pui_name)
-					{
-						i->parameters["rho" + nam] = 0.0;
-						i->parameters["p" + nam] = 0.0;
-					}
-				}
 			}
 		}
 	}
@@ -709,7 +638,7 @@ void Setka::Init_physics(void)
 	}
 
 	// Для первых ячеек задаём магнитное поле
-	if (true)
+	if (false)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -938,23 +867,23 @@ void Setka::Init_TVD(void)
 	}
 }
 
-//double U_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
-//{
-//	double uu = (V1 - V2).norm();
-//	return sqrt((4.0 / const_pi) * (T1 + T2) + kv(uu));
-//}
-//
-//double Um_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
-//{
-//	double uu = (V1 - V2).norm();
-//	return sqrt((16.0 / const_pi) * T1 + (9.0 * const_pi / 4.0) * T2 + 4.0 * kv(uu));
-//}
-//
-//double UE_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
-//{
-//	double uu = (V1 - V2).norm();
-//	return sqrt((4.0 / const_pi) * T1 + (64.0 / 9.0 / const_pi) * T2 + kv(uu));
-//}
+double U_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
+{
+	double uu = (V1 - V2).norm();
+	return sqrt((4.0 / const_pi) * (T1 + T2) + kv(uu));
+}
+
+double Um_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
+{
+	double uu = (V1 - V2).norm();
+	return sqrt((16.0 / const_pi) * T1 + (9.0 * const_pi / 4.0) * T2 + 4.0 * kv(uu));
+}
+
+double UE_bera(const double& T1, const double& T2, const Eigen::Vector3d& V1, const Eigen::Vector3d& V2)
+{
+	double uu = (V1 - V2).norm();
+	return sqrt((4.0 / const_pi) * T1 + (64.0 / 9.0 / const_pi) * T2 + kv(uu));
+}
 
 
 
@@ -1180,36 +1109,11 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 				for (const auto& nam2 : this->phys_param->H_name)
 				{
 					auto SS = (-Hm[nam2 + nam1] + Hm[nam1 + nam2]);
-					double k1 = 1.0;
-					double k2 = 1.0;
-					double k3 = 1.0;
-					double k4 = 1.0;
+					SOURSE["m_x"] += SS[0];
+					SOURSE["m_y"] += SS[1];
+					SOURSE["m_z"] += SS[2];
 
-					if (this->phys_param->sourse_popravka_MK_Mf == true && C->center[now][0] > -80.0)
-					{
-						string nnn = "S_k1_" + nam1 + nam2;
-						if (C->parameters[0].find(nnn) != C->parameters[0].end()) k1 = C->parameters[0][nnn];
-
-						nnn = "S_k2_" + nam1 + nam2;
-						if (C->parameters[0].find(nnn) != C->parameters[0].end()) k2 = C->parameters[0][nnn];
-
-						//nnn = "S_k3_" + nam1 + nam2;
-						//if (C->parameters[0].find(nnn) != C->parameters[0].end()) k3 = C->parameters[0][nnn];
-
-						//nnn = "S_k4_" + nam1 + nam2;
-						//if (C->parameters[0].find(nnn) != C->parameters[0].end())
-						//{
-						//	k4 = C->parameters[0][nnn];
-						//	//cout << "No source = " << k1 << " " << k2 << " " << k3 << " " << k4 << endl;  // Проверил, сюда программа попадает!
-						//}
-					}
-
-
-
-					SOURSE["m_x"] += SS[0] * k1;
-					SOURSE["m_y"] += SS[1] * k1;
-					SOURSE["m_z"] += SS[2] * k1;
-					SOURSE["E"] += (-HE[nam2 + nam1] + HE[nam1 + nam2]) * k2;
+					SOURSE["E"] += (-HE[nam2 + nam1] + HE[nam1 + nam2]);
 
 					if (this->regim_otladki == true)
 					{
@@ -1249,10 +1153,6 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 				}
 			}
 		}
-
-		
-
-
 		//cout << "B6 " << endl;
 		// Заполняем источники водорода  --------------------------------------------------------------------
 		for (const auto& nam2 : this->phys_param->H_name)
@@ -1482,425 +1382,6 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 }
 
 
-void Setka::Calc_sourse_popravka_MK_Mf_Bera()
-{
-
-	std::ofstream file("SOURCE_MK-MF.bin", std::ios::binary);
-	if (!file.is_open())
-	{
-		std::cerr << "Error 8945tyefijuedhgo834ygoerge  " << "SOURCE_MK-MF.bin" << std::endl;
-		std::cerr << "Error code: " << strerror(errno) << std::endl; // Добавьте эту строку
-		exit(-1);
-	}
-
-	Cell* prev = nullptr;
-	Cell* CCC = this->Find_cell_point(20.0, 0.0, 0.0, 0, prev);
-
-	unsigned int N_C = this->All_Cell.size();
-	unsigned int ki = 0;
-	for (auto& C : this->All_Cell)
-	{
-		ki++;
-		if (ki % 50000 == 0)
-		{
-			cout << "Step: " << ki << "  from:" << N_C << endl;
-		}
-		short int zone = determ_zone(C, 0);
-		short int zone_ = zone - 1;
-		// Названия жидкостей
-		// p, Pui1, Pui2, ....
-		// H1, H2, H3, H4, .....
-		// 
-		// Для каждой жидкости нужна rho, T
-		// Также нужна средняя скорость плазмы и Скорости всех сортов водорода
-		unordered_map<string, double> rho;  // "_p", "_Pui_1", .... , "_H1", ...
-		unordered_map<string, double> T;    // "_p", "_Pui_1", ...., "_H1", ...
-		unordered_map<string, Eigen::Vector3d> V;    // "_p", "_H1", ...
-
-		// Получаем переменные -----------------------------------------------------------------
-		unordered_map<string, double> param;
-
-		this->phys_param->Plasma_components(zone_, C->parameters[0], param, true);
-
-
-		rho["_p"] = param["rho_Th"];
-		T["_p"] = param["T_Th"];
-		V["_p"] = Eigen::Vector3d(C->parameters[0]["Vx"],
-			C->parameters[0]["Vy"], C->parameters[0]["Vz"]);
-
-		if (rho["_p"] <= 1e-8) rho["_p"] = 1e-8;
-		if (T["_p"] <= 1e-8) T["_p"] = 1e-8;
-
-		if (T["_p"] > 1e5) T["_p"] = 1e5;
-
-		//cout << "B1 " << endl;
-
-		short int pui_n = -1;
-		for (const auto& nam1 : this->phys_param->pui_name)
-		{
-			pui_n++;
-			if (this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-
-			rho[nam1] = C->parameters[0]["rho" + nam1];
-			T[nam1] = 2.0 * C->parameters[0]["p" + nam1] / rho[nam1];
-			if (rho[nam1] <= 1e-8) rho[nam1] = 1e-8;
-			if (T[nam1] <= 1e-8) T[nam1] = 1e-8;
-		}
-
-		for (const auto& nam2 : this->phys_param->H_name)
-		{
-			rho[nam2] = C->parameters[0]["rho" + nam2];
-			T[nam2] = 2.0 * C->parameters[0]["p" + nam2] / max(rho[nam2], 1e-9);
-			V[nam2] = Eigen::Vector3d(C->parameters[0]["Vx" + nam2],
-				C->parameters[0]["Vy" + nam2], C->parameters[0]["Vz" + nam2]);
-		}
-
-		// Скорости - это симметричные функции
-		unordered_map<string, double> U;    // _p_H1, _p_H2, ...., _Pui_1_H1, ...
-		unordered_map<string, double> Um;   // _p_H1, _p_H2, ...., _Pui_1_H1, ...
-		unordered_map<string, double> UE;   // _p_H1, _p_H2, ...., _Pui_1_H1, ...
-		unordered_map<string, double> sig;  // _p_H1, _p_H2, ...., _Pui_1_H1, ...
-
-		if (true)
-		{
-			pui_n = -2;
-			for (const auto& nam1 : this->phys_param->p_pui_name)
-			{
-				pui_n++;
-				if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-				for (const auto& nam2 : this->phys_param->H_name)
-				{
-					U[nam1 + nam2] = U_bera(T[nam1], T[nam2], V["_p"], V[nam2]);
-					U[nam2 + nam1] = U_bera(T[nam2], T[nam1], V[nam2], V["_p"]);
-
-					Um[nam1 + nam2] = Um_bera(T[nam1], T[nam2], V["_p"], V[nam2]);
-					Um[nam2 + nam1] = Um_bera(T[nam2], T[nam1], V[nam2], V["_p"]);
-
-					UE[nam1 + nam2] = UE_bera(T[nam1], T[nam2], V["_p"], V[nam2]);
-					UE[nam2 + nam1] = UE_bera(T[nam2], T[nam1], V[nam2], V["_p"]);
-
-					sig[nam1 + nam2] = kv(1.0 - this->phys_param->par_a_2 * log(U[nam1 + nam2]));
-					sig[nam2 + nam1] = kv(1.0 - this->phys_param->par_a_2 * log(U[nam2 + nam1]));
-				}
-			}
-
-		}
-
-		unordered_map<string, double> Hrho;
-		unordered_map<string, double> HE;
-		unordered_map<string, Eigen::Vector3d> Hm;
-		unordered_map<string, double> Hp;
-
-		if (true)
-		{
-			pui_n = -2;
-			for (const auto& nam1 : this->phys_param->p_pui_name)
-			{
-				pui_n++;
-				if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-				for (const auto& nam2 : this->phys_param->H_name)
-				{
-					Hrho[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * U[nam1 + nam2];
-					Hrho[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * U[nam2 + nam1];
-
-					Hm[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * (U[nam2 + nam1] * V["_p"] +
-						T[nam1] / Um[nam2 + nam1] * (V["_p"] - V[nam2]));
-					Hm[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * (U[nam1 + nam2] * V[nam2] -
-						T[nam2] / Um[nam1 + nam2] * (V["_p"] - V[nam2]));
-
-					HE[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * (0.5 * U[nam2 + nam1] * V["_p"].squaredNorm() +
-						T[nam1] / Um[nam2 + nam1] * V["_p"].dot(V["_p"] - V[nam2]) +
-						3.0 / 4.0 * T[nam1] * UE[nam2 + nam1]);
-
-					HE[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * (0.5 * U[nam1 + nam2] * V[nam2].squaredNorm() -
-						T[nam2] / Um[nam1 + nam2] * V[nam2].dot(V["_p"] - V[nam2]) +
-						3.0 / 4.0 * T[nam2] * UE[nam1 + nam2]);
-
-					Hp[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * this->phys_param->g1 * 3.0 / 4.0 *
-						T[nam1] * UE[nam2 + nam1];
-
-					Hp[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * this->phys_param->g1 *
-						((0.5 * U[nam1 + nam2] + T[nam2] / Um[nam1 + nam2]) * (V["_p"] - V[nam2]).squaredNorm() +
-							3.0 / 4.0 * T[nam2] * UE[nam1 + nam2]);
-				}
-			}
-
-		}
-
-		unordered_map<string, double> SOURSE;
-		SOURSE["m_x"] = 0.0;
-		SOURSE["m_y"] = 0.0;
-		SOURSE["m_z"] = 0.0;
-		SOURSE["E"] = 0.0;
-
-		// Заполняем общие суммарные источники для плазмы  --------------------------------------
-
-		double ddp = (this->phys_param->par_n_H_LISM / this->phys_param->par_Kn);
-
-
-		pui_n = -2;
-		for (const auto& nam1 : this->phys_param->p_pui_name)
-		{
-			pui_n++;
-			if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-
-			for (const auto& nam2 : this->phys_param->H_name)
-			{
-				auto SS = (-Hm[nam2 + nam1] + Hm[nam1 + nam2]);
-				SOURSE["m_x"] += SS[0] * ddp;
-				SOURSE["m_y"] += SS[1] * ddp;
-				SOURSE["m_z"] += SS[2] * ddp;
-				SOURSE["E"] += (-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp;
-			}
-		}
-
-		double ALL_Impulse = norm2(SOURSE["m_x"], SOURSE["m_y"], SOURSE["m_z"]);
-
-		pui_n = -2;
-		for (const auto& nam1 : this->phys_param->p_pui_name)
-		{
-			pui_n++;
-			if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-
-			for (const auto& nam2 : this->phys_param->H_name)
-			{
-				auto SS = (-Hm[nam2 + nam1] + Hm[nam1 + nam2]);
-				/*SOURSE["m_x"] += SS[0] * ddp;
-				SOURSE["m_y"] += SS[1] * ddp;
-				SOURSE["m_z"] += SS[2] * ddp;
-				SOURSE["E"] += (-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp;*/
-
-				double a1 = 0.0, a2 = 0.0, a3 = 0.0, a4 = 0.0;
-				if (nam1 == "_p")
-				{
-					a1 = C->parameters[0]["MK_IVx" + nam2];
-					a2 = C->parameters[0]["MK_IVy" + nam2];
-					a3 = C->parameters[0]["MK_IVz" + nam2];
-					a4 = C->parameters[0]["MK_IT" + nam2];
-				}
-				else if (nam1 == "_Pui_1")
-				{
-					a1 = C->parameters[0]["MK_IVx" + nam2 + "_pui_1"];
-					a2 = C->parameters[0]["MK_IVy" + nam2 + "_pui_1"];
-					a3 = C->parameters[0]["MK_IVz" + nam2 + "_pui_1"];
-					a4 = C->parameters[0]["MK_IT" + nam2 + "_pui_1"];
-				}
-				else if (nam1 == "_Pui_2")
-				{
-					a1 = C->parameters[0]["MK_IVx" + nam2 + "_pui_2"];
-					a2 = C->parameters[0]["MK_IVy" + nam2 + "_pui_2"];
-					a3 = C->parameters[0]["MK_IVz" + nam2 + "_pui_2"];
-					a4 = C->parameters[0]["MK_IT" + nam2 + "_pui_2"];
-				}
-
-				double S_k = 1.0;
-
-				// Запись nam1
-				size_t len1 = nam1.size();
-				file.write(reinterpret_cast<const char*>(&len1), sizeof(len1));
-				file.write(nam1.c_str(), len1);
-
-				// Запись nam2
-				size_t len2 = nam2.size();
-				file.write(reinterpret_cast<const char*>(&len2), sizeof(len2));
-				file.write(nam2.c_str(), len2);
-
-				double Impulse = norm2(SS[0] * ddp, SS[1] * ddp, SS[2] * ddp);
-				double Impulse_MK = norm2(a1, a2, a3);
-
-				// 1
-				S_k = 1.0;
-				if (fabs(Impulse / ALL_Impulse) > 0.05 && fabs(Impulse) > 0.0001 && fabs(ALL_Impulse) > 0.0001)
-				{
-					S_k = Impulse_MK / Impulse;
-					//if (S_k < 0.25) S_k = 0.25;
-					//if (S_k > 4.0) S_k = 4.0;
-				}
-				file.write(reinterpret_cast<const char*>(&S_k), sizeof(S_k));
-
-				// 2
-				//S_k = 1.0;
-				//if (fabs(SS[1] * ddp) > 0.000001)
-				//{
-				//	S_k = a2 / SS[1] * ddp;
-				//	if (S_k < 0.25) S_k = 0.25;
-				//	if (S_k > 4.0) S_k = 4.0;
-				//}
-				//file.write(reinterpret_cast<const char*>(&S_k), sizeof(S_k));
-
-				//// 3
-				//S_k = 1.0;
-				//if (fabs(SS[2] * ddp) > 0.000001)
-				//{
-				//	S_k = a3 / SS[2] * ddp;
-				//	if (S_k < 0.25) S_k = 0.25;
-				//	if (S_k > 4.0) S_k = 4.0;
-				//}
-				//file.write(reinterpret_cast<const char*>(&S_k), sizeof(S_k));
-
-				// 4
-				S_k = 1.0;
-				if (fabs(((-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp)/ SOURSE["E"]) > 0.05 &&
-					fabs((-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp) > 0.0001 &&
-					fabs(SOURSE["E"]) > 0.0001)
-				{
-					//S_k = a4 / ((-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp);
-					S_k = a4 / ((-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp);
-					//if (S_k < 0.25) S_k = 0.25;
-					//if (S_k > 4.0) S_k = 4.0;
-				}
-				file.write(reinterpret_cast<const char*>(&S_k), sizeof(S_k));
-
-				if (C == CCC)
-				{
-					cout << "RRRRRRRRRR" << endl;
-					cout << nam1 << " " << nam2 << endl;
-					cout << Impulse_MK << " " << Impulse << endl;
-					cout << a4 << " " << ((-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp) << endl;
-				}
-
-
-				//file << nam1 << " " << nam2 << " " << SS[0] * ddp << " " << a1 << " " << SS[1] * ddp << " " << a2 << " "
-				//	<< SS[2] * ddp << " " << a3
-				//	<< " " << (-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp << " " << a4 << endl;
-			}
-		}
-
-		//cout << "SOURSE = " << SOURSE["m_x"] << " " << SOURSE["m_y"] << " " << SOURSE["m_z"] << " " << SOURSE["E"] << endl;
-	}
-
-	file.close();
-}
-
-
-void Setka::Read_sourse_popravka_MK_Mf()
-{
-	cout << "START: Read_sourse_popravka_MK_Mf" << endl;
-	this->is_sourse_popravka_MK_Mf = true;
-
-	std::ifstream file("SOURCE_MK-MF.bin", std::ios::binary);
-	if (!file)
-	{
-		std::cerr << "Error 435y456yefgergre  " << "SOURCE_MK-MF.bin" << std::endl;
-		exit(-1);
-	}
-
-	//Cell* prev = nullptr;
-	//Cell* CCC = this->Find_cell_point(20.0, 0.0, 0.0, 0, prev);
-
-	unsigned int N_C = this->All_Cell.size();
-	unsigned int ki = 0;
-	for (auto& C : this->All_Cell)
-	{
-		ki++;
-		if (ki % 100000 == 0)
-		{
-			cout << "Step: " << ki << "  from:" << N_C << endl;
-		}
-
-		short int zone = determ_zone(C, 0);
-		short int zone_ = zone - 1;
-
-		int pui_n = -2;
-		for (const auto& namm1 : this->phys_param->p_pui_name)
-		{
-			pui_n++;
-			if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-			for (const auto& namm2 : this->phys_param->H_name)
-			{
-
-				// Чтение nam1
-				size_t len1;
-				file.read(reinterpret_cast<char*>(&len1), sizeof(len1));
-				std::string nam1(len1, '\0');
-				file.read(&nam1[0], len1);
-
-				// Чтение nam2
-				size_t len2;
-				file.read(reinterpret_cast<char*>(&len2), sizeof(len2));
-				std::string nam2(len2, '\0');
-				file.read(&nam2[0], len2);
-
-				// Чтение четырёх double
-				double a1, a2, a3, a4;
-				file.read(reinterpret_cast<char*>(&a1), sizeof(a1));
-				file.read(reinterpret_cast<char*>(&a2), sizeof(a2));
-				//file.read(reinterpret_cast<char*>(&a3), sizeof(a3));
-				//file.read(reinterpret_cast<char*>(&a4), sizeof(a4));
-
-				// Формирование ключей и добавление в parameters[0]
-				std::string suffix = nam1 + nam2;
-
-				C->parameters[0]["S_k1_" + suffix] = a1;
-				C->parameters[0]["S_k2_" + suffix] = a2;
-
-
-				if (false)
-				{
-					if (fabs(1.0 - a1) > 0.0001)
-					{
-						C->parameters[0]["S_k1_" + suffix] = a1;
-						//cout << "TUT" << endl;
-					}
-					else
-					{
-						if (C->parameters[0].find("S_k1_" + suffix) != C->parameters[0].end())
-						{
-							C->parameters[0].erase("S_k1_" + suffix);
-						}
-					}
-
-
-
-					if (fabs(1.0 - a2) > 0.0001)
-					{
-						C->parameters[0]["S_k2_" + suffix] = a2;
-						//cout << "TUT" << endl;
-					}
-					else
-					{
-						if (C->parameters[0].find("S_k2_" + suffix) != C->parameters[0].end())
-						{
-							C->parameters[0].erase("S_k2_" + suffix);
-						}
-					}
-
-					if (fabs(1.0 - a3) > 0.0001)
-					{
-						C->parameters[0]["S_k3_" + suffix] = a3;
-						//cout << "TUT" << endl;
-					}
-					else
-					{
-						if (C->parameters[0].find("S_k3_" + suffix) != C->parameters[0].end())
-						{
-							C->parameters[0].erase("S_k3_" + suffix);
-						}
-					}
-
-					if (fabs(1.0 - a4) > 0.0001)
-					{
-						C->parameters[0]["S_k4_" + suffix] = a4;
-						//cout << "TUT" << endl;
-					}
-					else
-					{
-						if (C->parameters[0].find("S_k4_" + suffix) != C->parameters[0].end())
-						{
-							C->parameters[0].erase("S_k4_" + suffix);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	file.close();
-	cout << "END: Read_sourse_popravka_MK_Mf" << endl;
-
-	// ВАЖНО! Если значение поправочного коэффициента близко к единице, то он не сохраняется (считается, что они по умолчанию равны 1).
-}
-
 void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE, 
 	short int now, short int zone)
 {
@@ -2012,163 +1493,6 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		i++;
 	}
 }
-
-
-void Setka::Average_sourse_MF()
-{
-	cout << "Start: Average_sourse_MF" << endl;
-	// Векторы для новых значений четырёх коэффициентов
-	std::vector<double> new_k1(this->All_Cell.size());
-	std::vector<double> new_k2(this->All_Cell.size());
-	std::vector<double> new_k3(this->All_Cell.size());
-	std::vector<double> new_k4(this->All_Cell.size());
-
-
-	for (const auto& nam1 : this->phys_param->p_pui_name)
-	{
-		for (const auto& nam2 : this->phys_param->H_name)
-		{
-			cout << "Average: " << nam1 << "   " << nam2 << endl;
-			std::string suffix = nam1 + nam2;
-
-			// Обнуляем вектора
-			for (size_t i = 0; i < this->All_Cell.size(); ++i)
-			{
-				new_k1[i] = 1.0;
-				new_k2[i] = 1.0;
-				new_k3[i] = 1.0;
-				new_k4[i] = 1.0;
-			}
-
-			for (size_t i = 0; i < this->All_Cell.size(); ++i)
-			{
-				Cell* C = this->All_Cell[i];
-
-				// Сбор окрестности радиуса 2 (уникальные ячейки)
-				std::vector<Cell*> neighborhood;
-				// Добавляем саму ячейку
-				neighborhood.push_back(C);
-
-				// Соседи первого уровня
-				for (Gran* gr : C->grans) 
-				{
-					Cell* s1 = C->Get_Sosed(gr);
-					if (s1 != nullptr && std::find(neighborhood.begin(), neighborhood.end(), s1) == neighborhood.end()) 
-					{
-						if (C->type == s1->type)
-						{
-							neighborhood.push_back(s1);
-						}
-					}
-				}
-
-				// Соседи второго уровня (через соседей первого уровня)
-				size_t currentSize = neighborhood.size();
-				for (size_t j = 1; j < currentSize; ++j) 
-				{
-					Cell* cur = neighborhood[j];
-					for (Gran* gr : cur->grans) 
-					{
-						Cell* s2 = cur->Get_Sosed(gr);
-						if (s2 != nullptr && std::find(neighborhood.begin(), neighborhood.end(), s2) == neighborhood.end()) 
-						{
-							if (C->type == s2->type)
-							{
-								neighborhood.push_back(s2);
-							}
-						}
-					}
-				}
-
-				// Теперь вычисляем взвешенное среднее для каждого коэффициента
-				double sumV = 0.0;
-				double sumVK1 = 0.0, sumVK2 = 0.0, sumVK3 = 0.0, sumVK4 = 0.0;
-				for (Cell* cell : neighborhood) 
-				{
-					double vol = cell->volume[0];        // объём ячейки
-					sumV += vol;
-
-					string nnn = "S_k1_" + suffix;
-					if (cell->parameters[0].find(nnn) != cell->parameters[0].end())
-					{
-						sumVK1 += vol * cell->parameters[0][nnn];
-					}
-					else
-					{
-						sumVK1 += vol;
-					}
-
-					nnn = "S_k2_" + suffix;
-					if (cell->parameters[0].find(nnn) != cell->parameters[0].end())
-					{
-						sumVK2 += vol * cell->parameters[0][nnn];
-					}
-					else
-					{
-						sumVK2 += vol;
-					}
-
-					/*nnn = "S_k3_" + suffix;
-					if (cell->parameters[0].find(nnn) != cell->parameters[0].end())
-					{
-						sumVK3 += vol * cell->parameters[0][nnn];
-					}
-					else
-					{
-						sumVK3 += vol;
-					}
-
-					nnn = "S_k4_" + suffix;
-					if (cell->parameters[0].find(nnn) != cell->parameters[0].end())
-					{
-						sumVK4 += vol * cell->parameters[0][nnn];
-					}
-					else
-					{
-						sumVK4 += vol;
-					}*/
-
-					if (sumV > 0.0) 
-					{
-						new_k1[i] = sumVK1 / sumV;
-						new_k2[i] = sumVK2 / sumV;
-						//new_k3[i] = sumVK3 / sumV;
-						//new_k4[i] = sumVK4 / sumV;
-					}
-
-
-				}
-
-			}
-
-
-			// Заполняем коэффициенты
-			for (size_t i = 0; i < this->All_Cell.size(); ++i) 
-			{
-				Cell* C = this->All_Cell[i];
-				//if (fabs(1.0 - new_k1[i]) > 0.001) C->parameters[0]["S_k1_" + suffix] = new_k1[i];
-				//if (fabs(1.0 - new_k2[i]) > 0.001) C->parameters[0]["S_k2_" + suffix] = new_k2[i];
-				//if (fabs(1.0 - new_k3[i]) > 0.001) C->parameters[0]["S_k3_" + suffix] = new_k3[i];
-				//if (fabs(1.0 - new_k4[i]) > 0.001) C->parameters[0]["S_k4_" + suffix] = new_k4[i];
-
-				// Ограничиваем коэффициенты
-				if (new_k1[i] < 0.05) new_k1[i] = 0.05;
-				if (new_k1[i] > 20.0) new_k1[i] = 20.0;
-				if (new_k2[i] < 0.05) new_k2[i] = 0.05;
-				if (new_k2[i] > 20.0) new_k2[i] = 20.0;
-
-				C->parameters[0]["S_k1_" + suffix] = new_k1[i];
-				C->parameters[0]["S_k2_" + suffix] = new_k1[i];
-			}
-
-		}
-	}
-
-
-	cout << "END: Average_sourse_MF" << endl;
-}
-
-
 
 int Setka::determ_zone(Cell* C, short int now)
 {
@@ -2522,7 +1846,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			//this->Calc_sourse_MF(cell, SOURSE, now1, zone);
 			//cout << "A1" << endl;
 			//cout << "B1" << endl;
-			this->Calc_sourse_MF_Bera(cell, SOURSE, now1, zone);
+			//this->Calc_sourse_MF_Bera(cell, SOURSE, now1, zone);
 			//cout << "B2" << endl;
 			//cout << "A2" << endl;
 
@@ -2666,7 +1990,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					
 				}
 
-				if (this->regim_otladki == true)
+				// Если не считаем атомы, то этот блок не нужен
+				if (false && this->regim_otladki == true)
 				{
 					if (SOURSE.find("m_x") == SOURSE.end() || 
 						SOURSE.find("m_y") == SOURSE.end() || 
@@ -2785,15 +2110,6 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				}
 
 
-				// Запрещаем положительные скорости в хвосте!!!
-				if (cell->center[now1][0] < -30.0 && u3 > 0.0)
-				{
-					cout << "U3 > 0!!!!    " << u3 << "   " << rho3 << endl;
-					cout << cell->center[now1][0] << " " << cell->center[now1][1] << " " << cell->center[now1][2] << endl;
-					u3 = -3.0;
-					rho3 = 0.06;
-				}
-
 				if (rho_He3 > rho3)
 				{
 					rho_He3 = rho3 * 0.1;
@@ -2808,10 +2124,6 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				{
 					cell->parameters[now2]["rho_He"] = rho_He3;
 				}
-
-
-
-
 				cell->parameters[now2]["Vx"] = u3;
 				cell->parameters[now2]["Vy"] = v3;
 				cell->parameters[now2]["Vz"] = w3;
@@ -3180,8 +2492,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 		// Если это контакт, записываем магнитное давление в обычное
 		// И удаляем магнитные поля
-
-		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_bn_in_p_on_HP(gr->center[now][0])) //this->phys_param->bn_in_p_on_HP == true)
+		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
 		{
 			if (metod_ == 3) metod_ = 2;
 
@@ -3197,7 +2508,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 		//metod_ = 2;
 		
-		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_bn_in_p_on_HP(gr->center[now][0])) //this->phys_param->bn_in_p_on_HP == true)
+		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
 		{
 			std::vector<double> n(3);
 			n[0] = gr->normal[now][0];
@@ -3205,7 +2516,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			n[2] = gr->normal[now][2];
 
 			this->phys_param->Godunov_Solver_Alexashov(qqq1, qqq2,//
-				n, qqq, dsl, dsr, dsc, w, this->phys_param->need_contact_hard(gr->center[now][0]));
+				n, qqq, dsl, dsr, dsc, w, this->phys_param->contact_hard);
 
 			qqq[5] = qqq[6] = qqq[7] = 0.0;
 			konvect[0] = 0.0;
@@ -3219,7 +2530,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			if (gr->type2 == Type_Gran_surf::TS && this->phys_param->TS_hard)
 				left_ydar = true;
 
-			if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_contact_hard(gr->center[now][0]))
+			if (gr->type2 == Type_Gran_surf::HP && this->phys_param->contact_hard)
 				contact = true;
 
 			this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
@@ -3274,7 +2585,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		}
 
 		// Для контакта поток Bn равен нулю
-		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_bn_in_p_on_HP(gr->center[now][0])) //this->phys_param->bn_in_p_on_HP == true)
+		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
 		{
 			gr->parameters["PdivB"] = 0.0;
 		}
@@ -3375,7 +2686,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 	return loc_time;
 }
 
-void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_names)
+void Setka::Save_for_interpolate(string filename, bool razriv)
 {
 	std::ofstream out(filename, std::ios::binary);
 	if (!out) {
@@ -3390,9 +2701,9 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 	out.write(reinterpret_cast<const char*>(&this->geo->L6), sizeof(double));
 
 	// Добавляем ещё переменные для вывода  "BB/8pi"
-	if (false)
+	if (true)
 	{
-		this->phys_param->param_names_for_print.push_back("BB/8pi");
+		this->phys_param->param_names.push_back("BB/8pi");
 		for (const auto& Cel : this->All_Cell)
 		{
 			Cel->parameters[0]["BB/8pi"] = kvv(Cel->parameters[0]["Bx"],
@@ -3402,22 +2713,13 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 			this->Cell_Center->parameters[0]["By"], this->Cell_Center->parameters[0]["Bz"]) / (8.0 * const_pi);
 	}
 
-	vector<string> param_names_;
-	if (is_param_names == false)
-	{
-		param_names_ = this->phys_param->param_names;
-	}
-	else
-	{
-		param_names_ = this->phys_param->param_names_for_print;
-	}
 
 	// Записываем количество строк
-	size_t size = param_names_.size() + 1;
+	size_t size = this->phys_param->param_names.size() + 1;
 	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 	// Записываем каждую строку
-	for (const auto& str : param_names_) {
+	for (const auto& str : this->phys_param->param_names) {
 		// Сначала записываем длину строки
 		size_t str_size = str.size();
 		out.write(reinterpret_cast<const char*>(&str_size), sizeof(str_size));
@@ -3426,7 +2728,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 	}
 
 	cout << "All parameters (send): " << endl;
-	for (const auto& i : param_names_)
+	for (const auto& i : this->phys_param->param_names)
 	{
 		cout << i << "  ";
 	}
@@ -3469,7 +2771,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 
@@ -3508,7 +2810,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 
@@ -3528,7 +2830,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = par_left[i];
 					bb = C1->parameters[0][i];
@@ -3551,7 +2853,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 					if (this->Cell_Center->parameters[0].find(i) != this->Cell_Center->parameters[0].end())
@@ -3593,7 +2895,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 
@@ -3630,7 +2932,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 
@@ -3650,7 +2952,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = par_right[i];
 					bb = C2->parameters[0][i];
@@ -3688,7 +2990,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 					out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 					out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-					for (const auto& i : this->phys_param->param_names_for_print)
+					for (const auto& i : this->phys_param->param_names)
 					{
 						aa = 0.0;
 
@@ -3712,7 +3014,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 						out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(double));
 						out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(double));
 
-						for (const auto& i : param_names_)
+						for (const auto& i : this->phys_param->param_names)
 						{
 							aa = par_left[i];
 							bb = C1->parameters[0][i];
@@ -3752,7 +3054,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 
@@ -3793,7 +3095,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 					out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 					out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-					for (const auto& i : param_names_)
+					for (const auto& i : this->phys_param->param_names)
 					{
 						aa = 0.0;
 
@@ -3815,7 +3117,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 						out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 						out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-						for (const auto& i : param_names_)
+						for (const auto& i : this->phys_param->param_names)
 						{
 							aa = par_right[i];
 							bb = C2->parameters[0][i];
@@ -3848,7 +3150,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 
@@ -3868,7 +3170,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = par_left[i];
 					bb = C1->parameters[0][i];
@@ -3907,7 +3209,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 
@@ -3944,7 +3246,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 
@@ -3964,7 +3266,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = par_right[i];
 					bb = C2->parameters[0][i];
@@ -3981,7 +3283,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = par_right[i];
 					bb = C2->parameters[0][i];
@@ -4022,7 +3324,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 
@@ -4058,7 +3360,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 
@@ -4078,7 +3380,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&A3[1]), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&A3[2]), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = par_right[i];
 					bb = C2->parameters[0][i];
@@ -4119,7 +3421,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 			out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-			for (const auto& i : param_names_)
+			for (const auto& i : this->phys_param->param_names)
 			{
 				aa = 0.0;
 
@@ -4160,7 +3462,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 
@@ -4187,7 +3489,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 					if (this->Cell_Center->parameters[0].find(i) != this->Cell_Center->parameters[0].end())
@@ -4227,7 +3529,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 				out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 				out.write(reinterpret_cast<const char*>(&cc), sizeof(cc));
 
-				for (const auto& i : param_names_)
+				for (const auto& i : this->phys_param->param_names)
 				{
 					aa = 0.0;
 					if (A->parameters[0].find(i) != A->parameters[0].end())
@@ -4282,7 +3584,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 
 			this->Snos_on_Gran(gr, par_left, par_right, 0, true);
 
-			for (const auto& str : param_names_)
+			for (const auto& str : this->phys_param->param_names)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -4299,7 +3601,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			for (const auto& str : param_names_)
+			for (const auto& str : this->phys_param->param_names)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -4317,7 +3619,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			for (const auto& str : param_names_)
+			for (const auto& str : this->phys_param->param_names)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -4335,7 +3637,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			for (const auto& str : param_names_)
+			for (const auto& str : this->phys_param->param_names)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -4352,7 +3654,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			for (const auto& str : param_names_)
+			for (const auto& str : this->phys_param->param_names)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -4370,7 +3672,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			for (const auto& str : param_names_)
+			for (const auto& str : this->phys_param->param_names)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -4389,7 +3691,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv, bool is_param_nam
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][1]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&gr->normal[0][2]), sizeof(cc));
 
-			for (const auto& str : param_names_)
+			for (const auto& str : this->phys_param->param_names)
 			{
 				out.write(reinterpret_cast<const char*>(&par_left[str]), sizeof(cc));
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
@@ -5870,46 +5172,48 @@ void Setka::Save_cell_MK_parameters(string filename)
 
 void Setka::Download_cell_parameters(string filename)
 {
+	cout << "START: Download_cell_parameters " << endl;
+
 	std::ifstream in(filename, std::ios::binary);
 	if (!in) {
 		cout << "Error 6545478564  Can not open file to reading: " + filename << endl;
 		exit(-1);
 	}
 
-
+	int ik = 1;
 	for (auto& ii : this->All_Cell)
 	{
+		//cout << "Cell " << ik << "    from " << this->All_Cell.size() << endl;
+		ik++;
 		// Читаем количество элементов
 		size_t size;
-		in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
+		in.read(reinterpret_cast<char*>(&size), sizeof(size_t)); 
+		//cout << size << endl;
 
-		for (size_t i = 0; i < size; ++i) {
+		for (size_t i = 0; i < size; ++i) 
+		{
 			// Читаем ключ
 			size_t key_size;
 			in.read(reinterpret_cast<char*>(&key_size), sizeof(size_t));
+			//cout << "    key_size = " << key_size << endl;
 
 			std::vector<char> key_buffer(key_size);
 			in.read(key_buffer.data(), key_size);
+			//cout << "    key read, length = " << key_buffer.size() << endl;
 			std::string key(key_buffer.begin(), key_buffer.end());
+			//cout << "    key = \"" << key << "\"" << endl;
 
 			// Читаем значение
 			double value;
 			in.read(reinterpret_cast<char*>(&value), sizeof(double));
+			//cout << "    value = " << value << endl;
 
-			if (std::find(this->phys_param->MK_param.begin(),
-				this->phys_param->MK_param.end(), key) !=
-				this->phys_param->MK_param.end())
-			{
-				ii->parameters[0][key] = 0.0;
-			}
-			else
-			{
-				ii->parameters[0][key] = value;
-				ii->parameters[1][key] = value;
-			}
+			ii->parameters[0][key] = value;
+			ii->parameters[1][key] = value;
 		}
 	}
 
+	cout << "Midl: Download_cell_parameters " << endl;
 
 	bool bb;
 
@@ -5941,6 +5245,7 @@ void Setka::Download_cell_parameters(string filename)
 	}
 
 
+	cout << "END: Download_cell_parameters " << endl;
 	in.close();
 }
 

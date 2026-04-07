@@ -14,7 +14,6 @@ class Phys_param
 public:
 
     vector<string> param_names;
-    vector<string> param_names_for_print;
     // Все имена параметров, наличие которых мы ожидаем в ячейках!
     vector<string> plasma_name; // Имена плазменных значений
     vector<string> plasma_pui_name; // Имена плазменных значений
@@ -96,9 +95,9 @@ public:
 
     double ALL_Time = 0.0;            // Общее время решения задачи
     double prev_step_time = 0.000001;            // Общее время решения задачи
-    double Velosity_inf = -2.54327;   // Значение скорости смеси на бесконечности
-    double B_inf = 8.91006;           // Значение МОДУЛЯ магнитного поля на бесконечности
-    double alphaB_inf = 0.6981317;     // угол в радианах - Направление магнитного поля на бесконечности
+    double Velosity_inf = -1.0;   // Значение скорости смеси на бесконечности
+    double B_inf = 0.497171;           // Значение МОДУЛЯ магнитного поля на бесконечности
+    double alphaB_inf = 0.785398;     // угол в радианах - Направление магнитного поля на бесконечности
     double B_0 = 114.037;             // Магнитное поле на 1 а.е.
     double par_a_2 = 0.130735;         // Параметр в сечении перезарядки    0.130735 - стебингс       0.11857 - Настя
     double par_n_H_LISM = 3.0;        // б/р Концентрация водорода на бесконечности 
@@ -114,13 +113,13 @@ public:
     double g1 = (5.0 / 3.0 - 1.0);       // показатель адиабаты - 1
 
     // Граничные условия в ЛИСМ
-    double rho_LISM = 1.60063;            // Безразмерная плотность всей плазмы 
-    double rho_HE_LISM = 0.6;             // Безразмерная плотность гелия = 0.6
-    double rho_p_LISM = 1.15;             // Безразмерное давление всей плазмы
+    double rho_LISM = 1.0;            // Безразмерная плотность всей плазмы 
+    double rho_HE_LISM = 0.0;             // Безразмерная плотность гелия = 0.6
+    double rho_p_LISM = 0.152176;             // Безразмерное давление всей плазмы
 
 
     // Характерные параметры
-    double R_0 = 0.237455;             // Характерный размер 1 а.е.
+    double R_0 = 2.53971;             // Характерный размер 1 а.е.
     double char_rho = 0.06;             // Характерная концентрация в СГС  см^-3
     double char_v = 10.3804;         // Характерная скорость в км/с
     double char_B = 0.328842;         // Характерное магнитное поле в микрогауссах
@@ -189,12 +188,6 @@ public:
     int pui_nW;                  // Число разбиений массивов S+ и S- в ячейках
     double pui_wR;               // Максимальная относительная скорость в массивах S+ и S-
 
-    bool sourse_popravka_MK_Mf = false;   // Нужно ли умножать флюидные источники Бера на коэффициенты поправки?  
-
-
-    bool need_MK_param = false;   // Нужно ли создавать параметры Монте-Карло в сетке - моменты и источники   
-    // Это нужно, если будет считаться Монте-Карло. Если оно не будет, то не надо
-
     bool culc_pogl;                 // Нужно ли считать поглощение?
     int pogl_n;                     // Число разбиений массива поглощения
     double pogl_L;                  // Левая граница массива поглощения (в безразмерной скорости)
@@ -231,9 +224,34 @@ public:
     std::vector<double> V_kms;
     std::vector<double> T_K;
 
-    bool need_bn_in_p_on_HP(const double& x);
-    bool need_null_bn_on_HP(const double& x);
-    bool need_contact_hard(const double& x);
+
+    // Данные для считывания alpha_eff_Ha_cm3_s для расчёта поглощения в линии H-alpha
+    std::vector<double> T_vec_eff_Ha, alpha_vec_eff_Ha;
+    std::vector<double> lnT_vec_eff_Ha, lnAlpha_vec_eff_Ha;
+
+    void Read_alpha_eff();
+    double interpolate_alpha_eff_Ha(double T);
+    // -------------------
+
+    // Данные для мягкого и жёсткого рентгена (полные из файла)
+    std::vector<double> T_Xray;           // температура
+    std::vector<double> soft_Xray;        // мягкий рентген (всегда >0)
+    std::vector<double> hard_Xray;        // жёсткий рентген (может быть 0 на краях)
+
+    // Для интерполяции мягкого рентгена (логарифмический масштаб)
+    std::vector<double> lnT_Xray;         // log(T_Xray[i])
+    std::vector<double> lnSoft_Xray;      // log(soft_Xray[i])
+
+    // Для интерполяции жёсткого рентгена (только положительные значения)
+    std::vector<double> T_hard_pos;       // T, где hard_Xray > 0
+    std::vector<double> lnT_hard_pos;     // log(T_hard_pos[i])
+    std::vector<double> lnHard_pos;       // log(hard_Xray[i]) для этих T
+
+    void Read_Xray_emiss();
+    void interpolate_Xray(double T, double& soft, double& hard);
+
+
+
 
     Phys_param();
     void set_parameters(void);

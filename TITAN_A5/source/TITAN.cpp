@@ -80,15 +80,12 @@ int main()
     //S1.Download_cell_parameters("parameters_0060.bin"); 
     //  
 
+    //S1.Download_cell_parameters("parameters_0079.bin");    
+    S1.Download_cell_parameters("parameters_A5_0001.bin");  
 
-    // На всей гелиопаузе сделал HLLC и чуть-чуть подвмнул границу для HLLD+bn
-    // Вкдючил от -50 все три костыля на HP (до этого было от -30 кажется) и везде на гелиопаузе влючил HLLD
-    // 
-    S1.Download_cell_parameters("parameters_promeg_1142.bin");  // Стартовали согласование с 81  
-    //S1.Download_cell_parameters("parameters_0090.bin");    //начиная с 90 могут быть серьёзные изменения
 
-    //S1.Download_cell_parameters("parameters_promeg_1118.bin");    
-    //S1.Download_cell_parameters("parameters_promeg_1130.bin");
+    //S1.Download_cell_parameters("parameters_0219.bin");    
+    // S1.Download_cell_parameters("parameters_promeg_1112.bin");
     //S1.Download_cell_parameters("parameters_promeg_1118.bin");
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");
 
@@ -169,17 +166,15 @@ int main()
     //S1.Algoritm(23, &S1);
     //S1.Algoritm(101, &S1);
 
+    //S1.Algoritm(10, &S1);
+    //S1.Algoritm(5, &S1);ts
+
 
     S1.Algoritm(1, &S1);
 
 
-    //S1.Algoritm(5, &S1);
-    //S1.Algoritm(25, &S1);
+    //Dust_spectra DDD = Dust_spectra();
 
-
-    //S1.Algoritm(3, &S1);
-    //S1.Algoritm(4, &S1);
-    //S1.Algoritm(5, &S1);
     //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
@@ -236,7 +231,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0091.bin");  
+    S1.Save_cell_parameters("parameters_A5_0002.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -303,68 +298,9 @@ int main()
 
     }
 
-
-    //S1.phys_param->param_names_for_print = S1.phys_param->param_names;
-    if (true)
-    {
-        S1.phys_param->param_names_for_print.push_back("rho");
-        S1.phys_param->param_names_for_print.push_back("p");
-        S1.phys_param->param_names_for_print.push_back("Vx");
-        S1.phys_param->param_names_for_print.push_back("Vy");
-        S1.phys_param->param_names_for_print.push_back("Vz");
-        S1.phys_param->param_names_for_print.push_back("Bx");
-        S1.phys_param->param_names_for_print.push_back("By");
-        S1.phys_param->param_names_for_print.push_back("Bz");
-        S1.phys_param->param_names_for_print.push_back("Q");
-        S1.phys_param->param_names_for_print.push_back("rho_He");
-
-        S1.phys_param->param_names_for_print.push_back("rho_H1");
-        S1.phys_param->param_names_for_print.push_back("rho_H2");
-        S1.phys_param->param_names_for_print.push_back("rho_H3");
-        S1.phys_param->param_names_for_print.push_back("rho_H4");
-        S1.phys_param->param_names_for_print.push_back("rho_H5");
-        S1.phys_param->param_names_for_print.push_back("rho_H6");
-        S1.phys_param->param_names_for_print.push_back("rho_H7");
-        S1.phys_param->param_names_for_print.push_back("rho_H8");
-        S1.phys_param->param_names_for_print.push_back("rho_H9");
-
-
-        S1.phys_param->param_names_for_print.push_back("S_k1__p_H1");
-        S1.phys_param->param_names_for_print.push_back("S_k1__p_H2");
-        S1.phys_param->param_names_for_print.push_back("S_k1__p_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k1__p_H4");
-        S1.phys_param->param_names_for_print.push_back("S_k1__Pui_1_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k1__Pui_1_H4");
-        S1.phys_param->param_names_for_print.push_back("S_k1__Pui_2_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k1__Pui_2_H4");
-
-        S1.phys_param->param_names_for_print.push_back("S_k2__p_H1");
-        S1.phys_param->param_names_for_print.push_back("S_k2__p_H2");
-        S1.phys_param->param_names_for_print.push_back("S_k2__p_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k2__p_H4");
-        S1.phys_param->param_names_for_print.push_back("S_k2__Pui_1_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k2__Pui_1_H4");
-        S1.phys_param->param_names_for_print.push_back("S_k2__Pui_2_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k2__Pui_2_H4");
-
-        /*S1.phys_param->param_names_for_print.push_back("S_k3__p_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k3__p_H4");
-        S1.phys_param->param_names_for_print.push_back("S_k3__Pui_1_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k3__Pui_1_H4");
-        S1.phys_param->param_names_for_print.push_back("S_k3__Pui_2_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k3__Pui_2_H4");
-
-        S1.phys_param->param_names_for_print.push_back("S_k4__p_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k4__p_H4");
-        S1.phys_param->param_names_for_print.push_back("S_k4__Pui_1_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k4__Pui_1_H4");
-        S1.phys_param->param_names_for_print.push_back("S_k4__Pui_2_H3");
-        S1.phys_param->param_names_for_print.push_back("S_k4__Pui_2_H4");*/
-    }
-
-    S1.Save_for_interpolate("For_intertpolate_0082-no_razriv-with_MK.bin", false, true);
+    S1.Save_for_interpolate("For_intertpolate_0079-no_razriv-with_MK.bin", false);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0082-no_razriv-with_MK.bin");
+    Interpol SS = Interpol("For_intertpolate_0079-no_razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");

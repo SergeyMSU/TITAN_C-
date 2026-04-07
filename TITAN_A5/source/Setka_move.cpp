@@ -203,8 +203,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			if (gr->type2 != Type_Gran_surf::HP) cout << "Error 7823467276345679264978234" << endl;
 
 
-			//if (this->phys_param->null_bn_on_HP == true)
-			if (this->phys_param->need_null_bn_on_HP(gr->center[now][0]) == true)
+			if (this->phys_param->null_bn_on_HP == true)
 			{
 				// Обнуляем bn в ячейках
 				Eigen::Vector3d nnn;
@@ -277,8 +276,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				qqq2[7] = par_right["Bz"];
 
 				// Для снесённых значений надо также обнулить Bn
-				//if (this->phys_param->null_bn_on_HP == true)
-				if (this->phys_param->need_null_bn_on_HP(gr->center[now][0]) == true)
+				if (this->phys_param->null_bn_on_HP == true)
 				{
 					// Обнуляем bn в ячейках
 					Eigen::Vector3d nnn;
@@ -302,8 +300,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			// Записываем магнитное давление в обычное
 			// И удаляем магнитные поля
-			//if (this->phys_param->bn_in_p_on_HP == true)
-			if(this->phys_param->need_bn_in_p_on_HP(gr->center[now][0]))
+			if (this->phys_param->bn_in_p_on_HP == true)
 			{
 				metod_ = 2;
 
@@ -314,8 +311,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				qqq2[5] = qqq2[6] = qqq2[7] = 0.0;
 			}
 
-			//if (this->phys_param->bn_in_p_on_HP == true)
-			if (this->phys_param->need_bn_in_p_on_HP(gr->center[now][0]))
+			if (this->phys_param->bn_in_p_on_HP == true)
 			{
 				//cout << "A" << endl;
 				std::vector<double> n(3);
@@ -512,7 +508,6 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				}
 			}
 		}
-
 
 		if (false)
 		{

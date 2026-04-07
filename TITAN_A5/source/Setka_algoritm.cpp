@@ -126,7 +126,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 4  - Вычисление n_pui  и  T_pui  по рассчитанным f_pui
 	// 5  - Добавить в ячейки основной сетки значение моментов водорода из Монте-Карло (которые посчитаны для сетки MK)
 	// 6  - Вычисление функции h0 для розыгрыша пикапов (она считается один раз для каждого сечения перезарядки)  (СТАРАЯ реализация - надо адаптировать)
-	// 7  - Вычисление всех интегралов в ячейках для розыгрыша пикапов (частота и т.д.) 
+	// 7  - Вычисление всех интеграллов в ячейках для розыгрыша пикапов (частота и т.д.) 
 	// 8  - Вычисление поглощения вдоль заданных лучей (новая реализация через вспомогательную сетку)
 	// 9  - (не работает) Перемасштабирование функций распредления водорода (речь про число ячеек AMR), без потери значений (СТАРАЯ реализация - надо адаптировать)
 	// 10 - Монте-Карло (новая реализация через вспомогательную сетку)
@@ -144,8 +144,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 21 - расчёт потенциального поля во внешнем ударном слое методом контрольных объёмов
 	// 22 - расчёт потенциального поля в сверхзвуке методом контрольных объёмов - второй порядок
 	// 23 - печатаем мини-интерполяционную сетку и источники Sp Sm для Игоря
-	// 24 - сравнивам кинетические источники с источниками Беры (вывод в файл)
-	// 25 - считаем и сохраняем коэффициенты-поправки к флюидным источникам через кинетику
+	// 24 - печатаем карты в Линии H-alpha
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -162,14 +161,6 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Smooth_head_TS3();
 
 
-		// Если нужны поправочные коэффициенты для флюидных источников
-		if (this->phys_param->sourse_popravka_MK_Mf == true)
-		{
-			this->Read_sourse_popravka_MK_Mf();
-			this->Average_sourse_MF();
-		}
-
-
 		for (int i = 1; i <= 6 * 3; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
@@ -182,11 +173,11 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			this->Go(false, 400, 1); // 400   1
 			if (i % 260000000 == 0)
 			{
-				this->Go(true, 1000, 1); // 400   1 
+				//this->Go(true, 1000, 1); // 400   1 
 			}
 			else
 			{
-				this->Go(true, 100, 1); // 400   1 
+				//this->Go(true, 100, 1); // 400   1 
 			}
 			this->Smooth_head_HP3();
 			this->Smooth_head_TS3();
@@ -571,14 +562,6 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			cout << "Error 94ut9yegfh9perfg8yvowjrgf9348" << endl;
 		}
 
-		//ПРОВЕРКА
-
-		Cell* prev = nullptr;
-		Cell* C = Smc.Find_cell_point(20.0, 0.0, 0.0, 0, prev);
-		cout << "!!!!!!! Proverka = " << C->parameters[0]["MK_IVx_H"] << " " << C->parameters[0]["MK_IVx_H_pui_1"] << " " <<
-			C->parameters[0]["MK_IVx_H_pui_2"] << endl;
-
-
 		cout << "Create SI_MK" << endl;
 		// Из MK сетки создаём интерполяционную сетку
 		Smc.Save_for_interpolate("For_intertpolate_work_MK.bin", false);
@@ -595,43 +578,40 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		unsigned int st = 0;
 		#pragma omp parallel for schedule(dynamic)
 		for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
-		//for (size_t idx = 99; idx < this->All_Cell.size(); ++idx)
 		{
 			#pragma omp critical (gergergerg4) 
 			{
 				st++;
-				if (st % 1000 == 0)
+				if (st % 5000 == 0)
 				{
 					cout << "st = " << st << "   from " << this->All_Cell.size() << endl;
 				}
 			}
 
-			auto A = this->All_Cell[idx];
-			short int zone = determ_zone(A, 0);
+		auto A = this->All_Cell[idx];
+		short int zone = determ_zone(A, 0);
 
-			/*if (A->number != 378182)
-			{
-				continue;
-			}
-			else
-			{
-				cout << "Culc  378182 " << endl;
-			}*/
+		/*if (A->number != 378182)
+		{
+			continue;
+		}
+		else
+		{
+			cout << "Culc  378182 " << endl;
+		}*/
 
-			std::string filename = "data_pui_intergal/func_cells_pui_integral_" + to_string(A->number) + ".bin";
-			//if (file_exists(filename) == true) continue;
+		std::string filename = "data_pui_intergal/func_cells_pui_integral_" + to_string(A->number) + ".bin";
+		//if (file_exists(filename) == true) continue;
 
-			A->Init_f_pui(this->phys_param->pui_nW, zone);              // Инициализируем сами функции (заполняет нулями)
-			A->read_pui_FromFile();                                     // Чтения pui из посчитанных файлов
+		A->Init_f_pui(this->phys_param->pui_nW, zone);
+		A->read_pui_FromFile();
 
-			A->culc_pui_n_T(this->phys_param->pui_wR);                  // Вычисление концентрации и температуры пикапов
-			A->Init_pui_integral(this->phys_param->pui_F_n, zone);
-
-			A->pui_integral_Culc(this->phys_param);
-
-			A->write_pui_integral_ToFile();
-			A->Delete_pui_integral();
-			A->Delete_f_pui();
+		A->culc_pui_n_T(this->phys_param->pui_wR);
+		A->Init_pui_integral(this->phys_param->pui_F_n, zone);
+		A->pui_integral_Culc(this->phys_param);
+		A->write_pui_integral_ToFile();
+		A->Delete_pui_integral();
+		A->Delete_f_pui();
 		}
 
 		this->phys_param->param_names.push_back("MK_rho_Pui_1");
@@ -987,7 +967,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			Smc.Init_h0_and_read_from_file();
 			this->Init_h0_and_read_from_file();
 
-			// Загружаем все интеграллы пикапов + считаем их концентрацию и температуру
+			// Загружаем все интеграллы пикапов
 			unsigned int st = 0;
 			#pragma omp parallel for schedule(dynamic)
 			for (size_t idx = 0; idx < this->All_Cell.size(); ++idx)
@@ -1034,23 +1014,16 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			//CC = this->All_Cell[2200];
 
 			CC->print_nu_integr_pui(this->phys_param);
-			CC->print_Mz_integr_pui(this->phys_param);
 			CC->print_F_integr_pui();
 
 			double nu = CC->pui_get_nu(5.0, 0, this->phys_param->pui_wR);
-			double Mz = CC->pui_get_Mz(5.0, 0, this->phys_param->pui_wR);
 			if (nu <= 0.0)
 			{
 				cout << "Warning iudrhguseroigfsegsr" << endl;
 				cout << CC->center[0][0] << " " << CC->center[0][1] << " " << CC->center[0][2] << endl;
 				cout << int(CC->type) << endl;
 			}
-
-			cout << "!!! Mz = " << CC->pui_get_Mz(5.0, 0, this->phys_param->pui_wR) << " " << 
-				CC->pui_get_Mz(10.0, 0, this->phys_param->pui_wR) << " " << 
-				CC->pui_get_Mz(15.0, 0, this->phys_param->pui_wR) << " " << 
-				CC->pui_get_Mz(25.0, 0, this->phys_param->pui_wR) << endl;
-
+			//cout << "nu1 = " << nu << endl;
 			nu = CC->pui_get_nu(5.0, 1, this->phys_param->pui_wR);
 			if (nu <= 0.0)
 			{
@@ -1111,18 +1084,15 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		cout << "Start zones_number push_back" << endl;
 
 		//zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-
+		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 
 		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(1); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(3); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(5); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
-
-
+		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
+		//zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		
 
 		short int ijij = 0;
@@ -4014,228 +3984,70 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	}
 	else if (alg == 24)
 	{
-		// Перед запуском этого алгоритма нужно обязательно вызвать алгоритм #5
+		this->Save_for_interpolate("For_intertpolate_work.bin", false);
+		Interpol SS = Interpol("For_intertpolate_work.bin");
 
+		double dX = 2.0;
+		double dY = 2.0;
+		double dZ = 0.2;
 
-		 // Задаём наборы координат и соответствующие им имена файлов
-		 struct InputData 
-		 {
-			 double x, y, z;
-			 std::string filename;
-		 };
+		double ne, T;
 
-		 std::vector<InputData> datasets = 
-		 {
-			 {20.0, 0.0, 0.0, "20-0-0-source_comparison.txt"},
-			 {30.0, 0.0, 0.0, "30-0-0-source_comparison.txt"},
-			 {12.0, 0.0, 0.00001, "12-0-0-source_comparison.txt"},
-			 {-40.02, 0.00001, 0.0001, "-40-0-0-source_comparison.txt"},
-			 {0.0, 40.0, 0.00001, "0-40-0-source_comparison.txt"},
-			 {-150.0, 0.0, 0.000001, "-150-0-0-source_comparison.txt"},
-			 {-100.0, 50.0, 0.000001, "-100-50-0-source_comparison.txt"}
-			 // Добавьте нужные вам наборы
-		 };
+		ofstream fout;
+		fout.open("H_alpha_X_Y.txt");
 
+		ofstream fout2;
+		fout2.open("soft_X-ray_X_Y.txt");
 
-		 for (const auto& data : datasets)
-		 {
-			 Cell* prev = nullptr;
-			 Cell* C = Find_cell_point(data.x, data.y, data.z, 0, prev);
+		ofstream fout3;
+		fout3.open("hard_X-ray_X_Y.txt");
 
-			 if (C == nullptr)
-			 {
-				 cout << "Not found Cell " << data.x << " " << data.y << " " << data.z << endl;
-				 continue;
-			 }
+		for (double X = 200.0; X > -200.0; X = X - dX)
+		{
+			cout << "Culk for X = "<< X << endl;
+			for (double Y = -200.0; Y < 200.0; Y = Y + dY)
+			{
+				std::array<Cell_handle, 6> prev_cell;
+				std::array<Cell_handle, 6> next_cell;
+				for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
+				std::unordered_map<string, double> parameters;
+				bool fine_int;
 
-			 short int zone = determ_zone(C, 0);
-			 short int zone_ = zone - 1;
-			 // Названия жидкостей
-			 // p, Pui1, Pui2, ....
-			 // H1, H2, H3, H4, .....
-			 // 
-			 // Для каждой жидкости нужна rho, T
-			 // Также нужна средняя скорость плазмы и Скорости всех сортов водорода
-			 unordered_map<string, double> rho;  // "_p", "_Pui_1", .... , "_H1", ...
-			 unordered_map<string, double> T;    // "_p", "_Pui_1", ...., "_H1", ...
-			 unordered_map<string, Eigen::Vector3d> V;    // "_p", "_H1", ...
+				double IH = 0.0;
+				double I_soft_X_ray = 0.0;
+				double I_hard_X_ray = 0.0;
+				double a1, a2;
+				fine_int = SS.Get_param(X, Y, 0.0, parameters, prev_cell, next_cell);
+				//fine_int = SS.Get_param(X, 0.0, Y, parameters, prev_cell, next_cell);
+				//fine_int = SS.Get_param(0.0, X, Y, parameters, prev_cell, next_cell);
+				if (fine_int != false)
+				{
+					for (double Z = -200.0; Z < 200.0; Z = Z + dZ)
+					{
+						fine_int = SS.Get_param(X, Y, Z + dZ/2.0, parameters, prev_cell, next_cell);
+						//fine_int = SS.Get_param(X, Z + dZ / 2.0, Y, parameters, prev_cell, next_cell);
+						//fine_int = SS.Get_param(Z + dZ / 2.0, X, Y, parameters, prev_cell, next_cell);
+						if (fine_int == false) continue;
+						for (short int i = 0; i < 6; i++) next_cell[i] = prev_cell[i];
 
-			 // Получаем переменные -----------------------------------------------------------------
-			 unordered_map<string, double> param;
+						ne = parameters["rho"];
+						T = parameters["p"] / parameters["rho"];
+						IH += kv(ne) * this->phys_param->interpolate_alpha_eff_Ha(T * 6530.0) * dZ;
+						this->phys_param->interpolate_Xray(T * 6530.0, a1, a2);
+						I_soft_X_ray += kv(ne) * a1 * dZ;
+						I_hard_X_ray += kv(ne) * a2 * dZ;
+					}
+				}
 
-			 this->phys_param->Plasma_components(zone_, C->parameters[0], param, true);
+				fout << X * 4.21132 << " " << Y * 4.21132 << " " << IH * 2.91892*1E10 << endl;
+				fout2 << X * 4.21132 << " " << Y * 4.21132 << " " << I_soft_X_ray * 33.2504 << endl;
+				fout3 << X * 4.21132 << " " << Y * 4.21132 << " " << I_hard_X_ray * 173.48 << endl;
+			}
+		}
 
-
-			 rho["_p"] = param["rho_Th"];
-			 T["_p"] = param["T_Th"];
-			 V["_p"] = Eigen::Vector3d(C->parameters[0]["Vx"],
-				 C->parameters[0]["Vy"], C->parameters[0]["Vz"]);
-
-			 if (rho["_p"] <= 1e-8) rho["_p"] = 1e-8;
-			 if (T["_p"] <= 1e-8) T["_p"] = 1e-8;
-
-			 if (T["_p"] > 1e5) T["_p"] = 1e5;
-
-			 //cout << "B1 " << endl;
-
-			 short int pui_n = -1;
-			 for (const auto& nam1 : this->phys_param->pui_name)
-			 {
-				 pui_n++;
-				 if (this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-
-				 rho[nam1] = C->parameters[0]["rho" + nam1];
-				 T[nam1] = 2.0 * C->parameters[0]["p" + nam1] / rho[nam1];
-				 if (rho[nam1] <= 1e-8) rho[nam1] = 1e-8;
-				 if (T[nam1] <= 1e-8) T[nam1] = 1e-8;
-			 }
-			 //cout << "B2 " << endl;
-			 for (const auto& nam2 : this->phys_param->H_name)
-			 {
-				 rho[nam2] = C->parameters[0]["rho" + nam2];
-				 T[nam2] = 2.0 * C->parameters[0]["p" + nam2] / max(rho[nam2], 1e-9);
-				 V[nam2] = Eigen::Vector3d(C->parameters[0]["Vx" + nam2],
-					 C->parameters[0]["Vy" + nam2], C->parameters[0]["Vz" + nam2]);
-			 }
-
-			 //cout << "B3 " << endl;
-			 // Все переменные получены -------------------------------------------------------------
-
-
-			 // Скорости - это симметричные функции
-			 unordered_map<string, double> U;    // _p_H1, _p_H2, ...., _Pui_1_H1, ...
-			 unordered_map<string, double> Um;   // _p_H1, _p_H2, ...., _Pui_1_H1, ...
-			 unordered_map<string, double> UE;   // _p_H1, _p_H2, ...., _Pui_1_H1, ...
-			 unordered_map<string, double> sig;  // _p_H1, _p_H2, ...., _Pui_1_H1, ...
-
-			 if (true)
-			 {
-				 pui_n = -2;
-				 for (const auto& nam1 : this->phys_param->p_pui_name)
-				 {
-					 pui_n++;
-					 if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-					 for (const auto& nam2 : this->phys_param->H_name)
-					 {
-						 U[nam1 + nam2] = U_bera(T[nam1], T[nam2], V["_p"], V[nam2]);
-						 U[nam2 + nam1] = U_bera(T[nam2], T[nam1], V[nam2], V["_p"]);
-
-						 Um[nam1 + nam2] = Um_bera(T[nam1], T[nam2], V["_p"], V[nam2]);
-						 Um[nam2 + nam1] = Um_bera(T[nam2], T[nam1], V[nam2], V["_p"]);
-
-						 UE[nam1 + nam2] = UE_bera(T[nam1], T[nam2], V["_p"], V[nam2]);
-						 UE[nam2 + nam1] = UE_bera(T[nam2], T[nam1], V[nam2], V["_p"]);
-
-						 sig[nam1 + nam2] = kv(1.0 - this->phys_param->par_a_2 * log(U[nam1 + nam2]));
-						 sig[nam2 + nam1] = kv(1.0 - this->phys_param->par_a_2 * log(U[nam2 + nam1]));
-					 }
-				 }
-
-			 }
-
-			 unordered_map<string, double> Hrho;
-			 unordered_map<string, double> HE;
-			 unordered_map<string, Eigen::Vector3d> Hm;
-			 unordered_map<string, double> Hp;
-
-			 if (true)
-			 {
-				 pui_n = -2;
-				 for (const auto& nam1 : this->phys_param->p_pui_name)
-				 {
-					 pui_n++;
-					 if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-					 for (const auto& nam2 : this->phys_param->H_name)
-					 {
-						 Hrho[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * U[nam1 + nam2];
-						 Hrho[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * U[nam2 + nam1];
-
-						 Hm[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * (U[nam2 + nam1] * V["_p"] +
-							 T[nam1] / Um[nam2 + nam1] * (V["_p"] - V[nam2]));
-						 Hm[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * (U[nam1 + nam2] * V[nam2] -
-							 T[nam2] / Um[nam1 + nam2] * (V["_p"] - V[nam2]));
-
-						 HE[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * (0.5 * U[nam2 + nam1] * V["_p"].squaredNorm() +
-							 T[nam1] / Um[nam2 + nam1] * V["_p"].dot(V["_p"] - V[nam2]) +
-							 3.0 / 4.0 * T[nam1] * UE[nam2 + nam1]);
-
-						 HE[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * (0.5 * U[nam1 + nam2] * V[nam2].squaredNorm() -
-							 T[nam2] / Um[nam1 + nam2] * V[nam2].dot(V["_p"] - V[nam2]) +
-							 3.0 / 4.0 * T[nam2] * UE[nam1 + nam2]);
-
-						 Hp[nam2 + nam1] = sig[nam2 + nam1] * rho[nam1] * rho[nam2] * this->phys_param->g1 * 3.0 / 4.0 *
-							 T[nam1] * UE[nam2 + nam1];
-
-						 Hp[nam1 + nam2] = sig[nam1 + nam2] * rho[nam1] * rho[nam2] * this->phys_param->g1 *
-							 ((0.5 * U[nam1 + nam2] + T[nam2] / Um[nam1 + nam2]) * (V["_p"] - V[nam2]).squaredNorm() +
-								 3.0 / 4.0 * T[nam2] * UE[nam1 + nam2]);
-					 }
-				 }
-
-			 }
-
-			 unordered_map<string, double> SOURSE;
-			 SOURSE["m_x"] = 0.0;
-			 SOURSE["m_y"] = 0.0;
-			 SOURSE["m_z"] = 0.0;
-			 SOURSE["E"] = 0.0;
-
-			 // Заполняем общие суммарные источники для плазмы  --------------------------------------
-
-			 ofstream fout;
-			 fout.open(data.filename);
-			 double ddp = (this->phys_param->par_n_H_LISM / this->phys_param->par_Kn);
-
-			 pui_n = -2;
-			 for (const auto& nam1 : this->phys_param->p_pui_name)
-			 {
-				 pui_n++;
-				 if (pui_n >= 0 && this->phys_param->pui_in_zone(zone_, pui_n) == false) continue;
-
-				 for (const auto& nam2 : this->phys_param->H_name)
-				 {
-					 auto SS = (-Hm[nam2 + nam1] + Hm[nam1 + nam2]);
-					 SOURSE["m_x"] += SS[0] * ddp;
-					 SOURSE["m_y"] += SS[1] * ddp;
-					 SOURSE["m_z"] += SS[2] * ddp;
-					 SOURSE["E"] += (-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp;
-
-					 double a1 = 0.0, a2 = 0.0, a3 = 0.0, a4 = 0.0;
-					 if (nam1 == "_p")
-					 {
-						 a1 = C->parameters[0]["MK_IVx" + nam2];
-						 a2 = C->parameters[0]["MK_IVy" + nam2];
-						 a3 = C->parameters[0]["MK_IVz" + nam2];
-						 a4 = C->parameters[0]["MK_IT" + nam2];
-					 }
-					 else if (nam1 == "_Pui_1")
-					 {
-						 a1 = C->parameters[0]["MK_IVx" + nam2 + "_pui_1"];
-						 a2 = C->parameters[0]["MK_IVy" + nam2 + "_pui_1"];
-						 a3 = C->parameters[0]["MK_IVz" + nam2 + "_pui_1"];
-						 a4 = C->parameters[0]["MK_IT" + nam2 + "_pui_1"];
-					 }
-					 else if (nam1 == "_Pui_2")
-					 {
-						 a1 = C->parameters[0]["MK_IVx" + nam2 + "_pui_2"];
-						 a2 = C->parameters[0]["MK_IVy" + nam2 + "_pui_2"];
-						 a3 = C->parameters[0]["MK_IVz" + nam2 + "_pui_2"];
-						 a4 = C->parameters[0]["MK_IT" + nam2 + "_pui_2"];
-					 }
-
-					 fout << nam1 << " " << nam2 << " " << SS[0] * ddp << " " << a1 << " " << SS[1] * ddp << " " << a2 << " "
-						 << SS[2] * ddp << " " << a3
-						 << " " << (-HE[nam2 + nam1] + HE[nam1 + nam2]) * ddp << " " << a4 << endl;
-				 }
-			 }
-
-			 fout.close();
-			 cout << "SOURSE = " << SOURSE["m_x"] << " " << SOURSE["m_y"] << " " << SOURSE["m_z"] << " " << SOURSE["E"] << endl;
-		 }
-	}
-	else if (alg == 25)
-	{
-		this->Calc_sourse_popravka_MK_Mf_Bera();
+		fout.close();
+		fout2.close();
+		fout3.close();
 	}
 
 
