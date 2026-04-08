@@ -13,7 +13,7 @@ short int Gran::Get_method()
 
 	//if (norm2(0.0, this->center[0][1], this->center[0][2]) >= 330.0) return 0;
 
-	if (this->center[0][0] < -60.0)
+	if (this->center[0][0] < -120.0)  // -60
 	{
 		return 0;
 	}

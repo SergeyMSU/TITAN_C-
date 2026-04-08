@@ -2497,8 +2497,27 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				for (const auto& names : this->phys_param->param_names)
 				{
-					if (gran->parameters.find("P" + names) == gran->parameters.end()) continue; // TODO!
-					POTOK[names] += sign_potok * gran->parameters["P" + names];
+					// Если считать гелиопаузу стенкой
+					if (this->phys_param->contact_wall == true && gran->type2 == Type_Gran_surf::HP && 
+						(names == "rho" || names == "Vx" || names == "Vy" || names == "Vz" || names == "p" 
+							|| names == "Bx" || names == "By" || names == "Bz"))
+					{
+						if (gran->cells[0] != cell)
+						{
+							if (gran->parameters.find("P" + names + "_R") == gran->parameters.end()) continue; // TODO!
+							POTOK[names] += sign_potok * gran->parameters["P" + names + "_R"];
+						}
+						else
+						{
+							if (gran->parameters.find("P" + names + "_L") == gran->parameters.end()) continue; // TODO!
+							POTOK[names] += sign_potok * gran->parameters["P" + names + "_L"];
+						}
+					}
+					else
+					{
+						if (gran->parameters.find("P" + names) == gran->parameters.end()) continue; // TODO!
+						POTOK[names] += sign_potok * gran->parameters["P" + names];
+					}
 				}
 
 				POTOK["divB"] += sign_potok * gran->parameters["PdivB"];
@@ -2527,7 +2546,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 			zone = this->determ_zone(cell, now1);
 			//this->Calc_sourse_MF(cell, SOURSE, now1, zone);
-			//cout << "A1" << endl;
+			/*cout << "A1" << endl;
+			for (const auto& names : this->phys_param->param_names)
+			{
+				cout << names << " " << POTOK[names] << endl;
+			}*/
 			//cout << "B1" << endl;
 			this->Calc_sourse_MF_Bera(cell, SOURSE, now1, zone);
 			//cout << "B2" << endl;
@@ -3188,7 +3211,8 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 		// Если это контакт, записываем магнитное давление в обычное
 		// И удаляем магнитные поля
 
-		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_bn_in_p_on_HP(gr->center[now][0])) //this->phys_param->bn_in_p_on_HP == true)
+		if (gr->type2 == Type_Gran_surf::HP && (this->phys_param->need_bn_in_p_on_HP(gr->center[now][0]) || 
+			this->phys_param->contact_wall == true)) //this->phys_param->bn_in_p_on_HP == true)
 		{
 			if (metod_ == 3) metod_ = 2;
 
@@ -3203,118 +3227,270 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 
 		//metod_ = 2;
-		
-		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_bn_in_p_on_HP(gr->center[now][0])) //this->phys_param->bn_in_p_on_HP == true)
+
+		// Новый вариант с контактом как со стенкой
+		if (this->phys_param->contact_wall == true && gr->type2 == Type_Gran_surf::HP)
 		{
+			std::vector<double> qqq1_sim, qqq2_sim;
+			qqq1_sim.resize(8);
+			qqq2_sim.resize(8);
+
 			std::vector<double> n(3);
 			n[0] = gr->normal[now][0];
 			n[1] = gr->normal[now][1];
 			n[2] = gr->normal[now][2];
 
-			this->phys_param->Godunov_Solver_Alexashov(qqq1, qqq2,//
+			// Разворачиваем симметрично скорости
+			qqq1_sim[0] = qqq1[0];
+			qqq1_sim[1] = qqq1[1];
+			qqq1_sim[2] = qqq1[2];
+			qqq1_sim[3] = qqq1[3];
+			qqq1_sim[4] = qqq1 [4];
+			qqq1_sim[5] = 0.0;
+			qqq1_sim[6] = 0.0;
+			qqq1_sim[7] = 0.0;
+
+			double q1 = qqq1_sim[1];  // x-компонента скорости
+			double q2 = qqq1_sim[2];  // y
+			double q3 = qqq1_sim[3];  // z
+
+			double nx = n[0];  // компоненты единичной нормали к стенке
+			double ny = n[1];
+			double nz = n[2];
+
+			// Скалярное произведение скорости на нормаль
+			double q_dot_n = q1 * nx + q2 * ny + q3 * nz;
+
+			// Новые компоненты скорости
+			qqq1_sim[1] = q1 - 2.0 * q_dot_n * nx + 2.0 * w * nx;
+			qqq1_sim[2] = q2 - 2.0 * q_dot_n * ny + 2.0 * w * ny;
+			qqq1_sim[3] = q3 - 2.0 * q_dot_n * nz + 2.0 * w * nz;
+
+
+			qqq2_sim[0] = qqq2[0];
+			qqq2_sim[1] = qqq2[1];
+			qqq2_sim[2] = qqq2[2];
+			qqq2_sim[3] = qqq2[3];
+			qqq2_sim[4] = qqq2[4];
+			qqq2_sim[5] = 0.0;
+			qqq2_sim[6] = 0.0;
+			qqq2_sim[7] = 0.0;
+
+			q1 = qqq2_sim[1];  // x-компонента скорости
+			q2 = qqq2_sim[2];  // y
+			q3 = qqq2_sim[3];  // z
+
+			// Скалярное произведение скорости на нормаль
+			q_dot_n = q1 * nx + q2 * ny + q3 * nz;
+
+			// Новые компоненты скорости
+			qqq2_sim[1] = q1 - 2.0 * q_dot_n * nx + 2.0 * w * nx;
+			qqq2_sim[2] = q2 - 2.0 * q_dot_n * ny + 2.0 * w * ny;
+			qqq2_sim[3] = q3 - 2.0 * q_dot_n * nz + 2.0 * w * nz;
+
+
+			this->phys_param->Godunov_Solver_Alexashov(qqq1, qqq1_sim,//
 				n, qqq, dsl, dsr, dsc, w, this->phys_param->need_contact_hard(gr->center[now][0]));
 
 			qqq[5] = qqq[6] = qqq[7] = 0.0;
 			konvect[0] = 0.0;
 			konvect[1] = 0.0;
+
+			gr->parameters["Prho_L"] = qqq[0] * area;
+			gr->parameters["PVx_L"] = qqq[1] * area;
+			gr->parameters["PVy_L"] = qqq[2] * area;
+			gr->parameters["PVz_L"] = qqq[3] * area;
+			gr->parameters["Pp_L"] = qqq[4] * area;
+			gr->parameters["PBx_L"] = qqq[5] * area;
+			gr->parameters["PBy_L"] = qqq[6] * area;
+			gr->parameters["PBz_L"] = qqq[7] * area;
+
+
+			this->phys_param->Godunov_Solver_Alexashov(qqq2_sim, qqq2,//
+				n, qqq, dsl, dsr, dsc, w, this->phys_param->need_contact_hard(gr->center[now][0]));
+
+			qqq[5] = qqq[6] = qqq[7] = 0.0;
+			konvect[0] = 0.0;
+			konvect[1] = 0.0;
+
+			gr->parameters["Prho_R"] = qqq[0] * area;
+			gr->parameters["PVx_R"] = qqq[1] * area;
+			gr->parameters["PVy_R"] = qqq[2] * area;
+			gr->parameters["PVz_R"] = qqq[3] * area;
+			gr->parameters["Pp_R"] = qqq[4] * area;
+			gr->parameters["PBx_R"] = qqq[5] * area;
+			gr->parameters["PBy_R"] = qqq[6] * area;
+			gr->parameters["PBz_R"] = qqq[7] * area;
+
+
+			if (this->phys_param->is_div_V_in_cell == true)
+			{
+				if (gr->type2 == Type_Gran_surf::Us)
+				{
+					gr->parameters["Pdiv_V"] = 0.5 * scalarProductFast(gr->normal[now][0],
+						gr->normal[now][1], gr->normal[now][2],
+						qqq1[1] + qqq2[1], qqq1[2] + qqq2[2], qqq1[3] + qqq2[3]) * area;
+				}
+				else if (gr->type2 == Type_Gran_surf::TS || gr->type2 == Type_Gran_surf::BS)
+				{
+					gr->parameters["Pdiv_V_L"] = scalarProductFast(gr->normal[now][0],
+						gr->normal[now][1], gr->normal[now][2],
+						qqq1[1], qqq1[2], qqq1[3]) * area;
+					gr->parameters["Pdiv_V_R"] = scalarProductFast(gr->normal[now][0],
+						gr->normal[now][1], gr->normal[now][2],
+						qqq2[1], qqq2[2], qqq2[3]) * area;
+				}
+			}
+
+			gr->parameters["PdivB"] = 0.0;
+
+			// Для контакта поток Vn равен нулю
+			if (this->phys_param->is_div_V_in_cell == true)
+			{
+				gr->parameters["Pdiv_V"] = 0.0;
+			}
+
+
+
+			if (par_left.find("Q") != par_left.end())
+			{
+				gr->parameters["PQ"] = 0.0; // Может быть неправльный порядок при других конвективных переменных
+			}
+
+			if (par_left.find("rho_He") != par_left.end())
+			{
+				gr->parameters["Prho_He"] = 0.0; // Может быть неправльный порядок при других конвективных переменных
+			}
+
+			if (this->phys_param->is_PUI == true)
+			{
+				uint8_t ip = 2;
+				for (const auto& nam : this->phys_param->pui_name)
+				{
+					gr->parameters["Prho" + nam] = 0.0;
+					ip++;
+					gr->parameters["Pp" + nam] = 0.0;
+					ip++;
+				}
+			}
 		}
 		else
 		{
-			bool left_ydar = false;
-			bool contact = false;
-
-			if (gr->type2 == Type_Gran_surf::TS && this->phys_param->TS_hard)
-				left_ydar = true;
-
-			if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_contact_hard(gr->center[now][0]))
-				contact = true;
-
-			this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
-				gr->normal[now][2],
-				w, qqq1, qqq2, qqq, false, 0, // 1
-				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
-				Option, left_ydar, contact);
-		}
-
-
-		if (gr->type == Type_Gran::Us)
-		{
-			double dnt = this->phys_param->KFL * dist
-				/ (max(fabs(dsl), fabs(dsr)) + fabs(w));
-
-			if (dnt < loc_time)
+			if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_bn_in_p_on_HP(gr->center[now][0])) //this->phys_param->bn_in_p_on_HP == true)
 			{
-				loc_time = min(loc_time, dnt);
-				name = "plasma";
+				std::vector<double> n(3);
+				n[0] = gr->normal[now][0];
+				n[1] = gr->normal[now][1];
+				n[2] = gr->normal[now][2];
+
+				this->phys_param->Godunov_Solver_Alexashov(qqq1, qqq2,//
+					n, qqq, dsl, dsr, dsc, w, this->phys_param->need_contact_hard(gr->center[now][0]));
+
+				qqq[5] = qqq[6] = qqq[7] = 0.0;
+				konvect[0] = 0.0;
+				konvect[1] = 0.0;
+			}
+			else
+			{
+				bool left_ydar = false;
+				bool contact = false;
+
+				if (gr->type2 == Type_Gran_surf::TS && this->phys_param->TS_hard)
+					left_ydar = true;
+
+				if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_contact_hard(gr->center[now][0]))
+					contact = true;
+
+				this->phys_param->chlld(metod_, gr->normal[now][0], gr->normal[now][1],
+					gr->normal[now][2],
+					w, qqq1, qqq2, qqq, false, 0, // 1
+					konvect_left, konvect_right, konvect, dsr, dsc, dsl,
+					Option, left_ydar, contact);
+			}
+
+			if (gr->type == Type_Gran::Us)
+			{
+				double dnt = this->phys_param->KFL * dist
+					/ (max(fabs(dsl), fabs(dsr)) + fabs(w));
+
+				if (dnt < loc_time)
+				{
+					loc_time = min(loc_time, dnt);
+					name = "plasma";
+				}
+			}
+
+			gr->parameters["Prho"] = qqq[0] * area;
+			gr->parameters["PVx"] = qqq[1] * area;
+			gr->parameters["PVy"] = qqq[2] * area;
+			gr->parameters["PVz"] = qqq[3] * area;
+			gr->parameters["Pp"] = qqq[4] * area;
+			gr->parameters["PBx"] = qqq[5] * area;
+			gr->parameters["PBy"] = qqq[6] * area;
+			gr->parameters["PBz"] = qqq[7] * area;
+			gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
+				gr->normal[now][1], gr->normal[now][2],
+				qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
+
+
+
+			if (this->phys_param->is_div_V_in_cell == true)
+			{
+				if (gr->type2 == Type_Gran_surf::Us)
+				{
+					gr->parameters["Pdiv_V"] = 0.5 * scalarProductFast(gr->normal[now][0],
+						gr->normal[now][1], gr->normal[now][2],
+						qqq1[1] + qqq2[1], qqq1[2] + qqq2[2], qqq1[3] + qqq2[3]) * area;
+				}
+				else if (gr->type2 == Type_Gran_surf::TS || gr->type2 == Type_Gran_surf::BS)
+				{
+					gr->parameters["Pdiv_V_L"] = scalarProductFast(gr->normal[now][0],
+						gr->normal[now][1], gr->normal[now][2],
+						qqq1[1], qqq1[2], qqq1[3]) * area;
+					gr->parameters["Pdiv_V_R"] = scalarProductFast(gr->normal[now][0],
+						gr->normal[now][1], gr->normal[now][2],
+						qqq2[1], qqq2[2], qqq2[3]) * area;
+				}
+			}
+
+			// Для контакта поток Bn равен нулю
+			if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_bn_in_p_on_HP(gr->center[now][0])) //this->phys_param->bn_in_p_on_HP == true)
+			{
+				gr->parameters["PdivB"] = 0.0;
+			}
+
+			// Для контакта поток Vn равен нулю
+			if (gr->type2 == Type_Gran_surf::HP && this->phys_param->is_div_V_in_cell == true)
+			{
+				gr->parameters["Pdiv_V"] = 0.0;
+			}
+
+
+
+			if (par_left.find("Q") != par_left.end())
+			{
+				gr->parameters["PQ"] = konvect[0] * area; // Может быть неправльный порядок при других конвективных переменных
+			}
+
+			if (par_left.find("rho_He") != par_left.end())
+			{
+				gr->parameters["Prho_He"] = konvect[1] * area; // Может быть неправльный порядок при других конвективных переменных
+			}
+
+			if (this->phys_param->is_PUI == true)
+			{
+				uint8_t ip = 2;
+				for (const auto& nam : this->phys_param->pui_name)
+				{
+					gr->parameters["Prho" + nam] = konvect[ip] * area;
+					ip++;
+					gr->parameters["Pp" + nam] = konvect[ip] * area;
+					ip++;
+				}
 			}
 		}
 
-		gr->parameters["Prho"] = qqq[0] * area;
-		gr->parameters["PVx"] = qqq[1] * area;
-		gr->parameters["PVy"] = qqq[2] * area;
-		gr->parameters["PVz"] = qqq[3] * area;
-		gr->parameters["Pp"] = qqq[4] * area;
-		gr->parameters["PBx"] = qqq[5] * area;
-		gr->parameters["PBy"] = qqq[6] * area;
-		gr->parameters["PBz"] = qqq[7] * area;
-		gr->parameters["PdivB"] = 0.5 * scalarProductFast(gr->normal[now][0],
-			gr->normal[now][1], gr->normal[now][2],
-			qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
 
-		if (this->phys_param->is_div_V_in_cell == true)
-		{
-			if (gr->type2 == Type_Gran_surf::Us)
-			{
-				gr->parameters["Pdiv_V"] = 0.5 * scalarProductFast(gr->normal[now][0],
-					gr->normal[now][1], gr->normal[now][2],
-					qqq1[1] + qqq2[1], qqq1[2] + qqq2[2], qqq1[3] + qqq2[3]) * area;
-			}
-			else if (gr->type2 == Type_Gran_surf::TS || gr->type2 == Type_Gran_surf::BS)
-			{
-				gr->parameters["Pdiv_V_L"] = scalarProductFast(gr->normal[now][0],
-					gr->normal[now][1], gr->normal[now][2],
-					qqq1[1], qqq1[2], qqq1[3]) * area;
-				gr->parameters["Pdiv_V_R"] = scalarProductFast(gr->normal[now][0],
-					gr->normal[now][1], gr->normal[now][2],
-					qqq2[1], qqq2[2], qqq2[3]) * area;
-			}
-		}
-
-		// Для контакта поток Bn равен нулю
-		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->need_bn_in_p_on_HP(gr->center[now][0])) //this->phys_param->bn_in_p_on_HP == true)
-		{
-			gr->parameters["PdivB"] = 0.0;
-		}
-
-		// Для контакта поток Vn равен нулю
-		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->is_div_V_in_cell == true)
-		{
-			gr->parameters["Pdiv_V"] = 0.0;
-		}
-
-
-
-		if (par_left.find("Q") != par_left.end())
-		{
-			gr->parameters["PQ"] = konvect[0] * area; // Может быть неправльный порядок при других конвективных переменных
-		}
-
-		if (par_left.find("rho_He") != par_left.end())
-		{
-			gr->parameters["Prho_He"] = konvect[1] * area; // Может быть неправльный порядок при других конвективных переменных
-		}
-
-		if (this->phys_param->is_PUI == true)
-		{
-			uint8_t ip = 2;
-			for (const auto& nam : this->phys_param->pui_name)
-			{
-				gr->parameters["Prho" + nam] = konvect[ip] * area;
-				ip++;
-				gr->parameters["Pp" + nam] = konvect[ip] * area;
-				ip++;
-			}
-		}
 
 	}
 

@@ -481,6 +481,7 @@ void Phys_param::initVarMap()
     {"null_bn_on_HP", VarRef(&this->null_bn_on_HP)},
     {"bn_in_p_on_HP", VarRef(&this->bn_in_p_on_HP)},
     {"contact_hard", VarRef(&this->contact_hard)},
+    {"contact_wall", VarRef(&this->contact_wall)},
     {"TS_hard", VarRef(&this->TS_hard)},
     {"save_AMR", VarRef(&this->save_AMR)},
     {"culc_AMR", VarRef(&this->culc_AMR)},
