@@ -160,8 +160,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Smooth_head_HP3();
 		this->Smooth_head_TS3();
 
+		this->Go(true, 1000, 1);
 
-		for (int i = 1; i <= 6 * 11; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 6 * 2; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
 			cout << "IIIII = " << i << endl;
@@ -177,7 +178,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			}
 			else
 			{
-				//this->Go(true, 100, 1); // 400   1 
+				this->Go(true, 300, 1); // 400   1 
 			}
 			this->Smooth_head_HP3();
 			this->Smooth_head_TS3();

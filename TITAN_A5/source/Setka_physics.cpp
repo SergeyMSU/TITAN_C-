@@ -1751,7 +1751,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			auto& gran = (*gran_list)[i_step];
 
 			string nmnm;
+			//cout << "A1" << endl;
 			double ntnt = this->Culc_Gran_Potok(gran, now1, metod, nmnm, time);  // —читает потоки через данную грань (записывает результат в параметры грани)
+			//cout << "A2" << endl;
 
 			if (ntnt < loc_time)
 			{

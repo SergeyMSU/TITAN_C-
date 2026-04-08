@@ -84,8 +84,9 @@ int main()
     // На всей гелиопаузе сделал HLLC и чуть-чуть подвмнул границу для HLLD+bn
     // Вкдючил от -50 все три костыля на HP (до этого было от -30 кажется) и везде на гелиопаузе влючил HLLD
     // 
-    //S1.Download_cell_parameters("parameters_promeg_1112.bin");  // Стартовали согласование с 81  
-    S1.Download_cell_parameters("parameters_0091.bin");    //начиная с 90 могут быть серьёзные изменения
+    S1.Download_cell_parameters("parameters_promeg_116.bin");  // Стартовали согласование с 81  
+    //S1.Download_cell_parameters("parameters_0084-.bin");    //начиная с 90 могут быть серьёзные изменения
+    // Если что продолжать с 91
 
     //S1.Download_cell_parameters("parameters_promeg_1118.bin");    
     //S1.Download_cell_parameters("parameters_promeg_1130.bin");
@@ -183,7 +184,7 @@ int main()
     //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
-
+    
 
 
     if (false)
@@ -236,7 +237,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0092.bin");  
+    S1.Save_cell_parameters("parameters_0085-.bin");  
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

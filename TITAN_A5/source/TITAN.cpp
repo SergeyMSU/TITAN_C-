@@ -53,8 +53,13 @@ int main()
     }
 
     // Создаём основную сетку из файлов вспомогательных сеток
-    Setka S1 = Setka("SDK1_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
+    //Setka S1 = Setka("SDK1_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
+    Setka S1 = Setka("SDK_A5_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
     //Setka S1 = Setka("SDK2_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
+
+    S1.geo->L6 = -60.0;
+    S1.geo->L7 = -300.0;
+
 
     // Обязательный блок настройки основной сетки
     if (true)
@@ -76,12 +81,18 @@ int main()
         S1.Init_boundary_grans();
     }
 
+
+
+    // Если надо интерполируем значения из другой сетки
+    //S1.PereInterpolate("For_intertpolate_0079-no_razriv-with_MK.bin", true);
+
     // Считываем физические параметры и геометрическое положение узлов из файла (предыдущего расчёта)
     //S1.Download_cell_parameters("parameters_0060.bin"); 
     //  
 
-    //S1.Download_cell_parameters("parameters_0079.bin");    
-    S1.Download_cell_parameters("parameters_A5_0003.bin");  
+    //S1.Download_cell_parameters("parameters_0079.bin"); 
+    //   
+    S1.Download_cell_parameters("parameters_A5_0005.bin");  
 
 
     //S1.Download_cell_parameters("parameters_0219.bin");    
@@ -231,7 +242,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0004.bin");
+    S1.Save_cell_parameters("parameters_A5_0006.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -298,9 +309,9 @@ int main()
 
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0079-no_razriv-with_MK.bin", false);
+    S1.Save_for_interpolate("For_intertpolate_0080-no_razriv-with_MK.bin", false);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0079-no_razriv-with_MK.bin");
+    Interpol SS = Interpol("For_intertpolate_0080-no_razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");

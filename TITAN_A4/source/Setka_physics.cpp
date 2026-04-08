@@ -1187,10 +1187,11 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 
 					if (this->phys_param->sourse_popravka_MK_Mf == true)
 					{
-						if ((C->type == Type_cell::Zone_2) || // && C->center[now][0] > -60.0
-							(C->type == Type_cell::Zone_3 && C->center[now][0] > 0.0) ||
-							(C->type == Type_cell::Zone_4 && C->center[now][0] > 0.0) || 
-							(C->type == Type_cell::Zone_1))
+						//if ((C->type == Type_cell::Zone_2) || // && C->center[now][0] > -60.0
+						//	(C->type == Type_cell::Zone_3 && C->center[now][0] > 0.0) ||
+						//	(C->type == Type_cell::Zone_4 && C->center[now][0] > 0.0) || 
+						//	(C->type == Type_cell::Zone_1))
+						if(true)
 						{
 							string nnn = "S_k1_" + nam1 + nam2;
 							if (C->parameters[0].find(nnn) != C->parameters[0].end()) k1 = C->parameters[0][nnn];

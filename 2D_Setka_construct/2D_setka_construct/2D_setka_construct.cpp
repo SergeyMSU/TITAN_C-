@@ -1,4 +1,4 @@
-п»ї// 2D_setka_construct.cpp : Р­С‚РѕС‚ С„Р°Р№Р» СЃРѕРґРµСЂР¶РёС‚ С„СѓРЅРєС†РёСЋ "main". Р—РґРµСЃСЊ РЅР°С‡РёРЅР°РµС‚СЃСЏ Рё Р·Р°РєР°РЅС‡РёРІР°РµС‚СЃСЏ РІС‹РїРѕР»РЅРµРЅРёРµ РїСЂРѕРіСЂР°РјРјС‹.
+// 2D_setka_construct.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
 //
 
 #include <iostream>
@@ -24,7 +24,7 @@ int main()
     S.Print_yzels_opor("G");
     S.Print_cell_soseds();
     S.Print_cell_center_test();
-    S.Save_for_3D("SDK_40");
+    S.Save_for_3D("SDK_A5");
 
     cout << "All cell = " << S.All_Cell.size() << endl;
 
