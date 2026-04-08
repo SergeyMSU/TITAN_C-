@@ -2741,13 +2741,13 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				}
 				else
 				{
-					u3 = vx;
-					v3 = vy;
-					w3 = vz;
+					u3 = -4.0;
+					v3 = 0.0;
+					w3 = 0.0;
 					bx3 = bx;
 					by3 = by;
 					bz3 = bz;
-					p3 = rho3/2.0;
+					p3 = 4.0;
 				}
 
 				if (std::isnan(rho3) || std::fpclassify(rho3) == FP_SUBNORMAL ||
