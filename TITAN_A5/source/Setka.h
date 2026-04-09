@@ -13,6 +13,10 @@ public:
 	string name = "no_name";
 
 
+	CoolingFunction* cooling;
+	CoolingFunction* heating;
+
+
 	bool regim_otladki = true;
 
 

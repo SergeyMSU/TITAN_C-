@@ -1185,13 +1185,11 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 					double k3 = 1.0;
 					double k4 = 1.0;
 
-					if (this->phys_param->sourse_popravka_MK_Mf == true)
+					if (this->phys_param->sourse_popravka_MK_Mf == true && C->center[now][0] < 100.0)
 					{
-						//if ((C->type == Type_cell::Zone_2) || // && C->center[now][0] > -60.0
-						//	(C->type == Type_cell::Zone_3 && C->center[now][0] > 0.0) ||
-						//	(C->type == Type_cell::Zone_4 && C->center[now][0] > 0.0) || 
-						//	(C->type == Type_cell::Zone_1))
-						if(true)
+						if ((C->type == Type_cell::Zone_2) || // && C->center[now][0] > -60.0
+							(C->type == Type_cell::Zone_3 && C->center[now][0] > 0.0) ||
+							(C->type == Type_cell::Zone_1))
 						{
 							string nnn = "S_k1_" + nam1 + nam2;
 							if (C->parameters[0].find(nnn) != C->parameters[0].end()) k1 = C->parameters[0][nnn];
@@ -2459,7 +2457,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		bool print_p_less_0 = false;
 
 		// Расчитываем законы сохранения в ячейках
-		#pragma omp parallel for schedule(dynamic)
+		#pragma omp parallel for reduction(min:loc_time) schedule(dynamic)
 		for (size_t i_step = 0; i_step < cell_list->size(); i_step++)
 		{
 			auto& cell = (*cell_list)[i_step];
@@ -2737,6 +2735,25 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					bx3 = bx * Volume / Volume2 - time * (POTOK["Bx"] + vx * POTOK["divB"]) / Volume2;
 					by3 = by * Volume / Volume2 - time * (POTOK["By"] + vy * POTOK["divB"]) / Volume2;
 					bz3 = bz * Volume / Volume2 - time * (POTOK["Bz"] + vz * POTOK["divB"]) / Volume2;
+
+
+					// Модифицируем шаг по времени:
+					double ntnt = this->phys_param->KFL * (p / this->phys_param->g1) / max(fabs(SOURSE["E"]), 0.000000001);
+					if (ntnt < loc_time)
+					{
+						#pragma omp critical 
+						{
+							if (ntnt < loc_time)
+							{
+								loc_time = min(loc_time, ntnt);
+								xc_min = cell->center[now1][0];
+								yc_min = cell->center[now1][1];
+								zc_min = cell->center[now1][2];
+								name_min_time = "Source_MK";
+							}
+						}
+					}
+
 
 					p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz) + kvv(bx, by, bz) / 25.13274122871834590768) * Volume / Volume2
 						- time * (POTOK["p"] + (dsk / cpi4) * POTOK["divB"]) / Volume2 + time * SOURSE["E"]) -
@@ -3245,7 +3262,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			qqq1_sim[1] = qqq1[1];
 			qqq1_sim[2] = qqq1[2];
 			qqq1_sim[3] = qqq1[3];
-			qqq1_sim[4] = qqq1 [4];
+			qqq1_sim[4] = qqq1[4];
 			qqq1_sim[5] = 0.0;
 			qqq1_sim[6] = 0.0;
 			qqq1_sim[7] = 0.0;

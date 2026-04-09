@@ -84,7 +84,7 @@ int main()
     // На всей гелиопаузе сделал HLLC и чуть-чуть подвмнул границу для HLLD+bn
     // Вкдючил от -50 все три костыля на HP (до этого было от -30 кажется) и везде на гелиопаузе влючил HLLD
     // 
-    //S1.Download_cell_parameters("parameters_promeg_1118.bin");  // Стартовали согласование с 81  
+    //S1.Download_cell_parameters("parameters_promeg_1184.bin");  // Стартовали согласование с 81  
     S1.Download_cell_parameters("parameters_0085--.bin");    //начиная с 90 могут быть серьёзные изменения
     // Если что продолжать с 91
 

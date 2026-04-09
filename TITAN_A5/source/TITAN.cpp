@@ -9,6 +9,10 @@ using namespace std;
 int main()
 {
     cout << "Start Programm" << endl;
+
+
+
+
     if (false)
     {
         Eigen::Vector3d vec, cc, vv;
@@ -92,7 +96,7 @@ int main()
 
     //S1.Download_cell_parameters("parameters_0079.bin"); 
     //   
-    S1.Download_cell_parameters("parameters_A5_0007.bin");  
+    S1.Download_cell_parameters("parameters_A5_0009.bin");  
 
 
     //S1.Download_cell_parameters("parameters_0219.bin");    
@@ -180,6 +184,12 @@ int main()
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(5, &S1);ts
 
+    S1.cooling = new CoolingFunction();
+    S1.heating = new CoolingFunction();
+
+    S1.cooling->ReadCoolingFunction("combined_cooling_function.txt");
+    S1.heating->ReadCoolingFunction("combined_heating_function.txt");
+
 
     S1.Algoritm(1, &S1);
 
@@ -242,7 +252,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0008.bin");
+    S1.Save_cell_parameters("parameters_A5_0010.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

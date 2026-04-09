@@ -589,8 +589,8 @@ void Setka::Init_physics(void)
 
 				mV = 66.6667;
 
-				i->parameters["rho"] = 0.0348829 * pow(this->phys_param->R_0 / r, 2);
-				i->parameters["p"] = 3.72085 * pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
+				i->parameters["rho"] = 0.0249164 * pow(this->phys_param->R_0 / r, 2);
+				i->parameters["p"] = 2.65775 * pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
 
 
 				i->parameters["Vx"] = mV * x/r;
@@ -1778,7 +1778,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		bool print_p_less_0 = false;
 
 		// Расчитываем законы сохранения в ячейках
-		#pragma omp parallel for schedule(dynamic)
+		#pragma omp parallel for reduction(min:loc_time) schedule(dynamic)
 		for (size_t i_step = 0; i_step < cell_list->size(); i_step++)
 		{
 			auto& cell = (*cell_list)[i_step];
@@ -2035,8 +2035,30 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					by3 = by * Volume / Volume2 - time * (POTOK["By"] + vy * POTOK["divB"]) / Volume2;
 					bz3 = bz * Volume / Volume2 - time * (POTOK["Bz"] + vz * POTOK["divB"]) / Volume2;
 
+					double T_K = p / rho * 66541.3;
+					double Q_radio = rho * rho * 2.71588 * 1e21 * 
+						(this->heating->InterpolateCooling(T_K) - this->cooling->InterpolateCooling(T_K));
+
+					// Модифицируем шаг по времени:
+					double ntnt = this->phys_param->KFL * (p / this->phys_param->g1) / max(fabs(Q_radio), 0.000000001);
+					if (ntnt < loc_time)
+					{
+						#pragma omp critical 
+						{
+							if (ntnt < loc_time)
+							{
+								loc_time = min(loc_time, ntnt);
+								xc_min = cell->center[now1][0];
+								yc_min = cell->center[now1][1];
+								zc_min = cell->center[now1][2];
+								name_min_time = "Source_radio";
+							}
+						}
+					}
+
+
 					p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz) + kvv(bx, by, bz) / 25.13274122871834590768) * Volume / Volume2
-						- time * (POTOK["p"] + (dsk / cpi4) * POTOK["divB"]) / Volume2 + time * SOURSE["E"]) -
+						- time * (POTOK["p"] + (dsk / cpi4) * POTOK["divB"]) / Volume2 + time * SOURSE["E"] + time * Q_radio) -
 						0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
 
 					// Эффективная магнитная диссипация

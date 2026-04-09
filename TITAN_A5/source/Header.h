@@ -4,6 +4,7 @@
 // Описание всех классов
 class Geo_param; 
 class Dust_spectra;
+class CoolingFunction;
 class AMR_f;
 class AMR_cell;
 class Phys_param;
@@ -117,6 +118,7 @@ using namespace std;
 #include "AMR_cell.h"
 #include "Phys_param.h"
 #include "Dust_spectra.h"
+#include "CoolingFunction.h"
 #include "Geo_param.h"
 #include "Setka.h"
 #include "Help_funk.h"
