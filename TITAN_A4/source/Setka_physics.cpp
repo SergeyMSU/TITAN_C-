@@ -1188,7 +1188,8 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 					if (this->phys_param->sourse_popravka_MK_Mf == true && C->center[now][0] < 100.0)
 					{
 						if ((C->type == Type_cell::Zone_2) || // && C->center[now][0] > -60.0
-							(C->type == Type_cell::Zone_3 && C->center[now][0] > 0.0) ||
+							(C->type == Type_cell::Zone_3 && C->center[now][0] > 0.0 &&
+								polar_angle(C->center[now][0], norm2(0.0, C->center[now][1], C->center[now][2])) < 1.3) ||
 							(C->type == Type_cell::Zone_1))
 						{
 							string nnn = "S_k1_" + nam1 + nam2;

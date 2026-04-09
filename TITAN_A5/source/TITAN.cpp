@@ -96,7 +96,7 @@ int main()
 
     //S1.Download_cell_parameters("parameters_0079.bin"); 
     //   
-    S1.Download_cell_parameters("parameters_A5_0009.bin");  
+    S1.Download_cell_parameters("parameters_A5_0010.bin");  
 
 
     //S1.Download_cell_parameters("parameters_0219.bin");    
@@ -123,12 +123,12 @@ int main()
     }
 
     //  Ручное изменение BS
-    if (false)
+    if (true)
     {
         cout << "Hand" << endl;
         S1.Calculating_measure(0);
         S1.Calculating_measure(1);
-        S1.Culc_Velocity_surface(0, 0.0, 3);
+        S1.Culc_Velocity_surface(0, 1.0, 3);
         for (int i_step = 0; i_step < S1.All_Luch.size(); i_step++)
         {
             auto lu = S1.All_Luch[i_step];
@@ -191,7 +191,7 @@ int main()
     S1.heating->ReadCoolingFunction("combined_heating_function.txt");
 
 
-    S1.Algoritm(1, &S1);
+    //S1.Algoritm(1, &S1);
 
 
     //Dust_spectra DDD = Dust_spectra();
@@ -252,7 +252,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0010.bin");
+    S1.Save_cell_parameters("parameters_A5_0011.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
