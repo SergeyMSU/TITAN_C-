@@ -170,7 +170,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 
-		for (int i = 1; i <= 6 * 10; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 6 * 11; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
 			cout << "IIIII = " << i << endl;

@@ -501,7 +501,7 @@ void Setka::Init_physics(void)
 	}
 
 	// Задаём начальные условия на сетке
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -535,7 +535,7 @@ void Setka::Init_physics(void)
 
 				i->parameters[0]["Q"] = i->parameters[0]["rho"];
 			}
-			else
+			else if(x > 120.0)
 			{
 				i->parameters[0]["rho"] = this->phys_param->rho_LISM; 
 				i->parameters[0]["p"] = this->phys_param->rho_p_LISM; 
@@ -1894,7 +1894,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				if (rho3 < 1e-7)
 				{
 					rho_null = true;
-					rho3 = 0.05;
+					rho3 = 0.0005;
 					Q3 = Q / rho * rho3;
 					rho_He3 = 0.0;
 					cout << "Plasma  rho < 0" << endl;
@@ -2056,6 +2056,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 						}
 					}
 
+					//if (cell->center[now1][0] < 0.0) Q_radio = 0.0;
 
 					p3 = (((p / this->phys_param->g1 + 0.5 * rho * kvv(vx, vy, vz) + kvv(bx, by, bz) / 25.13274122871834590768) * Volume / Volume2
 						- time * (POTOK["p"] + (dsk / cpi4) * POTOK["divB"]) / Volume2 + time * SOURSE["E"] + time * Q_radio) -
@@ -5664,6 +5665,8 @@ void Setka::PereInterpolate(Interpol* SS, bool move, bool MK_only)
 	cout << "PereInterpolate: step 3/4" << endl;
 
 	// Теперь переинтерполируем все значения в ячейках
+
+	//return;
 
 	std::unordered_map<string, double> param;
 	std::array<Cell_handle, 6> prev_cell;

@@ -4770,7 +4770,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			C(0) = j[0];
 			C(1) = j[1];
 			C(2) = j[2];
-			fout << C(0) * dim_r << " " << C(1) * dim_r << " " << C(2) * dim_r << endl;
+			fout << C(0) << " " << C(1) << " " << C(2) << endl;
 		}
 	}
 

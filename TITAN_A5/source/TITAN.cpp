@@ -58,11 +58,13 @@ int main()
 
     // Создаём основную сетку из файлов вспомогательных сеток
     //Setka S1 = Setka("SDK1_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
-    Setka S1 = Setka("SDK_A5_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
+    Setka S1 = Setka("SDK_A5.1_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
     //Setka S1 = Setka("SDK2_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
 
-    S1.geo->L6 = -60.0;
+    S1.geo->L6 = -200.0;
     S1.geo->L7 = -300.0;
+    S1.geo->tetta1 = 2.89;
+    S1.geo->tetta2 = 2.64;
 
 
     // Обязательный блок настройки основной сетки
@@ -88,15 +90,16 @@ int main()
 
 
     // Если надо интерполируем значения из другой сетки
-    //S1.PereInterpolate("For_intertpolate_0079-no_razriv-with_MK.bin", true);
+    //S1.PereInterpolate("For_intertpolate_0081-no_razriv-with_MK.bin", true);
 
     // Считываем физические параметры и геометрическое положение узлов из файла (предыдущего расчёта)
     //S1.Download_cell_parameters("parameters_0060.bin"); 
     //  
 
     //S1.Download_cell_parameters("parameters_0079.bin"); 
-    //   
-    S1.Download_cell_parameters("parameters_A5_0010.bin");  
+    //   c 10 начал ручное передвижение сетки, потом в 11 его подкорректировал, с 12 начал считать
+    S1.Download_cell_parameters("parameters_A5_0033.bin");  
+    //S1.Download_cell_parameters("parameters_promeg_1121.bin");  
 
 
     //S1.Download_cell_parameters("parameters_0219.bin");    
@@ -105,6 +108,14 @@ int main()
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");
 
     //S1.Download_cell_parameters("parameters_0219.bin");
+
+
+    S1.geo->L6 = -200.0;
+    S1.geo->L7 = -300.0;
+    S1.geo->tetta1 = 2.89;
+    S1.geo->tetta2 = 2.64;
+
+    //S1.PereInterpolate("For_intertpolate_0082-no_razriv-with_MK.bin", true);
 
 
     //S1.Download_cell_parameters("parameters_promeg_1124.bin");
@@ -120,12 +131,14 @@ int main()
 
         // Инициализируем TVD (находим соседей и т.д.)
         S1.Init_TVD();
+
+        S1.Find_Yzel_Sosed_for_sglag();
     }
 
     //  Ручное изменение BS
-    if (true)
+    if (false)
     {
-        cout << "Hand" << endl;
+        cout << "START Hand" << endl;
         S1.Calculating_measure(0);
         S1.Calculating_measure(1);
         S1.Culc_Velocity_surface(0, 1.0, 3);
@@ -134,6 +147,7 @@ int main()
             auto lu = S1.All_Luch[i_step];
             lu->dvigenie(1);
         }
+
         for (auto& i : S1.All_Yzel)
         {
             i->coord[0][0] = i->coord[1][0];
@@ -142,6 +156,7 @@ int main()
         }
         S1.Calculating_measure(0);
         S1.Calculating_measure(1);
+
         S1.auto_set_luch_geo_parameter(0);
         for (auto& i : S1.All_Yzel)
         {
@@ -149,10 +164,15 @@ int main()
             i->coord[1][1] = i->coord[0][1];
             i->coord[1][2] = i->coord[0][2];
         }
+        cout << "Calculating_measure" << endl;
         S1.Calculating_measure(0);
         S1.Calculating_measure(1);
+        cout << "Init_TVD" << endl;
         S1.Init_TVD();
+        cout << "END Hand" << endl;
     }
+
+  
 
     cout << "A-" << endl;
     // Задаём начальные и граничные условия
@@ -169,6 +189,7 @@ int main()
         S1.Tecplot_print_all_gran_in_surface("TS");
         S1.Tecplot_print_all_gran_in_surface("HP");
         S1.Tecplot_print_all_gran_in_surface("BS");
+        S1.Tecplot_print_plane_lush(30);
     }
 
     // Выбор основного алгоритма расчёта (в данной функции представлены все варианты расчёта: атомы, мгд и т.д.), см. саму функцию
@@ -191,7 +212,7 @@ int main()
     S1.heating->ReadCoolingFunction("combined_heating_function.txt");
 
 
-    //S1.Algoritm(1, &S1);
+    S1.Algoritm(1, &S1);
 
 
     //Dust_spectra DDD = Dust_spectra();
@@ -252,7 +273,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0011.bin");
+    S1.Save_cell_parameters("parameters_A5_0034.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -319,9 +340,9 @@ int main()
 
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0080-no_razriv-with_MK.bin", false);
+    S1.Save_for_interpolate("For_intertpolate_0083-no_razriv-with_MK.bin", false);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0080-no_razriv-with_MK.bin");
+    Interpol SS = Interpol("For_intertpolate_0082-no_razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");

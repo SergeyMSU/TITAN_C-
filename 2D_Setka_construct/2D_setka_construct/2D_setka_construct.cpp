@@ -24,7 +24,7 @@ int main()
     S.Print_yzels_opor("G");
     S.Print_cell_soseds();
     S.Print_cell_center_test();
-    S.Save_for_3D("SDK_A5");
+    S.Save_for_3D("SDK_A5.1");
 
     cout << "All cell = " << S.All_Cell.size() << endl;
 

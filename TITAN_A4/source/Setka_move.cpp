@@ -474,7 +474,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			if (true)
 			{   // Ћаплас в сферических новых
 #pragma omp parallel for private(A, B, V, B2) schedule(dynamic)
-				for(size_t ili = 0; ili < this->All_Yzel.size(); ili++)
+				for(int ili = 0; ili < this->All_Yzel.size(); ili++)
 				{
 					auto yz = this->All_Yzel[ili];
 					if (yz->type != Type_yzel::TS) continue;
@@ -592,7 +592,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			if (true)
 			{   // —глаживание к локальной сфере
 #pragma omp parallel for private(A, B, V, B2) schedule(dynamic)
-				for (size_t ili = 0; ili < this->All_Yzel.size(); ili++)
+				for (int ili = 0; ili < this->All_Yzel.size(); ili++)
 				{
 					auto yz = this->All_Yzel[ili];
 					if (yz->type != Type_yzel::HP) continue;
@@ -708,17 +708,17 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 
 		// —глаживание к центру локальных сфер дл€ HP в хвосте
-		for (size_t ii = 0; ii < VVV.size(); ii++)
+		for (int ii = 0; ii < VVV.size(); ii++)
 		{
 			int nn = VVV[ii].size();
 			int mm = VVV[ii][0].size();
 
 #pragma omp parallel for private(A, B, V) schedule(dynamic)
-			for (size_t i = 0; i < nn; i++)
+			for (int i = 0; i < nn; i++)
 			{
 				if (i > 4 && i < nn - 4) continue;
 
-				for (size_t j = 0; j < mm; j++)
+				for (int j = 0; j < mm; j++)
 				{
 					auto AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];
 
@@ -769,7 +769,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		{
 #pragma omp parallel for private(A, B, V, a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
 			//for (auto& yz : this->Yzels_HP_sglag)
-			for (size_t idx = 0; idx < this->Yzels_HP_sglag.size(); ++idx)
+			for (int idx = 0; idx < this->Yzels_HP_sglag.size(); ++idx)
 			{
 				auto& yz = this->Yzels_HP_sglag[idx];
 				AA = yz;
@@ -895,7 +895,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		int mm = this->A_Luch[0].size();
 
 #pragma omp parallel for private(A, B, V, a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
-		for (size_t i = 0; i < nn; i++)
+		for (int i = 0; i < nn; i++)
 		{
 			short int ip = i + 1;
 			short int ipp = i + 2;
@@ -910,7 +910,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			if (imm == -1) imm = nn - 1;
 			if (imm == -2) imm = nn - 2;
 
-			for (size_t j = 2; j < mm; j++)
+			for (int j = 2; j < mm; j++)
 			{
 				AA = this->A_Luch[i][j]->Yzels_opor[2];
 				AA2 = this->A_Luch[im][j]->Yzels_opor[2];
@@ -949,7 +949,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		nn = this->B_Luch.size();
 		mm = this->B_Luch[0].size();
 #pragma omp parallel for private(A, B, V, a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
-		for (size_t i = 0; i < nn; i++)
+		for (int i = 0; i < nn; i++)
 		{
 			short int ip = i + 1;
 			short int ipp = i + 2;
@@ -964,7 +964,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			if (imm == -1) imm = nn - 1;
 			if (imm == -2) imm = nn - 2;
 
-			for (size_t j = 0; j < mm; j++)
+			for (int j = 0; j < mm; j++)
 			{
 				AA = this->B_Luch[i][j]->Yzels_opor[2];
 				AA2 = this->B_Luch[im][j]->Yzels_opor[2];
@@ -1019,7 +1019,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		mm = this->E_Luch[0].size();
 
 #pragma omp parallel for private(A, B, V, a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
-		for (size_t i = 0; i < nn; i++)
+		for (int i = 0; i < nn; i++)
 		{
 			short int ip = i + 1;
 			short int ipp = i + 2;
@@ -1034,7 +1034,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			if (imm == -1) imm = nn - 1;
 			if (imm == -2) imm = nn - 2;
 
-			for (size_t j = 0; j < mm; j++)
+			for (int j = 0; j < mm; j++)
 			{
 				AA = this->E_Luch[i][j]->Yzels_opor[1];
 				AA2 = this->E_Luch[im][j]->Yzels_opor[1];
@@ -1088,7 +1088,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		mm = this->geo->N4 - 1; // this->D_Luch[0].size();
 
 #pragma omp parallel for private(A, B, V, a, b, c, r1, r2, r3, r4, p, p1, p11, p3, p33, p2, p22, p4, p44, AA, AA1, AA11, AA2, AA22, AA3, AA33, AA4, AA44)
-		for (size_t i = 0; i < nn; i++)
+		for (int i = 0; i < nn; i++)
 		{
 			short int ip = i + 1;
 			short int ipp = i + 2;
@@ -1103,7 +1103,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			if (imm == -1) imm = nn - 1;
 			if (imm == -2) imm = nn - 2;
 
-			for (size_t j = 0; j < mm; j++)
+			for (int j = 0; j < mm; j++)
 			{
 				AA = this->D_Luch[i][j]->Yzels_opor[1];
 				AA2 = this->D_Luch[im][j]->Yzels_opor[1];
@@ -1186,7 +1186,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		if (true)
 		{
 			#pragma omp parallel for private(A, B, V) schedule(dynamic)
-			for (size_t ili = 0; ili < this->All_Yzel.size(); ili++)
+			for (int ili = 0; ili < this->All_Yzel.size(); ili++)
 			{
 				auto yz = this->All_Yzel[ili];
 				if (yz->type != Type_yzel::BS) continue;
@@ -2185,7 +2185,7 @@ void Setka::Smooth_head_HP3(void)
 			Eigen::VectorXd residuals(n);
 			double total_residual = 0.0;
 
-			for (size_t i = 0; i < n; ++i) {
+			for (int i = 0; i < n; ++i) {
 				double dist = (points[i] - center).norm();
 				residuals[i] = std::abs(dist - radius);
 				total_residual += residuals[i] * residuals[i];
@@ -2204,7 +2204,7 @@ void Setka::Smooth_head_HP3(void)
 			double stddev = std::sqrt((residuals.array() - mean).square().sum() / n);
 			double cutoff = 2.5 * stddev;  // 2.5 сигма
 
-			for (size_t i = 0; i < n; ++i) 
+			for (int i = 0; i < n; ++i)
 			{
 				if (residuals[i] < cutoff) 
 				{
@@ -2344,7 +2344,7 @@ void Setka::Smooth_head_TS3(void)
 			Eigen::VectorXd residuals(n);
 			double total_residual = 0.0;
 
-			for (size_t i = 0; i < n; ++i) {
+			for (int i = 0; i < n; ++i) {
 				double dist = (points[i] - center).norm();
 				residuals[i] = std::abs(dist - radius);
 				total_residual += residuals[i] * residuals[i];
@@ -2363,7 +2363,7 @@ void Setka::Smooth_head_TS3(void)
 			double stddev = std::sqrt((residuals.array() - mean).square().sum() / n);
 			double cutoff = 2.5 * stddev;  // 2.5 сигма
 
-			for (size_t i = 0; i < n; ++i)
+			for (int i = 0; i < n; ++i)
 			{
 				if (residuals[i] < cutoff)
 				{
@@ -2736,13 +2736,13 @@ void Setka::Smooth_angle_HP(void)
 	VVV_int.push_back(2);
 	VVV_int.push_back(2);
 
-	for (size_t ii = 0; ii < VVV.size(); ii++)
+	for (int ii = 0; ii < VVV.size(); ii++)
 	{
 		int nn = VVV[ii].size();
 		int mm = VVV[ii][0].size();
 
 		#pragma omp parallel for schedule(dynamic)
-		for (size_t i = 0; i < nn; i++)
+		for (int i = 0; i < nn; i++)
 		{
 			//if (i == 1) continue;
 			//if (i > 3 && i < nn - 3) continue;
@@ -2768,7 +2768,7 @@ void Setka::Smooth_angle_HP(void)
 			if (immm == -2) immm = nn - 2;
 			if (immm == -3) immm = nn - 3;
 
-			for (size_t j = 0; j < mm; j++)
+			for (int j = 0; j < mm; j++)
 			{
 				std::vector<Eigen::Vector2d> points;
 				auto AA = VVV[ii][i][j]->Yzels_opor[VVV_int[ii]];

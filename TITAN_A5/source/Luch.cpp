@@ -126,7 +126,7 @@ void Luch::dvigenie(int i_time)
 
 			// Сгущение к левому концу
 			// Параметр сгущения (a > 1 - сгущение к левому концу, a < 1 - сгущение к правому концу)
-			double a = 1.5; // Настраиваемый параметр сгущения
+			double a = 1.2 - 0.2 * the/(const_pi/2.0); // Настраиваемый параметр сгущения
 			// Равномерное распределение в [0,1]
 			double t = (j + 1.0) / (M3 + 1.0);
 			// Нелинейное преобразование для сгущения к левому концу
@@ -246,7 +246,7 @@ void Luch::dvigenie(int i_time)
 		double y0 = r * sin(the);
 		double x1, y1, t1, t2, tt1, tt2, y, z;
 
-		t1 = ((cos(the) - 1.0) / 2.0) * dd5;
+		t1 = 2.0 * ((cos(the) - 1.0) / 2.0) * dd5;
 		tt1 = (sin(the)/(the-0.57)) * dd5;
 
 		t2 = -1.0 * dd6;
@@ -356,8 +356,8 @@ void Luch::dvigenie(int i_time)
 		num += M11;
 
 		double x3 = r * cos(the); // Запомнили
-		this->Yzels_opor[2]->coord[i_time][0] = x3;
-		this->Yzels_opor[3]->coord[i_time][0] = x3;
+		this->Yzels_opor[2]->coord[i_time][0] = x3;// *(1.0 + fabs(x3) / 1000.0);
+		this->Yzels_opor[3]->coord[i_time][0] = x3;// *(1.0 + fabs(x3) / 1000.0);
 
 		// Делаем непрямые лучи
 		double x0, y0, x1, y1, t1, t2, tt1, tt2;
@@ -430,7 +430,7 @@ void Luch::dvigenie(int i_time)
 
 			// Сгущение к левому концу
 			// Параметр сгущения (a > 1 - сгущение к левому концу, a < 1 - сгущение к правому концу)
-			double a = 1.5; // Настраиваемый параметр сгущения
+			double a = 1.0; // Настраиваемый параметр сгущения
 			// Равномерное распределение в [0,1]
 			double t = (j + 1.0) / (M3 + 1.0);
 			// Нелинейное преобразование для сгущения к левому концу
@@ -513,6 +513,13 @@ void Luch::dvigenie(int i_time)
 		double y2 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) +
 			kv(this->Yzels_opor[2]->coord[i_time][2]));
 
+		if (y2 - y1 < 30.0)
+		{
+			this->Yzels_opor[2]->coord[i_time][1] *= (30.0 + y1) / y2;
+			this->Yzels_opor[2]->coord[i_time][2] *= (30.0 + y1) / y2;
+			y2 = y1 + 30.0;
+		}
+
 		x = x0;
 
 		double a = 0.7; // 0.1;
@@ -552,7 +559,7 @@ void Luch::dvigenie(int i_time)
 
 			// Сгущение к левому концу
 			// Параметр сгущения (a > 1 - сгущение к левому концу, a < 1 - сгущение к правому концу)
-			double a = max(1.5 - kv(fabs(x) / 300.0), 1.2); // Настраиваемый параметр сгущения
+			double a = 1.0; //max(1.5 - kv(fabs(x) / 300.0), 1.2); // Настраиваемый параметр сгущения
 			// Равномерное распределение в [0,1]
 			double t = (j + 1.0) / (M3 + 1.0);
 			// Нелинейное преобразование для сгущения к левому концу
@@ -630,7 +637,15 @@ void Luch::dvigenie(int i_time)
 		double y1 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) +
 			kv(this->Yzels_opor[2]->coord[i_time][2]));
 
-		x = this->Yzels_opor[0]->coord[i_time][0];
+		if (y1 - y0 < 30.0)
+		{
+			this->Yzels_opor[2]->coord[i_time][1] *= (30.0 + y0) / y1;
+			this->Yzels_opor[2]->coord[i_time][2] *= (30.0 + y0) / y1;
+			y1 = y0 + 30.0;
+		}
+
+
+		x = this->Yzels_opor[0]->coord[i_time][0] - 1.0;
 
 		this->Yzels[num]->coord[i_time][0] = x;
 
@@ -654,7 +669,7 @@ void Luch::dvigenie(int i_time)
 
 			// Сгущение к левому концу
 			// Параметр сгущения (a > 1 - сгущение к левому концу, a < 1 - сгущение к правому концу)
-			double a = 1.5 - kv(fabs(x)/300.0); // Настраиваемый параметр сгущения
+			double a = 1.0; //1.5 - kv(fabs(x) / 300.0); // Настраиваемый параметр сгущения
 			// Равномерное распределение в [0,1]
 			double t = (j + 1.0) / (M3 + 1.0);
 			// Нелинейное преобразование для сгущения к левому концу

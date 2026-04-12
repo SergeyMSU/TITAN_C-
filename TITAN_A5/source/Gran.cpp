@@ -9,7 +9,25 @@ short int Gran::Get_method()
 
 
 	//if (this->type2 != Type_Gran_surf::Us) return 3;
-	return 1;
+
+
+	/*if (this->type2 == Type_Gran_surf::Us)
+	{
+
+		if (this->cells[0]->type == Type_cell::Zone_3 || this->cells[0]->type == Type_cell::Zone_4)
+		{
+			return 3;
+		}
+	}*/
+
+
+	if (this->type2 == Type_Gran_surf::HP)    // Ëàêñ íà ãåëèîïàóçå
+	{
+		return 2;
+	}
+
+
+	return 0;
 
 	//if (norm2(0.0, this->center[0][1], this->center[0][2]) >= 330.0) return 0;
 
