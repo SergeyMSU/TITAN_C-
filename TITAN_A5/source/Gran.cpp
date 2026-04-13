@@ -21,7 +21,7 @@ short int Gran::Get_method()
 	}*/
 
 
-	if (this->type2 == Type_Gran_surf::HP)    // Лакс на гелиопаузе
+	if (this->type2 == Type_Gran_surf::HP || this->type2 == Type_Gran_surf::TS || this->type2 == Type_Gran_surf::BS)    // Лакс на гелиопаузе
 	{
 		return 2;
 	}
