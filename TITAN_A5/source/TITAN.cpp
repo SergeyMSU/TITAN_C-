@@ -98,7 +98,7 @@ int main()
 
     //S1.Download_cell_parameters("parameters_0079.bin"); 
     //   c 10 начал ручное передвижение сетки, потом в 11 его подкорректировал, с 12 начал считать
-    S1.Download_cell_parameters("parameters_A5_0036.bin");  
+    S1.Download_cell_parameters("parameters_A5_0039.bin");  
     //S1.Download_cell_parameters("parameters_promeg_1121.bin");  
 
 
@@ -273,7 +273,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0037.bin");
+    S1.Save_cell_parameters("parameters_A5_0040.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
