@@ -277,6 +277,12 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(2, 5);
 			a1->dist_from_HP = 5;
+
+			a1 = i->get_yzel_near_opor(2, -6);
+			a1->dist_from_HP = 6;
+
+			a1 = i->get_yzel_near_opor(2, 6);
+			a1->dist_from_HP = 6;
 		}
 		else if (i->type == "E_Luch")
 		{
@@ -294,6 +300,9 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->Yzels[5];
 			a1->dist_from_HP = 5;
+
+			a1 = i->Yzels[6];
+			a1->dist_from_HP = 6;
 		}
 		else if (i->type == "G_Luch")
 		{
@@ -311,6 +320,9 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(2, -5);
 			a1->dist_from_HP = 5;
+
+			a1 = i->get_yzel_near_opor(2, -6);
+			a1->dist_from_HP = 6;
 		}
 		else if (i->type == "D_Luch")
 		{
@@ -344,6 +356,12 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(1, 5);
 			a1->dist_from_HP = 5;
+
+			a1 = i->get_yzel_near_opor(1, -6);
+			a1->dist_from_HP = 6;
+
+			a1 = i->get_yzel_near_opor(1, 6);
+			a1->dist_from_HP = 6;
 		}
 	}
 }
@@ -1208,6 +1226,33 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 							//	//cout << "No source = " << k1 << " " << k2 << " " << k3 << " " << k4 << endl;  // Проверил, сюда программа попадает!
 							//}
 						}
+
+						// Отключаем корректировку источников вблизи гелиопаузы
+						if ((C->type == Type_cell::Zone_2) || (C->type == Type_cell::Zone_3))
+						{
+							bool b1 = false;
+							bool b2 = false;
+							for (auto& i : C->yzels)
+							{
+								if (i->type == Type_yzel::HP)
+								{
+									k1 = 1.0;
+									k2 = 1.0;
+									break;
+								}
+
+								if (i->dist_from_HP == 1) b1 = true;
+								if (i->dist_from_HP == 2) b2 = true;
+
+								if (b1 == true || b2 == true)       
+								{
+									k1 = 1.0;
+									k2 = 1.0;
+									break;
+								}
+							}
+						}
+
 					}
 
 
@@ -2158,10 +2203,10 @@ void Setka::Average_sourse_MF()
 				//if (fabs(1.0 - new_k4[i]) > 0.001) C->parameters[0]["S_k4_" + suffix] = new_k4[i];
 
 				// Ограничиваем коэффициенты
-				if (new_k1[i] < 0.05) new_k1[i] = 0.05;
-				if (new_k1[i] > 20.0) new_k1[i] = 20.0;
-				if (new_k2[i] < 0.05) new_k2[i] = 0.05;
-				if (new_k2[i] > 20.0) new_k2[i] = 20.0;
+				if (new_k1[i] < 0.2) new_k1[i] = 0.2;
+				if (new_k1[i] > 5.0) new_k1[i] = 5.0;
+				if (new_k2[i] < 0.2) new_k2[i] = 0.2;
+				if (new_k2[i] > 5.0) new_k2[i] = 5.0;
 
 				C->parameters[0]["S_k1_" + suffix] = new_k1[i];
 				C->parameters[0]["S_k2_" + suffix] = new_k1[i];
@@ -2387,7 +2432,10 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		this->phys_param->prev_step_time = time;
 		time = loc_time;
 		loc_time = 100000000.0;
-
+		xc_min = 0.0;
+		yc_min = 0.0;
+		zc_min = 0.0;
+		name_min_time = "______";
 		
 
 		//omp_set_num_threads(1); // 32
@@ -2739,18 +2787,21 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 
 					// Модифицируем шаг по времени:
-					double ntnt = this->phys_param->KFL * (p / this->phys_param->g1) / max(fabs(SOURSE["E"]), 0.000000001);
-					if (ntnt < loc_time)
+					if (false)
 					{
-						#pragma omp critical 
+						double ntnt = this->phys_param->KFL * (p / this->phys_param->g1) / max(fabs(SOURSE["E"]), 0.000000001);
+						if (ntnt < loc_time && radius > 20.0)
 						{
-							if (ntnt < loc_time)
+						#pragma omp critical 
 							{
-								loc_time = min(loc_time, ntnt);
-								xc_min = cell->center[now1][0];
-								yc_min = cell->center[now1][1];
-								zc_min = cell->center[now1][2];
-								name_min_time = "Source_MK";
+								if (ntnt < loc_time)
+								{
+									loc_time = min(loc_time, ntnt);
+									xc_min = cell->center[now1][0];
+									yc_min = cell->center[now1][1];
+									zc_min = cell->center[now1][2];
+									name_min_time = "Source_MK";
+								}
 							}
 						}
 					}

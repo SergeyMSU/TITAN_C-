@@ -163,23 +163,23 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 
 		// Если нужны поправочные коэффициенты для флюидных источников
-		/*if (this->phys_param->sourse_popravka_MK_Mf == true)
+		if (this->phys_param->sourse_popravka_MK_Mf == true)
 		{
 			this->Read_sourse_popravka_MK_Mf();
 			this->Average_sourse_MF();
-		}*/
+		}
 
 
-		for (int i = 1; i <= 5 * 9; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 6 * 2; i++) // 6 * 2   12 * 5
 		{
-			if (i % 6 == 0 || i == 1)
+			/*if (i % 6 == 0 || i == 1)
 			{
 				if (this->phys_param->sourse_popravka_MK_Mf == true)
 				{
 					this->Read_sourse_popravka_MK_Mf();
 					this->Average_sourse_MF();
 				}
-			}
+			}*/
 
 
 			auto start = std::chrono::high_resolution_clock::now();

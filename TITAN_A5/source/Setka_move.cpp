@@ -496,6 +496,8 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 					if (yz->type != Type_yzel::TS) continue;
 					A << yz->coord[now][0], yz->coord[now][1], yz->coord[now][2];
 
+					if (A[0] > -30.0) continue;
+
 					//double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
 
 					// ¬ключаем радиально-сферическое сглаживание только в головной зоне
