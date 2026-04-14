@@ -6,6 +6,99 @@
 using namespace std;
 //class Setka;
 
+// Структура для хранения точки в полярных координатах
+struct PolarPoint 
+{
+    double phi; // угол в радианах [0, pi]
+    double r;   // радиус
+};
+
+
+// Функция чтения данных из файла и преобразования в полярные координаты
+std::vector<PolarPoint> readAndConvert(const std::string& filename) 
+{
+    std::vector<PolarPoint> points;
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Ошибка открытия файла: " << filename << std::endl;
+        return points;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        // Пропуск пустых строк
+        if (line.empty()) continue;
+
+        std::istringstream iss(line);
+        double x, y;
+        if (!(iss >> x >> y)) 
+        {
+            std::cerr << "Ошибка чтения строки: " << line << std::endl;
+            continue;
+        }
+
+        // Преобразование в полярные координаты
+        double r = std::sqrt(x * x + y * y);
+        double phi = polar_angle(x, y);
+
+        points.push_back({ phi, r });
+    }
+
+    // Проверка, что углы идут по возрастанию (для надёжности)
+    for (size_t i = 1; i < points.size(); ++i) 
+    {
+        if (points[i].phi < points[i - 1].phi) {
+            std::cerr << "Предупреждение: углы не монотонно возрастают в точке " << i << std::endl;
+        }
+    }
+
+    return points;
+}
+
+// Функция линейной интерполяции r по заданному углу phi
+// Используется последовательный перебор для поиска интервала (т.к. данных немного)
+double interpolateR(const std::vector<PolarPoint>& points, double phi_query) {
+    
+    if (points.empty()) 
+    {
+        std::cerr << "Ошибка: массив точек пуст." << std::endl;
+        return 0.0;
+    }
+
+
+    // Если запрос меньше первого угла — возвращаем r первой точки
+    if (phi_query <= points.front().phi) {
+        return points.front().r;
+    }
+
+    // Если запрос больше или равен последнему углу — возвращаем r последней точки
+    if (phi_query >= points.back().phi) {
+        return points.back().r;
+    }
+
+    // Последовательный поиск интервала, содержащего phi_query
+    for (size_t i = 0; i < points.size() - 1; ++i)
+    {
+        double phi1 = points[i].phi;
+        double phi2 = points[i + 1].phi;
+
+        // Нашли интервал [phi1, phi2], в который попадает phi_query
+        if (phi_query >= phi1 && phi_query <= phi2) {
+            double r1 = points[i].r;
+            double r2 = points[i + 1].r;
+
+            // Линейная интерполяция: r = r1 + (r2 - r1) * (phi_query - phi1) / (phi2 - phi1)
+            double t = (phi_query - phi1) / (phi2 - phi1);
+            return r1 + t * (r2 - r1);
+        }
+    }
+
+    // Сюда не должны попасть при корректных данных, но на всякий случай:
+    std::cerr << "Ошибка: не удалось найти интервал для phi = " << phi_query << std::endl;
+    return 0.0;
+}
+
+
 int main()
 {
     cout << "Start Programm" << endl;
@@ -98,7 +191,7 @@ int main()
 
     //S1.Download_cell_parameters("parameters_0079.bin"); 
     //   c 10 начал ручное передвижение сетки, потом в 11 его подкорректировал, с 12 начал считать
-    S1.Download_cell_parameters("parameters_promeg_119.bin");  
+    S1.Download_cell_parameters("parameters_A5_0046.bin");  
     //S1.Download_cell_parameters("parameters_promeg_1121.bin");  
 
 
@@ -134,6 +227,119 @@ int main()
 
         S1.Find_Yzel_Sosed_for_sglag();
     }
+
+
+    // Ручное движение TS
+    if (false)
+    {
+        cout << "Hand TS move" << endl;
+        // 1. Считываем файл и преобразуем в полярные координаты
+        std::string filename = "TS.txt"; // укажите правильный путь к файлу
+        std::vector<PolarPoint> polarPoints = readAndConvert(filename);
+
+        cout << "1: " << interpolateR(polarPoints, 0.0) << endl;
+        cout << "2: " << interpolateR(polarPoints, 1.0) << endl;
+        cout << "3: " << interpolateR(polarPoints, 2.0) << endl;
+        cout << "4: " << interpolateR(polarPoints, 3.0) << endl;
+
+        for (auto& i : S1.All_Yzel)
+        {
+            if (i->type != Type_yzel::TS) continue;
+            double x = i->coord[0][0];
+            double y = i->coord[0][1];
+            double z = i->coord[0][2];
+            double r = norm2(x, y, z);
+            double phi = polar_angle(x, norm2(0.0, y, z));
+            double r_interp = interpolateR(polarPoints, phi);
+            //cout << r_interp << endl;
+
+            if (r_interp < 20.0 || r_interp > 200.0)
+            {
+                cout << "Error !!!   " << r_interp << endl;
+            }
+
+            if (r < 1.0)
+            {
+                cout << "r Error !!!   " << r << endl;
+            }
+
+            i->coord[1][0] *= (r + 1.0 * (r_interp - r)) / r;
+            i->coord[1][1] *= (r + 1.0 * (r_interp - r)) / r;
+            i->coord[1][2] *= (r + 1.0 * (r_interp - r)) / r;
+
+            i->coord[0][0] = i->coord[1][0];
+            i->coord[0][1] = i->coord[1][1];
+            i->coord[0][2] = i->coord[1][2];
+        }
+
+        S1.auto_set_luch_geo_parameter(0);
+
+        for (auto& i : S1.All_Yzel)
+        {
+            i->coord[1][0] = i->coord[0][0];
+            i->coord[1][1] = i->coord[0][1];
+            i->coord[1][2] = i->coord[0][2];
+        }
+
+        S1.Calculating_measure(0);
+        S1.Calculating_measure(1);
+        cout << "END Hand TS move" << endl;
+
+    }
+
+    // Ручное движение HP
+    if (false)
+    {
+        cout << "Hand HP move" << endl;
+        // 1. Считываем файл и преобразуем в полярные координаты
+        std::string filename = "HP.txt"; // укажите правильный путь к файлу
+        std::vector<PolarPoint> polarPoints = readAndConvert(filename);
+
+        cout << "1: " << interpolateR(polarPoints, 0.0) << endl;
+        cout << "2: " << interpolateR(polarPoints, 1.0) << endl;
+        cout << "3: " << interpolateR(polarPoints, 2.0) << endl;
+        cout << "4: " << interpolateR(polarPoints, 3.0) << endl;
+
+        for (auto& i : S1.All_Yzel)
+        {
+            if (i->type != Type_yzel::HP) continue;
+            double x = i->coord[0][0];
+            double y = i->coord[0][1];
+            double z = i->coord[0][2];
+            double r = norm2(x, y, z);
+            double phi = polar_angle(x, norm2(0.0, y, z));
+            double r_interp = interpolateR(polarPoints, phi);
+            //cout << r_interp << endl;
+
+            if (r < 1.0)
+            {
+                cout << "r Error !!!   " << r << endl;
+            }
+
+            i->coord[1][0] *= (r + 1.0 * (r_interp - r)) / r;
+            i->coord[1][1] *= (r + 1.0 * (r_interp - r)) / r;
+            i->coord[1][2] *= (r + 1.0 * (r_interp - r)) / r;
+
+            i->coord[0][0] = i->coord[1][0];
+            i->coord[0][1] = i->coord[1][1];
+            i->coord[0][2] = i->coord[1][2];
+        }
+
+        S1.auto_set_luch_geo_parameter(0);
+
+        for (auto& i : S1.All_Yzel)
+        {
+            i->coord[1][0] = i->coord[0][0];
+            i->coord[1][1] = i->coord[0][1];
+            i->coord[1][2] = i->coord[0][2];
+        }
+
+        S1.Calculating_measure(0);
+        S1.Calculating_measure(1);
+        cout << "END Hand HP move" << endl;
+
+    }
+
 
     //  Ручное изменение BS
     if (false)
@@ -273,7 +479,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0044.bin");
+    S1.Save_cell_parameters("parameters_A5_0047.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
