@@ -193,7 +193,7 @@ int main()
     //   c 10 начал ручное передвижение сетки, потом в 11 его подкорректировал, с 12 начал считать
 
 
-    S1.Download_cell_parameters("parameters_A5_0048.bin");    // на 46 подвинул поверхности вручную
+    S1.Download_cell_parameters("parameters_A5_0049.bin");    // на 46 подвинул поверхности вручную
     //S1.Download_cell_parameters("parameters_A5_0047.bin");  
 
 
@@ -484,7 +484,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0049.bin");
+    S1.Save_cell_parameters("parameters_A5_0050.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

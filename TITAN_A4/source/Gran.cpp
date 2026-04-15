@@ -396,15 +396,15 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 		if (need_refine == true)
 		{
 			unsigned int N = this->AMR[nH - 1][ni]->Size();
-			unsigned int Nmax = 30000;
+			unsigned int Nmax = 25000;
 
 			this->AMR[nH - 1][ni]->procent_signif = 0.8;
 			this->AMR[nH - 1][ni]->procent_devide = 4.0; // 2.0
 
 			if (nH == 8)
 			{
-				this->AMR[nH - 1][ni]->procent_signif = 7.0;  // 0.3
-				this->AMR[nH - 1][ni]->procent_devide = 17.0; // 2.0
+				this->AMR[nH - 1][ni]->procent_signif = 10.0;  // 0.3
+				this->AMR[nH - 1][ni]->procent_devide = 20.0; // 2.0
 			}
 
 			if (nH == 9)
@@ -415,8 +415,8 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 
 			if (nH == 4)
 			{
-				this->AMR[nH - 1][ni]->procent_signif = 0.05; // 0.2;  // 0.3
-				this->AMR[nH - 1][ni]->procent_devide = 2.0; // 2.0
+				this->AMR[nH - 1][ni]->procent_signif = 0.08; // 0.2;  // 0.3
+				this->AMR[nH - 1][ni]->procent_devide = 2.5; // 2.0
 			}
 
 			if (nH == 3)
@@ -443,10 +443,23 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 			if (N < Nmax)
 			{
 				this->AMR[nH - 1][ni]->Refine(nH);
+
+				//int iki = gr->AMR[iH - 1][ni]->de_Refine(iH);
 			}
 			else
 			{
+				this->AMR[nH - 1][ni]->de_Refine(nH);
 				cout << "N > Nmax " << N << "  for sort " << nH << "  for gran_type = " << int(this->type2) <<
+					"   in point: " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][2] << endl;
+			}
+
+			N = this->AMR[nH - 1][ni]->Size();
+
+			if (N > Nmax)
+			{
+				//this->AMR[nH - 1][ni]->procent_signif *= 0.9;  // 0.3
+				//this->AMR[nH - 1][ni]->procent_devide *= 0.9; // 2.0
+				cout << "posle  N > Nmax " << N << "  for sort " << nH << "  for gran_type = " << int(this->type2) <<
 					"   in point: " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][2] << endl;
 			}
 		}

@@ -21,18 +21,18 @@ short int Gran::Get_method()
 	}*/
 
 	
-	if (this->type2 == Type_Gran_surf::HP || this->type2 == Type_Gran_surf::TS || this->type2 == Type_Gran_surf::BS)    // Лакс на гелиопаузе
-	{
-		return 3;
-	}
+	//if (this->type2 == Type_Gran_surf::HP || this->type2 == Type_Gran_surf::TS || this->type2 == Type_Gran_surf::BS)    // Лакс на гелиопаузе
+	//{
+	//	return 3;
+	//}
 
-	if (this->type2 == Type_Gran_surf::Us)
-	{
-		if (this->cells[0]->type == Type_cell::Zone_3 || this->cells[0]->type == Type_cell::Zone_4)
-		{
-			return 3;
-		}
-	}
+	//if (this->type2 == Type_Gran_surf::Us)
+	//{
+	//	if (this->cells[0]->type == Type_cell::Zone_3 || this->cells[0]->type == Type_cell::Zone_4)
+	//	{
+	//		return 3;
+	//	}
+	//}
 
 
 	return 0;
