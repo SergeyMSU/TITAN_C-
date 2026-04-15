@@ -2039,6 +2039,11 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 					double Q_radio = rho * rho * 2.71588 * 1e21 * 
 						(this->heating->InterpolateCooling(T_K) - this->cooling->InterpolateCooling(T_K));
 
+					if (kv(cell->center[now1][0] + 64.7) + kv(cell->center[now1][1]) + kv(cell->center[now1][2]) < kv(84.0))
+					{
+						Q_radio = 0.0;
+					}
+
 					// Модифицируем шаг по времени:
 					double ntnt = this->phys_param->KFL * (p / this->phys_param->g1) / max(fabs(Q_radio), 0.000000001);
 					if (ntnt < loc_time)

@@ -191,7 +191,12 @@ int main()
 
     //S1.Download_cell_parameters("parameters_0079.bin"); 
     //   c 10 начал ручное передвижение сетки, потом в 11 его подкорректировал, с 12 начал считать
-    S1.Download_cell_parameters("parameters_A5_0046.bin");  
+
+
+    S1.Download_cell_parameters("parameters_A5_0048.bin");    // на 46 подвинул поверхности вручную
+    //S1.Download_cell_parameters("parameters_A5_0047.bin");  
+
+
     //S1.Download_cell_parameters("parameters_promeg_1121.bin");  
 
 
@@ -479,7 +484,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0047.bin");
+    S1.Save_cell_parameters("parameters_A5_0049.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -548,7 +553,7 @@ int main()
 
     S1.Save_for_interpolate("For_intertpolate_0083-no_razriv-with_MK.bin", false);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0082-no_razriv-with_MK.bin");
+    Interpol SS = Interpol("For_intertpolate_0083-no_razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");

@@ -213,7 +213,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			// r3,    r1, rr, r2,   r4
 			double r3, r1, rr, r2, r4;
 
-			if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
+			if (false && AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
 					B->type == Type_cell::Zone_1 && BB->type == Type_cell::Zone_1)
 			{
 				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
@@ -398,7 +398,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				}
 
 			}
-			else if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
+			else if (false && AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
 					B->type == Type_cell::Zone_1 && BB->type == Type_cell::Zone_2)
 			{
 				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
@@ -534,7 +534,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				}
 
 			}
-			else if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
+			else if (false && AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
 					B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_2)
 			{
 				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
@@ -646,7 +646,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					}
 				}
 			}
-			else if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_2 &&
+			else if (false && AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_2 &&
 					B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_2)
 			{
 				for (auto& nam : this->phys_param->plasma_pui_name)
@@ -658,7 +658,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						d2 + dd2, BB->parameters[now][nam], 0.0);
 				}
 			}
-			else if( (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_2 &&
+			else if(false && (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_2 &&
 					B->type == Type_cell::Zone_3 && BB->type == Type_cell::Zone_3) ||
 					(AA->type == Type_cell::Zone_3 && A->type == Type_cell::Zone_3 &&
 					B->type == Type_cell::Zone_4 && BB->type == Type_cell::Zone_4))
@@ -671,7 +671,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						d2 + dd2, BB->parameters[now][nam], 0.0);
 				}
 			}
-			else if ( (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_2 &&
+			else if (false && (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_2 &&
 					B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_3) ||
 					(AA->type == Type_cell::Zone_3 && A->type == Type_cell::Zone_3 &&
 					B->type == Type_cell::Zone_3 && BB->type == Type_cell::Zone_4))
@@ -685,7 +685,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						d2, B->parameters[now][nam], 0.0);
 				}
 			}
-			else if((AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_3 &&
+			else if(false && (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_3 &&
 					B->type == Type_cell::Zone_3 && BB->type == Type_cell::Zone_3) || 
 					(AA->type == Type_cell::Zone_3 && A->type == Type_cell::Zone_4 &&
 					B->type == Type_cell::Zone_4 && BB->type == Type_cell::Zone_4))
@@ -731,7 +731,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 			Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
 
-			if (A->type == Type_cell::Zone_1)
+			if (false && A->type == Type_cell::Zone_1)
 			{
 				Eigen::Vector3d Ac, G;
 				Ac << A->center[now][0], A->center[now][1], A->center[now][2];
@@ -754,9 +754,6 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					V2[1] = "By";
 					V3[1] = "Bz";
 
-					V1[2] = "Vx_H1";
-					V2[2] = "Vy_H1";
-					V3[2] = "Vz_H1";
 
 					double the1 = acos(G[2] / rr);
 
@@ -883,7 +880,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				}
 			}
 
-			if (B->type == Type_cell::Zone_1)
+			if (false && B->type == Type_cell::Zone_1)
 			{
 				Eigen::Vector3d Ac, G;
 				Ac << B->center[now][0], B->center[now][1], B->center[now][2];

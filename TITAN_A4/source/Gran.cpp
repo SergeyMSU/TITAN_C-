@@ -396,7 +396,7 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 		if (need_refine == true)
 		{
 			unsigned int N = this->AMR[nH - 1][ni]->Size();
-			unsigned int Nmax = 300000;
+			unsigned int Nmax = 30000;
 
 			this->AMR[nH - 1][ni]->procent_signif = 0.8;
 			this->AMR[nH - 1][ni]->procent_devide = 4.0; // 2.0
@@ -443,6 +443,11 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 			if (N < Nmax)
 			{
 				this->AMR[nH - 1][ni]->Refine(nH);
+			}
+			else
+			{
+				cout << "N > Nmax " << N << "  for sort " << nH << "  for gran_type = " << int(this->type2) <<
+					"   in point: " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][2] << endl;
 			}
 		}
 

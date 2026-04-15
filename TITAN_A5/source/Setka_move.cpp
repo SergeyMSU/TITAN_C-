@@ -170,11 +170,30 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			this->phys_param->chlld(gr->Get_method(), gr->normal[now][0], gr->normal[now][1],
 				gr->normal[now][2],
-				w, qqq1, qqq2, qqq, false, 0, //3
+				w, qqq1, qqq2, qqq, false, 1, //3
 				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
 				Option);
 
 			//dsl = (1.875 - 1.0) * norm2(gr->center[0][0], gr->center[0][1], gr->center[0][2]);
+
+			/*if (gr->center[0][0] < -60.0 && norm2(0.0, gr->center[0][1], gr->center[0][2]) < 5.0)
+			{
+				#pragma omp critical
+				{
+					cout << dsl << endl;
+					cout << gr->center[now][0] << " " << gr->center[now][1] << " " << gr->center[now][2] << endl;
+					cout << gr->normal[now][0] << " " << gr->normal[now][1] << " " << gr->normal[now][2] << endl;
+					cout << "Cell 0 " << gr->cells[0]->parameters[0]["Vx"] << " " << gr->cells[0]->parameters[0]["rho"] << endl;
+					cout << "Cell 0 center " << gr->cells[0]->center[0][0] << " " << gr->cells[0]->center[0][1] << " " << gr->cells[0]->center[0][2] << endl;
+					cout << "Cell 1 center " << gr->cells[1]->center[0][0] << " " << gr->cells[1]->center[0][1] << " " << gr->cells[1]->center[0][2] << endl;
+					cout << "Cell 1 " << gr->cells[0]->parameters[1]["Vx"] << " " << gr->cells[1]->parameters[0]["rho"] << endl;
+					cout << qqq1[0] << " " << qqq1[1] << " " << qqq1[2] << " " << qqq1[3] << " " << qqq1[4] << " " << 
+						norm2(qqq1[1], qqq1[2], qqq1[3])/sqrt(1.6666 * qqq1[4]/ qqq1[0]) << endl;
+					cout << qqq2[0] << " " << qqq2[1] << " " << qqq2[2] << " " << qqq2[3] << " " << qqq2[4] << " " << 
+						norm2(qqq2[1], qqq2[2], qqq2[3]) / sqrt(1.6666 * qqq2[4] / qqq2[0]) << endl;
+					exit(-1);
+				}
+			}*/
 
 			for (auto& yz : gr->yzels)
 			{
