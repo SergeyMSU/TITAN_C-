@@ -193,7 +193,11 @@ int main()
     //   c 10 начал ручное передвижение сетки, потом в 11 его подкорректировал, с 12 начал считать
 
 
-    S1.Download_cell_parameters("parameters_A5_0049.bin");    // на 46 подвинул поверхности вручную
+    S1.Download_cell_parameters("parameters_A5_0050.bin");    
+    // на 46 подвинул поверхности вручную
+    // 50 - просчитал всЄ Ћаксом и первым пор€дком - TS почему-то кругла€
+    // 51 - хочу просчитать всЄ Ћакс и вторым пор€дком
+    // 
     //S1.Download_cell_parameters("parameters_A5_0047.bin");  
 
 
@@ -484,7 +488,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0050.bin");
+    S1.Save_cell_parameters("parameters_A5_0051.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

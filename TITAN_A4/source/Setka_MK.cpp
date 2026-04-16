@@ -2826,7 +2826,7 @@ void Setka::MK_fly_immit(MK_particle& P, short int zone_MK, Sensor* Sens, Interp
 		}
 
 
-		if (zone_main == 3)
+		if (false)//(zone_main == 3)
 		{
 			if (nu_ex_pui_1 > nu_ex * 0.1 || nu_ex_pui_2 > nu_ex * 0.1)
 			{

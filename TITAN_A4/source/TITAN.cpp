@@ -177,6 +177,8 @@ int main()
 
 
     S1.Algoritm(10, &S1);
+    //S1.Algoritm(4, &S1);
+    //S1.Algoritm(5, &S1);
 
 
     //S1.Algoritm(5, &S1);
@@ -186,7 +188,7 @@ int main()
     //S1.Algoritm(3, &S1);
     //S1.Algoritm(4, &S1);
     //S1.Algoritm(5, &S1);
-    //return 0;
+    return 0;
 
     /// Далее следует всё, что касается визуализации сетки
     
@@ -352,6 +354,11 @@ int main()
         S1.phys_param->param_names_for_print.push_back("S_k2__Pui_1_H4");
         S1.phys_param->param_names_for_print.push_back("S_k2__Pui_2_H3");
         S1.phys_param->param_names_for_print.push_back("S_k2__Pui_2_H4");
+
+        S1.phys_param->param_names_for_print.push_back("MK_rho_Pui_1");
+        S1.phys_param->param_names_for_print.push_back("MK_T_Pui_1");
+        S1.phys_param->param_names_for_print.push_back("MK_rho_Pui_2");
+        S1.phys_param->param_names_for_print.push_back("MK_T_Pui_2");
 
         /*S1.phys_param->param_names_for_print.push_back("S_k3__p_H3");
         S1.phys_param->param_names_for_print.push_back("S_k3__p_H4");
