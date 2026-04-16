@@ -193,10 +193,10 @@ int main()
     //   c 10 начал ручное передвижение сетки, потом в 11 его подкорректировал, с 12 начал считать
 
 
-    S1.Download_cell_parameters("parameters_A5_0050.bin");    
+    S1.Download_cell_parameters("parameters_A5_0054.bin");    
     // на 46 подвинул поверхности вручную
     // 50 - просчитал всё Лаксом и первым порядком - TS почему-то круглая
-    // 51 - хочу просчитать всё Лакс и вторым порядком
+    // 51 - хочу просчитать всё HLLC и вторым порядком + особый снос в сверхзвуке
     // 
     //S1.Download_cell_parameters("parameters_A5_0047.bin");  
 
@@ -488,7 +488,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0051.bin");
+    S1.Save_cell_parameters("parameters_A5_0055.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

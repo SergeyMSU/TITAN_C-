@@ -35,7 +35,7 @@ short int Gran::Get_method()
 	//}
 
 
-	return 0;
+	return 1;
 
 	//if (norm2(0.0, this->center[0][1], this->center[0][2]) >= 330.0) return 0;
 

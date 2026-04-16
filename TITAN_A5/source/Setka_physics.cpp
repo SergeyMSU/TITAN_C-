@@ -2154,6 +2154,14 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				{
 					cell->parameters[now2]["rho_He"] = rho_He3;
 				}
+
+				if (cell->center[now1][0] < -40.0 && u3 > 0.0)
+				{
+					cout << "U < 0 " << u3 << " " << cell->center[now1][0] << endl;
+					u3 = -10.0;
+				}
+
+
 				cell->parameters[now2]["Vx"] = u3;
 				cell->parameters[now2]["Vy"] = v3;
 				cell->parameters[now2]["Vz"] = w3;
