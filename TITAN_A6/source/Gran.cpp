@@ -13,12 +13,6 @@ short int Gran::Get_method()
 
 	//if (norm2(0.0, this->center[0][1], this->center[0][2]) >= 330.0) return 0;
 
-	if (this->center[0][0] < -120.0)  // -60
-	{
-		return 0;
-	}
-
-
 	if (this->type2 == Type_Gran_surf::Us)
 	{
 
@@ -31,8 +25,6 @@ short int Gran::Get_method()
 		bool b2 = false;
 		bool b3 = false;
 		bool b4 = false;
-		bool b5 = false;
-		bool b6 = false;
 		for (auto& i : this->yzels)
 		{
 			if (i->type == Type_yzel::HP)
@@ -44,17 +36,15 @@ short int Gran::Get_method()
 			if (i->dist_from_HP == 2) b2 = true;
 			if (i->dist_from_HP == 3) b3 = true;
 			if (i->dist_from_HP == 4) b4 = true;
-			if (i->dist_from_HP == 5) b5 = true;
-			if (i->dist_from_HP == 6) b6 = true;
 
-			if (b1 == true || b2 == true || b3 == true || b4 == true || b5 == true || b6 == true)            // Сейчас вообще почти три ряда ячеек считаем Лаксом
+			if (b1 == true || b2 == true || b3 == true || b4 == true)            // Сейчас вообще почти три ряда ячеек считаем Лаксом
 			{
 				return 0;                            // Лакс во втором ряду от гелиопаузы
 			}
 		}
 
 
-		/*if (this->center[0][0] < -15.0)
+		/*if (this->center[0][0] < -100.0)
 		{
 			return 0;
 		}*/
@@ -65,14 +55,10 @@ short int Gran::Get_method()
 		//}
 
 	}
-	else if (this->type2 == Type_Gran_surf::HP)    // Лакс на гелиопаузе
-	{
-		/*if (this->center[0][0] > -30.0)
-		{
-			return 3;
-		}*/
-		return 3;
-	}
+	//else if (this->type2 == Type_Gran_surf::HP)    // Лакс на гелиопаузе
+	//{
+	//	return 0;
+	//}
 
 
 	return 3;
@@ -396,27 +382,27 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 		if (need_refine == true)
 		{
 			unsigned int N = this->AMR[nH - 1][ni]->Size();
-			unsigned int Nmax = 25000;
+			unsigned int Nmax = 300000;
 
 			this->AMR[nH - 1][ni]->procent_signif = 0.8;
 			this->AMR[nH - 1][ni]->procent_devide = 4.0; // 2.0
 
 			if (nH == 8)
 			{
-				this->AMR[nH - 1][ni]->procent_signif = 10.0;  // 0.3
-				this->AMR[nH - 1][ni]->procent_devide = 20.0; // 2.0
+				this->AMR[nH - 1][ni]->procent_signif = 7.0;  // 0.3
+				this->AMR[nH - 1][ni]->procent_devide = 17.0; // 2.0
 			}
 
 			if (nH == 9)
 			{
-				this->AMR[nH - 1][ni]->procent_signif = 4.0;  // 0.3
-				this->AMR[nH - 1][ni]->procent_devide = 10.0; // 2.0
+				this->AMR[nH - 1][ni]->procent_signif = 2.0;  // 0.3
+				this->AMR[nH - 1][ni]->procent_devide = 7.0; // 2.0
 			}
 
 			if (nH == 4)
 			{
-				this->AMR[nH - 1][ni]->procent_signif = 0.08; // 0.2;  // 0.3
-				this->AMR[nH - 1][ni]->procent_devide = 2.5; // 2.0
+				this->AMR[nH - 1][ni]->procent_signif = 0.05; // 0.2;  // 0.3
+				this->AMR[nH - 1][ni]->procent_devide = 2.0; // 2.0
 			}
 
 			if (nH == 3)
@@ -443,25 +429,7 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 			if (N < Nmax)
 			{
 				this->AMR[nH - 1][ni]->Refine(nH);
-
-				//int iki = gr->AMR[iH - 1][ni]->de_Refine(iH);
 			}
-			else
-			{
-				this->AMR[nH - 1][ni]->de_Refine(nH);
-				//cout << "N > Nmax " << N << "  for sort " << nH << "  for gran_type = " << int(this->type2) <<
-				//	"   in point: " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][2] << endl;
-			}
-
-			N = this->AMR[nH - 1][ni]->Size();
-
-			//if (N > Nmax)
-			//{
-				//this->AMR[nH - 1][ni]->procent_signif *= 0.9;  // 0.3
-				//this->AMR[nH - 1][ni]->procent_devide *= 0.9; // 2.0
-				//cout << "posle  N > Nmax " << N << "  for sort " << nH << "  for gran_type = " << int(this->type2) <<
-				//	"   in point: " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][2] << endl;
-			//}
 		}
 
 

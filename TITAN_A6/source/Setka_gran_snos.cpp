@@ -29,7 +29,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					// Отсос
 					if (par_left["Vx"] > this->phys_param->Velosity_inf / 7.0)
 					{
-						par_left["Vx"] = -10.0; // this->phys_param->Velosity_inf;
+						par_left["Vx"] = this->phys_param->Velosity_inf / 5.0;
 					}
 				}
 				else
@@ -185,7 +185,8 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 
 		// Делаем ли ТВД?
-		if (plasma_culc_or_atoms == true && this->phys_param->TVD == true && A->is_TVD == true && B->is_TVD == true)
+		if (plasma_culc_or_atoms == true && this->phys_param->TVD == true && A->is_TVD == true && B->is_TVD == true &&
+			(gr->type2 != Type_Gran_surf::HP || this->phys_param->Snos_on_HP == true))
 		{
 			// AA  -  A  -|-  B  -  BB
 			Eigen::Vector3d Ac, Bc, AAc, BBc, G, vec;
@@ -212,18 +213,8 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			// r3,    r1, rr, r2,   r4
 			double r3, r1, rr, r2, r4;
 
-			double MA = norm2(A->parameters[now]["Vx"], A->parameters[now]["Vy"], A->parameters[now]["Vz"]) /
-				sqrt(this->phys_param->gamma * A->parameters[now]["p"]/ A->parameters[now]["rho"]);
-			double MAA = norm2(AA->parameters[now]["Vx"], AA->parameters[now]["Vy"], AA->parameters[now]["Vz"]) /
-				sqrt(this->phys_param->gamma * AA->parameters[now]["p"] / AA->parameters[now]["rho"]);
-			double MB = norm2(B->parameters[now]["Vx"], B->parameters[now]["Vy"], B->parameters[now]["Vz"]) /
-				sqrt(this->phys_param->gamma * B->parameters[now]["p"] / B->parameters[now]["rho"]);
-			double MBB = norm2(BB->parameters[now]["Vx"], BB->parameters[now]["Vy"], BB->parameters[now]["Vz"]) /
-				sqrt(this->phys_param->gamma * BB->parameters[now]["p"] / BB->parameters[now]["rho"]);
-
-			//if (false && AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
-			//		B->type == Type_cell::Zone_1 && BB->type == Type_cell::Zone_1)
-			if (MA > 5.0 && MAA > 5.0 && MB > 5.0 && MBB > 5.0)
+			if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
+					B->type == Type_cell::Zone_1 && BB->type == Type_cell::Zone_1)
 			{
 				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
 				r3 = AAc.norm();
@@ -407,7 +398,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				}
 
 			}
-			else if (false && AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
+			else if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
 					B->type == Type_cell::Zone_1 && BB->type == Type_cell::Zone_2)
 			{
 				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
@@ -543,7 +534,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				}
 
 			}
-			else if (false && AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
+			else if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
 					B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_2)
 			{
 				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
@@ -655,7 +646,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					}
 				}
 			}
-			else if (false && AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_2 &&
+			else if (AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_2 &&
 					B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_2)
 			{
 				for (auto& nam : this->phys_param->plasma_pui_name)
@@ -667,7 +658,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						d2 + dd2, BB->parameters[now][nam], 0.0);
 				}
 			}
-			else if(false && (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_2 &&
+			else if( (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_2 &&
 					B->type == Type_cell::Zone_3 && BB->type == Type_cell::Zone_3) ||
 					(AA->type == Type_cell::Zone_3 && A->type == Type_cell::Zone_3 &&
 					B->type == Type_cell::Zone_4 && BB->type == Type_cell::Zone_4))
@@ -680,7 +671,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						d2 + dd2, BB->parameters[now][nam], 0.0);
 				}
 			}
-			else if (false && (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_2 &&
+			else if ( (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_2 &&
 					B->type == Type_cell::Zone_2 && BB->type == Type_cell::Zone_3) ||
 					(AA->type == Type_cell::Zone_3 && A->type == Type_cell::Zone_3 &&
 					B->type == Type_cell::Zone_3 && BB->type == Type_cell::Zone_4))
@@ -694,7 +685,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 						d2, B->parameters[now][nam], 0.0);
 				}
 			}
-			else if(false && (AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_3 &&
+			else if((AA->type == Type_cell::Zone_2 && A->type == Type_cell::Zone_3 &&
 					B->type == Type_cell::Zone_3 && BB->type == Type_cell::Zone_3) || 
 					(AA->type == Type_cell::Zone_3 && A->type == Type_cell::Zone_4 &&
 					B->type == Type_cell::Zone_4 && BB->type == Type_cell::Zone_4))
@@ -725,12 +716,22 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			{
 				if (par_left["rho"] < 0.0000001) par_left["rho"] = A->parameters[now]["rho"];
 				if (par_left["Q"] < 0.0000001) par_left["Q"] = A->parameters[now]["Q"];
-				//if (par_left["rho_He"] < 0.0000001) par_left["rho_He"] = A->parameters[now]["rho_He"];
+				if (par_left["rho_He"] < 0.0000001) par_left["rho_He"] = A->parameters[now]["rho_He"];
 				if (par_left["p"] < 0.0000001) par_left["p"] = A->parameters[now]["p"];
 				if (par_right["rho"] < 0.0000001) par_right["rho"] = B->parameters[now]["rho"];
 				if (par_right["Q"] < 0.0000001) par_right["Q"] = B->parameters[now]["Q"];
-				//if (par_right["rho_He"] < 0.0000001) par_right["rho_He"] = B->parameters[now]["rho_He"];
+				if (par_right["rho_He"] < 0.0000001) par_right["rho_He"] = B->parameters[now]["rho_He"];
 				if (par_right["p"] < 0.0000001) par_right["p"] = B->parameters[now]["p"];
+			}
+			
+
+			for (auto& nam2 : this->phys_param->pui_name)
+			{
+				if (par_left["rho" + nam2] < 0.0000001) par_left["rho" + nam2] = A->parameters[now]["rho" + nam2];
+				if (par_left["p" + nam2] < 0.0000001) par_left["p" + nam2] = A->parameters[now]["p" + nam2];
+				
+				if (par_right["rho" + nam2] < 0.0000001) par_right["rho" + nam2] = B->parameters[now]["rho" + nam2];
+				if (par_right["p" + nam2] < 0.0000001) par_right["p" + nam2] = B->parameters[now]["p" + nam2];
 			}
 		}
 		else
@@ -740,7 +741,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 			Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
 
-			if (false && A->type == Type_cell::Zone_1)
+			if (A->type == Type_cell::Zone_1)
 			{
 				Eigen::Vector3d Ac, G;
 				Ac << A->center[now][0], A->center[now][1], A->center[now][2];
@@ -763,13 +764,16 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					V2[1] = "By";
 					V3[1] = "Bz";
 
+					V1[2] = "Vx_H1";
+					V2[2] = "Vy_H1";
+					V3[2] = "Vz_H1";
 
 					double the1 = acos(G[2] / rr);
 
 					if (the1 > const_pi / 9 && the1 < 8 * const_pi / 9)
 					{
 
-						for (short int ik = 0; ik < 2; ik++)
+						for (short int ik = 0; ik < 3; ik++)
 						{
 							if (plasma_culc_or_atoms == true)
 							{
@@ -805,7 +809,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					}
 					else
 					{
-						for (short int ik = 0; ik < 2; ik++)
+						for (short int ik = 0; ik < 3; ik++)
 						{
 							if (plasma_culc_or_atoms == true)
 							{
@@ -844,9 +848,15 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				{
 					par_left["rho"] = A->parameters[now]["rho"] * kv(r1) / kv(rr);
 					par_left["Q"] = A->parameters[now]["Q"] * kv(r1) / kv(rr);
-					//par_left["rho_He"] = A->parameters[now]["rho_He"] * kv(r1) / kv(rr);
+					par_left["rho_He"] = A->parameters[now]["rho_He"] * kv(r1) / kv(rr);
 					par_left["p"] = A->parameters[now]["p"] * kvg(r1) / kvg(rr);
 				
+
+					for (auto& nam : this->phys_param->pui_name)
+					{
+						par_left["rho" + nam] = A->parameters[now]["rho" + nam] * kv(r1) / kv(rr);
+						par_left["p" + nam] = A->parameters[now]["p" + nam] * kvg(r1) / kvg(rr);
+					}
 				}
 				else
 				{
@@ -867,7 +877,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				{
 					par_left["rho"] = A->parameters[now]["rho"];
 					par_left["Q"] = A->parameters[now]["Q"];
-					//par_left["rho_He"] = A->parameters[now]["rho_He"];
+					par_left["rho_He"] = A->parameters[now]["rho_He"];
 					par_left["p"] = A->parameters[now]["p"];
 					par_left["Vx"] = A->parameters[now]["Vx"];
 					par_left["Vy"] = A->parameters[now]["Vy"];
@@ -875,6 +885,13 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					par_left["Bx"] = A->parameters[now]["Bx"];
 					par_left["By"] = A->parameters[now]["By"];
 					par_left["Bz"] = A->parameters[now]["Bz"];
+
+
+					for (auto& nam : this->phys_param->pui_name)
+					{
+						par_left["rho" + nam] = A->parameters[now]["rho" + nam];
+						par_left["p" + nam] = A->parameters[now]["p" + nam];
+					}
 				}
 				else
 				{
@@ -889,7 +906,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				}
 			}
 
-			if (false && B->type == Type_cell::Zone_1)
+			if (B->type == Type_cell::Zone_1)
 			{
 				Eigen::Vector3d Ac, G;
 				Ac << B->center[now][0], B->center[now][1], B->center[now][2];
@@ -920,7 +937,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 
 					if (the1 > const_pi / 9 && the1 < 8 * const_pi / 9)
 					{
-						for (short int ik = 0; ik < 2; ik++)
+						for (short int ik = 0; ik < 3; ik++)
 						{
 							if (plasma_culc_or_atoms == true)
 							{
@@ -952,7 +969,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					}
 					else
 					{
-						for (short int ik = 0; ik < 2; ik++)
+						for (short int ik = 0; ik < 3; ik++)
 						{
 							if (plasma_culc_or_atoms == true)
 							{
@@ -988,9 +1005,14 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				{
 					par_right["rho"] = B->parameters[now]["rho"] * kv(r1) / kv(rr);
 					par_right["Q"] = B->parameters[now]["Q"] * kv(r1) / kv(rr);
-					//par_right["rho_He"] = B->parameters[now]["rho_He"] * kv(r1) / kv(rr);
+					par_right["rho_He"] = B->parameters[now]["rho_He"] * kv(r1) / kv(rr);
 					par_right["p"] = B->parameters[now]["p"] * kvg(r1) / kvg(rr);
 
+					for (auto& nam : this->phys_param->pui_name)
+					{
+						par_right["rho" + nam] = B->parameters[now]["rho" + nam] * kv(r1) / kv(rr);
+						par_right["p" + nam] = B->parameters[now]["p" + nam] * kvg(r1) / kvg(rr);
+					}
 				}
 				else
 				{
@@ -1015,7 +1037,7 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 				{
 					par_right["rho"] = B->parameters[now]["rho"];
 					par_right["Q"] = B->parameters[now]["Q"];
-					//par_right["rho_He"] = B->parameters[now]["rho_He"];
+					par_right["rho_He"] = B->parameters[now]["rho_He"];
 					par_right["p"] = B->parameters[now]["p"];
 					par_right["Vx"] = B->parameters[now]["Vx"];
 					par_right["Vy"] = B->parameters[now]["Vy"];
@@ -1024,6 +1046,11 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					par_right["By"] = B->parameters[now]["By"];
 					par_right["Bz"] = B->parameters[now]["Bz"];
 
+					for (auto& nam : this->phys_param->pui_name)
+					{
+						par_right["rho" + nam] = B->parameters[now]["rho" + nam];
+						par_right["p" + nam] = B->parameters[now]["p" + nam];
+					}
 				}
 				else
 				{
