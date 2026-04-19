@@ -80,7 +80,11 @@ int main()
     //S1.Download_cell_parameters("parameters_0060.bin"); 
     //  
 
-    S1.Download_cell_parameters("parameters_0080.bin");    
+    S1.Download_cell_parameters("parameters_0083.bin");   
+    // 81 - первый вариант - не супер правильный - не было нормального потока
+    // 82 - второй вариант - есть нормальный поток - но не правильная энергия и магнитное поле
+    // 83 - правильный вариант
+    //S1.Download_cell_parameters("parameters_promeg_116.bin");    
     //S1.Download_cell_parameters("parameters_0219.bin");    
     // S1.Download_cell_parameters("parameters_promeg_1112.bin");
     //S1.Download_cell_parameters("parameters_promeg_1118.bin");
@@ -228,7 +232,8 @@ int main()
     }
 
 
-    //S1.Save_cell_parameters("parameters_0080.bin");
+    S1.Save_cell_parameters("parameters_0083.bin");
+    // 81 - это первый вариант
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

@@ -20,11 +20,21 @@ short int Gran::Get_method()
 		}
 	}*/
 
+	if (this->type2 == Type_Gran_surf::HP || this->type2 == Type_Gran_surf::BS)    // Лакс на гелиопаузе
+	{
+		return 3;
+	}
+
+	if (this->type2 == Type_Gran_surf::TS)    // Лакс на гелиопаузе
+	{
+		return 2;
+	}
+	// this->type2 == Type_Gran_surf::TS
+
+	return 0;
+
 	
-	//if (this->type2 == Type_Gran_surf::HP || this->type2 == Type_Gran_surf::TS || this->type2 == Type_Gran_surf::BS)    // Лакс на гелиопаузе
-	//{
-	//	return 3;
-	//}
+	
 
 	//if (this->type2 == Type_Gran_surf::Us)
 	//{
@@ -35,18 +45,12 @@ short int Gran::Get_method()
 	//}
 
 
-	return 1;
 
-	//if (norm2(0.0, this->center[0][1], this->center[0][2]) >= 330.0) return 0;
+	if (this->center[0][0] < -150.0) return 0;
+
 
 	if (this->type2 == Type_Gran_surf::Us)
 	{
-
-		if (this->cells[0]->type == Type_cell::Zone_1)
-		{
-			return 2;
-		}
-
 		bool b1 = false;
 		bool b2 = false;
 		bool b3 = false;
@@ -56,6 +60,11 @@ short int Gran::Get_method()
 			if (i->type == Type_yzel::HP)
 			{
 				return 0;                           // Лакс вдоль гелиопаузы
+			}
+
+			if (i->type == Type_yzel::TS)
+			{
+				return 0;                           // Лакс вдоль TS
 			}
 
 			if (i->dist_from_HP == 1) b1 = true;
@@ -79,6 +88,21 @@ short int Gran::Get_method()
 		//{
 		//	return 0;
 		//}
+
+		if (this->cells[0]->type == Type_cell::Zone_1)
+		{
+			return 2;
+		}
+
+		if (this->cells[0]->type == Type_cell::Zone_2)
+		{
+			return 0;
+		}
+
+		if (this->cells[0]->type == Type_cell::Zone_3)
+		{
+			return 1;
+		}
 
 	}
 	//else if (this->type2 == Type_Gran_surf::HP)    // Лакс на гелиопаузе

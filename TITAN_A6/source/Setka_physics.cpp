@@ -1,4 +1,4 @@
-#include "Setka.h"
+п»ї#include "Setka.h"
 
 #include <omp.h>
 
@@ -9,7 +9,7 @@ void Setka::Set_Gran_par_for_interpolate(void)
 
 	auto names = this->phys_param->param_names;
 
-	// Заполняем параметры на грани
+	// Р—Р°РїРѕР»РЅСЏРµРј РїР°СЂР°РјРµС‚СЂС‹ РЅР° РіСЂР°РЅРё
 	for (auto& gr : this->All_Gran)
 	{
 		if (gr->cells.size() == 1)
@@ -38,7 +38,7 @@ void Setka::Set_Gran_par_for_interpolate(void)
 	}
 
 	cout << "A" << endl;
-	// Заполняем параметры в узлах
+	// Р—Р°РїРѕР»РЅСЏРµРј РїР°СЂР°РјРµС‚СЂС‹ РІ СѓР·Р»Р°С…
 	for (auto& yz : this->All_Yzel)
 	{
 		double xc, yc, zc;
@@ -76,7 +76,7 @@ void Setka::Set_Gran_par_for_interpolate(void)
 	}
 
 	cout << "B" << endl;
-	// Находим интерполяцию в ячейке
+	// РќР°С…РѕРґРёРј РёРЅС‚РµСЂРїРѕР»СЏС†РёСЋ РІ СЏС‡РµР№РєРµ
 	for (auto& cell : this->All_Cell)
 	{
 		std::vector<Eigen::Vector3d> points;
@@ -115,7 +115,7 @@ void Setka::Init_boundary_grans(void)
 	this->Calculating_measure(0);
 
 	int k = 0;
-	// Выделяем внутренние узлы
+	// Р’С‹РґРµР»СЏРµРј РІРЅСѓС‚СЂРµРЅРЅРёРµ СѓР·Р»С‹
 	for (auto& i : All_Luch)
 	{
 		if (i->type == "A_Luch" || i->type == "A2_Luch" || i->type == "B_Luch" ||
@@ -130,10 +130,10 @@ void Setka::Init_boundary_grans(void)
 	}
 	whach(k);
 
-	// Разделяем внутренние и внешние ячейки
+	// Р Р°Р·РґРµР»СЏРµРј РІРЅСѓС‚СЂРµРЅРЅРёРµ Рё РІРЅРµС€РЅРёРµ СЏС‡РµР№РєРё
 	for (auto& i : this->All_Cell)
 	{
-		bool aa = true;  // внутренняя ли ячейка
+		bool aa = true;  // РІРЅСѓС‚СЂРµРЅРЅСЏСЏ Р»Рё СЏС‡РµР№РєР°
 		for (auto& j : i->yzels)
 		{
 			if (j->is_inner == false)
@@ -165,7 +165,7 @@ void Setka::Init_boundary_grans(void)
 		exit(-1);
 	}
 
-	// Заполняем внутренние и внешние грани
+	// Р—Р°РїРѕР»РЅСЏРµРј РІРЅСѓС‚СЂРµРЅРЅРёРµ Рё РІРЅРµС€РЅРёРµ РіСЂР°РЅРё
 	for (auto& i : this->All_Gran)
 	{
 		if (i->cells.size() == 1)
@@ -206,7 +206,7 @@ void Setka::Init_boundary_grans(void)
 	}
 
 	this->All_boundary_Gran.clear();
-	// Находим граничные грани
+	// РќР°С…РѕРґРёРј РіСЂР°РЅРёС‡РЅС‹Рµ РіСЂР°РЅРё
 	size_t oh = 0;
 	size_t ih = 0;
 	size_t os = 0;
@@ -243,7 +243,7 @@ void Setka::Init_boundary_grans(void)
 	whach(os);
 
 
-	// Далее задаём узлам параметр - расстояние до HP (для особых схем вдоль HP)
+	// Р”Р°Р»РµРµ Р·Р°РґР°С‘Рј СѓР·Р»Р°Рј РїР°СЂР°РјРµС‚СЂ - СЂР°СЃСЃС‚РѕСЏРЅРёРµ РґРѕ HP (РґР»СЏ РѕСЃРѕР±С‹С… СЃС…РµРј РІРґРѕР»СЊ HP)
 	for (auto& i : this->All_Luch)
 	{
 		if (i->type == "A_Luch" || i->type == "A2_Luch" || i->type == "B_Luch")
@@ -338,7 +338,7 @@ void Setka::Init_physics(void)
 	Eigen::Vector3d vec, cc, vv;
 	double BR, BPHI, V1, V2, V3, mV;
 
-	// Редактирование каких-то переменных
+	// Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ РєР°РєРёС…-С‚Рѕ РїРµСЂРµРјРµРЅРЅС‹С…
 	if (false)
 	{
 		for (auto& i : this->All_Cell)
@@ -393,7 +393,7 @@ void Setka::Init_physics(void)
 		}
 	}
 
-	// Интерполяция
+	// РРЅС‚РµСЂРїРѕР»СЏС†РёСЏ
 	if (false)
 	{
 		Interpol SS = Interpol("For_intertpolate_1.bin");
@@ -419,7 +419,7 @@ void Setka::Init_physics(void)
 		}
 	}
 
-	// Если ввели какие-то новые переменные, их надо заполнить
+	// Р•СЃР»Рё РІРІРµР»Рё РєР°РєРёРµ-С‚Рѕ РЅРѕРІС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ, РёС… РЅР°РґРѕ Р·Р°РїРѕР»РЅРёС‚СЊ
 	if (false)
 	{
 		for (auto& i : this->All_Cell)
@@ -439,7 +439,7 @@ void Setka::Init_physics(void)
 
 
 	std::unordered_set<std::string> no_names;
-	// Проверяем наличие всех необходимых переменных
+	// РџСЂРѕРІРµСЂСЏРµРј РЅР°Р»РёС‡РёРµ РІСЃРµС… РЅРµРѕР±С…РѕРґРёРјС‹С… РїРµСЂРµРјРµРЅРЅС‹С…
 	for (auto& i : this->All_Cell)
 	{
 		for (auto& num : this->phys_param->param_names)
@@ -458,13 +458,13 @@ void Setka::Init_physics(void)
 	if (!no_names.empty()) 
 	{
 		std::cout << "Ne bilo nekotorix peremennix v yacheikax, oni bili opredeleni nulem. Elements:" << std::endl;
-		// Вариант 1: Через range-based for (C++11)
+		// Р’Р°СЂРёР°РЅС‚ 1: Р§РµСЂРµР· range-based for (C++11)
 		for (const auto& str : no_names) {
 			std::cout << " - " << str << std::endl;
 		}
 	}
 
-	// Задаём начальные условия на сетке
+	// Р—Р°РґР°С‘Рј РЅР°С‡Р°Р»СЊРЅС‹Рµ СѓСЃР»РѕРІРёСЏ РЅР° СЃРµС‚РєРµ
 	if (false)
 	{
 		for (auto& i : this->All_Cell)
@@ -488,12 +488,12 @@ void Setka::Init_physics(void)
 
 				vv << V1, V2, V3;
 
-				the = -the + const_pi / 2.0;   // Т.к.в данных по СВ на 1 а.е.угол от - 90 до 90 у Алексашова
+				the = -the + const_pi / 2.0;   // Рў.Рє.РІ РґР°РЅРЅС‹С… РїРѕ РЎР’ РЅР° 1 Р°.Рµ.СѓРіРѕР» РѕС‚ - 90 РґРѕ 90 Сѓ РђР»РµРєСЃР°С€РѕРІР°
 				cc = this->phys_param->Matr * vv;
 
 				mV = this->phys_param->Get_v_0(the / const_pi * 180.0);
 
-				double Tp = this->phys_param->Get_T_0(the / const_pi * 180.0); // Температура
+				double Tp = this->phys_param->Get_T_0(the / const_pi * 180.0); // РўРµРјРїРµСЂР°С‚СѓСЂР°
 
 				double np = this->phys_param->Get_rho_0(the / const_pi * 180.0);
 
@@ -541,7 +541,7 @@ void Setka::Init_physics(void)
 		}
 	}
 
-	// Задаём граничные условия (на граничных гранях)
+	// Р—Р°РґР°С‘Рј РіСЂР°РЅРёС‡РЅС‹Рµ СѓСЃР»РѕРІРёСЏ (РЅР° РіСЂР°РЅРёС‡РЅС‹С… РіСЂР°РЅСЏС…)
 	if (true)
 	{
 		for (auto& i : this->All_boundary_Gran)
@@ -603,12 +603,12 @@ void Setka::Init_physics(void)
 
 				vv << V1, V2, V3;
 
-				the = -the + const_pi / 2.0;   // Т.к.в данных по СВ на 1 а.е.угол от - 90 до 90 у Алексашова
+				the = -the + const_pi / 2.0;   // Рў.Рє.РІ РґР°РЅРЅС‹С… РїРѕ РЎР’ РЅР° 1 Р°.Рµ.СѓРіРѕР» РѕС‚ - 90 РґРѕ 90 Сѓ РђР»РµРєСЃР°С€РѕРІР°
 				cc = this->phys_param->Matr * vv;
 
 				mV = this->phys_param->Get_v_0(the / const_pi * 180.0);
 
-				double Tp = this->phys_param->Get_T_0(the / const_pi * 180.0); // Температура
+				double Tp = this->phys_param->Get_T_0(the / const_pi * 180.0); // РўРµРјРїРµСЂР°С‚СѓСЂР°
 
 				double np = this->phys_param->Get_rho_0(the / const_pi * 180.0);
 
@@ -658,7 +658,7 @@ void Setka::Init_physics(void)
 		}
 	}
 
-	// Заполняем центральную фиктивную ячейку значениями
+	// Р—Р°РїРѕР»РЅСЏРµРј С†РµРЅС‚СЂР°Р»СЊРЅСѓСЋ С„РёРєС‚РёРІРЅСѓСЋ СЏС‡РµР№РєСѓ Р·РЅР°С‡РµРЅРёСЏРјРё
 	if (true)
 	{
 		for (auto& num : this->phys_param->param_names)
@@ -689,7 +689,7 @@ void Setka::Init_physics(void)
 		this->Cell_Center->parameters[1] = this->Cell_Center->parameters[0];
 	}
 
-	// Для первых ячеек задаём магнитное поле
+	// Р”Р»СЏ РїРµСЂРІС‹С… СЏС‡РµРµРє Р·Р°РґР°С‘Рј РјР°РіРЅРёС‚РЅРѕРµ РїРѕР»Рµ
 	if (true)
 	{
 		for (auto& i : this->All_Cell)
@@ -743,7 +743,7 @@ void Setka::Init_physics_with_time(const double& time)
 	double BR, BPHI, V1, V2, V3, mV;
 
 
-	// Задаём граничные условия (на граничных гранях)
+	// Р—Р°РґР°С‘Рј РіСЂР°РЅРёС‡РЅС‹Рµ СѓСЃР»РѕРІРёСЏ (РЅР° РіСЂР°РЅРёС‡РЅС‹С… РіСЂР°РЅСЏС…)
 	if (true)
 	{
 		for (auto& i : this->All_boundary_Gran)
@@ -760,11 +760,11 @@ void Setka::Init_physics_with_time(const double& time)
 				cc = this->phys_param->Matr2 * vec;
 				the = acos(cc(2) / r);
 
-				the = -the + const_pi / 2.0;   // Т.к.в данных по СВ на 1 а.е.угол от - 90 до 90 у Алексашова
+				the = -the + const_pi / 2.0;   // Рў.Рє.РІ РґР°РЅРЅС‹С… РїРѕ РЎР’ РЅР° 1 Р°.Рµ.СѓРіРѕР» РѕС‚ - 90 РґРѕ 90 Сѓ РђР»РµРєСЃР°С€РѕРІР°
 
 				mV = this->phys_param->Get_v_0(the / const_pi * 180.0);
 
-				if (time < 0.0427075)  // 1 месяц
+				if (time < 0.0427075)  // 1 РјРµСЃСЏС†
 				{
 					mV = mV * sqrt(1.3);
 				}
@@ -776,7 +776,7 @@ void Setka::Init_physics_with_time(const double& time)
 		}
 	}
 
-	// Для первых ячеек задаём магнитное поле
+	// Р”Р»СЏ РїРµСЂРІС‹С… СЏС‡РµРµРє Р·Р°РґР°С‘Рј РјР°РіРЅРёС‚РЅРѕРµ РїРѕР»Рµ
 	if (true)
 	{
 		for (auto& i : this->All_Cell)
@@ -823,8 +823,8 @@ void Setka::Init_physics_with_time(const double& time)
 
 void Setka::Init_TVD(void)
 {
-	// Эта функция работает после определения нормалей, центра грани и центров ячеек
-	// Пробегаемся по всем граням, добавляем ТВД соседей 
+	// Р­С‚Р° С„СѓРЅРєС†РёСЏ СЂР°Р±РѕС‚Р°РµС‚ РїРѕСЃР»Рµ РѕРїСЂРµРґРµР»РµРЅРёСЏ РЅРѕСЂРјР°Р»РµР№, С†РµРЅС‚СЂР° РіСЂР°РЅРё Рё С†РµРЅС‚СЂРѕРІ СЏС‡РµРµРє
+	// РџСЂРѕР±РµРіР°РµРјСЃСЏ РїРѕ РІСЃРµРј РіСЂР°РЅСЏРј, РґРѕР±Р°РІР»СЏРµРј РўР’Р” СЃРѕСЃРµРґРµР№ 
 	for (auto& gr : this->All_Gran)
 	{
 		Eigen::Vector3d vec;
@@ -833,7 +833,7 @@ void Setka::Init_TVD(void)
 		vec << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
 
 		auto A = gr->cells[0];
-		double maxOppositeScore = 2.0; // Максимальное значение косинуса
+		double maxOppositeScore = 2.0; // РњР°РєСЃРёРјР°Р»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ РєРѕСЃРёРЅСѓСЃР°
 		size_t bestIndex = -1;
 		size_t Index = -1;
 		for (auto& ggr : A->grans)
@@ -841,7 +841,7 @@ void Setka::Init_TVD(void)
 			Index++;
 			if (ggr == gr) continue;
 
-			auto cel = Get_Sosed(A, ggr); // Сосед ячейки A через грань ggr
+			auto cel = Get_Sosed(A, ggr); // РЎРѕСЃРµРґ СЏС‡РµР№РєРё A С‡РµСЂРµР· РіСЂР°РЅСЊ ggr
 			if(cel == nullptr) continue;
 
 			normalizedCurrent << cel->center[0][0] - gr->center[0][0],
@@ -850,7 +850,7 @@ void Setka::Init_TVD(void)
 
 			double cosine = vec.dot(normalizedCurrent);
 
-			// Ищем вектор с минимальным косинусом (ближе всего к 180 градусам)
+			// РС‰РµРј РІРµРєС‚РѕСЂ СЃ РјРёРЅРёРјР°Р»СЊРЅС‹Рј РєРѕСЃРёРЅСѓСЃРѕРј (Р±Р»РёР¶Рµ РІСЃРµРіРѕ Рє 180 РіСЂР°РґСѓСЃР°Рј)
 			if (cosine < maxOppositeScore) {
 				maxOppositeScore = cosine;
 				bestIndex = Index;
@@ -869,7 +869,7 @@ void Setka::Init_TVD(void)
 		if (gr->cells.size() == 1) continue;
 		A = gr->cells[1];
 		vec = vec * -1.0;
-		maxOppositeScore = 2.0; // Максимальное значение косинуса
+		maxOppositeScore = 2.0; // РњР°РєСЃРёРјР°Р»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ РєРѕСЃРёРЅСѓСЃР°
 		bestIndex = -1;
 		Index = -1;
 		for (auto& ggr : A->grans)
@@ -877,7 +877,7 @@ void Setka::Init_TVD(void)
 			Index++;
 			if (ggr == gr) continue;
 
-			auto cel = Get_Sosed(A, ggr); // Сосед ячейки A через грань ggr
+			auto cel = Get_Sosed(A, ggr); // РЎРѕСЃРµРґ СЏС‡РµР№РєРё A С‡РµСЂРµР· РіСЂР°РЅСЊ ggr
 			if (cel == nullptr) continue;
 
 			normalizedCurrent << cel->center[0][0] - gr->center[0][0],
@@ -886,7 +886,7 @@ void Setka::Init_TVD(void)
 
 			double cosine = vec.dot(normalizedCurrent);
 
-			// Ищем вектор с минимальным косинусом (ближе всего к 180 градусам)
+			// РС‰РµРј РІРµРєС‚РѕСЂ СЃ РјРёРЅРёРјР°Р»СЊРЅС‹Рј РєРѕСЃРёРЅСѓСЃРѕРј (Р±Р»РёР¶Рµ РІСЃРµРіРѕ Рє 180 РіСЂР°РґСѓСЃР°Рј)
 			if (cosine < maxOppositeScore) {
 				maxOppositeScore = cosine;
 				bestIndex = Index;
@@ -901,7 +901,7 @@ void Setka::Init_TVD(void)
 
 		gr->cells_TVD.push_back(Get_Sosed(A, A->grans[bestIndex]));
 
-		// Теперь проверим, если ячейка совсем в другой стороне, то удалим её
+		// РўРµРїРµСЂСЊ РїСЂРѕРІРµСЂРёРј, РµСЃР»Рё СЏС‡РµР№РєР° СЃРѕРІСЃРµРј РІ РґСЂСѓРіРѕР№ СЃС‚РѕСЂРѕРЅРµ, С‚Рѕ СѓРґР°Р»РёРј РµС‘
 		vec << gr->normal[0][0], gr->normal[0][1], gr->normal[0][2];
 		Eigen::Vector3d k1, k2, k3;
 		k1 << gr->center[0][0], gr->center[0][1], gr->center[0][2];
@@ -943,17 +943,17 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 	short int now, short int zone)
 {
 	short int zone_ = zone - 1;
-	// Названия жидкостей
+	// РќР°Р·РІР°РЅРёСЏ Р¶РёРґРєРѕСЃС‚РµР№
 	// p, Pui1, Pui2, ....
 	// H1, H2, H3, H4, .....
 	// 
-	// Для каждой жидкости нужна rho, T
-	// Также нужна средняя скорость плазмы и Скорости всех сортов водорода
+	// Р”Р»СЏ РєР°Р¶РґРѕР№ Р¶РёРґРєРѕСЃС‚Рё РЅСѓР¶РЅР° rho, T
+	// РўР°РєР¶Рµ РЅСѓР¶РЅР° СЃСЂРµРґРЅСЏСЏ СЃРєРѕСЂРѕСЃС‚СЊ РїР»Р°Р·РјС‹ Рё РЎРєРѕСЂРѕСЃС‚Рё РІСЃРµС… СЃРѕСЂС‚РѕРІ РІРѕРґРѕСЂРѕРґР°
 	unordered_map<string, double> rho;  // "_p", "_Pui_1", .... , "_H1", ...
 	unordered_map<string, double> T;    // "_p", "_Pui_1", ...., "_H1", ...
 	unordered_map<string, Eigen::Vector3d> V;    // "_p", "_H1", ...
 
-	// Получаем переменные -----------------------------------------------------------------
+	// РџРѕР»СѓС‡Р°РµРј РїРµСЂРµРјРµРЅРЅС‹Рµ -----------------------------------------------------------------
 	unordered_map<string, double> param;
 
 	this->phys_param->Plasma_components(zone_, C->parameters[now], param, true);
@@ -1006,10 +1006,10 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 	}
 
 	//cout << "B3 " << endl;
-	// Все переменные получены -------------------------------------------------------------
+	// Р’СЃРµ РїРµСЂРµРјРµРЅРЅС‹Рµ РїРѕР»СѓС‡РµРЅС‹ -------------------------------------------------------------
 
 
-	// Скорости - это симметричные функции
+	// РЎРєРѕСЂРѕСЃС‚Рё - СЌС‚Рѕ СЃРёРјРјРµС‚СЂРёС‡РЅС‹Рµ С„СѓРЅРєС†РёРё
 	unordered_map<string, double> U;    // _p_H1, _p_H2, ...., _Pui_1_H1, ...
 	unordered_map<string, double> Um;   // _p_H1, _p_H2, ...., _Pui_1_H1, ...
 	unordered_map<string, double> UE;   // _p_H1, _p_H2, ...., _Pui_1_H1, ...
@@ -1149,7 +1149,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 		SOURSE["m_z"] = 0.0;
 		SOURSE["E"] = 0.0;
 
-		// Заполняем общие суммарные источники для плазмы  --------------------------------------
+		// Р—Р°РїРѕР»РЅСЏРµРј РѕР±С‰РёРµ СЃСѓРјРјР°СЂРЅС‹Рµ РёСЃС‚РѕС‡РЅРёРєРё РґР»СЏ РїР»Р°Р·РјС‹  --------------------------------------
 		if (this->phys_param->culc_plasma == true)
 		{
 			pui_n = -2;
@@ -1206,7 +1206,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 			}
 		}
 		//cout << "B6 " << endl;
-		// Заполняем источники водорода  --------------------------------------------------------------------
+		// Р—Р°РїРѕР»РЅСЏРµРј РёСЃС‚РѕС‡РЅРёРєРё РІРѕРґРѕСЂРѕРґР°  --------------------------------------------------------------------
 		for (const auto& nam2 : this->phys_param->H_name)
 		{
 			SOURSE["rho" + nam2] = 0.0;
@@ -1216,7 +1216,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 			SOURSE["E" + nam2] = 0.0;
 		}
 		//cout << "B7 " << endl;
-		// Сначала потери
+		// РЎРЅР°С‡Р°Р»Р° РїРѕС‚РµСЂРё
 		for (const auto& nam2 : this->phys_param->H_name)
 		{
 			pui_n = -2;
@@ -1248,7 +1248,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 			}
 		}
 		//cout << "B8 " << endl;
-		// Теперь притоки
+		// РўРµРїРµСЂСЊ РїСЂРёС‚РѕРєРё
 		Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>* A;
 		Eigen::Matrix< int8_t, Eigen::Dynamic, Eigen::Dynamic>* B;
 		if (zone == 1)
@@ -1326,7 +1326,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 			}
 		}
 		//cout << "B9 " << endl;
-		// Заполняем источники пикапов -----------------------------------------------------
+		// Р—Р°РїРѕР»РЅСЏРµРј РёСЃС‚РѕС‡РЅРёРєРё РїРёРєР°РїРѕРІ -----------------------------------------------------
 		pui_n = -1;
 		for (const auto& nam2 : this->phys_param->pui_name)
 		{
@@ -1337,7 +1337,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 			SOURSE["p" + nam2] = 0.0;
 		}
 
-		// Сначала потери
+		// РЎРЅР°С‡Р°Р»Р° РїРѕС‚РµСЂРё
 		pui_n = -1;
 		for (const auto& nam1 : this->phys_param->pui_name)
 		{
@@ -1349,8 +1349,8 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 			}
 		}
 		//cout << "B10 " << endl;
-		// Притоки/потери массы
-		//Здесь подход отличается от остальных, хотя можно было одинаковый для всех сделать
+		// РџСЂРёС‚РѕРєРё/РїРѕС‚РµСЂРё РјР°СЃСЃС‹
+		//Р—РґРµСЃСЊ РїРѕРґС…РѕРґ РѕС‚Р»РёС‡Р°РµС‚СЃСЏ РѕС‚ РѕСЃС‚Р°Р»СЊРЅС‹С…, С…РѕС‚СЏ РјРѕР¶РЅРѕ Р±С‹Р»Рѕ РѕРґРёРЅР°РєРѕРІС‹Р№ РґР»СЏ РІСЃРµС… СЃРґРµР»Р°С‚СЊ
 		if (this->phys_param->is_PUI == true)
 		{
 			for (short int i = 0; i < B->rows(); ++i)
@@ -1386,7 +1386,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 			}
 		}
 		//cout << "B11 " << endl;
-		// Притоки энергии
+		// РџСЂРёС‚РѕРєРё СЌРЅРµСЂРіРёРё
 		if (this->phys_param->is_PUI == true)
 		{
 			for (short int i = 0; i < B->rows(); ++i)
@@ -1415,7 +1415,7 @@ void Setka::Calc_sourse_MF_Bera(Cell* C, unordered_map<string, double>& SOURSE,
 		value *= ddp;  
 	}
 
-	// Источники водорода не надо умножать на концентрацию водорода, иначе получится не правильно
+	// РСЃС‚РѕС‡РЅРёРєРё РІРѕРґРѕСЂРѕРґР° РЅРµ РЅР°РґРѕ СѓРјРЅРѕР¶Р°С‚СЊ РЅР° РєРѕРЅС†РµРЅС‚СЂР°С†РёСЋ РІРѕРґРѕСЂРѕРґР°, РёРЅР°С‡Рµ РїРѕР»СѓС‡РёС‚СЃСЏ РЅРµ РїСЂР°РІРёР»СЊРЅРѕ
 	for (auto& nam : this->phys_param->H_name)
 	{
 		SOURSE["rho" + nam] /= this->phys_param->par_n_H_LISM;
@@ -1451,7 +1451,7 @@ void Setka::Calc_sourse_MF(Cell* C, boost::multi_array<double, 2>& SOURSE,
 		kk[i] = 0.0;
 	}
 
-	// Следующая настройка только вручную    &INIT&
+	// РЎР»РµРґСѓСЋС‰Р°СЏ РЅР°СЃС‚СЂРѕР№РєР° С‚РѕР»СЊРєРѕ РІСЂСѓС‡РЅСѓСЋ    &INIT&
 	// zone   1, 2, 3, 4
 	kk[zone - 1] = 1.0;
 
@@ -1561,7 +1561,7 @@ int Setka::determ_zone(Cell* C, short int now)
 	double z = C->center[now][2];
 	double r = norm2(x, y, z);
 
-	// Геометрическое определение
+	// Р“РµРѕРјРµС‚СЂРёС‡РµСЃРєРѕРµ РѕРїСЂРµРґРµР»РµРЅРёРµ
 	if (true)
 	{
 		if (C->type == Type_cell::Zone_1 || C->type == Type_cell::Zone_2)
@@ -1635,7 +1635,7 @@ int Setka::determ_zone(Cell* C, short int now)
 
 void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 {
-	// заполняем коррдинаты узлов на другом временном слое
+	// Р·Р°РїРѕР»РЅСЏРµРј РєРѕСЂСЂРґРёРЅР°С‚С‹ СѓР·Р»РѕРІ РЅР° РґСЂСѓРіРѕРј РІСЂРµРјРµРЅРЅРѕРј СЃР»РѕРµ
 	for (auto& i : this->All_Yzel)
 	{
 		for (unsigned short int j = 0; j < 3; j++)
@@ -1660,8 +1660,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 
 	this->Test_geometr();
-	// Все настройки расчёта считываются из файла Setter.txt
-	// Сначала реализовываем расчёт без движения сетки
+	// Р’СЃРµ РЅР°СЃС‚СЂРѕР№РєРё СЂР°СЃС‡С‘С‚Р° СЃС‡РёС‚С‹РІР°СЋС‚СЃСЏ РёР· С„Р°Р№Р»Р° Setter.txt
+	// РЎРЅР°С‡Р°Р»Р° СЂРµР°Р»РёР·РѕРІС‹РІР°РµРј СЂР°СЃС‡С‘С‚ Р±РµР· РґРІРёР¶РµРЅРёСЏ СЃРµС‚РєРё
 	unsigned int steps = steps__;
 
 	unsigned short int now1 = 1;
@@ -1674,7 +1674,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 	vector<Cell*> cell_list_;
 
 	cout << "Vibor area" << endl;
-	// Если хотим отдельно считать внутреннюю и наружнюю области
+	// Р•СЃР»Рё С…РѕС‚РёРј РѕС‚РґРµР»СЊРЅРѕ СЃС‡РёС‚Р°С‚СЊ РІРЅСѓС‚СЂРµРЅРЅСЋСЋ Рё РЅР°СЂСѓР¶РЅСЋСЋ РѕР±Р»Р°СЃС‚Рё
 	if (true)
 	{
 		if (is_inner_area == true)
@@ -1730,8 +1730,8 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	Cell* A, B;
 
-	double time = this->phys_param->prev_step_time;  // Текущий шаг по времени
-	double loc_time = this->phys_param->prev_step_time;  // Текущий шаг по времени
+	double time = this->phys_param->prev_step_time;  // РўРµРєСѓС‰РёР№ С€Р°Рі РїРѕ РІСЂРµРјРµРЅРё
+	double loc_time = this->phys_param->prev_step_time;  // РўРµРєСѓС‰РёР№ С€Р°Рі РїРѕ РІСЂРµРјРµРЅРё
 
 	double xc_min = 0.0, yc_min = 0.0, zc_min = 0.0;
 	string name_min_time = "___";
@@ -1760,9 +1760,9 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 		
 
-		omp_set_num_threads(23); // 32
+		//omp_set_num_threads(23); // 32
 		
-		// Обновляем граничное условие
+		// РћР±РЅРѕРІР»СЏРµРј РіСЂР°РЅРёС‡РЅРѕРµ СѓСЃР»РѕРІРёРµ
 		if (false)
 		{
 			this->Init_physics_with_time(this->phys_param->ALL_Time);
@@ -1771,13 +1771,13 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		this->phys_param->ALL_Time += time;
 		
 
-		// Считаем скорости граней и сразу передвигаем опорные узлы
+		// РЎС‡РёС‚Р°РµРј СЃРєРѕСЂРѕСЃС‚Рё РіСЂР°РЅРµР№ Рё СЃСЂР°Р·Сѓ РїРµСЂРµРґРІРёРіР°РµРј РѕРїРѕСЂРЅС‹Рµ СѓР·Р»С‹
 		//if (is_inner_area == false)
 		if(this->phys_param->move_setka == true)
 		{
 			this->Culc_Velocity_surface(now1, time, 1);
 
-			// Перестраиваем сетку
+			// РџРµСЂРµСЃС‚СЂР°РёРІР°РµРј СЃРµС‚РєСѓ
 			for (int i_step = 0; i_step < this->All_Luch.size(); i_step++)
 			{
 				auto lu = this->All_Luch[i_step];
@@ -1788,22 +1788,22 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 
 		//cout << "A" << endl;
-		// Расчитываем потоки через грани
-		// в private не добавляются нормально vectora, надо либо обычные массивы делать, либо 
-		// создавать их внутри в каждом потоке
+		// Р Р°СЃС‡РёС‚С‹РІР°РµРј РїРѕС‚РѕРєРё С‡РµСЂРµР· РіСЂР°РЅРё
+		// РІ private РЅРµ РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ РЅРѕСЂРјР°Р»СЊРЅРѕ vectora, РЅР°РґРѕ Р»РёР±Рѕ РѕР±С‹С‡РЅС‹Рµ РјР°СЃСЃРёРІС‹ РґРµР»Р°С‚СЊ, Р»РёР±Рѕ 
+		// СЃРѕР·РґР°РІР°С‚СЊ РёС… РІРЅСѓС‚СЂРё РІ РєР°Р¶РґРѕРј РїРѕС‚РѕРєРµ
 		#pragma omp parallel for reduction(min:loc_time) schedule(dynamic)
 		for(int i_step = 0; i_step < gran_list->size(); i_step++)
 		{
 			//whach(GG->parameters["rho_H4"]);
-			// omp_get_thread_num()  - номер нити
-			// omp_get_num_threads() - всего потоков
+			// omp_get_thread_num()  - РЅРѕРјРµСЂ РЅРёС‚Рё
+			// omp_get_num_threads() - РІСЃРµРіРѕ РїРѕС‚РѕРєРѕРІ
 			//cout << "i_step = " << i_step << "  potok = " << omp_get_thread_num() << "  Vsego = " << 
 			//	omp_get_num_threads() << endl;
 
 			auto& gran = (*gran_list)[i_step];
 
 			string nmnm;
-			double ntnt = this->Culc_Gran_Potok(gran, now1, metod, nmnm, time);  // Считает потоки через данную грань (записывает результат в параметры грани)
+			double ntnt = this->Culc_Gran_Potok(gran, now1, metod, nmnm, time);  // РЎС‡РёС‚Р°РµС‚ РїРѕС‚РѕРєРё С‡РµСЂРµР· РґР°РЅРЅСѓСЋ РіСЂР°РЅСЊ (Р·Р°РїРёСЃС‹РІР°РµС‚ СЂРµР·СѓР»СЊС‚Р°С‚ РІ РїР°СЂР°РјРµС‚СЂС‹ РіСЂР°РЅРё)
 
 			if (ntnt < loc_time)
 			{
@@ -1827,7 +1827,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 		bool print_p_less_0 = false;
 
-		// Расчитываем законы сохранения в ячейках
+		// Р Р°СЃС‡РёС‚С‹РІР°РµРј Р·Р°РєРѕРЅС‹ СЃРѕС…СЂР°РЅРµРЅРёСЏ РІ СЏС‡РµР№РєР°С…
 		#pragma omp parallel for schedule(dynamic)
 		for (size_t i_step = 0; i_step < cell_list->size(); i_step++)
 		{
@@ -1905,7 +1905,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			double rho3, u3, v3, w3, bx3, by3, bz3, p3, Q3, rho_He3, rho_He;
 			double rho, vx, vy, vz, p, bx, by, bz, dsk, Q;
 
-			// Считаем плазму
+			// РЎС‡РёС‚Р°РµРј РїР»Р°Р·РјСѓ
 			if (this->phys_param->culc_plasma == true)
 			{
 				rho = cell->parameters[now1]["rho"];
@@ -2088,7 +2088,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 						- time * (POTOK["p"] + (dsk / cpi4) * POTOK["divB"]) / Volume2 + time * SOURSE["E"]) -
 						0.5 * rho3 * kvv(u3, v3, w3) - kvv(bx3, by3, bz3) / 25.13274122871834590768) * this->phys_param->g1;
 
-					// Эффективная магнитная диссипация
+					// Р­С„С„РµРєС‚РёРІРЅР°СЏ РјР°РіРЅРёС‚РЅР°СЏ РґРёСЃСЃРёРїР°С†РёСЏ
 					//if (cell->type == Type_cell::Zone_2) // && p3/(kvv(bx3, by3, bz3) / (8.0 * const_pi)) < 1.0)
 					if(false)
 					{
@@ -2197,7 +2197,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 				SOURSE[2][4] = 0.0;
 			}*/
 
-			// Теперь считаем для остальных жидкостей
+			// РўРµРїРµСЂСЊ СЃС‡РёС‚Р°РµРј РґР»СЏ РѕСЃС‚Р°Р»СЊРЅС‹С… Р¶РёРґРєРѕСЃС‚РµР№
 			int i = 0;
 			if (this->phys_param->culc_atoms == true)
 			{
@@ -2232,7 +2232,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 					}
 
-					if (rho < 1e-7 || radius <= 1.0)  // Отключаем источники, так как этой жидкости фактически нет
+					if (rho < 1e-7 || radius <= 1.0)  // РћС‚РєР»СЋС‡Р°РµРј РёСЃС‚РѕС‡РЅРёРєРё, С‚Р°Рє РєР°Рє СЌС‚РѕР№ Р¶РёРґРєРѕСЃС‚Рё С„Р°РєС‚РёС‡РµСЃРєРё РЅРµС‚
 					{
 						SOURSE["rho" + nam] = 0.0;
 						SOURSE["m_x" + nam] = 0.0;
@@ -2336,7 +2336,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 		//cout << "C" << endl;
 
-		// Увеличим давление PUI за ударной волной
+		// РЈРІРµР»РёС‡РёРј РґР°РІР»РµРЅРёРµ PUI Р·Р° СѓРґР°СЂРЅРѕР№ РІРѕР»РЅРѕР№
 		if (is_inner_area == false && this->phys_param->is_PUI == true)
 		{
 			#pragma omp parallel for
@@ -2351,7 +2351,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			}
 		}
 
-		// Считаем фиктивную центральную ячейку
+		// РЎС‡РёС‚Р°РµРј С„РёРєС‚РёРІРЅСѓСЋ С†РµРЅС‚СЂР°Р»СЊРЅСѓСЋ СЏС‡РµР№РєСѓ
 		if (this->phys_param->culc_atoms == true && is_inner_area == true)
 		{
 			auto& cell = this->Cell_Center;
@@ -2388,7 +2388,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			double rho3, u3, v3, w3, p3;
 			double rho, vx, vy, vz, p;
 
-			// Теперь считаем для остальных жидкостей
+			// РўРµРїРµСЂСЊ СЃС‡РёС‚Р°РµРј РґР»СЏ РѕСЃС‚Р°Р»СЊРЅС‹С… Р¶РёРґРєРѕСЃС‚РµР№
 			int i = 1;
 			for (auto& nam : this->phys_param->H_name)
 			{
@@ -2460,7 +2460,7 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 	double dist;
 	if (gr->type == Type_Gran::Us)
 	{
-		// Это для расчёта шага по времени
+		// Р­С‚Рѕ РґР»СЏ СЂР°СЃС‡С‘С‚Р° С€Р°РіР° РїРѕ РІСЂРµРјРµРЅРё
 		auto A = gr->cells[0];
 		auto B = gr->cells[1];
 		//dist = norm2(A->center[now][0] - B->center[now][0],
@@ -2541,8 +2541,8 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			}
 		}
 
-		// Если это контакт, записываем магнитное давление в обычное
-		// И удаляем магнитные поля
+		// Р•СЃР»Рё СЌС‚Рѕ РєРѕРЅС‚Р°РєС‚, Р·Р°РїРёСЃС‹РІР°РµРј РјР°РіРЅРёС‚РЅРѕРµ РґР°РІР»РµРЅРёРµ РІ РѕР±С‹С‡РЅРѕРµ
+		// Р СѓРґР°Р»СЏРµРј РјР°РіРЅРёС‚РЅС‹Рµ РїРѕР»СЏ
 		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
 		{
 			if (metod_ == 3) metod_ = 2;
@@ -2616,11 +2616,13 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			gr->normal[now][1], gr->normal[now][2],
 			qqq1[5] + qqq2[5], qqq1[6] + qqq2[6], qqq1[7] + qqq2[7]) * area;
 
-		// Магнитное пересоединение
+		// РњР°РіРЅРёС‚РЅРѕРµ РїРµСЂРµСЃРѕРµРґРёРЅРµРЅРёРµ
 		if (true && (gr->type2 == Type_Gran_surf::HP))
 		{
-			// параметры плазмы с двух сторон
+			// РїР°СЂР°РјРµС‚СЂС‹ РїР»Р°Р·РјС‹ СЃ РґРІСѓС… СЃС‚РѕСЂРѕРЅ
 			double rho1 = par_left["rho"];
+			double rho_He1 = par_left["rho_He"];
+			double Q1 = par_left["Q"];
 			double V1x = par_left["Vx"];
 			double V1y = par_left["Vy"];
 			double V1z = par_left["Vz"];
@@ -2630,6 +2632,8 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			double B1z = par_left["Bz"];
 
 			double rho2 = par_right["rho"];
+			double rho_He2 = par_right["rho_He"];
+			double Q2 = par_right["Q"];
 			double V2x = par_right["Vx"];
 			double V2y = par_right["Vy"];
 			double V2z = par_right["Vz"];
@@ -2638,16 +2642,219 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			double B2y = par_right["By"];
 			double B2z = par_right["Bz"];
 
-			// Нормаль грани
+			// РќРѕСЂРјР°Р»СЊ РіСЂР°РЅРё
 			double n1 = gr->normal[now][0];
 			double n2 = gr->normal[now][1];
 			double n3 = gr->normal[now][2];
-			// area - площадь грани
+			// area - РїР»РѕС‰Р°РґСЊ РіСЂР°РЅРё
+
+			// === 1. РќРѕСЂРјР°Р»СЊ ===
+			double nx = n1;
+			double ny = n2;
+			double nz = n3;
+
+			// === 2. РџСЂРѕРµРєС†РёРё РјР°РіРЅРёС‚РЅРѕРіРѕ РїРѕР»СЏ ===
+
+			// РЅРѕСЂРјР°Р»СЊРЅС‹Рµ РєРѕРјРїРѕРЅРµРЅС‚С‹
+			double B1n = B1x * nx + B1y * ny + B1z * nz;
+			double B2n = B2x * nx + B2y * ny + B2z * nz;
+
+			// С‚Р°РЅРіРµРЅС†РёР°Р»СЊРЅС‹Рµ
+			double B1tx = B1x - B1n * nx;
+			double B1ty = B1y - B1n * ny;
+			double B1tz = B1z - B1n * nz;
+
+			double B2tx = B2x - B2n * nx;
+			double B2ty = B2y - B2n * ny;
+			double B2tz = B2z - B2n * nz;
+
+			// РЅРѕСЂРјС‹
+			double B1t = sqrt(B1tx * B1tx + B1ty * B1ty + B1tz * B1tz);
+			double B2t = sqrt(B2tx * B2tx + B2ty * B2ty + B2tz * B2tz);
+
+			// === 3. РЈРіРѕР» РјРµР¶РґСѓ С‚Р°РЅРіРµРЅС†РёР°Р»СЊРЅС‹РјРё РїРѕР»СЏРјРё ===
+
+			double dotBt = B1tx * B2tx + B1ty * B2ty + B1tz * B2tz;
+
+			double costhe = 0.0;
+			if (B1t > 1e-12 && B2t > 1e-12) costhe = dotBt / (B1t * B2t);
+
+			// РѕРіСЂР°РЅРёС‡РµРЅРёРµ
+			costhe = std::max(-1.0, std::min(1.0, costhe));
+
+			// С„Р°РєС‚РѕСЂ РїРµСЂРµСЃРѕРµРґРёРЅРµРЅРёСЏ
+			double ftheta = 0.5 * (1.0 - costhe);
+
+			// === 4. Р­С„С„РµРєС‚РёРІРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹ ===
+
+			// Р·Р°С‰РёС‚Р° РѕС‚ РЅСѓР»РµР№
+			double Bsum = B1t + B2t + 1e-12;
+
+			// СЌС„С„РµРєС‚РёРІРЅР°СЏ РїР»РѕС‚РЅРѕСЃС‚СЊ
+			double rho_star = (rho1 * B2t + rho2 * B1t) / Bsum;
+			double rho_He_star = (rho_He1 * B2t + rho_He2 * B1t) / Bsum;
+			double Q_star = (Q1 * B2t + Q2 * B1t) / Bsum;
+
+			// СЌС„С„РµРєС‚РёРІРЅРѕРµ РїРѕР»Рµ
+			double B_star = 2.0 * B1t * B2t / Bsum;
+
+			// РјР°РіРЅРёС‚РЅР°СЏ РїСЂРѕРЅРёС†Р°РµРјРѕСЃС‚СЊ
+			const double mu0 = 1.0;
+
+			// Р°Р»СЊС„РІРµРЅРѕРІСЃРєР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ
+			double vA = B_star / sqrt(mu0 * rho_star + 1e-30);
+
+			// === 5. РЎРєРѕСЂРѕСЃС‚СЊ РІС‚РµРєР°РЅРёСЏ ===
+			double Mrec = 0.1;            // РјРѕР¶РЅРѕ РІР°СЂСЊРёСЂРѕРІР°С‚СЊ
+			double vin = Mrec * vA * ftheta;
 
 
-			double b_b = qqq1[5] * qqq2[5] + qqq1[6] * qqq2[6] + qqq1[7] * qqq2[7];
-			double costhe = (b_b / norm2(qqq1[5], qqq1[6], qqq1[7]) / norm2(qqq2[5], qqq2[6], qqq2[7]));
-			double fthe = (1.0 - costhe) / 2.0;
+			// === 6. РџРѕС‚РѕРє РјР°СЃСЃС‹ ===
+			// РєР»СЋС‡РµРІР°СЏ С„РѕСЂРјСѓР»Р°
+			double eps = 1.0;             // РёР· Nakamura (0.5вЂ“1)
+			double phi = 0.1;             // РґРѕР»СЏ РїРѕРІРµСЂС…РЅРѕСЃС‚Рё
+			//double Frho = eps * phi * (rho1 - rho2) * vin;
+			double Frho = eps * phi * rho_star * vin * signum(rho1 - rho2);
+			//double Frho_He = eps * phi * (rho_He1 - rho_He2) * vin;
+			double Frho_He = eps * phi * rho_He_star * vin * signum(rho1 - rho2);
+			double FQ = eps * phi * Q_star * vin * signum(rho1 - rho2);
+
+			// === 7. Р­С„С„РµРєС‚РёРІРЅР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ РґР»СЏ РёРјРїСѓР»СЊСЃР° ===
+			// Р±РµСЂС‘Рј СЃСЂРµРґРЅСЋСЋ СЃРєРѕСЂРѕСЃС‚СЊ
+			double ux = 0.5 * (V1x + V2x);
+			double uy = 0.5 * (V1y + V2y);
+			double uz = 0.5 * (V1z + V2z);
+
+			// === 8. РџРѕС‚РѕРє РёРјРїСѓР»СЊСЃР° ===
+			double FrhoVx = Frho * ux;
+			double FrhoVy = Frho * uy;
+			double FrhoVz = Frho * uz;
+
+			// + РЅРѕСЂРјР°Р»СЊРЅС‹Р№ РёРјРїСѓР»СЊСЃ
+
+			// РќРѕСЂРјР°Р»СЊРЅС‹Р№ РёРјРїСѓР»СЊСЃ: Frho * vin * n
+			FrhoVx += Frho * vin * nx;
+			FrhoVy += Frho * vin * ny;
+			FrhoVz += Frho * vin * nz;
+
+			// === 9. РџРѕС‚РѕРє СЌРЅРµСЂРіРёРё ===
+			double gamma = 5.0 / 3.0;
+			double p_star = 0.5 * (p1 + p2);
+
+			// РЅРѕСЂРјР°Р»СЊРЅР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ
+			double un = ux * nx + uy * ny + uz * nz;
+
+			// РїРѕР»РЅР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ (СЃ СѓС‡С‘С‚РѕРј РїРµСЂРµСЃРѕРµРґРёРЅРµРЅРёСЏ)
+			double ueff_x = ux + vin * nx;
+			double ueff_y = uy + vin * ny;
+			double ueff_z = uz + vin * nz;
+
+			// РєРІР°РґСЂР°С‚ СЃРєРѕСЂРѕСЃС‚Рё
+			double ueff2 = ueff_x * ueff_x + ueff_y * ueff_y + ueff_z * ueff_z;
+
+			// РїРѕР»РЅР°СЏ СЌРЅРµСЂРіРёСЏ РЅР° РјР°СЃСЃСѓ
+			double Eeff =
+				0.5 * ueff2
+				+ gamma / (gamma - 1.0) * p_star / (rho_star + 1e-30);
+
+			double FE = Frho * Eeff;
+
+
+
+
+
+			// === 10. РСЃС‚РѕС‡РЅРёРє РґР»СЏ РјР°РіРЅРёС‚РЅРѕРіРѕ РїРѕР»СЏ ===
+
+			// "СЃР¶РёРіР°РЅРёРµ" С‚Р°РЅРіРµРЅС†РёР°Р»СЊРЅРѕРіРѕ РїРѕР»СЏ
+			//double SBx = -eps * phi * vin * 0.5 * (B1tx + B2tx);
+			//double SBy = -eps * phi * vin * 0.5 * (B1ty + B2ty);
+			//double SBz = -eps * phi * vin * 0.5 * (B1tz + B2tz);
+
+			// СЃСЂРµРґРЅРµРµ С‚Р°РЅРіРµРЅС†РёР°Р»СЊРЅРѕРµ РїРѕР»Рµ
+			double Btx = 0.5 * (B1tx + B2tx);
+			double Bty = 0.5 * (B1ty + B2ty);
+			double Btz = 0.5 * (B1tz + B2tz);
+
+			// E = -v_in (n Г— B_t)
+			double Ex = eps * phi * -vin * (ny * Btz - nz * Bty);
+			double Ey = eps * phi * -vin * (nz * Btx - nx * Btz);
+			double Ez = eps * phi * -vin * (nx * Bty - ny * Btx);
+
+			// Р»СЋР±РѕР№ РІРµРєС‚РѕСЂ РЅРµ РїР°СЂР°Р»Р»РµР»СЊРЅС‹Р№ РЅРѕСЂРјР°Р»Рё
+			double ax = (fabs(nx) < 0.9) ? 1.0 : 0.0;
+			double ay = (fabs(nx) < 0.9) ? 0.0 : 1.0;
+			double az = 0.0;
+
+			// t1 = n Г— a
+			double t1x = ny * az - nz * ay;
+			double t1y = nz * ax - nx * az;
+			double t1z = nx * ay - ny * ax;
+
+			// РЅРѕСЂРјРёСЂРѕРІРєР°
+			double t1n = sqrt(t1x * t1x + t1y * t1y + t1z * t1z);
+			t1x /= t1n; t1y /= t1n; t1z /= t1n;
+
+			// t2 = n Г— t1
+			double t2x = ny * t1z - nz * t1y;
+			double t2y = nz * t1x - nx * t1z;
+			double t2z = nx * t1y - ny * t1x;
+
+			double En = Ex * nx + Ey * ny + Ez * nz;
+			double Et1 = Ex * t1x + Ey * t1y + Ez * t1z;
+			double Et2 = Ex * t2x + Ey * t2y + Ez * t2z;
+
+			// F = -E_t2 * t1 + E_t1 * t2
+			double fluxBx = -Et2 * t1x + Et1 * t2x;
+			double fluxBy = -Et2 * t1y + Et1 * t2y;
+			double fluxBz = -Et2 * t1z + Et1 * t2z;
+
+			//double fluxBx = -(ny * Ez - nz * Ey);  // n Г— E
+			//double fluxBy = -(nz * Ex - nx * Ez);
+			//double fluxBz = -(nx * Ey - ny * Ex);
+
+
+			// Р”РѕР±Р°РІР»СЏРµРј РїРѕС‚РѕРє СЌРЅРµСЂРіРёРё - РїРѕР№С‚РёРЅРіРѕРІ
+
+			double Bx = 0.5 * (B1x + B2x);
+			double By = 0.5 * (B1y + B2y);
+			double Bz = 0.5 * (B1z + B2z);
+
+			// E_rec СѓР¶Рµ РµСЃС‚СЊ
+
+			double Sx = Ey * Bz - Ez * By;
+			double Sy = Ez * Bx - Ex * Bz;
+			double Sz = Ex * By - Ey * Bx;
+
+			// РїРѕС‚РѕРє СЌРЅРµСЂРіРёРё С‡РµСЂРµР· РіСЂР°РЅСЊ
+			double FE_rec = (Sx * nx + Sy * ny + Sz * nz) / mu0;
+
+			// РґРѕР±Р°РІРёС‚СЊ
+			FE += FE_rec;
+
+
+			gr->parameters["Prho"] += Frho * area;
+			gr->parameters["Prho_He"] += Frho_He * area;
+			gr->parameters["PQ"] += FQ * area;
+			gr->parameters["PVx"] += FrhoVx * area;
+			gr->parameters["PVy"] += FrhoVy * area;
+			gr->parameters["PVz"] += FrhoVz * area;
+			gr->parameters["Pp"] += FE * area;
+			//gr->parameters["PBx"] += Ex * area;
+			//gr->parameters["PBy"] += Ey * area;
+			//gr->parameters["PBz"] += Ez * area;
+			gr->parameters["PBx"] += fluxBx * area;
+			gr->parameters["PBy"] += fluxBy * area;
+			gr->parameters["PBz"] += fluxBz * area;
+
+			double dnt = this->phys_param->KFL * dist
+				/ (max(fabs(dsl), fabs(dsr)) + fabs(w) + fabs(phi * eps * vin) + 1e-10);
+
+			if (dnt < loc_time)
+			{
+				loc_time = min(loc_time, dnt);
+				name = "peresoedin";
+			}
+
 
 		}
 
@@ -2672,13 +2879,13 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 			}
 		}
 
-		// Для контакта поток Bn равен нулю
+		// Р”Р»СЏ РєРѕРЅС‚Р°РєС‚Р° РїРѕС‚РѕРє Bn СЂР°РІРµРЅ РЅСѓР»СЋ
 		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->bn_in_p_on_HP == true)
 		{
 			gr->parameters["PdivB"] = 0.0;
 		}
 
-		// Для контакта поток Vn равен нулю
+		// Р”Р»СЏ РєРѕРЅС‚Р°РєС‚Р° РїРѕС‚РѕРє Vn СЂР°РІРµРЅ РЅСѓР»СЋ
 		if (gr->type2 == Type_Gran_surf::HP && this->phys_param->is_div_V_in_cell == true)
 		{
 			gr->parameters["Pdiv_V"] = 0.0;
@@ -2688,12 +2895,12 @@ double Setka::Culc_Gran_Potok(Gran* gr, unsigned short int now, short int metod,
 
 		if (par_left.find("Q") != par_left.end())
 		{
-			gr->parameters["PQ"] = konvect[0] * area; // Может быть неправльный порядок при других конвективных переменных
+			gr->parameters["PQ"] = konvect[0] * area; // РњРѕР¶РµС‚ Р±С‹С‚СЊ РЅРµРїСЂР°РІР»СЊРЅС‹Р№ РїРѕСЂСЏРґРѕРє РїСЂРё РґСЂСѓРіРёС… РєРѕРЅРІРµРєС‚РёРІРЅС‹С… РїРµСЂРµРјРµРЅРЅС‹С…
 		}
 
 		if (par_left.find("rho_He") != par_left.end())
 		{
-			gr->parameters["Prho_He"] = konvect[1] * area; // Может быть неправльный порядок при других конвективных переменных
+			gr->parameters["Prho_He"] = konvect[1] * area; // РњРѕР¶РµС‚ Р±С‹С‚СЊ РЅРµРїСЂР°РІР»СЊРЅС‹Р№ РїРѕСЂСЏРґРѕРє РїСЂРё РґСЂСѓРіРёС… РєРѕРЅРІРµРєС‚РёРІРЅС‹С… РїРµСЂРµРјРµРЅРЅС‹С…
 		}
 
 		if (this->phys_param->is_PUI == true)
@@ -2782,13 +2989,13 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		exit(-1);
 	}
 
-	// Записываем есть ли особенная интерполяция на разрывах (или всё сплошным образом)
+	// Р—Р°РїРёСЃС‹РІР°РµРј РµСЃС‚СЊ Р»Рё РѕСЃРѕР±РµРЅРЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ РЅР° СЂР°Р·СЂС‹РІР°С… (РёР»Рё РІСЃС‘ СЃРїР»РѕС€РЅС‹Рј РѕР±СЂР°Р·РѕРј)
 	out.write(reinterpret_cast<const char*>(&razriv), sizeof(bool));
 
-	// Записываем до какого расстояния слева выделяется HP
+	// Р—Р°РїРёСЃС‹РІР°РµРј РґРѕ РєР°РєРѕРіРѕ СЂР°СЃСЃС‚РѕСЏРЅРёСЏ СЃР»РµРІР° РІС‹РґРµР»СЏРµС‚СЃСЏ HP
 	out.write(reinterpret_cast<const char*>(&this->geo->L6), sizeof(double));
 
-	// Добавляем ещё переменные для вывода  "BB/8pi"
+	// Р”РѕР±Р°РІР»СЏРµРј РµС‰С‘ РїРµСЂРµРјРµРЅРЅС‹Рµ РґР»СЏ РІС‹РІРѕРґР°  "BB/8pi"
 	if (true)
 	{
 		this->phys_param->param_names.push_back("BB/8pi");
@@ -2802,16 +3009,16 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	}
 
 
-	// Записываем количество строк
+	// Р—Р°РїРёСЃС‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє
 	size_t size = this->phys_param->param_names.size() + 1;
 	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
-	// Записываем каждую строку
+	// Р—Р°РїРёСЃС‹РІР°РµРј РєР°Р¶РґСѓСЋ СЃС‚СЂРѕРєСѓ
 	for (const auto& str : this->phys_param->param_names) {
-		// Сначала записываем длину строки
+		// РЎРЅР°С‡Р°Р»Р° Р·Р°РїРёСЃС‹РІР°РµРј РґР»РёРЅСѓ СЃС‚СЂРѕРєРё
 		size_t str_size = str.size();
 		out.write(reinterpret_cast<const char*>(&str_size), sizeof(str_size));
-		// Затем саму строку
+		// Р—Р°С‚РµРј СЃР°РјСѓ СЃС‚СЂРѕРєСѓ
 		out.write(str.data(), str_size);
 	}
 
@@ -2822,7 +3029,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	}
 	cout << endl;
 
-	// Добавляем геометрическую зону
+	// Р”РѕР±Р°РІР»СЏРµРј РіРµРѕРјРµС‚СЂРёС‡РµСЃРєСѓСЋ Р·РѕРЅСѓ
 	if (true)
 	{
 		string str = "zone_geo";
@@ -2831,12 +3038,12 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		out.write(str.data(), str_size);
 	}
 
-	// Считаем сколько дополнительных ячеек будет на внешней границе
+	// РЎС‡РёС‚Р°РµРј СЃРєРѕР»СЊРєРѕ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… СЏС‡РµРµРє Р±СѓРґРµС‚ РЅР° РІРЅРµС€РЅРµР№ РіСЂР°РЅРёС†Рµ
 	unsigned int gr_b = 0;
 
 	if (razriv == true)
 	{
-		//  Записываем первую зону
+		//  Р—Р°РїРёСЃС‹РІР°РµРј РїРµСЂРІСѓСЋ Р·РѕРЅСѓ
 		if (true)
 		{
 			for (const auto& Cel : this->All_Cell)
@@ -2845,8 +3052,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				if (Cel->is_need == 1) gr_b++;
 			}
 
-			// Записываем количество ячеек
-			size = gr_b + 1 + 2 * this->Gran_TS.size(); // Центр + доп точки на границе и за ней
+			// Р—Р°РїРёСЃС‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЏС‡РµРµРє
+			size = gr_b + 1 + 2 * this->Gran_TS.size(); // Р¦РµРЅС‚СЂ + РґРѕРї С‚РѕС‡РєРё РЅР° РіСЂР°РЅРёС†Рµ Рё Р·Р° РЅРµР№
 			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 			for (const auto& Cel : this->All_Cell)
@@ -2931,7 +3138,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 			}
 
-			// Записываем центральную точку
+			// Р—Р°РїРёСЃС‹РІР°РµРј С†РµРЅС‚СЂР°Р»СЊРЅСѓСЋ С‚РѕС‡РєСѓ
 			if (true)
 			{
 				double aa = 0.0;
@@ -2959,7 +3166,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			}
 		}
 
-		// Записываем вторую зону
+		// Р—Р°РїРёСЃС‹РІР°РµРј РІС‚РѕСЂСѓСЋ Р·РѕРЅСѓ
 		if (true)
 		{
 			gr_b = 0;
@@ -2969,8 +3176,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				if ((Cel->is_need == 2 || Cel->is_need == 3) && Cel->center[0][0] >= this->geo->L6 - 50.0) gr_b++;
 			}
 
-			// Записываем количество ячеек
-			size = gr_b + 2 * this->Gran_TS.size() + 0 * this->Gran_HP.size(); //доп точки на TS и HP
+			// Р—Р°РїРёСЃС‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЏС‡РµРµРє
+			size = gr_b + 2 * this->Gran_TS.size() + 0 * this->Gran_HP.size(); //РґРѕРї С‚РѕС‡РєРё РЅР° TS Рё HP
 			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 			for (const auto& Cel : this->All_Cell)
@@ -3118,7 +3325,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			}
 		}
 
-		// Записываем третью зону
+		// Р—Р°РїРёСЃС‹РІР°РµРј С‚СЂРµС‚СЊСЋ Р·РѕРЅСѓ
 		if (true)
 		{
 			gr_b = 0;
@@ -3128,8 +3335,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				if (Cel->is_need >= 2 && Cel->center[0][0] >= -20.0) gr_b++;
 			}
 
-			// Записываем количество ячеек
-			size = gr_b + 0 * this->Gran_HP.size() + 2 * this->Gran_BS.size(); //доп точки на TS и HP
+			// Р—Р°РїРёСЃС‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЏС‡РµРµРє
+			size = gr_b + 0 * this->Gran_HP.size() + 2 * this->Gran_BS.size(); //РґРѕРї С‚РѕС‡РєРё РЅР° TS Рё HP
 			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 			for (const auto& Cel : this->All_Cell)
@@ -3273,7 +3480,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 		}
 
-		// Записываем четвёртую зону
+		// Р—Р°РїРёСЃС‹РІР°РµРј С‡РµС‚РІС‘СЂС‚СѓСЋ Р·РѕРЅСѓ
 		if (true)
 		{
 			gr_b = 0;
@@ -3283,8 +3490,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				if ((Cel->is_need == 4 || Cel->is_need == 3) && Cel->center[0][0] >= -100.0) gr_b++;
 			}
 
-			// Записываем количество ячеек
-			size = gr_b + 3 * this->Gran_BS.size(); //доп точки на TS и HP
+			// Р—Р°РїРёСЃС‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЏС‡РµРµРє
+			size = gr_b + 3 * this->Gran_BS.size(); //РґРѕРї С‚РѕС‡РєРё РЅР° TS Рё HP
 			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 			for (const auto& Cel : this->All_Cell)
@@ -3386,7 +3593,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 		}
 
-		// Записываем пятую зону
+		// Р—Р°РїРёСЃС‹РІР°РµРј РїСЏС‚СѓСЋ Р·РѕРЅСѓ
 		if (true)
 		{
 			gr_b = 0;
@@ -3397,8 +3604,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 					&& Cel->center[0][0] <= 60.0) gr_b++;
 			}
 
-			// Записываем количество ячеек
-			size = gr_b + 2 * this->Gran_HP.size(); //доп точки на TS и HP
+			// Р—Р°РїРёСЃС‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЏС‡РµРµРє
+			size = gr_b + 2 * this->Gran_HP.size(); //РґРѕРї С‚РѕС‡РєРё РЅР° TS Рё HP
 			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 			for (const auto& Cel : this->All_Cell)
@@ -3485,7 +3692,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 		}
 
-		// Записываем шестую зону
+		// Р—Р°РїРёСЃС‹РІР°РµРј С€РµСЃС‚СѓСЋ Р·РѕРЅСѓ
 		if (true)
 	{
 		gr_b = 0;
@@ -3495,8 +3702,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			if (Cel->center[0][0] <= this->geo->L6 + 50.0) gr_b++;
 		}
 
-		// Записываем количество ячеек
-		size = gr_b; //доп точки на TS и HP
+		// Р—Р°РїРёСЃС‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЏС‡РµРµРє
+		size = gr_b; //РґРѕРї С‚РѕС‡РєРё РЅР° TS Рё HP
 		out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 		for (const auto& Cel : this->All_Cell)
@@ -3537,8 +3744,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				Cel->is_need = static_cast<short int>(Cel->type);
 			}
 
-			// Записываем количество ячеек
-			size = this->All_Cell.size(); // + Центр
+			// Р—Р°РїРёСЃС‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЏС‡РµРµРє
+			size = this->All_Cell.size(); // + Р¦РµРЅС‚СЂ
 			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 			for (const auto& Cel : this->All_Cell)
@@ -3567,7 +3774,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 			}
 
-			// Записываем центральную точку
+			// Р—Р°РїРёСЃС‹РІР°РµРј С†РµРЅС‚СЂР°Р»СЊРЅСѓСЋ С‚РѕС‡РєСѓ
 			if (false)
 			{
 				double aa = 0.0;
@@ -3596,8 +3803,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 		}
 	}
 
-	// Записываем дополнительные точки (на небольшом удалении от внешней границы, чтоб 
-	// убрать артефакты в интерполяции
+	// Р—Р°РїРёСЃС‹РІР°РµРј РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ С‚РѕС‡РєРё (РЅР° РЅРµР±РѕР»СЊС€РѕРј СѓРґР°Р»РµРЅРёРё РѕС‚ РІРЅРµС€РЅРµР№ РіСЂР°РЅРёС†С‹, С‡С‚РѕР± 
+	// СѓР±СЂР°С‚СЊ Р°СЂС‚РµС„Р°РєС‚С‹ РІ РёРЅС‚РµСЂРїРѕР»СЏС†РёРё
 	if (false)
 	{
 		Eigen::Vector3d C1, C2, C3, C4;
@@ -3636,7 +3843,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 
 	unordered_map<string, double> par_left, par_right;
-	// Запишем координаты поверхностей (на самом деле центров граней)
+	// Р—Р°РїРёС€РµРј РєРѕРѕСЂРґРёРЅР°С‚С‹ РїРѕРІРµСЂС…РЅРѕСЃС‚РµР№ (РЅР° СЃР°РјРѕРј РґРµР»Рµ С†РµРЅС‚СЂРѕРІ РіСЂР°РЅРµР№)
 
 	int test_i = 121;
 	out.write(reinterpret_cast<const char*>(&test_i), sizeof(int));
@@ -3678,7 +3885,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
-			// Симметрия phi
+			// РЎРёРјРјРµС‚СЂРёСЏ phi
 			phi_1 = phi_1 + 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -3695,7 +3902,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
-			// Симметрия phi
+			// РЎРёРјРјРµС‚СЂРёСЏ phi
 			phi_1 = phi_1 - 2 * const_pi;
 			phi_1 = phi_1 - 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
@@ -3713,8 +3920,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
-			// Симметрия - theta
-			phi_1 = phi_1 + 2 * const_pi;  // вернул
+			// РЎРёРјРјРµС‚СЂРёСЏ - theta
+			phi_1 = phi_1 + 2 * const_pi;  // РІРµСЂРЅСѓР»
 			the_1 = -the_1;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -3731,7 +3938,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
-			// Симметрия - theta  phi
+			// РЎРёРјРјРµС‚СЂРёСЏ - theta  phi
 			phi_1 = phi_1 + 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -3748,8 +3955,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
-			// Симметрия - theta  phi
-			phi_1 = phi_1 - 2 * const_pi; // вернул
+			// РЎРёРјРјРµС‚СЂРёСЏ - theta  phi
+			phi_1 = phi_1 - 2 * const_pi; // РІРµСЂРЅСѓР»
 			phi_1 = phi_1 - 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -3766,8 +3973,8 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
-			// Симметрия - theta
-			phi_1 = phi_1 + 2 * const_pi; // вернул
+			// РЎРёРјРјРµС‚СЂРёСЏ - theta
+			phi_1 = phi_1 + 2 * const_pi; // РІРµСЂРЅСѓР»
 			the_1 = -the_1;
 			the_1 = 2 * const_pi - the_1;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
@@ -3795,7 +4002,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	// HP
 	if (true)
 	{
-		// сначала радиальная запись HP
+		// СЃРЅР°С‡Р°Р»Р° СЂР°РґРёР°Р»СЊРЅР°СЏ Р·Р°РїРёСЃСЊ HP
 		size = 0;
 		for (const auto& gr : this->Gran_HP)
 		{
@@ -3834,7 +4041,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
-			// Симметрия phi
+			// РЎРёРјРјРµС‚СЂРёСЏ phi
 			phi_1 = phi_1 + 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -3848,7 +4055,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
-			// Симметрия phi
+			// РЎРёРјРјРµС‚СЂРёСЏ phi
 			phi_1 = phi_1 - 2 * const_pi;
 			phi_1 = phi_1 - 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
@@ -3863,7 +4070,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
-			// Симметрия - theta
+			// РЎРёРјРјРµС‚СЂРёСЏ - theta
 			phi_1 = phi_1 + 2 * const_pi;
 			the_1 = -the_1;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
@@ -3880,7 +4087,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 		}
 
-		// добавим нулевую точку 101 раз
+		// РґРѕР±Р°РІРёРј РЅСѓР»РµРІСѓСЋ С‚РѕС‡РєСѓ 101 СЂР°Р·
 		if(true)
 		{
 			double time;
@@ -3951,7 +4158,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 		}
 
-		// добавим нулевую точку 101 раз
+		// РґРѕР±Р°РІРёРј РЅСѓР»РµРІСѓСЋ С‚РѕС‡РєСѓ 101 СЂР°Р·
 		if (true)
 		{
 			double time;
@@ -4010,7 +4217,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	
 		outfile.close();
 
-		// Теперь цилиндрическая запись HP
+		// РўРµРїРµСЂСЊ С†РёР»РёРЅРґСЂРёС‡РµСЃРєР°СЏ Р·Р°РїРёСЃСЊ HP
 
 		size_t size_x = 100;
 		size_t size_phi = 120;
@@ -4082,7 +4289,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	// BS
 	if (true)
 	{
-		// сначала радиальная запись BS
+		// СЃРЅР°С‡Р°Р»Р° СЂР°РґРёР°Р»СЊРЅР°СЏ Р·Р°РїРёСЃСЊ BS
 		size = 0;
 		for (const auto& gr : this->Gran_BS)
 		{
@@ -4119,7 +4326,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
-			// Симметрия phi
+			// РЎРёРјРјРµС‚СЂРёСЏ phi
 			phi_1 = phi_1 + 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -4133,7 +4340,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
-			// Симметрия phi
+			// РЎРёРјРјРµС‚СЂРёСЏ phi
 			phi_1 = phi_1 - 2 * const_pi;
 			phi_1 = phi_1 - 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
@@ -4148,7 +4355,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
-			// Симметрия - theta
+			// РЎРёРјРјРµС‚СЂРёСЏ - theta
 			phi_1 = phi_1 + 2 * const_pi;
 			the_1 = -the_1;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
@@ -4165,7 +4372,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 		}
 
-		// добавим нулевую точку 101 раз
+		// РґРѕР±Р°РІРёРј РЅСѓР»РµРІСѓСЋ С‚РѕС‡РєСѓ 101 СЂР°Р·
 		if (true)
 		{
 			double time;
@@ -4236,7 +4443,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 
 		}
 
-		// добавим доп точку 120 раз
+		// РґРѕР±Р°РІРёРј РґРѕРї С‚РѕС‡РєСѓ 120 СЂР°Р·
 		if (true)
 		{
 			double time;
@@ -4318,13 +4525,13 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 	}
 
 	bool razriv = false;
-	// Записываем есть ли особенная интерполяция на разрывах (или всё сплошным образом)
+	// Р—Р°РїРёСЃС‹РІР°РµРј РµСЃС‚СЊ Р»Рё РѕСЃРѕР±РµРЅРЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ РЅР° СЂР°Р·СЂС‹РІР°С… (РёР»Рё РІСЃС‘ СЃРїР»РѕС€РЅС‹Рј РѕР±СЂР°Р·РѕРј)
 	out.write(reinterpret_cast<const char*>(&razriv), sizeof(bool));
 
-	// Записываем до какого расстояния слева выделяется HP
+	// Р—Р°РїРёСЃС‹РІР°РµРј РґРѕ РєР°РєРѕРіРѕ СЂР°СЃСЃС‚РѕСЏРЅРёСЏ СЃР»РµРІР° РІС‹РґРµР»СЏРµС‚СЃСЏ HP
 	out.write(reinterpret_cast<const char*>(&this->geo->L6), sizeof(double));
 
-	// Добавляем ещё переменные для вывода  "BB/8pi"
+	// Р”РѕР±Р°РІР»СЏРµРј РµС‰С‘ РїРµСЂРµРјРµРЅРЅС‹Рµ РґР»СЏ РІС‹РІРѕРґР°  "BB/8pi"
 	if (true)
 	{
 		this->phys_param->param_names.push_back("BB/8pi");
@@ -4338,16 +4545,16 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 	}
 
 
-	// Записываем количество строк
+	// Р—Р°РїРёСЃС‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє
 	size_t size = this->phys_param->param_names.size() + 1;
 	out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
-	// Записываем каждую строку
+	// Р—Р°РїРёСЃС‹РІР°РµРј РєР°Р¶РґСѓСЋ СЃС‚СЂРѕРєСѓ
 	for (const auto& str : this->phys_param->param_names) {
-		// Сначала записываем длину строки
+		// РЎРЅР°С‡Р°Р»Р° Р·Р°РїРёСЃС‹РІР°РµРј РґР»РёРЅСѓ СЃС‚СЂРѕРєРё
 		size_t str_size = str.size();
 		out.write(reinterpret_cast<const char*>(&str_size), sizeof(str_size));
-		// Затем саму строку
+		// Р—Р°С‚РµРј СЃР°РјСѓ СЃС‚СЂРѕРєСѓ
 		out.write(str.data(), str_size);
 	}
 
@@ -4358,7 +4565,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 	}
 	cout << endl;
 
-	// Добавляем геометрическую зону
+	// Р”РѕР±Р°РІР»СЏРµРј РіРµРѕРјРµС‚СЂРёС‡РµСЃРєСѓСЋ Р·РѕРЅСѓ
 	if (true)
 	{
 		string str = "zone_geo";
@@ -4367,7 +4574,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 		out.write(str.data(), str_size);
 	}
 
-	// Считаем сколько дополнительных ячеек будет на внешней границе
+	// РЎС‡РёС‚Р°РµРј СЃРєРѕР»СЊРєРѕ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… СЏС‡РµРµРє Р±СѓРґРµС‚ РЅР° РІРЅРµС€РЅРµР№ РіСЂР°РЅРёС†Рµ
 	unsigned int gr_b = 0;
 
 	if (true)
@@ -4384,8 +4591,8 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 
 			if (ZONA == Type_cell::Zone_1) N_cell++;
 
-			// Записываем количество ячеек
-			size = N_cell; // + Центр?
+			// Р—Р°РїРёСЃС‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЏС‡РµРµРє
+			size = N_cell; // + Р¦РµРЅС‚СЂ?
 			out.write(reinterpret_cast<const char*>(&size), sizeof(size));
 
 			for (const auto& Cel : this->All_Cell)
@@ -4415,7 +4622,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 				out.write(reinterpret_cast<const char*>(&zzz), sizeof(zzz));
 			}
 
-			// Записываем центральную точку
+			// Р—Р°РїРёСЃС‹РІР°РµРј С†РµРЅС‚СЂР°Р»СЊРЅСѓСЋ С‚РѕС‡РєСѓ
 			if (ZONA == Type_cell::Zone_1)
 			{
 				double aa = 0.0;
@@ -4445,7 +4652,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 	}
 
 	unordered_map<string, double> par_left, par_right;
-	// Запишем координаты поверхностей (на самом деле центров граней)
+	// Р—Р°РїРёС€РµРј РєРѕРѕСЂРґРёРЅР°С‚С‹ РїРѕРІРµСЂС…РЅРѕСЃС‚РµР№ (РЅР° СЃР°РјРѕРј РґРµР»Рµ С†РµРЅС‚СЂРѕРІ РіСЂР°РЅРµР№)
 
 	int test_i = 121;
 	out.write(reinterpret_cast<const char*>(&test_i), sizeof(int));
@@ -4487,7 +4694,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
-			// Симметрия phi
+			// РЎРёРјРјРµС‚СЂРёСЏ phi
 			phi_1 = phi_1 + 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -4504,7 +4711,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
-			// Симметрия phi
+			// РЎРёРјРјРµС‚СЂРёСЏ phi
 			phi_1 = phi_1 - 2 * const_pi;
 			phi_1 = phi_1 - 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
@@ -4522,8 +4729,8 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
-			// Симметрия - theta
-			phi_1 = phi_1 + 2 * const_pi;  // вернул
+			// РЎРёРјРјРµС‚СЂРёСЏ - theta
+			phi_1 = phi_1 + 2 * const_pi;  // РІРµСЂРЅСѓР»
 			the_1 = -the_1;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -4540,7 +4747,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
-			// Симметрия - theta  phi
+			// РЎРёРјРјРµС‚СЂРёСЏ - theta  phi
 			phi_1 = phi_1 + 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -4557,8 +4764,8 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
-			// Симметрия - theta  phi
-			phi_1 = phi_1 - 2 * const_pi; // вернул
+			// РЎРёРјРјРµС‚СЂРёСЏ - theta  phi
+			phi_1 = phi_1 - 2 * const_pi; // РІРµСЂРЅСѓР»
 			phi_1 = phi_1 - 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -4575,8 +4782,8 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 				out.write(reinterpret_cast<const char*>(&par_right[str]), sizeof(cc));
 			}
 
-			// Симметрия - theta
-			phi_1 = phi_1 + 2 * const_pi; // вернул
+			// РЎРёРјРјРµС‚СЂРёСЏ - theta
+			phi_1 = phi_1 + 2 * const_pi; // РІРµСЂРЅСѓР»
 			the_1 = -the_1;
 			the_1 = 2 * const_pi - the_1;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
@@ -4604,7 +4811,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 	// HP
 	if (true)
 	{
-		// сначала радиальная запись HP
+		// СЃРЅР°С‡Р°Р»Р° СЂР°РґРёР°Р»СЊРЅР°СЏ Р·Р°РїРёСЃСЊ HP
 		size = 0;
 		for (const auto& gr : this->Gran_HP)
 		{
@@ -4643,7 +4850,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
-			// Симметрия phi
+			// РЎРёРјРјРµС‚СЂРёСЏ phi
 			phi_1 = phi_1 + 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -4657,7 +4864,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
-			// Симметрия phi
+			// РЎРёРјРјРµС‚СЂРёСЏ phi
 			phi_1 = phi_1 - 2 * const_pi;
 			phi_1 = phi_1 - 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
@@ -4672,7 +4879,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
-			// Симметрия - theta
+			// РЎРёРјРјРµС‚СЂРёСЏ - theta
 			phi_1 = phi_1 + 2 * const_pi;
 			the_1 = -the_1;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
@@ -4689,7 +4896,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 
 		}
 
-		// добавим нулевую точку 101 раз
+		// РґРѕР±Р°РІРёРј РЅСѓР»РµРІСѓСЋ С‚РѕС‡РєСѓ 101 СЂР°Р·
 		if (true)
 		{
 			double time;
@@ -4760,7 +4967,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 
 		}
 
-		// добавим нулевую точку 101 раз
+		// РґРѕР±Р°РІРёРј РЅСѓР»РµРІСѓСЋ С‚РѕС‡РєСѓ 101 СЂР°Р·
 		if (true)
 		{
 			double time;
@@ -4819,7 +5026,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 
 		outfile.close();
 
-		// Теперь цилиндрическая запись HP
+		// РўРµРїРµСЂСЊ С†РёР»РёРЅРґСЂРёС‡РµСЃРєР°СЏ Р·Р°РїРёСЃСЊ HP
 
 		size_t size_x = 100;
 		size_t size_phi = 120;
@@ -4891,7 +5098,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 	// BS
 	if (true)
 	{
-		// сначала радиальная запись BS
+		// СЃРЅР°С‡Р°Р»Р° СЂР°РґРёР°Р»СЊРЅР°СЏ Р·Р°РїРёСЃСЊ BS
 		size = 0;
 		for (const auto& gr : this->Gran_BS)
 		{
@@ -4928,7 +5135,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
-			// Симметрия phi
+			// РЎРёРјРјРµС‚СЂРёСЏ phi
 			phi_1 = phi_1 + 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
 			out.write(reinterpret_cast<const char*>(&phi_1), sizeof(cc));
@@ -4942,7 +5149,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
-			// Симметрия phi
+			// РЎРёРјРјРµС‚СЂРёСЏ phi
 			phi_1 = phi_1 - 2 * const_pi;
 			phi_1 = phi_1 - 2 * const_pi;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
@@ -4957,7 +5164,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 			out.write(reinterpret_cast<const char*>(&par_left["rho"]), sizeof(cc));
 			out.write(reinterpret_cast<const char*>(&par_right["rho"]), sizeof(cc));
 
-			// Симметрия - theta
+			// РЎРёРјРјРµС‚СЂРёСЏ - theta
 			phi_1 = phi_1 + 2 * const_pi;
 			the_1 = -the_1;
 			out.write(reinterpret_cast<const char*>(&the_1), sizeof(bb));
@@ -4974,7 +5181,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 
 		}
 
-		// добавим нулевую точку 101 раз
+		// РґРѕР±Р°РІРёРј РЅСѓР»РµРІСѓСЋ С‚РѕС‡РєСѓ 101 СЂР°Р·
 		if (true)
 		{
 			double time;
@@ -5045,7 +5252,7 @@ void Setka::Save_for_interpolate_one_zone_only(string filename, Type_cell ZONA)
 
 		}
 
-		// добавим доп точку 120 раз
+		// РґРѕР±Р°РІРёРј РґРѕРї С‚РѕС‡РєСѓ 120 СЂР°Р·
 		if (true)
 		{
 			double time;
@@ -5165,18 +5372,18 @@ void Setka::Save_cell_parameters(string filename)
 
 	for (auto& i : this->All_Cell)
 	{
-		// Записываем количество элементов
+		// Р—Р°РїРёСЃС‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЌР»РµРјРµРЅС‚РѕРІ
 		size_t size = i->parameters[0].size();
 		out.write(reinterpret_cast<const char*>(&size), sizeof(size_t));
 
-		// Записываем каждую пару ключ-значение
+		// Р—Р°РїРёСЃС‹РІР°РµРј РєР°Р¶РґСѓСЋ РїР°СЂСѓ РєР»СЋС‡-Р·РЅР°С‡РµРЅРёРµ
 		for (const auto& pair : i->parameters[0]) {
-			// Сначала записываем длину ключа и сам ключ
+			// РЎРЅР°С‡Р°Р»Р° Р·Р°РїРёСЃС‹РІР°РµРј РґР»РёРЅСѓ РєР»СЋС‡Р° Рё СЃР°Рј РєР»СЋС‡
 			size_t key_size = pair.first.size();
 			out.write(reinterpret_cast<const char*>(&key_size), sizeof(size_t));
 			out.write(pair.first.c_str(), key_size);
 
-			// Затем записываем значение
+			// Р—Р°С‚РµРј Р·Р°РїРёСЃС‹РІР°РµРј Р·РЅР°С‡РµРЅРёРµ
 			out.write(reinterpret_cast<const char*>(&pair.second), sizeof(double));
 		}
 	}
@@ -5184,7 +5391,7 @@ void Setka::Save_cell_parameters(string filename)
 	bool bb;
 
 	
-	// Записываем координаты узлов
+	// Р—Р°РїРёСЃС‹РІР°РµРј РєРѕРѕСЂРґРёРЅР°С‚С‹ СѓР·Р»РѕРІ
 	bb = true;
 	out.write(reinterpret_cast<const char*>(&bb), sizeof(bb));
 	size_t size = this->All_Yzel.size();
@@ -5201,7 +5408,7 @@ void Setka::Save_cell_parameters(string filename)
 
 
 
-	// Записываем для будующих считываний
+	// Р—Р°РїРёСЃС‹РІР°РµРј РґР»СЏ Р±СѓРґСѓСЋС‰РёС… СЃС‡РёС‚С‹РІР°РЅРёР№
 	bb = false;
 	for (int i = 0; i < 1000; i++)
 	{
@@ -5232,7 +5439,7 @@ void Setka::Save_cell_MK_parameters(string filename)
 
 	for (auto& i : this->All_Cell)
 	{
-		// Записываем каждую пару ключ-значение
+		// Р—Р°РїРёСЃС‹РІР°РµРј РєР°Р¶РґСѓСЋ РїР°СЂСѓ РєР»СЋС‡-Р·РЅР°С‡РµРЅРёРµ
 		for (const auto& pair : this->phys_param->MK_param)
 		{
 			if (i->parameters[0].find(pair) == i->parameters[0].end())
@@ -5243,14 +5450,14 @@ void Setka::Save_cell_MK_parameters(string filename)
 				i->parameters[0][pair] = 0.0;
 			}
 
-			// записываем значение
+			// Р·Р°РїРёСЃС‹РІР°РµРј Р·РЅР°С‡РµРЅРёРµ
 			out.write(reinterpret_cast<const char*>(&i->parameters[0][pair]), sizeof(double));
 		}
 	}
 
 	bool bb;
 
-	// Записываем для будущих считываний
+	// Р—Р°РїРёСЃС‹РІР°РµРј РґР»СЏ Р±СѓРґСѓС‰РёС… СЃС‡РёС‚С‹РІР°РЅРёР№
 	bb = false;
 	for (int i = 0; i < 1000; i++)
 	{
@@ -5269,12 +5476,12 @@ void Setka::Download_cell_parameters(string filename)
 
 	for (auto& ii : this->All_Cell)
 	{
-		// Читаем количество элементов
+		// Р§РёС‚Р°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЌР»РµРјРµРЅС‚РѕРІ
 		size_t size;
 		in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
 
 		for (size_t i = 0; i < size; ++i) {
-			// Читаем ключ
+			// Р§РёС‚Р°РµРј РєР»СЋС‡
 			size_t key_size;
 			in.read(reinterpret_cast<char*>(&key_size), sizeof(size_t));
 
@@ -5282,7 +5489,7 @@ void Setka::Download_cell_parameters(string filename)
 			in.read(key_buffer.data(), key_size);
 			std::string key(key_buffer.begin(), key_buffer.end());
 
-			// Читаем значение
+			// Р§РёС‚Р°РµРј Р·РЅР°С‡РµРЅРёРµ
 			double value;
 			in.read(reinterpret_cast<char*>(&value), sizeof(double));
 
@@ -5303,7 +5510,7 @@ void Setka::Download_cell_parameters(string filename)
 
 	bool bb;
 
-	// Читаем координаты узлов
+	// Р§РёС‚Р°РµРј РєРѕРѕСЂРґРёРЅР°С‚С‹ СѓР·Р»РѕРІ
 	in.read(reinterpret_cast<char*>(&bb), sizeof(bb));
 	if (bb == true)
 	{
@@ -5311,14 +5518,14 @@ void Setka::Download_cell_parameters(string filename)
 		in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
 		double x, y, z;
 
-		// Чтение координат каждого узла
+		// Р§С‚РµРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚ РєР°Р¶РґРѕРіРѕ СѓР·Р»Р°
 		for (size_t i = 0; i < size; ++i) 
 		{
 			in.read(reinterpret_cast<char*>(&x), sizeof(double));
 			in.read(reinterpret_cast<char*>(&y), sizeof(double));
 			in.read(reinterpret_cast<char*>(&z), sizeof(double));
 
-			// Заполняем координаты узла
+			// Р—Р°РїРѕР»РЅСЏРµРј РєРѕРѕСЂРґРёРЅР°С‚С‹ СѓР·Р»Р°
 			auto yz = this->All_Yzel[i];
 			yz->coord[0][0] = x;
 			yz->coord[0][1] = y;
@@ -5350,7 +5557,7 @@ void Setka::Download_cell_MK_parameters(string filename, short int zone_except)
 	in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
 	for (size_t i = 0; i < size; ++i)
 	{
-		// Читаем ключ
+		// Р§РёС‚Р°РµРј РєР»СЋС‡
 		size_t key_size;
 		in.read(reinterpret_cast<char*>(&key_size), sizeof(size_t));
 
@@ -5369,7 +5576,7 @@ void Setka::Download_cell_MK_parameters(string filename, short int zone_except)
 
 		for (const auto& pair : param_file)
 		{
-			// Читаем значение
+			// Р§РёС‚Р°РµРј Р·РЅР°С‡РµРЅРёРµ
 			double value;
 			in.read(reinterpret_cast<char*>(&value), sizeof(double));
 
@@ -5399,7 +5606,7 @@ void Setka::PereInterpolate(string filename, bool move, bool MK_only)
 void Setka::PereInterpolate(Interpol* SS, bool move, bool MK_only)
 {
 	cout << "PereInterpolate: step 2/4" << endl;
-	// Сначала двигаем все поверхности
+	// РЎРЅР°С‡Р°Р»Р° РґРІРёРіР°РµРј РІСЃРµ РїРѕРІРµСЂС…РЅРѕСЃС‚Рё
 	if (move)
 	{
 		double x, y, z, r, rr, the, phi, R_BS;
@@ -5678,7 +5885,7 @@ void Setka::PereInterpolate(Interpol* SS, bool move, bool MK_only)
 				}
 			}
 
-			// Двигаем BS для B E D лучей
+			// Р”РІРёРіР°РµРј BS РґР»СЏ B E D Р»СѓС‡РµР№
 			for (int i = 0; i < this->B_Luch.size(); i++)
 			{
 				R_BS = this->A_Luch[i].back()->Yzels_opor[3]->func_R(0);
@@ -5724,7 +5931,7 @@ void Setka::PereInterpolate(Interpol* SS, bool move, bool MK_only)
 
 	cout << "PereInterpolate: step 3/4" << endl;
 
-	// Теперь переинтерполируем все значения в ячейках
+	// РўРµРїРµСЂСЊ РїРµСЂРµРёРЅС‚РµСЂРїРѕР»РёСЂСѓРµРј РІСЃРµ Р·РЅР°С‡РµРЅРёСЏ РІ СЏС‡РµР№РєР°С…
 
 	std::unordered_map<string, double> param;
 	std::array<Cell_handle, 6> prev_cell;
@@ -5738,20 +5945,20 @@ void Setka::PereInterpolate(Interpol* SS, bool move, bool MK_only)
 		y = cel->center[0][1];
 		z = cel->center[0][2];
 		bool bb;
-		bb = SS->Get_param(x, y, z, param, prev_cell, next_cell);     // Интерполируем переменные
+		bb = SS->Get_param(x, y, z, param, prev_cell, next_cell);     // РРЅС‚РµСЂРїРѕР»РёСЂСѓРµРј РїРµСЂРµРјРµРЅРЅС‹Рµ
 		while(bb == false)
 		{	
 			x = x * 0.99;
 			y = y * 0.99;
 			z = z * 0.99;
-			bb = SS->Get_param(x, y, z, param, prev_cell, next_cell);     // Интерполируем переменные
+			bb = SS->Get_param(x, y, z, param, prev_cell, next_cell);     // РРЅС‚РµСЂРїРѕР»РёСЂСѓРµРј РїРµСЂРµРјРµРЅРЅС‹Рµ
 			if (bb == false)
 			{
 				cout << "ifuhueiruoweiohgf83478  Warning! pereinterpolate x,y,z " << x << " " << y << " " << z << endl;
 			}
 		}
 
-		for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // Обновляем предыдущую ячейку
+		for (short int i = 0; i < 6; i++) prev_cell[i] = next_cell[i]; // РћР±РЅРѕРІР»СЏРµРј РїСЂРµРґС‹РґСѓС‰СѓСЋ СЏС‡РµР№РєСѓ
 		for (const auto& [key, value] : param)
 		{
 			if (MK_only == false || std::find(this->phys_param->MK_param.begin(), this->phys_param->MK_param.end(), key) != this->phys_param->MK_param.end())
@@ -5767,13 +5974,13 @@ void Setka::PereInterpolate(Interpol* SS, bool move, bool MK_only)
 
 void Setka::Culc_rotors_in_cell(void)
 {
-	// Это не обычный ротер, а делённый на B^2
+	// Р­С‚Рѕ РЅРµ РѕР±С‹С‡РЅС‹Р№ СЂРѕС‚РµСЂ, Р° РґРµР»С‘РЅРЅС‹Р№ РЅР° B^2
 	cout << "Start: Culc_rotor_in_cell" << endl;
 
 	this->phys_param->param_names.push_back("rotB/b2_x");
 	this->phys_param->param_names.push_back("rotB/b2_y");
 	this->phys_param->param_names.push_back("rotB/b2_z");
-	// Добавили переменную для интерполяции
+	// Р”РѕР±Р°РІРёР»Рё РїРµСЂРµРјРµРЅРЅСѓСЋ РґР»СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёРё
 	unsigned int k1 = 0;
 
 #pragma omp parallel for schedule(dynamic)
@@ -5790,7 +5997,7 @@ void Setka::Culc_rotors_in_cell(void)
 			}
 		}
 
-		int n = 0;  // Число элементов матрицы или граней в ячейке
+		int n = 0;  // Р§РёСЃР»Рѕ СЌР»РµРјРµРЅС‚РѕРІ РјР°С‚СЂРёС†С‹ РёР»Рё РіСЂР°РЅРµР№ РІ СЏС‡РµР№РєРµ
 		n = cell->grans.size();
 		Eigen::MatrixXd M(n, 3);
 		Eigen::VectorXd F(n);
@@ -5952,12 +6159,12 @@ void Setka::Culc_usual_rotors_in_cell(void)
 {
 	cout << "Start: Culc_rotor_in_cell" << endl;
 
-	bool r_mult = false;  // Предварительное домножение магнитного поля на r
+	bool r_mult = false;  // РџСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕРµ РґРѕРјРЅРѕР¶РµРЅРёРµ РјР°РіРЅРёС‚РЅРѕРіРѕ РїРѕР»СЏ РЅР° r
 
 	this->phys_param->param_names.push_back("rotB_x");
 	this->phys_param->param_names.push_back("rotB_y");
 	this->phys_param->param_names.push_back("rotB_z");
-	// Добавили переменную для интерполяции
+	// Р”РѕР±Р°РІРёР»Рё РїРµСЂРµРјРµРЅРЅСѓСЋ РґР»СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёРё
 	unsigned int k1 = 0;
 
 
@@ -5987,7 +6194,7 @@ void Setka::Culc_usual_rotors_in_cell(void)
 			}
 		}
 
-		int n = 0;  // Число элементов матрицы или граней в ячейке
+		int n = 0;  // Р§РёСЃР»Рѕ СЌР»РµРјРµРЅС‚РѕРІ РјР°С‚СЂРёС†С‹ РёР»Рё РіСЂР°РЅРµР№ РІ СЏС‡РµР№РєРµ
 		n = cell->grans.size();
 		Eigen::MatrixXd M(n, 3);
 		Eigen::VectorXd F(n);
@@ -6182,12 +6389,12 @@ void Setka::Culc_usual_rotors_in_cell_2(void)
 
 	//fine_int = SS.Get_param(C(0), C(1), C(2), parameters);
 
-	bool r_mult = false;  // Предварительное домножение магнитного поля на r
+	bool r_mult = false;  // РџСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕРµ РґРѕРјРЅРѕР¶РµРЅРёРµ РјР°РіРЅРёС‚РЅРѕРіРѕ РїРѕР»СЏ РЅР° r
 
 	this->phys_param->param_names.push_back("rotB_x");
 	this->phys_param->param_names.push_back("rotB_y");
 	this->phys_param->param_names.push_back("rotB_z");
-	// Добавили переменную для интерполяции
+	// Р”РѕР±Р°РІРёР»Рё РїРµСЂРµРјРµРЅРЅСѓСЋ РґР»СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёРё
 	unsigned int k1 = 0;
 
 
@@ -6217,7 +6424,7 @@ void Setka::Culc_usual_rotors_in_cell_2(void)
 			}
 		}
 
-		int n = 0;  // Число элементов матрицы или граней в ячейке
+		int n = 0;  // Р§РёСЃР»Рѕ СЌР»РµРјРµРЅС‚РѕРІ РјР°С‚СЂРёС†С‹ РёР»Рё РіСЂР°РЅРµР№ РІ СЏС‡РµР№РєРµ
 		n = cell->grans.size();
 		Eigen::MatrixXd M(n, 3);
 		Eigen::VectorXd F(n);
@@ -6412,12 +6619,12 @@ void Setka::Culc_usual_rotors_in_cell_from_interpol(void)
 
 	//fine_int = SS.Get_param(C(0), C(1), C(2), parameters);
 
-	bool r_mult = false;  // Предварительное домножение магнитного поля на r
+	bool r_mult = false;  // РџСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕРµ РґРѕРјРЅРѕР¶РµРЅРёРµ РјР°РіРЅРёС‚РЅРѕРіРѕ РїРѕР»СЏ РЅР° r
 
 	this->phys_param->param_names.push_back("rotB_x");
 	this->phys_param->param_names.push_back("rotB_y");
 	this->phys_param->param_names.push_back("rotB_z");
-	// Добавили переменную для интерполяции
+	// Р”РѕР±Р°РІРёР»Рё РїРµСЂРµРјРµРЅРЅСѓСЋ РґР»СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёРё
 	unsigned int k1 = 0;
 
 
@@ -6450,7 +6657,7 @@ void Setka::Culc_usual_rotors_in_cell_from_interpol(void)
 			}
 		}
 
-		int n = 0;  // Число элементов матрицы или граней в ячейке
+		int n = 0;  // Р§РёСЃР»Рѕ СЌР»РµРјРµРЅС‚РѕРІ РјР°С‚СЂРёС†С‹ РёР»Рё РіСЂР°РЅРµР№ РІ СЏС‡РµР№РєРµ
 		n = cell->grans.size();
 		Eigen::MatrixXd M(n, 3);
 		Eigen::VectorXd F(n);
@@ -6625,7 +6832,7 @@ void Setka::Culc_divergence_in_cell(void)
 	//this->phys_param->param_names.push_back("et_x");
 	//this->phys_param->param_names.push_back("et_y");
 	//this->phys_param->param_names.push_back("et_z");
-	// Добавили переменную для интерполяции
+	// Р”РѕР±Р°РІРёР»Рё РїРµСЂРµРјРµРЅРЅСѓСЋ РґР»СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёРё
 
 #pragma omp parallel for
 	for (size_t i_step = 0; i_step < this->All_Cell.size(); i_step++)
@@ -6641,7 +6848,7 @@ void Setka::Culc_divergence_in_cell(void)
 		double DIVk_z = 0.0;
 
 
-		// пробегаемся по всем граням 
+		// РїСЂРѕР±РµРіР°РµРјСЃСЏ РїРѕ РІСЃРµРј РіСЂР°РЅСЏРј 
 		for (const auto& gr : cell->grans)
 		{
 			eB << 0.0, 0.0, 0.0;
@@ -6753,7 +6960,7 @@ void Setka::Culc_gradient_in_cell(void)
 	//this->phys_param->param_names.push_back("et_x");
 	//this->phys_param->param_names.push_back("et_y");
 	//this->phys_param->param_names.push_back("et_z");
-	// Добавили переменную для интерполяции
+	// Р”РѕР±Р°РІРёР»Рё РїРµСЂРµРјРµРЅРЅСѓСЋ РґР»СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёРё
 
 #pragma omp parallel for
 	for (size_t i_step = 0; i_step < this->All_Cell.size(); i_step++)
@@ -6768,7 +6975,7 @@ void Setka::Culc_gradient_in_cell(void)
 		double gr_z = 0.0;
 
 
-		// пробегаемся по всем граням 
+		// РїСЂРѕР±РµРіР°РµРјСЃСЏ РїРѕ РІСЃРµРј РіСЂР°РЅСЏРј 
 		for (const auto& gr : cell->grans)
 		{
 			eB << 0.0, 0.0, 0.0;

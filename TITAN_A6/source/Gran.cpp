@@ -11,7 +11,8 @@ short int Gran::Get_method()
 	//if (this->type2 != Type_Gran_surf::Us) return 3;
 	//return 0;
 
-	//if (norm2(0.0, this->center[0][1], this->center[0][2]) >= 330.0) return 0;
+	if (this->center[0][0] < 100.0) return 0;
+
 
 	if (this->type2 == Type_Gran_surf::Us)
 	{

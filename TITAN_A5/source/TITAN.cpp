@@ -193,13 +193,14 @@ int main()
     //   c 10 начал ручное передвижение сетки, потом в 11 его подкорректировал, с 12 начал считать
 
 
-    S1.Download_cell_parameters("parameters_A5_0056.bin");    
+    S1.Download_cell_parameters("parameters_A5_0066.bin");  //60   
     // на 46 подвинул поверхности вручную
-    // 50 - просчитал всё Лаксом и первым порядком - TS почему-то круглая
-    // 51 - хочу просчитать всё HLLC и вторым порядком + особый снос в сверхзвуке
+    // 
+    // 63 - Лакс и вторым порядком + особый снос в сверхзвуке
+    // 60 - запустил движение поверхностей
     // 
     //S1.Download_cell_parameters("parameters_A5_0047.bin");  
-
+    
 
     //S1.Download_cell_parameters("parameters_promeg_1121.bin");  
 
@@ -227,6 +228,7 @@ int main()
     {
         // Точно задаём положение внутренней границы сетки
         S1.geo->R0 = S1.phys_param->R_0;
+        S1.geo->R1 = 20.0;
 
         // Автоматически подстраиваем геометрические параметры сетки под новые положения узлов
         S1.auto_set_luch_geo_parameter(0);
@@ -349,7 +351,6 @@ int main()
 
     }
 
-
     //  Ручное изменение BS
     if (false)
     {
@@ -387,7 +388,7 @@ int main()
         cout << "END Hand" << endl;
     }
 
-  
+    //S1.PereInterpolate("For_intertpolate_0083-no_razriv-with_MK.bin", false);
 
     cout << "A-" << endl;
     // Задаём начальные и граничные условия
@@ -488,7 +489,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0056.bin");
+    S1.Save_cell_parameters("parameters_A5_0066.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -555,9 +556,9 @@ int main()
 
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0083-no_razriv-with_MK.bin", false);
+    S1.Save_for_interpolate("For_intertpolate_0084-no_razriv-with_MK.bin", false);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0083-no_razriv-with_MK.bin");
+    Interpol SS = Interpol("For_intertpolate_0084-no_razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");

@@ -1132,7 +1132,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		zones_number.push_back(7); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		//zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 
 
 		

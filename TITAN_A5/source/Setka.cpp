@@ -1761,8 +1761,8 @@ void Setka::New_initial(string name_setka_2d, string name_setka_krug)
 	if (true) 
 	{
 		// SET_PARAMETER   &INIT&
-		this->geo->R1 = 7.5;
-		this->geo->R2 = 20.0;
+		this->geo->R1 = 20.0;
+		this->geo->R2 = 25.0;
 		this->geo->R3 = 30.0;
 		this->geo->R4 = 140.0;
 		this->geo->R5 = 400.0;

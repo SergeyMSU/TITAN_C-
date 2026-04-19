@@ -501,7 +501,7 @@ void Setka::Init_physics(void)
 	}
 
 	// Задаём начальные условия на сетке
-	if (true)
+	if (false)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -511,20 +511,21 @@ void Setka::Init_physics(void)
 			r = i->func_R(0);
 			double yy = norm2(0.0, y, z);
 
-			//if (r < 20.0)
-			if (kv(x + 13.7)/1156.0 + kv(yy)/784.0 <= 1.0)
+			if (r < 20.0)
+			//if (kv(x + 13.7)/1156.0 + kv(yy)/784.0 <= 1.0)
+			//if (false)
 			{
 				the = acos(z / r);
 
-				BR = -124293.0 * kv(0.0000253971 / r);
-				BPHI = -0.2 * BR * sin(the) * (r / 0.0000253971);
+				BR = -0.248585 * kv(3.00503 / r);
+				BPHI = -0.2 * BR * sin(the) * (r / 3.00503);
 
 				dekard_skorost(z, x, y, BR, BPHI, 0.0, V3, V1, V2);
 
 				mV = 66.6667;
 
-				i->parameters[0]["rho"] = 0.0348829 * pow(this->phys_param->R_0 / r, 2);
-				i->parameters[0]["p"] = 3.72085 * pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
+				i->parameters[0]["rho"] = 0.0249164 * pow(3.00503 / r, 2);
+				i->parameters[0]["p"] = 2.65775 * pow(3.00503 / r, 2 * this->phys_param->gamma);
 
 
 				i->parameters[0]["Vx"] = mV * x / r;
@@ -537,7 +538,7 @@ void Setka::Init_physics(void)
 
 				i->parameters[0]["Q"] = i->parameters[0]["rho"];
 			}
-			else if(x > 120.0)
+			else if (false)//(x < -140.0 && norm2(0.0, y, z) < 80.0)
 			{
 				i->parameters[0]["rho"] = this->phys_param->rho_LISM; 
 				i->parameters[0]["p"] = this->phys_param->rho_p_LISM; 
@@ -584,15 +585,15 @@ void Setka::Init_physics(void)
 
 				the = acos(z / r);
 
-				BR = -124293.0 * kv(0.0000253971 / r);
-				BPHI = -0.2 * BR * sin(the) * (r / 0.0000253971);
+				BR = -0.248585 * kv(3.00503 / r);
+				BPHI = -0.2 * BR * sin(the) * (r / 3.00503);
 
 				dekard_skorost(z, x, y, BR, BPHI, 0.0, V3, V1, V2);
 
 				mV = 66.6667;
 
-				i->parameters["rho"] = 0.0249164 * pow(this->phys_param->R_0 / r, 2);
-				i->parameters["p"] = 2.65775 * pow(this->phys_param->R_0 / r, 2 * this->phys_param->gamma);
+				i->parameters["rho"] = 0.0249164 * pow(3.00503 / r, 2);
+				i->parameters["p"] = 2.65775 * pow(3.00503 / r, 2 * this->phys_param->gamma);
 
 
 				i->parameters["Vx"] = mV * x/r;
@@ -1625,7 +1626,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 	cout << "Vibor area" << endl;
 	// Если хотим отдельно считать внутреннюю и наружнюю области
-	if (true)
+	if (false)
 	{
 		if (is_inner_area == true)
 		{
@@ -2159,7 +2160,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 
 				if (cell->center[now1][0] < -40.0 && u3 > 0.0)
 				{
-					cout << "U < 0 " << u3 << " " << cell->center[now1][0] << endl;
+					//cout << "U < 0 " << u3 << " " << cell->center[now1][0] << endl;
 					u3 = -10.0;
 				}
 

@@ -11,6 +11,7 @@ void Luch::dvigenie(int i_time)
 		double R0 = this->geo->R0;
 		double R1 = this->geo->R1;
 		double R2 = this->Yzels_opor[1]->func_R(i_time);
+		//cout << "A_Luch  " << R0 << " " << R1 << " " << R2 << endl;
 		double R3 = this->Yzels_opor[2]->func_R(i_time);
 		double R4 = this->Yzels_opor[3]->func_R(i_time);
 		double R5 = this->geo->R5;
@@ -51,7 +52,13 @@ void Luch::dvigenie(int i_time)
 			this->Yzels[j]->coord[i_time][1] = r * sin(the) * cos(phi);
 			this->Yzels[j]->coord[i_time][2] = r * sin(the) * sin(phi);
 		}
-		num += M0 + 1;
+		//num += M0 + 1;
+
+		num += M0;
+		this->Yzels[num]->coord[i_time][0] = R1 * cos(the);
+		this->Yzels[num]->coord[i_time][1] = R1 * sin(the) * cos(phi);
+		this->Yzels[num]->coord[i_time][2] = R1 * sin(the) * sin(phi);
+		num += 1;
 
 		for (int j = 0; j < M1; j++)
 		{
@@ -216,7 +223,12 @@ void Luch::dvigenie(int i_time)
 			this->Yzels[num + j]->coord[i_time][1] = r * sin(the) * cos(phi);
 			this->Yzels[num + j]->coord[i_time][2] = r * sin(the) * sin(phi);
 		}
-		num += M0 + 1;
+		//num += M0 + 1;
+		num += M0;
+		this->Yzels[num]->coord[i_time][0] = R1 * cos(the);
+		this->Yzels[num]->coord[i_time][1] = R1 * sin(the) * cos(phi);
+		this->Yzels[num]->coord[i_time][2] = R1 * sin(the) * sin(phi);
+		num += 1;
 
 
 		for (int j = 0; j < M1; j++)
@@ -294,6 +306,7 @@ void Luch::dvigenie(int i_time)
 		double R1 = this->geo->R1;
 		double R5 = this->geo->R5;
 		double R2 = this->Yzels_opor[1]->func_R(i_time); // TS
+		//cout << "B_Luch  " << R0 << " " << R1 << " " << R2 << endl;
 		double R3 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) + 
 			kv(this->Yzels_opor[2]->coord[i_time][2])); // HP (расстояние от HP до оси вращения)
 		//double xHP = this->Yzels_opor[2]->coord[i_time][0];
