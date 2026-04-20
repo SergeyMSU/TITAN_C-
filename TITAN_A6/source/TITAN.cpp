@@ -232,7 +232,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0083.bin");
+    S1.Save_cell_parameters("parameters_0084.bin");
     // 81 - это первый вариант
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
