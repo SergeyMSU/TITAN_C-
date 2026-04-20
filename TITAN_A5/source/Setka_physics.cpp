@@ -511,7 +511,7 @@ void Setka::Init_physics(void)
 			r = i->func_R(0);
 			double yy = norm2(0.0, y, z);
 
-			if (r < 20.0)
+			if (r < 21.0)
 			//if (kv(x + 13.7)/1156.0 + kv(yy)/784.0 <= 1.0)
 			//if (false)
 			{

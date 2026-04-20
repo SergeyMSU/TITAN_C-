@@ -193,7 +193,8 @@ int main()
     //   c 10 начал ручное передвижение сетки, потом в 11 его подкорректировал, с 12 начал считать
 
 
-    S1.Download_cell_parameters("parameters_A5_0066.bin");  //60   
+    //S1.Download_cell_parameters("parameters_promeg_119.bin");  //60   
+    S1.Download_cell_parameters("parameters_A5_0068.bin");  //60   
     // на 46 подвинул поверхности вручную
     // 
     // 63 - Ћакс и вторым пор€дком + особый снос в сверхзвуке
@@ -213,10 +214,10 @@ int main()
     //S1.Download_cell_parameters("parameters_0219.bin");
 
 
-    S1.geo->L6 = -200.0;
+    /*S1.geo->L6 = -200.0;
     S1.geo->L7 = -300.0;
     S1.geo->tetta1 = 2.89;
-    S1.geo->tetta2 = 2.64;
+    S1.geo->tetta2 = 2.64;*/
 
     //S1.PereInterpolate("For_intertpolate_0082-no_razriv-with_MK.bin", true);
 
@@ -237,6 +238,9 @@ int main()
         S1.Init_TVD();
 
         S1.Find_Yzel_Sosed_for_sglag();
+
+        S1.Calculating_measure(0);
+        S1.Calculating_measure(1);
     }
 
 
@@ -489,7 +493,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0067.bin");
+    S1.Save_cell_parameters("parameters_A5_0069.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

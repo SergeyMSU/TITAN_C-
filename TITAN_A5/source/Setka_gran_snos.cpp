@@ -212,20 +212,20 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 			// r3,    r1, rr, r2,   r4
 			double r3, r1, rr, r2, r4;
 
-			/*double MA = norm2(A->parameters[now]["Vx"], A->parameters[now]["Vy"], A->parameters[now]["Vz"]) /
+			double MA = norm2(A->parameters[now]["Vx"], A->parameters[now]["Vy"], A->parameters[now]["Vz"]) /
 				sqrt(this->phys_param->gamma * A->parameters[now]["p"]/ A->parameters[now]["rho"]);
 			double MAA = norm2(AA->parameters[now]["Vx"], AA->parameters[now]["Vy"], AA->parameters[now]["Vz"]) /
 				sqrt(this->phys_param->gamma * AA->parameters[now]["p"] / AA->parameters[now]["rho"]);
 			double MB = norm2(B->parameters[now]["Vx"], B->parameters[now]["Vy"], B->parameters[now]["Vz"]) /
 				sqrt(this->phys_param->gamma * B->parameters[now]["p"] / B->parameters[now]["rho"]);
 			double MBB = norm2(BB->parameters[now]["Vx"], BB->parameters[now]["Vy"], BB->parameters[now]["Vz"]) /
-				sqrt(this->phys_param->gamma * BB->parameters[now]["p"] / BB->parameters[now]["rho"]);*/
+				sqrt(this->phys_param->gamma * BB->parameters[now]["p"] / BB->parameters[now]["rho"]);
 
-			bool bb_ = true;   // Нужны ли все особые сносы на TS
+			bool bb_ = false;   // Нужны ли все особые сносы на TS
 
-			if (bb_ && AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
-					B->type == Type_cell::Zone_1 && BB->type == Type_cell::Zone_1)
-			//if (MA > 5.0 && MAA > 5.0 && MB > 5.0 && MBB > 5.0)
+			//if (bb_ && AA->type == Type_cell::Zone_1 && A->type == Type_cell::Zone_1 &&
+			//		B->type == Type_cell::Zone_1 && BB->type == Type_cell::Zone_1)
+			if (MA > 5.0 && MAA > 5.0 && MB > 5.0 && MBB > 5.0)
 			{
 				Eigen::Vector3d VAA, VA, VB, VBB, Vleft, Vright;
 				r3 = AAc.norm();
