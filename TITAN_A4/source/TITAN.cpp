@@ -85,7 +85,7 @@ int main()
     // Вкдючил от -50 все три костыля на HP (до этого было от -30 кажется) и везде на гелиопаузе влючил HLLD
     // 
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");  // Стартовали согласование с 81  
-    S1.Download_cell_parameters("parameters_0105-.bin");    //начиная с 90 могут быть серьёзные изменения
+    S1.Download_cell_parameters("parameters_0107-.bin");    //начиная с 90 могут быть серьёзные изменения
     // c 99- поменял подход обратно
     // Если что продолжать с 91
 
@@ -176,7 +176,7 @@ int main()
     //S1.Algoritm(101, &S1);
 
 
-    S1.Algoritm(10, &S1);
+    //S1.Algoritm(10, &S1);
     //S1.Algoritm(4, &S1);
     //S1.Algoritm(5, &S1);
 
@@ -185,10 +185,10 @@ int main()
     //S1.Algoritm(25, &S1);
 
 
-    //S1.Algoritm(3, &S1);
+    S1.Algoritm(1, &S1);
     //S1.Algoritm(4, &S1);
     //S1.Algoritm(5, &S1);
-    return 0;
+    //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
     
@@ -244,7 +244,7 @@ int main()
     }
 
 
-    //S1.Save_cell_parameters("parameters_0105-.bin");  
+    S1.Save_cell_parameters("parameters_0108-.bin");  
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -359,6 +359,26 @@ int main()
         S1.phys_param->param_names_for_print.push_back("MK_T_Pui_1");
         S1.phys_param->param_names_for_print.push_back("MK_rho_Pui_2");
         S1.phys_param->param_names_for_print.push_back("MK_T_Pui_2");
+
+        S1.phys_param->param_names_for_print.push_back("MK_n_H1");
+        S1.phys_param->param_names_for_print.push_back("MK_n_H2");
+        S1.phys_param->param_names_for_print.push_back("MK_n_H3");
+        S1.phys_param->param_names_for_print.push_back("MK_n_H4");
+        S1.phys_param->param_names_for_print.push_back("MK_n_H5");
+        S1.phys_param->param_names_for_print.push_back("MK_n_H6");
+        S1.phys_param->param_names_for_print.push_back("MK_n_H7");
+        S1.phys_param->param_names_for_print.push_back("MK_n_H8");
+        S1.phys_param->param_names_for_print.push_back("MK_n_H9");
+
+        S1.phys_param->param_names_for_print.push_back("MK_T_H1");
+        S1.phys_param->param_names_for_print.push_back("MK_T_H2");
+        S1.phys_param->param_names_for_print.push_back("MK_T_H3");
+        S1.phys_param->param_names_for_print.push_back("MK_T_H4");
+        S1.phys_param->param_names_for_print.push_back("MK_T_H5");
+        S1.phys_param->param_names_for_print.push_back("MK_T_H6");
+        S1.phys_param->param_names_for_print.push_back("MK_T_H7");
+        S1.phys_param->param_names_for_print.push_back("MK_T_H8");
+        S1.phys_param->param_names_for_print.push_back("MK_T_H9");
 
         /*S1.phys_param->param_names_for_print.push_back("S_k3__p_H3");
         S1.phys_param->param_names_for_print.push_back("S_k3__p_H4");

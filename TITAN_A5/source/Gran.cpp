@@ -20,13 +20,6 @@ short int Gran::Get_method()
 		}
 	}*/
 
-	return 3;
-
-	if (this->type2 == Type_Gran_surf::HP || this->type2 == Type_Gran_surf::BS || this->type2 == Type_Gran_surf::TS)    // Лакс на гелиопаузе
-	{
-		return 3;
-	}
-
 	if (this->type2 == Type_Gran_surf::Us)
 	{
 		for (auto& i : this->yzels)
@@ -37,6 +30,15 @@ short int Gran::Get_method()
 			}
 		}
 	}
+
+	return 3;
+
+	if (this->type2 == Type_Gran_surf::HP || this->type2 == Type_Gran_surf::BS || this->type2 == Type_Gran_surf::TS)    // Лакс на гелиопаузе
+	{
+		return 3;
+	}
+
+	
 
 	if (this->type2 == Type_Gran_surf::Us)
 	{

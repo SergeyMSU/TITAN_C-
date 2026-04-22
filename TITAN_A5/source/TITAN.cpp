@@ -154,7 +154,7 @@ int main()
     Setka S1 = Setka("SDK_A5.1_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
     //Setka S1 = Setka("SDK2_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
 
-    S1.geo->L6 = -200.0;
+    S1.geo->L6 = -190.0;
     S1.geo->L7 = -300.0;
     S1.geo->tetta1 = 2.89;
     S1.geo->tetta2 = 2.64;
@@ -194,11 +194,13 @@ int main()
 
 
     //S1.Download_cell_parameters("parameters_promeg_119.bin");  //60   
-    S1.Download_cell_parameters("parameters_A5_0068.bin");  //60   
+    S1.Download_cell_parameters("parameters_A5_0073.bin");  //60   
     // на 46 подвинул поверхности вручную
     // 
     // 63 - Лакс и вторым порядком + особый снос в сверхзвуке
     // 60 - запустил движение поверхностей
+    // 68 - без движения, везде HLLD
+    // 74 - поменял L6 на -190 (было -200)
     // 
     //S1.Download_cell_parameters("parameters_A5_0047.bin");  
     
@@ -214,10 +216,10 @@ int main()
     //S1.Download_cell_parameters("parameters_0219.bin");
 
 
-    /*S1.geo->L6 = -200.0;
+    S1.geo->L6 = -190.0;
     S1.geo->L7 = -300.0;
     S1.geo->tetta1 = 2.89;
-    S1.geo->tetta2 = 2.64;*/
+    S1.geo->tetta2 = 2.64;
 
     //S1.PereInterpolate("For_intertpolate_0082-no_razriv-with_MK.bin", true);
 
@@ -493,7 +495,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0069.bin");
+    S1.Save_cell_parameters("parameters_A5_0074.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
