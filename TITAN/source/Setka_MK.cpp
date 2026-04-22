@@ -4768,6 +4768,59 @@ void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, 
 }
 
 
+void Setka::intergal_1d_Culc(const double& ex, const double& ey, const double& ez, unordered_map<string, double>& parameters)
+{
+	
+	Eigen::Vector3d e;
+	Eigen::Vector3d r;
+	Cell* A, * prev;
+	prev = nullptr;
+
+	e << ex, ey, ez;
+	double ee = e.norm();
+	e /= ee;
+
+	r = e * phys_param->R_0 * 1.1;  // 1.1
+	//r = e * 14.0;  // 1.1
+	double dr = phys_param->R_0 / 5.0;
+	double dv = (this->phys_param->pogl_R - this->phys_param->pogl_L) / this->phys_param->pogl_n;
+	double u1, u2, u3, c, n, p;
+	double u1_MK, u2_MK, u3_MK, c_MK, n_MK, p_MK;
+
+	double L = 0.0;
+	double My_S1 = 0.0;
+	double My_S2 = 0.0;
+	double My_S3 = 0.0;
+	double My_S4 = 0.0;
+	double My_S5 = 0.0;
+
+	while (true)
+	{
+		L += dr;
+		r += e * dr;
+		A = this->Find_cell_point(r[0], r[1], r[2], 0, prev);
+
+		if (A == nullptr) break;
+
+		My_S1 += A->parameters[0]["rho_H3"] * dr;
+		My_S2 += A->parameters[0]["rho_H3"] * A->parameters[0]["Vx_H3"] * dr;
+		My_S3 += A->parameters[0]["rho_H3"] * A->parameters[0]["Vy_H3"] * dr;
+		My_S4 += A->parameters[0]["rho_H3"] * A->parameters[0]["Vz_H3"] * dr;
+		My_S5 += A->parameters[0]["p_H3"] * dr;
+
+		if (r[0] > this->phys_param->R_MK_Max) break;
+	}
+
+
+	parameters["rho_H3"] = My_S1 / L;
+	parameters["Vx_H3"] = My_S2 / My_S1;
+	parameters["Vy_H3"] = My_S3 / My_S1;
+	parameters["Vz_H3"] = My_S4 / My_S1;
+	parameters["T_H3"] = My_S5 / My_S1;
+
+	cout << "L = " << L << endl;
+}
+
 void Setka::mas_pogl_Culc_fluid(const double& ex, const double& ey, const double& ez, const string& name)
 {
 	ofstream fout;

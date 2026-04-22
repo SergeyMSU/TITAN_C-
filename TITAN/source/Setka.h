@@ -308,6 +308,9 @@ public:
 	void Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interpol& SI_MK, bool Interpol_S); // Считает функцию/функции распределения пикапов в данной ячейке
 	// Обязательное условие, что S+ и S- загружены для всех ячеек в сетке!
 
+	void intergal_1d_Culc(const double& ex, const double& ey, const double& ez, unordered_map<string, double>&parameters);
+	// Просто считает какие-нужно одномерные интеграллы по сетке
+
 	void mas_pogl_Culc(const double& ex, const double& ey, const double& ez, const string& name);
 	// Функция для расчтёта поглощения на мини-сетке Монте-Карло
 

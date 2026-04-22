@@ -18,8 +18,8 @@
 Phys_param::Phys_param()
 {
     this->initVarMap();
-    this->Read_alpha_eff();
-    this->Read_Xray_emiss();
+    //this->Read_alpha_eff();
+    //this->Read_Xray_emiss();
 
     this->set_parameters();
 
@@ -333,6 +333,14 @@ Phys_param::Phys_param()
         this->MK_param.push_back(nii); this->param_names.push_back(nii);
 
         nii = "MK_T_H" + to_string(ii);
+        this->MK_param.push_back(nii); this->param_names.push_back(nii);
+
+        // Температуры по направлениям
+        nii = "MK_Tx_H" + to_string(ii);
+        this->MK_param.push_back(nii); this->param_names.push_back(nii);
+        nii = "MK_Ty_H" + to_string(ii);
+        this->MK_param.push_back(nii); this->param_names.push_back(nii);
+        nii = "MK_Tz_H" + to_string(ii);
         this->MK_param.push_back(nii); this->param_names.push_back(nii);
 
         nii = "MK_IVx_H" + to_string(ii);

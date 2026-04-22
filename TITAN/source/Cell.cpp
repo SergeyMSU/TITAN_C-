@@ -1755,6 +1755,11 @@ void Cell::MK_Add_particle(MK_particle& P, const double& time, Phys_param* phys_
 	this->parameters[0]["MK_Vz_" + name_H] += time * P.mu * P.Vel[2];
 	this->parameters[0]["MK_T_" + name_H] += time * P.mu * kvv(P.Vel[0], P.Vel[1], P.Vel[2]);
 
+	// Добавляем другие температуры если надо
+	this->parameters[0]["MK_Tx_" + name_H] += time * P.mu * P.Vel[0] * P.Vel[0];
+	this->parameters[0]["MK_Ty_" + name_H] += time * P.mu * P.Vel[1] * P.Vel[1];
+	this->parameters[0]["MK_Tz_" + name_H] += time * P.mu * P.Vel[2] * P.Vel[2];
+
 	this->mut.unlock();
 }
 
@@ -1884,6 +1889,11 @@ void Cell::MK_normir_Moments(Phys_param* phys_param)
 				this->parameters[0]["MK_Vz_" + name] /= (this->parameters[0]["MK_n_" + name]);
 				this->parameters[0]["MK_T_" + name] = (2.0 / 3.0) * (this->parameters[0]["MK_T_" + name] / this->parameters[0]["MK_n_" + name] -
 					kvv(this->parameters[0]["MK_Vx_" + name], this->parameters[0]["MK_Vy_" + name], this->parameters[0]["MK_Vz_" + name]));
+
+				// Температуры по направлениям
+				this->parameters[0]["MK_Tx_" + name] = this->parameters[0]["MK_Tx_" + name] / this->parameters[0]["MK_n_" + name] - kv(this->parameters[0]["MK_Vx_" + name]);
+				this->parameters[0]["MK_Ty_" + name] = this->parameters[0]["MK_Ty_" + name] / this->parameters[0]["MK_n_" + name] - kv(this->parameters[0]["MK_Vy_" + name]);
+				this->parameters[0]["MK_Tz_" + name] = this->parameters[0]["MK_Tz_" + name] / this->parameters[0]["MK_n_" + name] - kv(this->parameters[0]["MK_Vz_" + name]);
 			}
 			else
 			{
@@ -1891,6 +1901,11 @@ void Cell::MK_normir_Moments(Phys_param* phys_param)
 				this->parameters[0]["MK_Vy_" + name] = 0.0;
 				this->parameters[0]["MK_Vz_" + name] = 0.0;
 				this->parameters[0]["MK_T_" + name] = 0.0;
+
+				// Температуры по направлениям
+				this->parameters[0]["MK_Tx_" + name] = 0.0;
+				this->parameters[0]["MK_Ty_" + name] = 0.0;
+				this->parameters[0]["MK_Tz_" + name] = 0.0;
 			}
 
 			this->parameters[0]["MK_n_" + name] /= this->volume[0];

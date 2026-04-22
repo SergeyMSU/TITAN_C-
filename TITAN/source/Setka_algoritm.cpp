@@ -145,6 +145,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 22 - расчёт потенциального поля в сверхзвуке методом контрольных объёмов - второй порядок
 	// 23 - печатаем мини-интерполяционную сетку и источники Sp Sm для Игоря
 	// 24 - печатаем карты в Линии H-alpha
+	// 25 - считаем интеграллы вдоль луча зрения от разных параметров - луч зрения в хвост гелиосферы
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -1086,11 +1087,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		//zones_number.push_back(1); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(6); zones_n_koeff.push_back(1.0);
+		
 		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(4); zones_n_koeff.push_back(1.0);
-		zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(2); zones_n_koeff.push_back(1.0);
 		//zones_number.push_back(6); zones_n_koeff.push_back(1.0);
 		
@@ -4048,6 +4046,47 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		fout.close();
 		fout2.close();
 		fout3.close();
+	}
+	else if (alg == 25)
+	{
+		std::ofstream out("45.tail.txt");
+		if (!out.is_open()) 
+		{
+			throw std::runtime_error("Cannot open output file: 45.tail.txt");
+		}
+
+		// Заголовок файла (для удобства чтения)
+		// out << "# phi(rad)   rho_H3   Vx_H3   Vy_H3   Vz_H3   T_H3\n";
+
+		int numSteps = 40;
+		const double dphi = 2.0 * const_pi / numSteps;
+
+		for (int i = 0; i < numSteps; ++i) 
+		{
+			double phi = i * dphi;
+
+			// Вектор направления луча (может быть ненормированным)
+			double ex = -1.0;
+			double ey = std::cos(phi);
+			double ez = std::sin(phi);
+
+			// При необходимости нормировки раскомментировать:
+			// double len = std::sqrt(ex*ex + ey*ey + ez*ez);
+			// ex /= len; ey /= len; ez /= len;
+
+			std::unordered_map<std::string, double> params;
+			this->intergal_1d_Culc(ex, ey, ez, params);
+
+			out << phi << " "
+				<< params["rho_H3"] << " "
+				<< params["Vx_H3"] << " "
+				<< params["Vy_H3"] << " "
+				<< params["Vz_H3"] << " "
+				<< params["T_H3"] << "\n";
+		}
+
+		out.close();
+
 	}
 
 
