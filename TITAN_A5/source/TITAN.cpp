@@ -194,7 +194,8 @@ int main()
 
 
     //S1.Download_cell_parameters("parameters_promeg_119.bin");  //60   
-    S1.Download_cell_parameters("parameters_A5_0075.bin");  //60   
+    S1.Download_cell_parameters("parameters_A5_0076.bin");  //60   
+    //S1.Download_cell_parameters("parameters_promeg_1118.bin");  //60   
     // на 46 подвинул поверхности вручную
     // 
     // 63 - Лакс и вторым порядком + особый снос в сверхзвуке
@@ -495,7 +496,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0076.bin");
+    S1.Save_cell_parameters("parameters_A5_0077.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

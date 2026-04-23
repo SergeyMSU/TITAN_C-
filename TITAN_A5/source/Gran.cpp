@@ -20,6 +20,9 @@ short int Gran::Get_method()
 		}
 	}*/
 
+	if (this->center[0][0] < -200.0) return 0;
+
+
 	if (this->type2 == Type_Gran_surf::Us)
 	{
 		for (auto& i : this->yzels)
