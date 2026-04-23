@@ -368,7 +368,8 @@ void Luch::dvigenie(int i_time)
 		}
 		num += M11;
 
-		double x3 = r * cos(the); // Запомнили
+		double x3 = r * cos(the);// *(1.0 + (the - const_pi / 2) / 3.0); // Запомнили
+
 		this->Yzels_opor[2]->coord[i_time][0] = x3;// *(1.0 + fabs(x3) / 1000.0);
 		this->Yzels_opor[3]->coord[i_time][0] = x3;// *(1.0 + fabs(x3) / 1000.0);
 
@@ -382,13 +383,13 @@ void Luch::dvigenie(int i_time)
 		if (this->parameters.find("dd4") != this->parameters.end()) dd4 = this->parameters["dd4"];
 		
 
-		t1 = (cos(the) * dd3)/( (the - 0.57) ) - kv(2.0/the);
+		t1 = (cos(the) * dd3) / ((the - 0.57)) - kv(2.0 / the);
 		tt1 = sin(the) * dd3;
 		t2 = 0.0;
 		tt2 = 1.0 * dd4;
 		x0 = r * cos(the); // Это координаты с последней итерации предыдущего цикла
 		y0 = r * sin(the);
-		x1 = x3;// *1.2;      // DELETE
+		x1 = x3 * 1.1;      // DELETE
 		y1 = R3;
 
 		double a1, b1, c1, d1, a2, b2, c2, d2;

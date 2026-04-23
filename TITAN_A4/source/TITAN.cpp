@@ -85,7 +85,7 @@ int main()
     // Вкдючил от -50 все три костыля на HP (до этого было от -30 кажется) и везде на гелиопаузе влючил HLLD
     // 
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");  // Стартовали согласование с 81  
-    S1.Download_cell_parameters("parameters_0108-.bin");    //начиная с 90 могут быть серьёзные изменения
+    S1.Download_cell_parameters("parameters_0109-.bin");    //начиная с 90 могут быть серьёзные изменения
     // c 99- поменял подход обратно
     // Если что продолжать с 91
 
@@ -244,7 +244,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0109-.bin");  
+    S1.Save_cell_parameters("parameters_0110-.bin");  
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -335,6 +335,11 @@ int main()
         S1.phys_param->param_names_for_print.push_back("rho_H7");
         S1.phys_param->param_names_for_print.push_back("rho_H8");
         S1.phys_param->param_names_for_print.push_back("rho_H9");
+
+        S1.phys_param->param_names_for_print.push_back("Vx_H6");
+        S1.phys_param->param_names_for_print.push_back("Vy_H6");
+        S1.phys_param->param_names_for_print.push_back("Vz_H6");
+        S1.phys_param->param_names_for_print.push_back("p_H6");
 
 
         S1.phys_param->param_names_for_print.push_back("S_k1__p_H1");
