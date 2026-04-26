@@ -2682,7 +2682,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new, bool for_MK)
 		for (auto& i : this->All_Luch)
 		{
 
-			if (i->type == "A_Luch" || i->type == "A2_Luch")
+			if (false && (i->type == "A_Luch" || i->type == "A2_Luch"))
 			{
 				// da1
 				auto a1 = i->get_yzel_near_opor(1, -1);
@@ -2771,7 +2771,7 @@ void Setka::auto_set_luch_geo_parameter(int for_new, bool for_MK)
 
 			}
 
-			if (i->type == "B_Luch")
+			if (false && i->type == "B_Luch")
 			{
 				// ba1
 				auto a1 = i->get_yzel_near_opor(1, -1);
@@ -2832,149 +2832,154 @@ void Setka::auto_set_luch_geo_parameter(int for_new, bool for_MK)
 
 
 		// для B лучей за TS     ba1   ba2
-		for (int i = 0; i < this->B_Luch.size(); i++)
+		if (false)
 		{
-			auto A = this->A_Luch[i].back();
-			auto B = this->B_Luch[i][0];
-
-			auto aa1 = A->get_yzel_near_opor(2, -1);
-			auto aa2 = A->Yzels_opor[2];
-
-			double d1 = Yzel_distance(aa1, aa2, 0);
-
-			aa1 = A->get_yzel_near_opor(1, this->geo->M11);
-			aa2 = A->get_yzel_near_opor(1, this->geo->M11 + 1);
-			double c1 = Yzel_distance(aa1, aa2, 0);
-
-
-			int ik = 0;
-			for (auto& kk : this->B_Luch[i])
+			for (int i = 0; i < this->B_Luch.size(); i++)
 			{
-				ik++;
-				auto b1 = kk->Yzels_opor[2];
-				auto b2 = kk->get_yzel_near_opor(2, -1);
-				double the_ = polar_angle(b1->coord[0][0], norm2(0.0, b1->coord[0][1], b1->coord[0][2]));
-				double dd1 = d1 * (the_ - 0.57);
-				double d2 = Yzel_distance(b1, b2, 0);
+				auto A = this->A_Luch[i].back();
+				auto B = this->B_Luch[i][0];
 
-				
-				b1 = kk->get_yzel_near_opor(1, this->geo->M11);
-				b2 = kk->get_yzel_near_opor(1, this->geo->M11 + 1);
-				double c2 = Yzel_distance(b1, b2, 0);
+				auto aa1 = A->get_yzel_near_opor(2, -1);
+				auto aa2 = A->Yzels_opor[2];
 
-				double percent = 0.5;
-				if (for_MK == true)
-				{
-					percent = 2.0;
-				}
+				double d1 = Yzel_distance(aa1, aa2, 0);
 
-				if ((100.0 - d2 * 100.0 / dd1) > percent)
-				{
-					k++;
-					izmen = true;
-					//cout << "M3 " << "ba2" << endl;
-					if (kk->parameters.find("ba2") != kk->parameters.end())
-					{
-						kk->parameters["ba2"] *= (1.0 + procent / 100.0);
-					}
-					else
-					{
-						kk->parameters["ba2"] = this->geo->ba2 * (1.0 + procent / 100.0);
-					}
-				}
-				else if ((100.0 - d2 * 100.0 / dd1) < -percent)
-				{
-					k++;
-					izmen = true;
-					//cout << "M4 " << "ba2" << endl;
-					if (kk->parameters.find("ba2") != kk->parameters.end())
-					{
-						kk->parameters["ba2"] *= (1.0 - procent / 100.0);
-					}
-					else
-					{
-						kk->parameters["ba2"] = this->geo->ba2 * (1.0 - procent / 100.0);
-					}
-				}
+				aa1 = A->get_yzel_near_opor(1, this->geo->M11);
+				aa2 = A->get_yzel_near_opor(1, this->geo->M11 + 1);
+				double c1 = Yzel_distance(aa1, aa2, 0);
 
-				if ((100.0 - c2 * 100.0 / c1) > percent)
+
+				int ik = 0;
+				for (auto& kk : this->B_Luch[i])
 				{
-					k++;
-					izmen = true;
-					//cout << "M5 " << "ba1" << endl;
-					if (kk->parameters.find("ba1") != kk->parameters.end())
+					ik++;
+					auto b1 = kk->Yzels_opor[2];
+					auto b2 = kk->get_yzel_near_opor(2, -1);
+					double the_ = polar_angle(b1->coord[0][0], norm2(0.0, b1->coord[0][1], b1->coord[0][2]));
+					double dd1 = d1 * (the_ - 0.57);
+					double d2 = Yzel_distance(b1, b2, 0);
+
+
+					b1 = kk->get_yzel_near_opor(1, this->geo->M11);
+					b2 = kk->get_yzel_near_opor(1, this->geo->M11 + 1);
+					double c2 = Yzel_distance(b1, b2, 0);
+
+					double percent = 0.5;
+					if (for_MK == true)
 					{
-						kk->parameters["ba1"] *= (1.0 + procent / 100.0);
+						percent = 2.0;
 					}
-					else
+
+					if ((100.0 - d2 * 100.0 / dd1) > percent)
 					{
-						kk->parameters["ba1"] = this->geo->ba1 * (1.0 + procent / 100.0);
+						k++;
+						izmen = true;
+						//cout << "M3 " << "ba2" << endl;
+						if (kk->parameters.find("ba2") != kk->parameters.end())
+						{
+							kk->parameters["ba2"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["ba2"] = this->geo->ba2 * (1.0 + procent / 100.0);
+						}
 					}
-				}
-				else if ((100.0 - c2 * 100.0 / c1) < -percent)
-				{
-					k++;
-					izmen = true;
-					//cout << "M6 " << "ba1" << endl;
-					if (kk->parameters.find("ba1") != kk->parameters.end())
+					else if ((100.0 - d2 * 100.0 / dd1) < -percent)
 					{
-						kk->parameters["ba1"] *= (1.0 - procent / 100.0);
+						k++;
+						izmen = true;
+						//cout << "M4 " << "ba2" << endl;
+						if (kk->parameters.find("ba2") != kk->parameters.end())
+						{
+							kk->parameters["ba2"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["ba2"] = this->geo->ba2 * (1.0 - procent / 100.0);
+						}
 					}
-					else
+
+					if ((100.0 - c2 * 100.0 / c1) > percent)
 					{
-						kk->parameters["ba1"] = this->geo->ba1 * (1.0 - procent / 100.0);
+						k++;
+						izmen = true;
+						//cout << "M5 " << "ba1" << endl;
+						if (kk->parameters.find("ba1") != kk->parameters.end())
+						{
+							kk->parameters["ba1"] *= (1.0 + procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["ba1"] = this->geo->ba1 * (1.0 + procent / 100.0);
+						}
+					}
+					else if ((100.0 - c2 * 100.0 / c1) < -percent)
+					{
+						k++;
+						izmen = true;
+						//cout << "M6 " << "ba1" << endl;
+						if (kk->parameters.find("ba1") != kk->parameters.end())
+						{
+							kk->parameters["ba1"] *= (1.0 - procent / 100.0);
+						}
+						else
+						{
+							kk->parameters["ba1"] = this->geo->ba1 * (1.0 - procent / 100.0);
+						}
 					}
 				}
 			}
-
 		}
 
 		// для B лучей за TS
-		for (int i = 0; i < this->B_Luch.size(); i++)
+		if (false)
 		{
-			auto A = this->A_Luch[i].back();
-			auto B = this->B_Luch[i][0];
-
-			auto a1 = A->get_yzel_near_opor(3, 1);
-			auto a2 = A->Yzels_opor[3];
-
-			auto b1 = B->Yzels_opor[3];
-			auto b2 = B->get_yzel_near_opor(3, 1);
-
-			double d1 = Yzel_distance(a1, a2, 0);
-			double d2 = Yzel_distance(b1, b2, 0);
-
-			if (false)
+			for (int i = 0; i < this->B_Luch.size(); i++)
 			{
-				if ((100.0 - d2 * 100.0 / d1) > 1.0)
+				auto A = this->A_Luch[i].back();
+				auto B = this->B_Luch[i][0];
+
+				auto a1 = A->get_yzel_near_opor(3, 1);
+				auto a2 = A->Yzels_opor[3];
+
+				auto b1 = B->Yzels_opor[3];
+				auto b2 = B->get_yzel_near_opor(3, 1);
+
+				double d1 = Yzel_distance(a1, a2, 0);
+				double d2 = Yzel_distance(b1, b2, 0);
+
+				if (false)
 				{
-					k++;
-					izmen = true;
-					for (auto& kk : this->B_Luch[i])
+					if ((100.0 - d2 * 100.0 / d1) > 1.0)
 					{
-						if (kk->parameters.find("ba5") != kk->parameters.end())
+						k++;
+						izmen = true;
+						for (auto& kk : this->B_Luch[i])
 						{
-							kk->parameters["ba5"] *= (1.0 + procent / 100.0);
-						}
-						else
-						{
-							kk->parameters["ba5"] = this->geo->ba5 * (1.0 + procent / 100.0);
+							if (kk->parameters.find("ba5") != kk->parameters.end())
+							{
+								kk->parameters["ba5"] *= (1.0 + procent / 100.0);
+							}
+							else
+							{
+								kk->parameters["ba5"] = this->geo->ba5 * (1.0 + procent / 100.0);
+							}
 						}
 					}
-				}
-				else if ((100.0 - d2 * 100.0 / d1) < -1.0)
-				{
-					k++;
-					izmen = true;
-					for (auto& kk : this->B_Luch[i])
+					else if ((100.0 - d2 * 100.0 / d1) < -1.0)
 					{
-						if (kk->parameters.find("ba5") != kk->parameters.end())
+						k++;
+						izmen = true;
+						for (auto& kk : this->B_Luch[i])
 						{
-							kk->parameters["ba5"] *= (1.0 - procent / 100.0);
-						}
-						else
-						{
-							kk->parameters["ba5"] = this->geo->ba5 * (1.0 - procent / 100.0);
+							if (kk->parameters.find("ba5") != kk->parameters.end())
+							{
+								kk->parameters["ba5"] *= (1.0 - procent / 100.0);
+							}
+							else
+							{
+								kk->parameters["ba5"] = this->geo->ba5 * (1.0 - procent / 100.0);
+							}
 						}
 					}
 				}
@@ -2982,154 +2987,157 @@ void Setka::auto_set_luch_geo_parameter(int for_new, bool for_MK)
 		}
 
 		// для E лучей
-		for (int i = 0; i < this->E_Luch.size(); i++)
+		if (false)
 		{
-			auto A = this->E_Luch[i][0];
-			auto B = this->B_Luch[i].back();
-			
-			// ea1
-			auto a1 = A->get_yzel_near_opor(1, 1);
-			auto a2 = A->Yzels_opor[1];
-
-			auto b1 = B->Yzels_opor[2];
-			auto b2 = B->get_yzel_near_opor(2, 1);
-
-			double d2 = Yzel_distance(a1, a2, 0);
-			double d1 = Yzel_distance(b1, b2, 0);
-
-			if (false)
+			for (int i = 0; i < this->E_Luch.size(); i++)
 			{
-				if (this->E_Luch[i][0]->parameters.find("ea1") == this->E_Luch[i][0]->parameters.end() || this->E_Luch[i][0]->parameters["ea1"] > 0.01)
+				auto A = this->E_Luch[i][0];
+				auto B = this->B_Luch[i].back();
+
+				// ea1
+				auto a1 = A->get_yzel_near_opor(1, 1);
+				auto a2 = A->Yzels_opor[1];
+
+				auto b1 = B->Yzels_opor[2];
+				auto b2 = B->get_yzel_near_opor(2, 1);
+
+				double d2 = Yzel_distance(a1, a2, 0);
+				double d1 = Yzel_distance(b1, b2, 0);
+
+				if (false)
 				{
-					if ((100.0 - d2 * 100.0 / d1) > 1.0)
+					if (this->E_Luch[i][0]->parameters.find("ea1") == this->E_Luch[i][0]->parameters.end() || this->E_Luch[i][0]->parameters["ea1"] > 0.01)
 					{
-						k++;
-						izmen = true;
-						for (auto& kk : this->E_Luch[i])
+						if ((100.0 - d2 * 100.0 / d1) > 1.0)
 						{
-							if (kk->parameters.find("ea1") != kk->parameters.end())
+							k++;
+							izmen = true;
+							for (auto& kk : this->E_Luch[i])
 							{
-								kk->parameters["ea1"] *= (1.0 + procent / 100.0);
-							}
-							else
-							{
-								kk->parameters["ea1"] = this->geo->ea1 * (1.0 + procent / 100.0);
+								if (kk->parameters.find("ea1") != kk->parameters.end())
+								{
+									kk->parameters["ea1"] *= (1.0 + procent / 100.0);
+								}
+								else
+								{
+									kk->parameters["ea1"] = this->geo->ea1 * (1.0 + procent / 100.0);
+								}
 							}
 						}
-					}
-					else if ((100.0 - d2 * 100.0 / d1) < -1.0)
-					{
-						k++;
-						izmen = true;
-						for (auto& kk : this->E_Luch[i])
+						else if ((100.0 - d2 * 100.0 / d1) < -1.0)
 						{
-							if (kk->parameters.find("ea1") != kk->parameters.end())
+							k++;
+							izmen = true;
+							for (auto& kk : this->E_Luch[i])
 							{
-								kk->parameters["ea1"] *= (1.0 - procent / 100.0);
-							}
-							else
-							{
-								kk->parameters["ea1"] = this->geo->ea1 * (1.0 - procent / 100.0);
+								if (kk->parameters.find("ea1") != kk->parameters.end())
+								{
+									kk->parameters["ea1"] *= (1.0 - procent / 100.0);
+								}
+								else
+								{
+									kk->parameters["ea1"] = this->geo->ea1 * (1.0 - procent / 100.0);
+								}
 							}
 						}
 					}
 				}
-			}
 
-			// ea2
+				// ea2
 
-			if (false)
-			{
-				if (this->E_Luch[i][0]->parameters.find("ea2") == this->E_Luch[i][0]->parameters.end() || this->E_Luch[i][0]->parameters["ea2"] > 0.01)
+				if (false)
 				{
-					a1 = A->get_yzel_near_opor(2, -1);
-					a2 = A->Yzels_opor[2];
-
-					b1 = B->Yzels_opor[3];
-					b2 = B->get_yzel_near_opor(3, -1);
-
-					d2 = Yzel_distance(a1, a2, 0);
-					d1 = Yzel_distance(b1, b2, 0);
-
-					if ((100.0 - d2 * 100.0 / d1) > 1.0)
+					if (this->E_Luch[i][0]->parameters.find("ea2") == this->E_Luch[i][0]->parameters.end() || this->E_Luch[i][0]->parameters["ea2"] > 0.01)
 					{
-						k++;
-						izmen = true;
-						for (auto& kk : this->E_Luch[i])
+						a1 = A->get_yzel_near_opor(2, -1);
+						a2 = A->Yzels_opor[2];
+
+						b1 = B->Yzels_opor[3];
+						b2 = B->get_yzel_near_opor(3, -1);
+
+						d2 = Yzel_distance(a1, a2, 0);
+						d1 = Yzel_distance(b1, b2, 0);
+
+						if ((100.0 - d2 * 100.0 / d1) > 1.0)
 						{
-							if (kk->parameters.find("ea2") != kk->parameters.end())
+							k++;
+							izmen = true;
+							for (auto& kk : this->E_Luch[i])
 							{
-								kk->parameters["ea2"] *= (1.0 + procent / 100.0);
-							}
-							else
-							{
-								kk->parameters["ea2"] = this->geo->ea2 * (1.0 + procent / 100.0);
+								if (kk->parameters.find("ea2") != kk->parameters.end())
+								{
+									kk->parameters["ea2"] *= (1.0 + procent / 100.0);
+								}
+								else
+								{
+									kk->parameters["ea2"] = this->geo->ea2 * (1.0 + procent / 100.0);
+								}
 							}
 						}
-					}
-					else if ((100.0 - d2 * 100.0 / d1) < -1.0)
-					{
-						k++;
-						izmen = true;
-						for (auto& kk : this->E_Luch[i])
+						else if ((100.0 - d2 * 100.0 / d1) < -1.0)
 						{
-							if (kk->parameters.find("ea2") != kk->parameters.end())
+							k++;
+							izmen = true;
+							for (auto& kk : this->E_Luch[i])
 							{
-								kk->parameters["ea2"] *= (1.0 - procent / 100.0);
-							}
-							else
-							{
-								kk->parameters["ea2"] = this->geo->ea2 * (1.0 - procent / 100.0);
+								if (kk->parameters.find("ea2") != kk->parameters.end())
+								{
+									kk->parameters["ea2"] *= (1.0 - procent / 100.0);
+								}
+								else
+								{
+									kk->parameters["ea2"] = this->geo->ea2 * (1.0 - procent / 100.0);
+								}
 							}
 						}
 					}
 				}
-			}
 
-			// ea3
+				// ea3
 
-			if (false)
-			{
-				if (this->E_Luch[i][0]->parameters.find("ea3") == this->E_Luch[i][0]->parameters.end() || this->E_Luch[i][0]->parameters["ea3"] > 0.01)
+				if (false)
 				{
-					a1 = A->get_yzel_near_opor(2, 1);
-					a2 = A->Yzels_opor[2];
-
-					b1 = B->Yzels_opor[3];
-					b2 = B->get_yzel_near_opor(3, 1);
-
-					d2 = Yzel_distance(a1, a2, 0);
-					d1 = Yzel_distance(b1, b2, 0);
-
-					if ((100.0 - d2 * 100.0 / d1) > 1.0)
+					if (this->E_Luch[i][0]->parameters.find("ea3") == this->E_Luch[i][0]->parameters.end() || this->E_Luch[i][0]->parameters["ea3"] > 0.01)
 					{
-						k++;
-						izmen = true;
-						for (auto& kk : this->E_Luch[i])
+						a1 = A->get_yzel_near_opor(2, 1);
+						a2 = A->Yzels_opor[2];
+
+						b1 = B->Yzels_opor[3];
+						b2 = B->get_yzel_near_opor(3, 1);
+
+						d2 = Yzel_distance(a1, a2, 0);
+						d1 = Yzel_distance(b1, b2, 0);
+
+						if ((100.0 - d2 * 100.0 / d1) > 1.0)
 						{
-							if (kk->parameters.find("ea3") != kk->parameters.end())
+							k++;
+							izmen = true;
+							for (auto& kk : this->E_Luch[i])
 							{
-								kk->parameters["ea3"] *= (1.0 + procent / 100.0);
-							}
-							else
-							{
-								kk->parameters["ea3"] = this->geo->ea3 * (1.0 + procent / 100.0);
+								if (kk->parameters.find("ea3") != kk->parameters.end())
+								{
+									kk->parameters["ea3"] *= (1.0 + procent / 100.0);
+								}
+								else
+								{
+									kk->parameters["ea3"] = this->geo->ea3 * (1.0 + procent / 100.0);
+								}
 							}
 						}
-					}
-					else if ((100.0 - d2 * 100.0 / d1) < -1.0)
-					{
-						k++;
-						izmen = true;
-						for (auto& kk : this->E_Luch[i])
+						else if ((100.0 - d2 * 100.0 / d1) < -1.0)
 						{
-							if (kk->parameters.find("ea3") != kk->parameters.end())
+							k++;
+							izmen = true;
+							for (auto& kk : this->E_Luch[i])
 							{
-								kk->parameters["ea3"] *= (1.0 - procent / 100.0);
-							}
-							else
-							{
-								kk->parameters["ea3"] = this->geo->ea3 * (1.0 - procent / 100.0);
+								if (kk->parameters.find("ea3") != kk->parameters.end())
+								{
+									kk->parameters["ea3"] *= (1.0 - procent / 100.0);
+								}
+								else
+								{
+									kk->parameters["ea3"] = this->geo->ea3 * (1.0 - procent / 100.0);
+								}
 							}
 						}
 					}
@@ -3138,155 +3146,158 @@ void Setka::auto_set_luch_geo_parameter(int for_new, bool for_MK)
 		}
 
 		// для D лучей
-		for (int i = 0; i < this->D_Luch.size(); i++)
+		if (false)
 		{
-			auto A = this->D_Luch[i][0];
-			auto B = this->E_Luch[i].back();
-
-			// md1
-			auto a1 = A->get_yzel_near_opor(1, 1);
-			auto a2 = A->Yzels_opor[1];
-
-			auto b1 = B->Yzels_opor[1];
-			auto b2 = B->get_yzel_near_opor(1, 1);
-
-			double d2 = Yzel_distance(a1, a2, 0);
-			double d1 = Yzel_distance(b1, b2, 0);
-
-			if (false)
+			for (int i = 0; i < this->D_Luch.size(); i++)
 			{
-				if (this->D_Luch[i][0]->parameters.find("md1") == this->D_Luch[i][0]->parameters.end() || this->D_Luch[i][0]->parameters["md1"] > 0.01)
+				auto A = this->D_Luch[i][0];
+				auto B = this->E_Luch[i].back();
+
+				// md1
+				auto a1 = A->get_yzel_near_opor(1, 1);
+				auto a2 = A->Yzels_opor[1];
+
+				auto b1 = B->Yzels_opor[1];
+				auto b2 = B->get_yzel_near_opor(1, 1);
+
+				double d2 = Yzel_distance(a1, a2, 0);
+				double d1 = Yzel_distance(b1, b2, 0);
+
+				if (false)
 				{
-					if ((100.0 - d2 * 100.0 / d1) > 1.0)
+					if (this->D_Luch[i][0]->parameters.find("md1") == this->D_Luch[i][0]->parameters.end() || this->D_Luch[i][0]->parameters["md1"] > 0.01)
 					{
-						k++;
-						izmen = true;
-						for (auto& kk : this->D_Luch[i])
+						if ((100.0 - d2 * 100.0 / d1) > 1.0)
 						{
-							if (kk->parameters.find("md1") != kk->parameters.end())
+							k++;
+							izmen = true;
+							for (auto& kk : this->D_Luch[i])
 							{
-								kk->parameters["md1"] *= (1.0 + procent / 100.0);
-							}
-							else
-							{
-								kk->parameters["md1"] = this->geo->md1 * (1.0 + procent / 100.0);
+								if (kk->parameters.find("md1") != kk->parameters.end())
+								{
+									kk->parameters["md1"] *= (1.0 + procent / 100.0);
+								}
+								else
+								{
+									kk->parameters["md1"] = this->geo->md1 * (1.0 + procent / 100.0);
+								}
 							}
 						}
-					}
-					else if ((100.0 - d2 * 100.0 / d1) < -1.0)
-					{
-						k++;
-						izmen = true;
-						for (auto& kk : this->D_Luch[i])
+						else if ((100.0 - d2 * 100.0 / d1) < -1.0)
 						{
-							if (kk->parameters.find("md1") != kk->parameters.end())
+							k++;
+							izmen = true;
+							for (auto& kk : this->D_Luch[i])
 							{
-								kk->parameters["md1"] *= (1.0 - procent / 100.0);
-							}
-							else
-							{
-								kk->parameters["md1"] = this->geo->md1 * (1.0 - procent / 100.0);
+								if (kk->parameters.find("md1") != kk->parameters.end())
+								{
+									kk->parameters["md1"] *= (1.0 - procent / 100.0);
+								}
+								else
+								{
+									kk->parameters["md1"] = this->geo->md1 * (1.0 - procent / 100.0);
+								}
 							}
 						}
 					}
 				}
-			}
 
-			// md2
+				// md2
 
-			if (false)
-			{
-				if (this->D_Luch[i][0]->parameters.find("md2") == this->D_Luch[i][0]->parameters.end() || this->D_Luch[i][0]->parameters["md2"] > 0.01)
+				if (false)
 				{
-					a1 = A->get_yzel_near_opor(2, -1);
-					a2 = A->Yzels_opor[2];
-
-					b1 = B->Yzels_opor[2];
-					b2 = B->get_yzel_near_opor(2, -1);
-
-					d2 = Yzel_distance(a1, a2, 0);
-					d1 = Yzel_distance(b1, b2, 0);
-
-					if ((100.0 - d2 * 100.0 / d1) > 1.0)
+					if (this->D_Luch[i][0]->parameters.find("md2") == this->D_Luch[i][0]->parameters.end() || this->D_Luch[i][0]->parameters["md2"] > 0.01)
 					{
-						k++;
-						izmen = true;
-						for (auto& kk : this->D_Luch[i])
+						a1 = A->get_yzel_near_opor(2, -1);
+						a2 = A->Yzels_opor[2];
+
+						b1 = B->Yzels_opor[2];
+						b2 = B->get_yzel_near_opor(2, -1);
+
+						d2 = Yzel_distance(a1, a2, 0);
+						d1 = Yzel_distance(b1, b2, 0);
+
+						if ((100.0 - d2 * 100.0 / d1) > 1.0)
 						{
-							if (kk->parameters.find("md2") != kk->parameters.end())
+							k++;
+							izmen = true;
+							for (auto& kk : this->D_Luch[i])
 							{
-								kk->parameters["md2"] *= (1.0 + procent / 100.0);
-							}
-							else
-							{
-								kk->parameters["md2"] = this->geo->md2 * (1.0 + procent / 100.0);
+								if (kk->parameters.find("md2") != kk->parameters.end())
+								{
+									kk->parameters["md2"] *= (1.0 + procent / 100.0);
+								}
+								else
+								{
+									kk->parameters["md2"] = this->geo->md2 * (1.0 + procent / 100.0);
+								}
 							}
 						}
-					}
-					else if ((100.0 - d2 * 100.0 / d1) < -1.0)
-					{
-						k++;
-						izmen = true;
-						for (auto& kk : this->D_Luch[i])
+						else if ((100.0 - d2 * 100.0 / d1) < -1.0)
 						{
-							if (kk->parameters.find("md2") != kk->parameters.end())
+							k++;
+							izmen = true;
+							for (auto& kk : this->D_Luch[i])
 							{
-								kk->parameters["md2"] *= (1.0 - procent / 100.0);
-							}
-							else
-							{
-								kk->parameters["md2"] = this->geo->md2 * (1.0 - procent / 100.0);
+								if (kk->parameters.find("md2") != kk->parameters.end())
+								{
+									kk->parameters["md2"] *= (1.0 - procent / 100.0);
+								}
+								else
+								{
+									kk->parameters["md2"] = this->geo->md2 * (1.0 - procent / 100.0);
+								}
 							}
 						}
 					}
 				}
-			}
 
-			// md3
+				// md3
 
-			if (false)
-			{
-
-				if (this->D_Luch[i][0]->parameters.find("md3") == this->D_Luch[i][0]->parameters.end() || this->D_Luch[i][0]->parameters["md3"] > 0.01)
+				if (false)
 				{
-					a1 = A->get_yzel_near_opor(2, 1);
-					a2 = A->Yzels_opor[2];
 
-					b1 = B->Yzels_opor[2];
-					b2 = B->get_yzel_near_opor(2, 1);
-
-					d2 = Yzel_distance(a1, a2, 0);
-					d1 = Yzel_distance(b1, b2, 0);
-
-					if ((100.0 - d2 * 100.0 / d1) > 1.0)
+					if (this->D_Luch[i][0]->parameters.find("md3") == this->D_Luch[i][0]->parameters.end() || this->D_Luch[i][0]->parameters["md3"] > 0.01)
 					{
-						k++;
-						izmen = true;
-						for (auto& kk : this->D_Luch[i])
+						a1 = A->get_yzel_near_opor(2, 1);
+						a2 = A->Yzels_opor[2];
+
+						b1 = B->Yzels_opor[2];
+						b2 = B->get_yzel_near_opor(2, 1);
+
+						d2 = Yzel_distance(a1, a2, 0);
+						d1 = Yzel_distance(b1, b2, 0);
+
+						if ((100.0 - d2 * 100.0 / d1) > 1.0)
 						{
-							if (kk->parameters.find("md3") != kk->parameters.end())
+							k++;
+							izmen = true;
+							for (auto& kk : this->D_Luch[i])
 							{
-								kk->parameters["md3"] *= (1.0 + procent / 100.0);
-							}
-							else
-							{
-								kk->parameters["md3"] = this->geo->md3 * (1.0 + procent / 100.0);
+								if (kk->parameters.find("md3") != kk->parameters.end())
+								{
+									kk->parameters["md3"] *= (1.0 + procent / 100.0);
+								}
+								else
+								{
+									kk->parameters["md3"] = this->geo->md3 * (1.0 + procent / 100.0);
+								}
 							}
 						}
-					}
-					else if ((100.0 - d2 * 100.0 / d1) < -1.0)
-					{
-						k++;
-						izmen = true;
-						for (auto& kk : this->D_Luch[i])
+						else if ((100.0 - d2 * 100.0 / d1) < -1.0)
 						{
-							if (kk->parameters.find("md3") != kk->parameters.end())
+							k++;
+							izmen = true;
+							for (auto& kk : this->D_Luch[i])
 							{
-								kk->parameters["md3"] *= (1.0 - procent / 100.0);
-							}
-							else
-							{
-								kk->parameters["md3"] = this->geo->md3 * (1.0 - procent / 100.0);
+								if (kk->parameters.find("md3") != kk->parameters.end())
+								{
+									kk->parameters["md3"] *= (1.0 - procent / 100.0);
+								}
+								else
+								{
+									kk->parameters["md3"] = this->geo->md3 * (1.0 - procent / 100.0);
+								}
 							}
 						}
 					}
@@ -3295,8 +3306,10 @@ void Setka::auto_set_luch_geo_parameter(int for_new, bool for_MK)
 		}
 
 		// для G лучей 
-		for (int ik = 0; ik < this->G_Luch.size(); ik++)
+		if (false)
 		{
+			for (int ik = 0; ik < this->G_Luch.size(); ik++)
+			{
 				auto A = this->G_Luch[ik][0];
 				auto B = this->B_Luch[ik].back();
 
@@ -3354,8 +3367,9 @@ void Setka::auto_set_luch_geo_parameter(int for_new, bool for_MK)
 						}
 					}
 				}
-	
 
+
+			}
 		}
 
 		for (auto& i : this->All_Luch)

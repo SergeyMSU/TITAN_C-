@@ -31,6 +31,12 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					{
 						par_left["Vx"] = -10.0; // this->phys_param->Velosity_inf;
 					}
+
+					if (norm2(0.0, gr->center[now][1], gr->center[now][2]) < 100.0)
+					{
+						par_left["Vx"] = -15.0; // this->phys_param->Velosity_inf;
+						//par_left["p"] = 0.01; // this->phys_param->Velosity_inf;
+					}
 				}
 				else
 				{

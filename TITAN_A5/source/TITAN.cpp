@@ -154,7 +154,7 @@ int main()
     Setka S1 = Setka("SDK_A5.1_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
     //Setka S1 = Setka("SDK2_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
 
-    S1.geo->L6 = -180.0;
+    S1.geo->L6 = -150.0;
     S1.geo->L7 = -300.0;
     S1.geo->tetta1 = 2.89;
     S1.geo->tetta2 = 2.64;
@@ -195,7 +195,7 @@ int main()
 
     //S1.Download_cell_parameters("parameters_promeg_119.bin");  //60   
     //S1.Download_cell_parameters("parameters_A5_0076.bin");  //60   
-    S1.Download_cell_parameters("parameters_promeg_1127.bin");  //60   
+    S1.Download_cell_parameters("parameters_A5_0078.bin");  //60   
     // на 46 подвинул поверхности вручную
     // 
     // 63 - Ћакс и вторым пор€дком + особый снос в сверхзвуке
@@ -217,7 +217,7 @@ int main()
     //S1.Download_cell_parameters("parameters_0219.bin");
 
 
-    S1.geo->L6 = -180.0;
+    S1.geo->L6 = -150.0;
     S1.geo->L7 = -300.0;
     S1.geo->tetta1 = 2.89;
     S1.geo->tetta2 = 2.64;
@@ -236,6 +236,11 @@ int main()
 
         // јвтоматически подстраиваем геометрические параметры сетки под новые положени€ узлов
         S1.auto_set_luch_geo_parameter(0);
+
+        /*for (auto& i : S1.All_Luch)
+        {
+            i->dvigenie(0);
+        }*/
 
         // »нициализируем TVD (находим соседей и т.д.)
         S1.Init_TVD();
@@ -407,8 +412,8 @@ int main()
         S1.Tecplot_print_cell_plane_parameters();
         S1.Tecplot_print_all_lush_in_2D();
         S1.Tecplot_print_2D_setka(0.0, 0.0, 1.0, -0.00001, "init_setka_2d_(0, 0, 1, 0)_");
-        S1.Tecplot_print_2D_setka(0.0, 1.0, 0.0, -0.00001, "init_setka_2d_(0, 1, 0, 0)_");
-        S1.Tecplot_print_2D_setka(0.0, 1.0, 1.0, -0.00001, "init_setka_2d_(0, 1, 1, 0)_");
+        //S1.Tecplot_print_2D_setka(0.0, 1.0, 0.0, -0.00001, "init_setka_2d_(0, 1, 0, 0)_");
+        //S1.Tecplot_print_2D_setka(0.0, 1.0, 1.0, -0.00001, "init_setka_2d_(0, 1, 1, 0)_");
         S1.Tecplot_print_all_gran_in_surface("TS");
         S1.Tecplot_print_all_gran_in_surface("HP");
         S1.Tecplot_print_all_gran_in_surface("BS");
@@ -435,7 +440,7 @@ int main()
     S1.heating->ReadCoolingFunction("combined_heating_function.txt");
 
 
-    //S1.Algoritm(1, &S1);
+    S1.Algoritm(1, &S1);
 
 
     //Dust_spectra DDD = Dust_spectra();
@@ -496,7 +501,7 @@ int main()
     }
 
 
-    //S1.Save_cell_parameters("parameters_A5_0077.bin");
+    S1.Save_cell_parameters("parameters_A5_0078.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

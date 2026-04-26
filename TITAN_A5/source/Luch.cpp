@@ -368,10 +368,18 @@ void Luch::dvigenie(int i_time)
 		}
 		num += M11;
 
+		double r3 = r;
 		double x3 = r * cos(the);// *(1.0 + (the - const_pi / 2) / 3.0); // Запомнили
+		double y3 = r * sin(the);// *(1.0 + (the - const_pi / 2) / 3.0); // Запомнили
 
-		this->Yzels_opor[2]->coord[i_time][0] = x3;// *(1.0 + fabs(x3) / 1000.0);
-		this->Yzels_opor[3]->coord[i_time][0] = x3;// *(1.0 + fabs(x3) / 1000.0);
+		double the2 = const_pi / 2 + (the - const_pi / 2) / 2.0;
+		double y_opor2 = norm2(0.0, this->Yzels_opor[2]->coord[i_time][1], this->Yzels_opor[2]->coord[i_time][2]);
+		double y_opor3 = norm2(0.0, this->Yzels_opor[3]->coord[i_time][1], this->Yzels_opor[3]->coord[i_time][2]);
+		double r2_ = (y_opor2 - y3) / sin(the2);
+		double r3_ = (y_opor3 - y3) / sin(the2);
+
+		this->Yzels_opor[2]->coord[i_time][0] = x3 + r2_ * cos(the2);// *(1.0 + fabs(x3) / 1000.0);
+		this->Yzels_opor[3]->coord[i_time][0] = x3 + r3_ * cos(the2);// *(1.0 + fabs(x3) / 1000.0);
 
 		// Делаем непрямые лучи
 		double x0, y0, x1, y1, t1, t2, tt1, tt2;
@@ -416,15 +424,22 @@ void Luch::dvigenie(int i_time)
 
 		for (int j = 0; j < M2 - M11; j++)
 		{
-			double s = 1.0 * (j + 1) / (M2 - M11 + 1);
-			double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s); // линейное сгущение с двух сторон
-			x = a1 + b1 * ss + c1 * ss * ss + d1 * ss * ss * ss;
-			y = a2 + b2 * ss + c2 * ss * ss + d2 * ss * ss * ss;
-			z = y * sin(phi);
-			y = y * cos(phi);
-			this->Yzels[num + j]->coord[i_time][0] = x;
-			this->Yzels[num + j]->coord[i_time][1] = y;
-			this->Yzels[num + j]->coord[i_time][2] = z;
+			r = (j + 1) * r2_ / (M2 - M11 + 1);
+
+			this->Yzels[num + j]->coord[i_time][0] = r3 * cos(the) + r * cos(the2);
+			this->Yzels[num + j]->coord[i_time][1] = r3 * sin(the) * cos(phi) + r * sin(the2) * cos(phi);
+			this->Yzels[num + j]->coord[i_time][2] = r3 * sin(the) * sin(phi) + r * sin(the2) * sin(phi);
+
+
+			//double s = 1.0 * (j + 1) / (M2 - M11 + 1);
+			//double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s); // линейное сгущение с двух сторон
+			//x = a1 + b1 * ss + c1 * ss * ss + d1 * ss * ss * ss;
+			//y = a2 + b2 * ss + c2 * ss * ss + d2 * ss * ss * ss;
+			//z = y * sin(phi);
+			//y = y * cos(phi);
+			//this->Yzels[num + j]->coord[i_time][0] = x;
+			//this->Yzels[num + j]->coord[i_time][1] = y;
+			//this->Yzels[num + j]->coord[i_time][2] = z;
 		}
 		num += (M2 - M11) + 1;
 
@@ -437,6 +452,14 @@ void Luch::dvigenie(int i_time)
 		// Точки от R3 (HP) до R4 (BS)
 		for (int j = 0; j < M3; j++)
 		{
+			r = r2_ + (j + 1) * (r3_ - r2_) / (M3 + 1);
+
+			this->Yzels[num + j]->coord[i_time][0] = r3 * cos(the) + r * cos(the2);
+			this->Yzels[num + j]->coord[i_time][1] = r3 * sin(the) * cos(phi) + r * sin(the2) * cos(phi);
+			this->Yzels[num + j]->coord[i_time][2] = r3 * sin(the) * sin(phi) + r * sin(the2) * sin(phi);
+
+
+			continue;
 			//double s = (j + 1.0) / (M3 + 1.0);
 			//double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s);  // Линейное сгущение к обоим концам
 			//r = R3 + ss * (R4 - R3);
@@ -460,6 +483,8 @@ void Luch::dvigenie(int i_time)
 			this->Yzels[num + j]->coord[i_time][2] = z;
 		}
 		num += M3 + 1;
+
+		x3 = this->Yzels_opor[3]->coord[i_time][0]; //r3* cos(the) + r * cos(the2);  // Запомним x с последней итерации
 
 
 		double ba5 = this->geo->ba5;
@@ -517,22 +542,47 @@ void Luch::dvigenie(int i_time)
 		double y0 = sqrt(kv(this->Yzels_opor[0]->coord[i_time][1]) + 
 			kv(this->Yzels_opor[0]->coord[i_time][2]));
 
-		double x1 = x0;// this->Yzels_opor[1]->coord[i_time][0];
-		this->Yzels_opor[1]->coord[i_time][0] = x0;
-		double y1 = sqrt(kv(this->Yzels_opor[1]->coord[i_time][1]) +
-			kv(this->Yzels_opor[1]->coord[i_time][2]));
-
-		double x2 = x0;// this->Yzels_opor[2]->coord[i_time][0];
-		this->Yzels_opor[2]->coord[i_time][0] = x0;
-		double y2 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) +
-			kv(this->Yzels_opor[2]->coord[i_time][2]));
-
-		if (y2 - y1 < 30.0)
+		// Нужно определить на какой угол двигаем эти лучи
+		double the = polar_angle(x0, y0);
+		double ddd = 0.0;  //  Коэффициент для постепенньго уменьшения угла
+		if (x0 > this->geo->L6/2.0)
 		{
-			this->Yzels_opor[2]->coord[i_time][1] *= (30.0 + y1) / y2;
-			this->Yzels_opor[2]->coord[i_time][2] *= (30.0 + y1) / y2;
-			y2 = y1 + 30.0;
+			ddd = 1.0;
 		}
+		else if (x0 > this->geo->L7)
+		{
+			ddd = (x0 - this->geo->L7) / (this->geo->L6 / 2.0 - this->geo->L7);
+		}
+
+		double the2 = const_pi / 2 + ddd * (the - const_pi / 2) / 2.0;
+		double y3 = norm2(0.0, this->Yzels_opor[1]->coord[i_time][1], this->Yzels_opor[1]->coord[i_time][2]);
+		double y4 = norm2(0.0, this->Yzels_opor[2]->coord[i_time][1], this->Yzels_opor[2]->coord[i_time][2]);
+
+		if (y4 - y3 < 40.0)
+		{
+			this->Yzels_opor[2]->coord[i_time][1] *= (40.0 + y3) / y4;
+			this->Yzels_opor[2]->coord[i_time][2] *= (40.0 + y3) / y4;
+			y4 = y3 + 40.0;
+		}
+
+		double r2_ = (y3 - y0) / sin(the2);
+		double r3_ = (y4 - y0) / sin(the2);
+
+		double x0_ = this->Yzels_opor[0]->coord[i_time][0];
+		double y0_ = this->Yzels_opor[0]->coord[i_time][1];
+		double z0_ = this->Yzels_opor[0]->coord[i_time][2];
+
+		//this->Yzels[num]->coord[i_time][0] = this->Yzels_opor[0]->coord[i_time][0] + r2_ * cos(the2);
+
+
+
+		double x1 = x0 + r2_ * cos(the2);// this->Yzels_opor[1]->coord[i_time][0];
+		this->Yzels_opor[1]->coord[i_time][0] = x1;
+		double y1 = y3;
+
+		double x2 = x0 + r3_ * cos(the2);
+		this->Yzels_opor[2]->coord[i_time][0] = x2;
+		double y2 = y4;
 
 		x = x0;
 
@@ -543,6 +593,14 @@ void Luch::dvigenie(int i_time)
 		num += 1;
 		for (int j = 0; j < M2 - M11; j++)
 		{
+
+			r = (j + 1) * r2_ / (M2 - M11 + 1);
+
+			this->Yzels[num + j]->coord[i_time][0] = x0_ + r * cos(the2);
+			this->Yzels[num + j]->coord[i_time][1] = y0_ + r * sin(the2) * cos(phi);
+			this->Yzels[num + j]->coord[i_time][2] = z0_ + r * sin(the2) * sin(phi);
+
+			continue;
 			//x = x0 + (x1 - x0) * (j + 1) / (M2 - M11 + 1);
 			double s = 1.0 * (j + 1) / (M2 - M11 + 1);
 			double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s); // линейное сгущение с двух сторон
@@ -567,6 +625,14 @@ void Luch::dvigenie(int i_time)
 
 		for (int j = 0; j < M3; j++)
 		{
+			r = r2_ + (j + 1) * (r3_ - r2_) / (M3 + 1);
+
+			this->Yzels[num + j]->coord[i_time][0] = x0_ + r * cos(the2);
+			this->Yzels[num + j]->coord[i_time][1] = y0_ + r * sin(the2) * cos(phi);
+			this->Yzels[num + j]->coord[i_time][2] = z0_ + r * sin(the2) * sin(phi);
+
+			continue;
+
 			//double s = 1.0 * (j + 1) / (M3 + 1);
 			//double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s); // линейное сгущение с двух сторон
 			//r = y1 + (y2 - y1)  * ss;
@@ -595,6 +661,8 @@ void Luch::dvigenie(int i_time)
 
 		a = md3;
 		b = 2.0;
+
+		x = x2;
 
 		for (int j = 0; j < M4; j++)
 		{
@@ -643,7 +711,7 @@ void Luch::dvigenie(int i_time)
 		int num = 0;
 		double x, y, z, r;
 
-		//double x0 = this->Yzels_opor[1]->coord[i_time][0];
+		double x0 = this->Yzels_opor[0]->coord[i_time][0];
 		double y0 = sqrt(kv(this->Yzels_opor[1]->coord[i_time][1]) +
 			kv(this->Yzels_opor[1]->coord[i_time][2]));
 
@@ -651,17 +719,40 @@ void Luch::dvigenie(int i_time)
 		double y1 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) +
 			kv(this->Yzels_opor[2]->coord[i_time][2]));
 
-		if (y1 - y0 < 30.0)
+		if (y1 - y0 < 40.0)
 		{
-			this->Yzels_opor[2]->coord[i_time][1] *= (30.0 + y0) / y1;
-			this->Yzels_opor[2]->coord[i_time][2] *= (30.0 + y0) / y1;
-			y1 = y0 + 30.0;
+			this->Yzels_opor[2]->coord[i_time][1] *= (40.0 + y0) / y1;
+			this->Yzels_opor[2]->coord[i_time][2] *= (40.0 + y0) / y1;
+			y1 = y0 + 40.0;
+		}
+
+		double ddd = 0.0;
+		if (x0 > this->geo->L6 / 2.0)
+		{
+			ddd = 1.0;
+		}
+		else if (x0 > this->geo->L7)
+		{
+			ddd = (x0 - this->geo->L7) / (this->geo->L6 / 2.0 - this->geo->L7);
 		}
 
 
-		x = this->Yzels_opor[0]->coord[i_time][0] - 1.0;
+		// Нужно определить на какой угол двигаем эти лучи
+		double the = polar_angle(this->Yzels_opor[0]->coord[i_time][0],
+			norm2(0.0, this->Yzels_opor[0]->coord[i_time][1], this->Yzels_opor[0]->coord[i_time][2]));
+		double the2 = const_pi / 2 + ddd * (the - const_pi / 2) / 2.0;
+		double y3 = norm2(0.0, this->Yzels_opor[0]->coord[i_time][1], this->Yzels_opor[0]->coord[i_time][2]);
+		double r2_ = (y0 - y3) / sin(the2);
+		double r3_ = (y1 - y3) / sin(the2);
 
-		this->Yzels[num]->coord[i_time][0] = x;
+		double x0_ = this->Yzels_opor[0]->coord[i_time][0];
+		double y0_ = this->Yzels_opor[0]->coord[i_time][1];
+		double z0_ = this->Yzels_opor[0]->coord[i_time][2];
+
+		this->Yzels[num]->coord[i_time][0] = this->Yzels_opor[0]->coord[i_time][0] + r2_ * cos(the2);
+
+		double x1 = x0_ + r3_ * cos(the2);// this->Yzels_opor[1]->coord[i_time][0];
+		this->Yzels_opor[2]->coord[i_time][0] = x1;
 
 		num += 1;
 
@@ -676,6 +767,13 @@ void Luch::dvigenie(int i_time)
 
 		for (int j = 0; j < M3; j++)
 		{
+			r = r2_ + (j + 1) * (r3_ - r2_) / (M3 + 1);
+
+			this->Yzels[num + j]->coord[i_time][0] = x0_ + r * cos(the2);
+			this->Yzels[num + j]->coord[i_time][1] = y0_ + r * sin(the2) * cos(phi);
+			this->Yzels[num + j]->coord[i_time][2] = z0_ + r * sin(the2) * sin(phi);
+
+			continue;
 			//double s = 1.0 * (j + 1) / (M3 + 1);
 			//double ss = s * (a - (2.0 * a + b - 3.0) * s + (a + b - 2.0) * s * s); // линейное сгущение с двух сторон
 			//r = y0 + (y1 - y0) * ss;
@@ -700,6 +798,7 @@ void Luch::dvigenie(int i_time)
 		}
 		num += M3;
 
+		x = x1;
 		this->Yzels[num]->coord[i_time][0] = x;
 		
 		num += 1;
@@ -787,13 +886,25 @@ void Luch::dvigenie(int i_time)
 		d2 = tt1 + tt2 + 2.0 * y0 - 2.0 * y1;
 
 		num += 1;
-		for (int j = 0; j < 4; j++)
+		/*for (int j = 0; j < 4; j++)
 		{
 			double s = 1.0 * (j + 1) / (5);
 			x = a1 + b1 * s + c1 * s * s + d1 * s * s * s;
 			y = a2 + b2 * s + c2 * s * s + d2 * s * s * s;
 			z = y * sin(phi);
 			y = y * cos(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+		}*/
+
+		for (int j = 0; j < 4; j++)
+		{
+			double s = 1.0 * (j + 1) / 5.0;   // s = 0.2, 0.4, 0.6, 0.8
+			x = x0 + (x1 - x0) * s;    // линейно вдоль X
+			y = y0 + (y1 - y0) * s;    // линейно вдоль Y
+			z = y * sin(phi);
+			y = y * cos(phi);                 // тот же поворот, что и в исходном блоке
 			this->Yzels[num + j]->coord[i_time][0] = x;
 			this->Yzels[num + j]->coord[i_time][1] = y;
 			this->Yzels[num + j]->coord[i_time][2] = z;
@@ -860,11 +971,23 @@ void Luch::dvigenie(int i_time)
 
 		// Точки от R2 (TS) до R3 (HP)
 		num = 1;
-		for (int j = 0; j < M2 - M11 - MF + 1; j++)
+		/*for (int j = 0; j < M2 - M11 - MF + 1; j++)
 		{
 			double s = 1.0 * (j + 1.0) / (M2 - M11 - MF + 1 + 1.0);
 			x = a1 + b1 * s + c1 * s * s + d1 * s * s * s;
 			y = a2 + b2 * s + c2 * s * s + d2 * s * s * s;
+			z = y * sin(phi);
+			y = y * cos(phi);
+			this->Yzels[num + j]->coord[i_time][0] = x;
+			this->Yzels[num + j]->coord[i_time][1] = y;
+			this->Yzels[num + j]->coord[i_time][2] = z;
+		}*/
+
+		for (int j = 0; j < M2 - M11 - MF + 1; j++)
+		{
+			double s = 1.0 * (j + 1.0) / (M2 - M11 - MF + 1 + 1.0);
+			x = x0 + (x1 - x0) * s;   // линейная интерполяция по X
+			y = y0 + (y1 - y0) * s;   // линейная интерполяция по Y
 			z = y * sin(phi);
 			y = y * cos(phi);
 			this->Yzels[num + j]->coord[i_time][0] = x;

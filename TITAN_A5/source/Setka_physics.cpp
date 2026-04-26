@@ -511,9 +511,9 @@ void Setka::Init_physics(void)
 			r = i->func_R(0);
 			double yy = norm2(0.0, y, z);
 
-			if (r < 21.0)
+			//if (r < 21.0)
 			//if (kv(x + 13.7)/1156.0 + kv(yy)/784.0 <= 1.0)
-			//if (false)
+			if (false)
 			{
 				the = acos(z / r);
 
@@ -538,9 +538,19 @@ void Setka::Init_physics(void)
 
 				i->parameters[0]["Q"] = i->parameters[0]["rho"];
 			}
-			else if (false)//(x < -140.0 && norm2(0.0, y, z) < 80.0)
+			else if (x < -150.0 && norm2(0.0, y, z) < 100.0)
 			{
-				i->parameters[0]["rho"] = this->phys_param->rho_LISM; 
+				i->parameters[0]["rho"] = 0.00017;
+				i->parameters[0]["p"] = 0.14;
+				i->parameters[0]["Vx"] = -10.0;
+				i->parameters[0]["Vy"] = 0.0;
+				i->parameters[0]["Vz"] = 0.0;
+				i->parameters[0]["Bx"] = 0.0;
+				i->parameters[0]["By"] = 0.0;
+				i->parameters[0]["Bz"] = 0.0;
+				i->parameters[0]["Q"] = 1.0 * i->parameters[0]["rho"];
+
+				/*i->parameters[0]["rho"] = this->phys_param->rho_LISM; 
 				i->parameters[0]["p"] = this->phys_param->rho_p_LISM; 
 				i->parameters[0]["Vx"] = this->phys_param->Velosity_inf;
 				i->parameters[0]["Vy"] = 0.0;
@@ -548,7 +558,7 @@ void Setka::Init_physics(void)
 				i->parameters[0]["Bx"] = this->phys_param->B_inf * cos(this->phys_param->alphaB_inf);
 				i->parameters[0]["By"] = this->phys_param->B_inf * sin(this->phys_param->alphaB_inf);
 				i->parameters[0]["Bz"] = 0.0;
-				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];
+				i->parameters[0]["Q"] = 100.0 * i->parameters[0]["rho"];*/
 			}
 
 			for (short unsigned int j = 1; j < i->parameters.size(); j++)
