@@ -470,7 +470,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			this->phys_param->chlld(gr->Get_method(), gr->normal[now][0], gr->normal[now][1],
 				gr->normal[now][2],
-				w, qqq1, qqq2, qqq, false, 0,  // тут раньше было 3, теперь 0 поставил в определении скорости
+				w, qqq1, qqq2, qqq, false, 3,  // тут раньше было 3, теперь 0 поставил в определении скорости
 				konvect_left, konvect_right, konvect, dsr, dsc, dsl,
 				Option);
 
@@ -569,6 +569,13 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 					r += norm2(j->center[now][0], j->center[now][1], j->center[now][2]);
 				}
 				r /= gr->grans_surf.size();
+
+				if(gr->grans_surf.size() == 0)
+				{
+					cout << "Error 8eutg9uehrgiebdgfergeftryefgr   " << gr->grans_surf.size() << endl;
+					cout << gr->center[0][0] << " " << gr->center[0][1] << " " << gr->center[0][2] << endl;
+					exit(-1);
+				}
 
 				B = A * r / rr;
 
