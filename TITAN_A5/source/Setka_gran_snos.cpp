@@ -255,9 +255,10 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 					V2[1] = "By";
 					V3[1] = "Bz";
 
-					double the1 = acos(G[2] / rr);
+					//double the1 = acos(G[2] / rr);
+					double the1 = acos(std::clamp(G[2] / rr, -1.0, 1.0));
 
-					if (the1 > const_pi / 9 && the1 < 8 * const_pi / 9)
+					if (the1 > const_pi / 9 && the1 < 8 * const_pi / 9)  // the > 20  the < 160   ¬не оси Z
 					{
 						for (short int ik = 0; ik < 2; ik++)
 						{
@@ -316,11 +317,10 @@ void Setka::Snos_on_Gran(Gran* gr, unordered_map<string, double>& par_left,
 								par_right[V3[ik]], par_right[V1[ik]], par_right[V2[ik]]);
 						}
 					}
-					else
+					else  // ¬близи оси Z
 					{
 						for (short int ik = 0; ik < 2; ik++)
 						{
-
 							// ѕереводим скорости в сферическую с.к.
 							spherical_skorost(AAc[0], AAc[1], AAc[2],
 								AA->parameters[now][V1[ik]], AA->parameters[now][V2[ik]],

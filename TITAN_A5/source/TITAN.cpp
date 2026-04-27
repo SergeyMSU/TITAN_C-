@@ -195,7 +195,7 @@ int main()
 
     //S1.Download_cell_parameters("parameters_promeg_119.bin");  //60   
     //S1.Download_cell_parameters("parameters_A5_0076.bin");  //60   
-    S1.Download_cell_parameters("parameters_A5_0081.bin");  //60   
+    S1.Download_cell_parameters("parameters_A5_0083.bin");  //60   
     // на 46 подвинул поверхности вручную
     // 
     // 63 - Лакс и вторым порядком + особый снос в сверхзвуке
@@ -402,9 +402,13 @@ int main()
 
     //S1.PereInterpolate("For_intertpolate_0083-no_razriv-with_MK.bin", false);
 
+    //S1.Smooth_head_TS();
+
+
     cout << "A-" << endl;
     // Задаём начальные и граничные условия
     S1.Init_physics();
+    
 
     // Блок начальной визуализации сетки для проверки корректного построения
     if (true)
@@ -439,7 +443,7 @@ int main()
     S1.cooling->ReadCoolingFunction("combined_cooling_function.txt");
     S1.heating->ReadCoolingFunction("combined_heating_function.txt");
 
-
+    
     S1.Algoritm(1, &S1);
 
 
@@ -501,7 +505,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0081.bin");
+    S1.Save_cell_parameters("parameters_A5_0084.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -587,6 +591,7 @@ int main()
         Eigen::Vector3d(0.0, 1.0, 0.0), "_(0, 1, 0)_", 500.0);
 
     S1.Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_");
+    S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_");
 
 
     cout << "F " << endl;

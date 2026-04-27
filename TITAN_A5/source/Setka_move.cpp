@@ -385,8 +385,12 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 				dsc = -dsc;
 			}*/
 
+
 			for (auto& yz : gr->yzels)
 			{
+
+				//if (yz->coord[now][0] < -20) dsc = dsc * 5.0;   // TODO
+
 				yz->mut.lock();
 				yz->velocity[0] += this->phys_param->velocity_HP * dsc * gr->normal[now][0];
 				yz->velocity[1] += this->phys_param->velocity_HP * dsc * gr->normal[now][1];
@@ -479,6 +483,8 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 
 			for (auto& yz : gr->yzels)
 			{
+				//if (norm2(0.0, yz->coord[now][1], yz->coord[now][2]) > 60.0) dsr = dsr * 20.0;   // TODO
+
 				yz->mut.lock();
 				yz->velocity[0] += this->phys_param->velocity_BS * dsr * gr->normal[now][0];
 				yz->velocity[1] += this->phys_param->velocity_BS * dsr * gr->normal[now][1];
@@ -1462,6 +1468,8 @@ void Setka::Smooth_head_TS(void)
 	std::vector<double> w; // веса
 	Eigen::Vector3d A, B, V;
 
+	double dfdf = 0.34;
+
 	for (int i_step = 0; i_step < this->Gran_TS.size(); i_step++)
 	{
 		auto gr = this->Gran_TS[i_step];
@@ -1469,7 +1477,7 @@ void Setka::Smooth_head_TS(void)
 		double rr = A.norm();
 
 		double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
-		if (phi < this->geo->tetta0 + 0.17)
+		if (phi < this->geo->tetta0 + dfdf)
 		{
 			a.push_back(kv(A[0]));
 			b.push_back(kv(A[1]));
@@ -1533,7 +1541,7 @@ void Setka::Smooth_head_TS(void)
 			//double rr = A.norm();
 
 			double phi = polar_angle(A[0], norm2(0.0, A[1], A[2]));
-			if (phi < this->geo->tetta0 + 0.17)
+			if (phi < this->geo->tetta0 + dfdf)
 			{
 				double rr = sqrt(kv(A[0]) / kv(ak) + kv(A[1]) / kv(bk)
 					+ kv(A[2]) / kv(ck) + A[0] * A[1] * dk + 

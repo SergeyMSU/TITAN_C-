@@ -651,7 +651,7 @@ void Setka::Init_physics(void)
 	}
 
 	// ƒл€ первых €чеек задаЄм магнитное поле
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -662,24 +662,18 @@ void Setka::Init_physics(void)
 			z = i->center[0][2];
 			r = norm2(x, y, z);
 
-			vec << x, y, z;
+			the = acos(z / r);
 
-			cc = this->phys_param->Matr2 * vec;
-			the = acos(cc(2) / r);
+			BR = -0.248585 * kv(3.00503 / r);
+			BPHI = -0.2 * BR * sin(the) * (r / 3.00503);
 
-			BR = -this->phys_param->B_0 * kv(this->phys_param->R_0 / r);
-			BPHI = -BR * sin(the) * (r / this->phys_param->R_0);
+			dekard_skorost(z, x, y, BR, BPHI, 0.0, V3, V1, V2);
 
-			dekard_skorost(cc(2), cc(0), cc(1), BR, BPHI, 0.0, V3, V1, V2);
+			i->parameters[0]["Bx"] = V1;
+			i->parameters[0]["By"] = V2;
+			i->parameters[0]["Bz"] = V3;
 
-			vv << V1, V2, V3;
 
-			cc = this->phys_param->Matr * vv;
-
-			i->parameters[0]["Bx"] = cc(0);
-			i->parameters[0]["By"] = cc(1);
-			i->parameters[0]["Bz"] = cc(2);
-			
 
 			for (short unsigned int j = 1; j < i->parameters.size(); j++)
 			{
@@ -1752,7 +1746,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		// –асчитываем потоки через грани
 		// в private не добавл€ютс€ нормально vectora, надо либо обычные массивы делать, либо 
 		// создавать их внутри в каждом потоке
-		#pragma omp parallel for reduction(min:loc_time) schedule(dynamic)
+		#pragma omp parallel for schedule(dynamic) // reduction(min:loc_time)
 		for(int i_step = 0; i_step < gran_list->size(); i_step++)
 		{
 			//whach(GG->parameters["rho_H4"]);
@@ -1791,7 +1785,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		bool print_p_less_0 = false;
 
 		// –асчитываем законы сохранени€ в €чейках
-		#pragma omp parallel for reduction(min:loc_time) schedule(dynamic)
+		#pragma omp parallel for schedule(dynamic) //  reduction(min:loc_time)
 		for (size_t i_step = 0; i_step < cell_list->size(); i_step++)
 		{
 			auto& cell = (*cell_list)[i_step];
