@@ -20,18 +20,40 @@ short int Gran::Get_method()
 		}
 	}*/
 
-	if (this->center[0][0] < -200.0) return 0;
-
+	if (this->center[0][0] < -250.0) return 0;
 
 	if (this->type2 == Type_Gran_surf::Us)
 	{
+		if (this->cells[0]->type == Type_cell::Zone_1)
+		{
+			return 2;
+		}
+	}
+
+	if (this->type2 == Type_Gran_surf::Us)
+	{
+		bool b1 = false;
+		bool b2 = false;
+		bool b3 = false;
+
 		for (auto& i : this->yzels)
 		{
 			if (i->type == Type_yzel::TS)
 			{
 				return 0;                           // Ëàêñ âäîëü TS
 			}
+
+			if (this->yzels[0]->dist_from_TS == 1) b1 = true;
+			if (this->yzels[0]->dist_from_TS == 2) b2 = true;
+			if (this->yzels[0]->dist_from_TS == 3) b3 = true;
 		}
+
+		int bk = 0;
+		if (b1 == true) bk++;
+		if (b2 == true) bk++;
+		if (b3 == true) bk++;
+
+		if(bk >= 2) return 0;
 	}
 
 	return 3;

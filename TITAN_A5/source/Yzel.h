@@ -28,6 +28,7 @@ public:
 	bool is_inner = false;
 
 	short int dist_from_HP = 0;      // Расстояние от этого узла до HP (чтобы задать особую схему)
+	short int dist_from_TS = 0;      // Расстояние от этого узла до HP (чтобы задать особую схему)
 
 	double velocity[3];
 	int num_velocity = 0;

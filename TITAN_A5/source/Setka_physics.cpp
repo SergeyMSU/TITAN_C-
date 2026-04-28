@@ -271,6 +271,44 @@ void Setka::Init_boundary_grans(void)
 
 			a1 = i->get_yzel_near_opor(2, 4);
 			a1->dist_from_HP = 4;
+
+			a1 = i->get_yzel_near_opor(1, 1);
+			a1->dist_from_TS = 1;
+
+			a1 = i->get_yzel_near_opor(1, 2);
+			a1->dist_from_TS = 2;
+
+			a1 = i->get_yzel_near_opor(1, -1);
+			a1->dist_from_TS = 1;
+
+			a1 = i->get_yzel_near_opor(1, -2);
+			a1->dist_from_TS = 2;
+
+			a1 = i->get_yzel_near_opor(1, 3);
+			a1->dist_from_TS = 3;
+
+			a1 = i->get_yzel_near_opor(1, -3);
+			a1->dist_from_TS = 3;
+		}
+		if (i->type == "C_Luch" || i->type == "C2_Luch")
+		{
+			auto a1 = i->get_yzel_near_opor(1, 1);
+			a1->dist_from_TS = 1;
+
+			a1 = i->get_yzel_near_opor(1, 2);
+			a1->dist_from_TS = 2;
+
+			a1 = i->get_yzel_near_opor(1, -1);
+			a1->dist_from_TS = 1;
+
+			a1 = i->get_yzel_near_opor(1, -2);
+			a1->dist_from_TS = 2;
+
+			a1 = i->get_yzel_near_opor(1, 3);
+			a1->dist_from_TS = 3;
+
+			a1 = i->get_yzel_near_opor(1, -3);
+			a1->dist_from_TS = 3;
 		}
 		else if (i->type == "E_Luch")
 		{
