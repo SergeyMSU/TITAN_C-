@@ -195,7 +195,7 @@ int main()
 
     //S1.Download_cell_parameters("parameters_promeg_119.bin");  //60   
     //S1.Download_cell_parameters("parameters_A5_0076.bin");  //60   
-    S1.Download_cell_parameters("parameters_A5_0083.bin");  //60   
+    S1.Download_cell_parameters("parameters_A5_0084.bin");  //60   
     // на 46 подвинул поверхности вручную
     // 
     // 63 - Лакс и вторым порядком + особый снос в сверхзвуке
@@ -444,7 +444,7 @@ int main()
     S1.heating->ReadCoolingFunction("combined_heating_function.txt");
 
     
-    S1.Algoritm(1, &S1);
+    //S1.Algoritm(1, &S1);
 
 
     //Dust_spectra DDD = Dust_spectra();
@@ -505,7 +505,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0084.bin");
+    //S1.Save_cell_parameters("parameters_A5_0084.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -592,6 +592,12 @@ int main()
 
     S1.Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_");
     S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_");
+
+
+    Eigen::Vector3d eex(1.0, 0.0, 0.0);
+    Eigen::Vector3d eey(0.0, -sqrt(2.0) / 2.0, sqrt(2.0) / 2.0);
+    Eigen::Vector3d centr_sys(0.0, 0.0, 0.0);
+    S1.Tecplot_print_2D(&SS, 0.0, 1.0, 1.0, -0.00001, "_2d_(0, 1, 1, 0)_", false, eex, eey, centr_sys);
 
 
     cout << "F " << endl;

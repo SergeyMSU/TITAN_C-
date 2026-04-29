@@ -4813,7 +4813,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 	{
 		fout << ", " << nam;
 	}
-	fout << ", Mach, Mach_Alf, |B|/8pi, rho_Th, p_Th, T_Th, J, Jxx, Jyy, Jx, Jy, Jz, J_an, Jxx_an, Jyy_an, Bxx_pot, Byy_pot";
+	fout << ", Vxx, Vyy, Mach, Mach_Alf, |B|/8pi, rho_Th, p_Th, T_Th, J, Jxx, Jyy, Jx, Jy, Jz, J_an, Jxx_an, Jyy_an, Bxx_pot, Byy_pot";
 	fout << endl;
 
 	fout << "ZONE T=HP, ";
@@ -4883,7 +4883,7 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 			{
 				double kk = 1.0;
 				if (razmer == true) kk = this->phys_param->Get_razmer("r");
-				fout << (C - centr_sys).dot(eex) * dim_r << " " << (C - centr_sys).dot(eey) * dim_r << " ";
+				fout << (C - centr_sys).dot(eex) << " " << (C - centr_sys).dot(eey) << " ";
 				fout << C(0) * kk << " " << C(1) * kk << " " << C(2) * kk;
 			}
 
@@ -4974,8 +4974,10 @@ void Setka::Tecplot_print_2D(Interpol* Int1, const double& a,
 				Mach = 0.0;
 				Mach_alf = 0.0;
 			}
-
-			fout << " " << Mach << " " << Mach_alf << " "
+			
+			fout << " " << eex[0] * parameters["Vx"] + eex[1] * parameters["Vy"] + eex[2] * parameters["Vz"] << " " << 
+				eey[0] * parameters["Vx"] + eey[1] * parameters["Vy"] + eey[2] * parameters["Vz"] << " " <<
+				Mach << " " << Mach_alf << " "
 				<< norm2(parameters["Bx"], parameters["By"], parameters["Bz"]) / (8.0 * const_pi) << 
 				" " << rho_Th * krho  << " " << p_Th * kp << " " << T_Th * kT;
 			
