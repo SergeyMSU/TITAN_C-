@@ -446,10 +446,14 @@ int main()
     
     //S1.Algoritm(1, &S1);
 
+    S1.Write_file_for_FCMHD();
+    //S1.Read_file_for_FCMHD();
 
     //Dust_spectra DDD = Dust_spectra();
 
-    //return 0;
+
+
+    return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 

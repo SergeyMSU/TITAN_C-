@@ -404,5 +404,15 @@ public:
 	void Tecplot_print_2D_setka(const double& a, const double& b,
 		const double& c, const double& d,
 		string name);
+
+
+	// Для работы с CUDA FORTRAN
+
+	void Write_file_for_FCMHD(void);
+	void Read_file_for_FCMHD(void);
+
+
+
+
 };
 
