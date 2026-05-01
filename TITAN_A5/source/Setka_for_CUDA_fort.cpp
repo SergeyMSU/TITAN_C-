@@ -226,8 +226,14 @@ void Setka::Read_file_for_FCMHD(void)
 	this->Renumerate();
 
 	std::ifstream file("FCMHD_1.1_out.bin", std::ios::binary);
-	if (!file.is_open()) {
-		throw std::runtime_error("Error opening file: FCMHD_1.8_out.bin");
+	if (!file.is_open()) 
+	{
+		file.open("CUDA_FORT/FCMHD_1.1_out.bin", std::ios::binary);
+	}
+
+	if (!file.is_open()) 
+	{
+		throw std::runtime_error("Error opening file: FCMHD______out.bin");
 	}
 
 	int n1 = this->All_Cell.size();

@@ -20,7 +20,7 @@ std::vector<PolarPoint> readAndConvert(const std::string& filename)
     std::vector<PolarPoint> points;
     std::ifstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "Ошибка открытия файла: " << filename << std::endl;
+        std::cerr << "Error open file: " << filename << std::endl;
         return points;
     }
 
@@ -33,7 +33,7 @@ std::vector<PolarPoint> readAndConvert(const std::string& filename)
         double x, y;
         if (!(iss >> x >> y)) 
         {
-            std::cerr << "Ошибка чтения строки: " << line << std::endl;
+            std::cerr << "Error read: " << line << std::endl;
             continue;
         }
 
@@ -48,7 +48,7 @@ std::vector<PolarPoint> readAndConvert(const std::string& filename)
     for (size_t i = 1; i < points.size(); ++i) 
     {
         if (points[i].phi < points[i - 1].phi) {
-            std::cerr << "Предупреждение: углы не монотонно возрастают в точке " << i << std::endl;
+            std::cerr << "Ugli ne monotonni " << i << std::endl;
         }
     }
 
@@ -154,10 +154,11 @@ int main()
     Setka S1 = Setka("SDK_A5.1_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
     //Setka S1 = Setka("SDK2_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
 
-    S1.geo->L6 = -150.0;
+    S1.geo->L6 = -150.0; // Этот параметр важен при загрузке сетки так как определяет до куда выделять HP
     S1.geo->L7 = -300.0;
     S1.geo->tetta1 = 2.89;
     S1.geo->tetta2 = 2.64;
+
 
 
     // Обязательный блок настройки основной сетки
@@ -217,7 +218,7 @@ int main()
     //S1.Download_cell_parameters("parameters_0219.bin");
 
 
-    S1.geo->L6 = -150.0;
+    S1.geo->L6 = -150.0;   // Этот параметр важен при загрузке сетки
     S1.geo->L7 = -300.0;
     S1.geo->tetta1 = 2.89;
     S1.geo->tetta2 = 2.64;
@@ -253,17 +254,17 @@ int main()
 
 
     // Ручное движение TS
-    if (false)
+    if (true)
     {
         cout << "Hand TS move" << endl;
         // 1. Считываем файл и преобразуем в полярные координаты
-        std::string filename = "TS.txt"; // укажите правильный путь к файлу
+        std::string filename = "TS_.txt"; // укажите правильный путь к файлу
         std::vector<PolarPoint> polarPoints = readAndConvert(filename);
 
-        cout << "1: " << interpolateR(polarPoints, 0.0) << endl;
-        cout << "2: " << interpolateR(polarPoints, 1.0) << endl;
-        cout << "3: " << interpolateR(polarPoints, 2.0) << endl;
-        cout << "4: " << interpolateR(polarPoints, 3.0) << endl;
+        //cout << "1: " << interpolateR(polarPoints, 0.0) << endl;
+        //cout << "2: " << interpolateR(polarPoints, 1.0) << endl;
+        //cout << "3: " << interpolateR(polarPoints, 2.0) << endl;
+        //cout << "4: " << interpolateR(polarPoints, 3.0) << endl;
 
         for (auto& i : S1.All_Yzel)
         {
@@ -274,17 +275,6 @@ int main()
             double r = norm2(x, y, z);
             double phi = polar_angle(x, norm2(0.0, y, z));
             double r_interp = interpolateR(polarPoints, phi);
-            //cout << r_interp << endl;
-
-            if (r_interp < 20.0 || r_interp > 200.0)
-            {
-                cout << "Error !!!   " << r_interp << endl;
-            }
-
-            if (r < 1.0)
-            {
-                cout << "r Error !!!   " << r << endl;
-            }
 
             i->coord[1][0] *= (r + 1.0 * (r_interp - r)) / r;
             i->coord[1][1] *= (r + 1.0 * (r_interp - r)) / r;
@@ -307,21 +297,16 @@ int main()
         S1.Calculating_measure(0);
         S1.Calculating_measure(1);
         cout << "END Hand TS move" << endl;
-
     }
 
     // Ручное движение HP
-    if (false)
+    if (true)
     {
         cout << "Hand HP move" << endl;
         // 1. Считываем файл и преобразуем в полярные координаты
-        std::string filename = "HP.txt"; // укажите правильный путь к файлу
+        std::string filename = "HP_.txt"; // укажите правильный путь к файлу
         std::vector<PolarPoint> polarPoints = readAndConvert(filename);
 
-        cout << "1: " << interpolateR(polarPoints, 0.0) << endl;
-        cout << "2: " << interpolateR(polarPoints, 1.0) << endl;
-        cout << "3: " << interpolateR(polarPoints, 2.0) << endl;
-        cout << "4: " << interpolateR(polarPoints, 3.0) << endl;
 
         for (auto& i : S1.All_Yzel)
         {
@@ -332,12 +317,7 @@ int main()
             double r = norm2(x, y, z);
             double phi = polar_angle(x, norm2(0.0, y, z));
             double r_interp = interpolateR(polarPoints, phi);
-            //cout << r_interp << endl;
 
-            if (r < 1.0)
-            {
-                cout << "r Error !!!   " << r << endl;
-            }
 
             i->coord[1][0] *= (r + 1.0 * (r_interp - r)) / r;
             i->coord[1][1] *= (r + 1.0 * (r_interp - r)) / r;
@@ -361,46 +341,155 @@ int main()
         S1.Calculating_measure(1);
         cout << "END Hand HP move" << endl;
 
-    }
-
-    //  Ручное изменение BS
-    if (false)
-    {
-        cout << "START Hand" << endl;
-        S1.Calculating_measure(0);
-        S1.Calculating_measure(1);
-        S1.Culc_Velocity_surface(0, 1.0, 3);
-        for (int i_step = 0; i_step < S1.All_Luch.size(); i_step++)
+        // Двигаем узлы на невыделяемой части HP
+        int now2 = 0;
+        short int NN = S1.D_Luch[0].size() - 1;
+        for (auto& L : S1.D_Luch)
         {
-            auto lu = S1.All_Luch[i_step];
-            lu->dvigenie(1);
+            int kk = 3;
+            while (true)
+            {
+                if (L[S1.geo->N4 - kk]->Yzels_opor[1]->coord[now2][0] > S1.geo->L6) break;
+                kk++;
+            }
+
+            double h1 = norm2(0.0, L[S1.geo->N4 - kk]->Yzels_opor[1]->coord[now2][1],
+                L[S1.geo->N4 - kk]->Yzels_opor[1]->coord[now2][2]);
+
+            cout << "h1 = " << h1 << endl;
+
+
+            for (short int i = S1.geo->N4 - kk + 1; i <= NN; i++)
+            {
+                double h = h1;
+                auto yz = L[i]->Yzels_opor[1];
+                double hh = norm2(0.0, yz->coord[now2][1], yz->coord[now2][2]);
+                yz->coord[now2][1] = yz->coord[now2][1] * h / hh;
+                yz->coord[now2][2] = yz->coord[now2][2] * h / hh;
+            }
         }
 
-        for (auto& i : S1.All_Yzel)
-        {
-            i->coord[0][0] = i->coord[1][0];
-            i->coord[0][1] = i->coord[1][1];
-            i->coord[0][2] = i->coord[1][2];
-        }
-        S1.Calculating_measure(0);
-        S1.Calculating_measure(1);
-
-        S1.auto_set_luch_geo_parameter(0);
         for (auto& i : S1.All_Yzel)
         {
             i->coord[1][0] = i->coord[0][0];
             i->coord[1][1] = i->coord[0][1];
             i->coord[1][2] = i->coord[0][2];
         }
-        cout << "Calculating_measure" << endl;
+
+        S1.auto_set_luch_geo_parameter(0);
+
+        for (auto& i : S1.All_Yzel)
+        {
+            i->coord[1][0] = i->coord[0][0];
+            i->coord[1][1] = i->coord[0][1];
+            i->coord[1][2] = i->coord[0][2];
+        }
+
         S1.Calculating_measure(0);
         S1.Calculating_measure(1);
-        cout << "Init_TVD" << endl;
-        S1.Init_TVD();
-        cout << "END Hand" << endl;
+
     }
 
-    //S1.PereInterpolate("For_intertpolate_0083-no_razriv-with_MK.bin", false);
+    //  Ручное изменение BS
+    if (true)
+    {
+        cout << "Hand BS move" << endl;
+        // 1. Считываем файл и преобразуем в полярные координаты
+        std::string filename = "BS_.txt"; // укажите правильный путь к файлу
+        std::vector<PolarPoint> polarPoints = readAndConvert(filename);
+
+
+        for (auto& i : S1.All_Yzel)
+        {
+            if (i->type != Type_yzel::BS) continue;
+            double x = i->coord[0][0];
+            double y = i->coord[0][1];
+            double z = i->coord[0][2];
+            double r = norm2(x, y, z);
+            double phi = polar_angle(x, norm2(0.0, y, z));
+            double r_interp = interpolateR(polarPoints, phi);
+
+
+            i->coord[1][0] *= (r + 1.0 * (r_interp - r)) / r;
+            i->coord[1][1] *= (r + 1.0 * (r_interp - r)) / r;
+            i->coord[1][2] *= (r + 1.0 * (r_interp - r)) / r;
+
+            i->coord[0][0] = i->coord[1][0];
+            i->coord[0][1] = i->coord[1][1];
+            i->coord[0][2] = i->coord[1][2];
+        }
+
+
+
+
+        S1.auto_set_luch_geo_parameter(0);
+
+        for (auto& i : S1.All_Yzel)
+        {
+            i->coord[1][0] = i->coord[0][0];
+            i->coord[1][1] = i->coord[0][1];
+            i->coord[1][2] = i->coord[0][2];
+        }
+
+        S1.Calculating_measure(0);
+        S1.Calculating_measure(1);
+        cout << "END Hand BS move" << endl;
+
+        // Надо подвинуть узлы, которые продолжают BS
+        
+        short int NN = S1.A_Luch[0].size() - 1;
+        int now2 = 0;
+        for (short int i = 0; i < S1.A_Luch.size(); i++)
+        {
+            auto yz = S1.A_Luch[i][NN]->Yzels_opor[3];
+            double H = norm2(0.0, yz->coord[now2][1], yz->coord[now2][2]);
+            for (auto& L : S1.B_Luch[i])
+            {
+                auto yyz = L->Yzels_opor[3];
+                double h2 = norm2(0.0, yyz->coord[now2][1], yyz->coord[now2][2]);
+                yyz->coord[now2][1] *= H / h2;
+                yyz->coord[now2][2] *= H / h2;
+            }
+            for (auto& L : S1.E_Luch[i])
+            {
+                auto yyz = L->Yzels_opor[2];
+                double h2 = norm2(0.0, yyz->coord[now2][1], yyz->coord[now2][2]);
+                yyz->coord[now2][1] *= H / h2;
+                yyz->coord[now2][2] *= H / h2;
+            }
+            for (auto& L : S1.D_Luch[i])
+            {
+                auto yyz = L->Yzels_opor[2];
+                double h2 = norm2(0.0, yyz->coord[now2][1], yyz->coord[now2][2]);
+                yyz->coord[now2][1] *= H / h2;
+                yyz->coord[now2][2] *= H / h2;
+            }
+        }
+
+        for (auto& i : S1.All_Yzel)
+        {
+            i->coord[1][0] = i->coord[0][0];
+            i->coord[1][1] = i->coord[0][1];
+            i->coord[1][2] = i->coord[0][2];
+        }
+
+        S1.auto_set_luch_geo_parameter(0);
+
+        for (auto& i : S1.All_Yzel)
+        {
+            i->coord[1][0] = i->coord[0][0];
+            i->coord[1][1] = i->coord[0][1];
+            i->coord[1][2] = i->coord[0][2];
+        }
+
+        S1.Calculating_measure(0);
+        S1.Calculating_measure(1);
+
+
+        
+    }
+
+    S1.PereInterpolate("For_intertpolate_0084-no_razriv-with_MK.bin", false);
 
     //S1.Smooth_head_TS();
 
@@ -453,7 +542,7 @@ int main()
 
 
 
-    return 0;
+    //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 
@@ -509,7 +598,7 @@ int main()
     }
 
 
-    //S1.Save_cell_parameters("parameters_A5_0084.bin");
+    S1.Save_cell_parameters("parameters_A5_0085.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -576,9 +665,9 @@ int main()
 
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0084-no_razriv-with_MK.bin", false);
+    S1.Save_for_interpolate("For_intertpolate_0085-no_razriv-with_MK.bin", false);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0084-no_razriv-with_MK.bin");
+    Interpol SS = Interpol("For_intertpolate_0085-no_razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");

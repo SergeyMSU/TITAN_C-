@@ -315,6 +315,13 @@ void Luch::dvigenie(int i_time)
 			kv(this->Yzels_opor[3]->coord[i_time][2])); // BS причём для B лучей это фиктивный BS
 		// Она уже там не выделяется, поэтому подвинуть эти координаты надо заранее в другой подпрограмме
 
+		if (R4 - R3 < 60.0)
+		{
+			this->Yzels_opor[3]->coord[i_time][1] *= (60.0 + R3) / R4;
+			this->Yzels_opor[3]->coord[i_time][2] *= (60.0 + R3) / R4;
+			R4 = R3 + 60.0;
+		}
+
 
 		int M0 = this->geo->M0;
 		int M1 = this->geo->M1;
@@ -558,11 +565,11 @@ void Luch::dvigenie(int i_time)
 		double y3 = norm2(0.0, this->Yzels_opor[1]->coord[i_time][1], this->Yzels_opor[1]->coord[i_time][2]);
 		double y4 = norm2(0.0, this->Yzels_opor[2]->coord[i_time][1], this->Yzels_opor[2]->coord[i_time][2]);
 
-		if (y4 - y3 < 40.0)
+		if (y4 - y3 < 60.0)
 		{
-			this->Yzels_opor[2]->coord[i_time][1] *= (40.0 + y3) / y4;
-			this->Yzels_opor[2]->coord[i_time][2] *= (40.0 + y3) / y4;
-			y4 = y3 + 40.0;
+			this->Yzels_opor[2]->coord[i_time][1] *= (60.0 + y3) / y4;
+			this->Yzels_opor[2]->coord[i_time][2] *= (60.0 + y3) / y4;
+			y4 = y3 + 60.0;
 		}
 
 		double r2_ = (y3 - y0) / sin(the2);
@@ -719,11 +726,11 @@ void Luch::dvigenie(int i_time)
 		double y1 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) +
 			kv(this->Yzels_opor[2]->coord[i_time][2]));
 
-		if (y1 - y0 < 40.0)
+		if (y1 - y0 < 60.0)
 		{
-			this->Yzels_opor[2]->coord[i_time][1] *= (40.0 + y0) / y1;
-			this->Yzels_opor[2]->coord[i_time][2] *= (40.0 + y0) / y1;
-			y1 = y0 + 40.0;
+			this->Yzels_opor[2]->coord[i_time][1] *= (60.0 + y0) / y1;
+			this->Yzels_opor[2]->coord[i_time][2] *= (60.0 + y0) / y1;
+			y1 = y0 + 60.0;
 		}
 
 		double ddd = 0.0;

@@ -1,7 +1,7 @@
 
 
 module STORAGE 
-
+    use cudafor
     real(8), parameter :: par_pi_8 = acos(-1.0_8)         
     real(8), parameter :: par_pi_4 = acos(-1.0_4)      
 	real(8), parameter :: par_sqrtpi = sqrt(par_pi_8)
@@ -36,14 +36,43 @@ module STORAGE
 
 	real(8), allocatable :: host_Gran_POTOK(:, :)       ! (10, :) поток грани    последний - дивергенция магнитного поля для очистки
 
+    real(8), allocatable, public :: host_cooling_T(:)
+    real(8), allocatable, public :: host_cooling_Lambda(:)
+    real(8), allocatable, public :: host_cooling_lnT(:)
+    real(8), allocatable, public :: host_cooling_lnLambda(:)
 
+    real(8), allocatable, public :: host_heating_T(:)
+    real(8), allocatable, public :: host_heating_Lambda(:)
+    real(8), allocatable, public :: host_heating_lnT(:)
+    real(8), allocatable, public :: host_heating_lnLambda(:)
 
     contains
 
     subroutine Set_Storage()
         real(8) :: vv
         integer(4) :: i
-        open(1, file = "FCMHD_1.bin", FORM = 'BINARY', ACTION = "READ")
+        logical :: file_exists
+        integer :: ierr
+        character(len=256) :: filename
+
+        filename = 'FCMHD_1.bin'
+
+        ierr = 1
+        inquire(file=filename, exist=file_exists)
+        if (file_exists) then
+            open(1, file = filename, FORM = 'BINARY', ACTION = "READ", iostat=ierr)
+        else
+            inquire(file='../'//filename, exist=file_exists)
+            if (file_exists) then
+                open(1, file = '../'//filename, FORM = 'BINARY', ACTION = "READ", iostat=ierr)
+            end if
+        end if
+
+        if (ierr /= 0) then
+            write(*,*) 'Error: cannot open FCMHD_1.bin (current dir, CUDA_FORT/ or ../)'
+            stop
+        end if
+
 
         read(1) host_time_all
         read(1) host_N_cell
@@ -115,6 +144,12 @@ module STORAGE
 
         call flush(6)
 
+
+        call read_cooling_function('combined_cooling_function.txt', &
+            host_cooling_T, host_cooling_Lambda, host_cooling_lnT, host_cooling_lnLambda)
+        call read_cooling_function('combined_heating_function.txt', &
+            host_heating_T, host_heating_Lambda, host_heating_lnT, host_heating_lnLambda)
+
     end subroutine Set_Storage
 
 
@@ -163,6 +198,155 @@ module STORAGE
         close(3)
         call flush(6)
     end subroutine Fill_data
+
+    !---------------------------------------------------------------------
+    ! Чтение данных из файла, заполнение массивов T, Lambda и их логарифмов
+    !---------------------------------------------------------------------
+    subroutine read_cooling_function(filename, T, Lambda, lnT, lnLambda)
+        character(len=*), intent(in)                          :: filename
+        real(8), allocatable, intent(out)                :: T(:), Lambda(:), lnT(:), lnLambda(:)
+
+        integer               :: unit, i, n, ierr
+        character(len=256)    :: line
+        real(8)          :: tval, lval
+        logical               :: sorted
+
+        ! Открываем файл
+        open (newunit=unit, file=filename, status='old', action='read', iostat=ierr)
+        if (ierr /= 0) then
+            write (*,*) 'Error: cannot open file ', trim(filename)
+            stop
+        end if
+
+        ! Пропускаем строку заголовка
+        read (unit, '(A)', iostat=ierr) line
+
+        ! Временные динамические массивы
+        allocate (T(0), Lambda(0))
+
+        do
+            read (unit, '(A)', iostat=ierr) line
+            if (ierr < 0) exit            ! конец файла
+            if (ierr > 0) exit            ! ошибка чтения
+            if (len_trim(line) == 0) cycle
+            read (line, *, iostat=ierr) tval, lval
+            if (ierr /= 0) then
+                write (*,*) 'Warning: skipped invalid line: ', trim(line)
+                cycle
+            end if
+            ! Расширяем массивы на 1
+            T = [T, tval]
+            Lambda = [Lambda, lval]
+        end do
+        close (unit)
+
+        n = size(T)
+        if (n == 0) then
+            write (*,*) 'Error: no data read from file.'
+            stop
+        end if
+
+        ! Вычисляем логарифмы
+        allocate (lnT(n), lnLambda(n))
+        do i = 1, n
+            lnT(i)      = log(T(i))
+            lnLambda(i) = log(Lambda(i))
+        end do
+
+        ! Проверка монотонности по lnT
+        sorted = .true.
+        do i = 2, n
+            if (lnT(i) <= lnT(i-1)) then
+                sorted = .false.
+                exit
+            end if
+        end do
+        if (.not. sorted) then
+        write (*,*) 'Warning: T values are not in increasing order.'
+        end if
+
+        ! Создаём проверочный файл
+        call write_check_file(filename, T, Lambda, lnT, lnLambda)
+    end subroutine read_cooling_function
+
+    !---------------------------------------------------------------------
+    ! Запись проверочного файла с интерполяцией на равномерной лог-сетке
+    !---------------------------------------------------------------------
+    subroutine write_check_file(filename, T, Lambda, lnT, lnLambda)
+        character(len=*), intent(in)   :: filename
+        real(8), intent(in)       :: T(:), Lambda(:), lnT(:), lnLambda(:)
+
+        integer, parameter             :: nsteps = 10000
+        real(8)                   :: T_min, T_max, logT_min, logT_max, log_step
+        real(8)                   :: Tcur, Lcur
+        integer                        :: i, unit, ierr
+
+        T_min = T(1)
+        T_max = T(size(T))
+        logT_min = log(T_min)
+        logT_max = log(T_max)
+        log_step = (logT_max - logT_min) / real(nsteps-1, 8)
+
+        open (newunit=unit, file=trim(filename)//'_check.txt', &
+            status='replace', action='write', iostat=ierr)
+        if (ierr /= 0) then
+            write (*,*) 'Warning: could not create check file.'
+            return
+        end if
+
+        write (unit, '(A)') '# T [K]    Lambda_interpolated [erg cm^3/s]'
+        do i = 0, nsteps-1
+            Tcur = exp(logT_min + i * log_step)
+            Lcur = interpolate_cooling(Tcur, T, Lambda, lnT, lnLambda)
+            write (unit, '(ES18.9,2X,ES18.9)') Tcur, Lcur
+        end do
+        close (unit)
+
+        write (*,*) 'Check file written: ', trim(filename)//'_check.txt'
+    end subroutine write_check_file
+
+
+    !---------------------------------------------------------------------
+    ! Интерполяция Lambda/n_H^2 по T (линейная в log-log)
+    ! Для использования на GPU – pure функция (может вызываться из ядра)
+    !---------------------------------------------------------------------
+    !@cuf attributes(host, device) & 
+    pure function interpolate_cooling(T_in, T_arr, Lambda_arr, lnT_arr, lnLambda_arr) result(lambda_out)
+        real(8), intent(in) :: T_in
+        real(8), intent(in) :: T_arr(:), Lambda_arr(:), lnT_arr(:), lnLambda_arr(:)
+        real(8)             :: lambda_out
+
+        real(8) :: logT, lnL
+        integer      :: n, idx
+
+        n = size(T_arr)
+        ! Если температура вне диапазона данных – возвращаем 0
+        if (T_in <= T_arr(1) .or. T_in >= T_arr(n)) then
+            lambda_out = 0.0_8
+            return
+        end if
+
+        logT = log(T_in)
+
+        ! Поиск индекса первого lnT >= logT (аналог std::lower_bound)
+        idx = 2
+        do while (idx <= n .and. lnT_arr(idx) < logT)
+            idx = idx + 1
+        end do
+
+        ! Точное совпадение с узлом (с учётом погрешности)
+        if (idx <= n .and. abs(lnT_arr(idx) - logT) < 1.0e-12_8) then
+            lambda_out = Lambda_arr(idx)
+            return
+        end if
+
+        ! Линейная интерполяция в log-log пространстве
+        lnL = lnLambda_arr(idx-1) + &
+            (logT - lnT_arr(idx-1)) * (lnLambda_arr(idx) - lnLambda_arr(idx-1)) &
+            / (lnT_arr(idx) - lnT_arr(idx-1))
+
+        lambda_out = exp(lnL)
+    end function interpolate_cooling
 
 
 end module STORAGE

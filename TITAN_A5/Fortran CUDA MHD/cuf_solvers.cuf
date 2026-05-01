@@ -71,11 +71,11 @@ attributes(global) subroutine CUF_MGD_grans(now)
     real(8) :: df1, df2, dff1, dff2, rad1, rad2, rad3, rad4, rad5, gran_centr(3), cell_centr_s1(3)
     real(8) :: cell_centr_s2(3), cell_centr_ss1(3), cell_centr_ss2(3), mv, mb, r_rotate(3), b_phi, drot
     logical :: tvd 
-    real(8) :: alpha, vvv(3)
+    real(8) :: alpha, vvv(3), M1, M2, M11, M22
 
 
     tvd = .TRUE.
-    metod = 3
+    metod = 0
 
     if(now == 1) then
         tvd = .FALSE.
@@ -156,250 +156,210 @@ attributes(global) subroutine CUF_MGD_grans(now)
             qqq11 = dev_Cell_par(:, ss1)
             qqq22 = dev_Cell_par(:, ss2)
 
-            rad1 = dev_norm2(cell_centr_s1)                              
-            rad2 = dev_norm2(cell_centr_s2)                              
-            rad3 = dev_norm2(cell_centr_ss1)                              
-            rad4 = dev_norm2(cell_centr_ss2) 
-            
-            qqq1_TVD(1) = linear(-dff1, qqq11(1) * rad3**2, -df1, qqq1(1) * rad1**2, df2, qqq2(1) * rad2**2, 0.0_8)/ rad5**2
-            qqq1_TVD(5) = linear(-dff1, qqq11(5) * rad3**(2 * ggg), -df1, qqq1(5) * rad1**(2 * ggg), df2,&
-                qqq2(5) * rad2**(2 * ggg), 0.0_8)/ rad5**(2 * ggg)
-            
-            qqq2_TVD(1) = linear(-dff2, qqq22(1) * rad4**2, -df2, qqq2(1) * rad2**2, df1, qqq1(1) * rad1**2, 0.0_8)/ rad5**2
-            qqq2_TVD(5) = linear(-dff2, qqq22(5) * rad4**(2 * ggg), -df2, qqq2(5) * rad2**(2 * ggg), df1,&
-                qqq1(5) * rad1**(2 * ggg), 0.0_8)/ rad5**(2 * ggg)
 
-            the = acos(gran_centr(3) / rad5);
-            
-            if(the > 3.14_8/9 .and. the < 8 * 3.14_8 / 9) then
-                ! Переводим скорости в сферическую с.к.
-                call spherical_skorost(cell_centr_s1(3), cell_centr_s1(1), cell_centr_s1(2), &
-                    qqq1(4), qqq1(2), qqq1(3), aa, bb, cc)
-                qqq1(2) = aa
-                qqq1(3) = bb
-                qqq1(4) = cc
+            M1 = sqrt(qqq1(2)**2 + qqq1(3)**2 + qqq1(4)**2)/sqrt(ggg * qqq1(5)/qqq1(1))
+            M11 = sqrt(qqq11(2)**2 + qqq11(3)**2 + qqq11(4)**2)/sqrt(ggg * qqq11(5)/qqq11(1))
+            M2 = sqrt(qqq2(2)**2 + qqq2(3)**2 + qqq2(4)**2)/sqrt(ggg * qqq2(5)/qqq2(1))
+            M22 = sqrt(qqq22(2)**2 + qqq22(3)**2 + qqq22(4)**2)/sqrt(ggg * qqq22(5)/qqq22(1))
+
+            ! В этом случае надо делать снос с градиентами и в сферической СК
+            if(M1 > 5 .and. M11 > 5 .and. M2 > 5 .and. M22 > 5) then
+
+                rad1 = dev_norm2(cell_centr_s1)                              
+                rad2 = dev_norm2(cell_centr_s2)                              
+                rad3 = dev_norm2(cell_centr_ss1)                              
+                rad4 = dev_norm2(cell_centr_ss2) 
                 
-                call spherical_skorost(cell_centr_s2(3), cell_centr_s2(1), cell_centr_s2(2), &
-                    qqq2(4), qqq2(2), qqq2(3), aa, bb, cc)
-                qqq2(2) = aa
-                qqq2(3) = bb
-                qqq2(4) = cc
+                qqq1_TVD(1) = linear(-dff1, qqq11(1) * rad3**2, -df1, qqq1(1) * rad1**2, df2, qqq2(1) * rad2**2, 0.0_8)/ rad5**2
+                qqq1_TVD(5) = linear(-dff1, qqq11(5) * rad3**(2 * ggg), -df1, qqq1(5) * rad1**(2 * ggg), df2,&
+                    qqq2(5) * rad2**(2 * ggg), 0.0_8)/ rad5**(2 * ggg)
                 
-                call spherical_skorost(cell_centr_ss1(3), cell_centr_ss1(1), cell_centr_ss1(2), &
-                    qqq11(4), qqq11(2), qqq11(3), aa, bb, cc)
-                qqq11(2) = aa
-                qqq11(3) = bb
-                qqq11(4) = cc
+                qqq2_TVD(1) = linear(-dff2, qqq22(1) * rad4**2, -df2, qqq2(1) * rad2**2, df1, qqq1(1) * rad1**2, 0.0_8)/ rad5**2
+                qqq2_TVD(5) = linear(-dff2, qqq22(5) * rad4**(2 * ggg), -df2, qqq2(5) * rad2**(2 * ggg), df1,&
+                    qqq1(5) * rad1**(2 * ggg), 0.0_8)/ rad5**(2 * ggg)
+
+                the = acos(gran_centr(3) / rad5);
                 
-                call spherical_skorost(cell_centr_ss2(3), cell_centr_ss2(1), cell_centr_ss2(2), &
-                    qqq22(4), qqq22(2), qqq22(3), aa, bb, cc)
-                qqq22(2) = aa
-                qqq22(3) = bb
-                qqq22(4) = cc
-                
-                ! Перевод Магнитных полей в сферическую ск
-                
-                call spherical_skorost(cell_centr_s1(3), cell_centr_s1(1), cell_centr_s1(2), &
-                    qqq1(8), qqq1(6), qqq1(7), aa, bb, cc)
-                qqq1(6) = aa
-                qqq1(7) = bb
-                qqq1(8) = cc
-                
-                call spherical_skorost(cell_centr_s2(3), cell_centr_s2(1), cell_centr_s2(2), &
-                    qqq2(8), qqq2(6), qqq2(7), aa, bb, cc)
-                qqq2(6) = aa
-                qqq2(7) = bb
-                qqq2(8) = cc
-                
-                call spherical_skorost(cell_centr_ss1(3), cell_centr_ss1(1), cell_centr_ss1(2), &
-                    qqq11(8), qqq11(6), qqq11(7), aa, bb, cc)
-                qqq11(6) = aa
-                qqq11(7) = bb
-                qqq11(8) = cc
-                
-                call spherical_skorost(cell_centr_ss2(3), cell_centr_ss2(1), cell_centr_ss2(2), &
-                    qqq22(8), qqq22(6), qqq22(7), aa, bb, cc)
-                qqq22(6) = aa
-                qqq22(7) = bb
-                qqq22(8) = cc
-                
-                do i = 2, 4
-                    qqq1_TVD(i) = linear(-dff1, qqq11(i), -df1, qqq1(i), df2, qqq2(i), 0.0_8)
-                    qqq2_TVD(i) = linear(-dff2, qqq22(i), -df2, qqq2(i), df1, qqq1(i), 0.0_8)
-                end do
-                
-                do i = 6, 8
-                    qqq1_TVD(i) = linear(-dff1, qqq11(i), -df1, qqq1(i), df2, qqq2(i), 0.0_8)
-                    qqq2_TVD(i) = linear(-dff2, qqq22(i), -df2, qqq2(i), df1, qqq1(i), 0.0_8)
-                end do
-                
-                call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), &
-                    qqq1_TVD(2), qqq1_TVD(3), qqq1_TVD(4), aa, bb, cc)
-                qqq1_TVD(4) = aa
-                qqq1_TVD(2) = bb
-                qqq1_TVD(3) = cc
-                call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), &
-                    qqq2_TVD(2), qqq2_TVD(3), qqq2_TVD(4), aa, bb, cc)
-                qqq2_TVD(4) = aa
-                qqq2_TVD(2) = bb
-                qqq2_TVD(3) = cc
-                
-                call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), &
-                    qqq1_TVD(6), qqq1_TVD(7), qqq1_TVD(8), aa, bb, cc)
-                qqq1_TVD(8) = aa
-                qqq1_TVD(6) = bb
-                qqq1_TVD(7) = cc
-                call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), &
-                    qqq2_TVD(6), qqq2_TVD(7), qqq2_TVD(8), aa, bb, cc)
-                qqq2_TVD(8) = aa
-                qqq2_TVD(6) = bb
-                qqq2_TVD(7) = cc
+                if(the > 3.14_8/9 .and. the < 8 * 3.14_8 / 9) then
+                    ! Переводим скорости в сферическую с.к.
+                    call spherical_skorost(cell_centr_s1(3), cell_centr_s1(1), cell_centr_s1(2), &
+                        qqq1(4), qqq1(2), qqq1(3), aa, bb, cc)
+                    qqq1(2) = aa
+                    qqq1(3) = bb
+                    qqq1(4) = cc
+                    
+                    call spherical_skorost(cell_centr_s2(3), cell_centr_s2(1), cell_centr_s2(2), &
+                        qqq2(4), qqq2(2), qqq2(3), aa, bb, cc)
+                    qqq2(2) = aa
+                    qqq2(3) = bb
+                    qqq2(4) = cc
+                    
+                    call spherical_skorost(cell_centr_ss1(3), cell_centr_ss1(1), cell_centr_ss1(2), &
+                        qqq11(4), qqq11(2), qqq11(3), aa, bb, cc)
+                    qqq11(2) = aa
+                    qqq11(3) = bb
+                    qqq11(4) = cc
+                    
+                    call spherical_skorost(cell_centr_ss2(3), cell_centr_ss2(1), cell_centr_ss2(2), &
+                        qqq22(4), qqq22(2), qqq22(3), aa, bb, cc)
+                    qqq22(2) = aa
+                    qqq22(3) = bb
+                    qqq22(4) = cc
+                    
+                    ! Перевод Магнитных полей в сферическую ск
+                    
+                    call spherical_skorost(cell_centr_s1(3), cell_centr_s1(1), cell_centr_s1(2), &
+                        qqq1(8), qqq1(6), qqq1(7), aa, bb, cc)
+                    qqq1(6) = aa
+                    qqq1(7) = bb
+                    qqq1(8) = cc
+                    
+                    call spherical_skorost(cell_centr_s2(3), cell_centr_s2(1), cell_centr_s2(2), &
+                        qqq2(8), qqq2(6), qqq2(7), aa, bb, cc)
+                    qqq2(6) = aa
+                    qqq2(7) = bb
+                    qqq2(8) = cc
+                    
+                    call spherical_skorost(cell_centr_ss1(3), cell_centr_ss1(1), cell_centr_ss1(2), &
+                        qqq11(8), qqq11(6), qqq11(7), aa, bb, cc)
+                    qqq11(6) = aa
+                    qqq11(7) = bb
+                    qqq11(8) = cc
+                    
+                    call spherical_skorost(cell_centr_ss2(3), cell_centr_ss2(1), cell_centr_ss2(2), &
+                        qqq22(8), qqq22(6), qqq22(7), aa, bb, cc)
+                    qqq22(6) = aa
+                    qqq22(7) = bb
+                    qqq22(8) = cc
+                    
+                    do i = 2, 4
+                        qqq1_TVD(i) = linear(-dff1, qqq11(i), -df1, qqq1(i), df2, qqq2(i), 0.0_8)
+                        qqq2_TVD(i) = linear(-dff2, qqq22(i), -df2, qqq2(i), df1, qqq1(i), 0.0_8)
+                    end do
+                    
+                    do i = 6, 8
+                        qqq1_TVD(i) = linear(-dff1, qqq11(i), -df1, qqq1(i), df2, qqq2(i), 0.0_8)
+                        qqq2_TVD(i) = linear(-dff2, qqq22(i), -df2, qqq2(i), df1, qqq1(i), 0.0_8)
+                    end do
+                    
+                    call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), &
+                        qqq1_TVD(2), qqq1_TVD(3), qqq1_TVD(4), aa, bb, cc)
+                    qqq1_TVD(4) = aa
+                    qqq1_TVD(2) = bb
+                    qqq1_TVD(3) = cc
+                    call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), &
+                        qqq2_TVD(2), qqq2_TVD(3), qqq2_TVD(4), aa, bb, cc)
+                    qqq2_TVD(4) = aa
+                    qqq2_TVD(2) = bb
+                    qqq2_TVD(3) = cc
+                    
+                    call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), &
+                        qqq1_TVD(6), qqq1_TVD(7), qqq1_TVD(8), aa, bb, cc)
+                    qqq1_TVD(8) = aa
+                    qqq1_TVD(6) = bb
+                    qqq1_TVD(7) = cc
+                    call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), &
+                        qqq2_TVD(6), qqq2_TVD(7), qqq2_TVD(8), aa, bb, cc)
+                    qqq2_TVD(8) = aa
+                    qqq2_TVD(6) = bb
+                    qqq2_TVD(7) = cc
+                else
+                    ! Переводим скорости в сферическую с.к.
+                    call spherical_skorost(cell_centr_s1(1), cell_centr_s1(2), cell_centr_s1(3), &
+                        qqq1(2), qqq1(3), qqq1(4), aa, bb, cc)
+                    qqq1(2) = aa
+                    qqq1(3) = bb
+                    qqq1(4) = cc
+                    
+                    call spherical_skorost(cell_centr_s2(1), cell_centr_s2(2), cell_centr_s2(3), &
+                        qqq2(2), qqq2(3), qqq2(4), aa, bb, cc)
+                    qqq2(2) = aa
+                    qqq2(3) = bb
+                    qqq2(4) = cc
+                    
+                    call spherical_skorost(cell_centr_ss1(1), cell_centr_ss1(2), cell_centr_ss1(3), &
+                        qqq11(2), qqq11(3), qqq11(4), aa, bb, cc)
+                    qqq11(2) = aa
+                    qqq11(3) = bb
+                    qqq11(4) = cc
+                    
+                    call spherical_skorost(cell_centr_ss2(1), cell_centr_ss2(2), cell_centr_ss2(3), &
+                        qqq22(2), qqq22(3), qqq22(4), aa, bb, cc)
+                    qqq22(2) = aa
+                    qqq22(3) = bb
+                    qqq22(4) = cc
+                    
+                    ! Перевод Магнитных полей в сферическую ск
+                    
+                    call spherical_skorost(cell_centr_s1(1), cell_centr_s1(2), cell_centr_s1(3), &
+                        qqq1(6), qqq1(7), qqq1(8), aa, bb, cc)
+                    qqq1(6) = aa
+                    qqq1(7) = bb
+                    qqq1(8) = cc
+                    
+                    call spherical_skorost(cell_centr_s2(1), cell_centr_s2(2), cell_centr_s2(3), &
+                        qqq2(6), qqq2(7), qqq2(8), aa, bb, cc)
+                    qqq2(6) = aa
+                    qqq2(7) = bb
+                    qqq2(8) = cc
+                    
+                    call spherical_skorost(cell_centr_ss1(1), cell_centr_ss1(2), cell_centr_ss1(3), &
+                        qqq11(6), qqq11(7), qqq11(8), aa, bb, cc)
+                    qqq11(6) = aa
+                    qqq11(7) = bb
+                    qqq11(8) = cc
+                    
+                    call spherical_skorost(cell_centr_ss2(1), cell_centr_ss2(2), cell_centr_ss2(3), &
+                        qqq22(6), qqq22(7), qqq22(8), aa, bb, cc)
+                    qqq22(6) = aa
+                    qqq22(7) = bb
+                    qqq22(8) = cc
+                    
+                    do i = 2, 4
+                        qqq1_TVD(i) = linear(-dff1, qqq11(i), -df1, qqq1(i), df2, qqq2(i), 0.0_8)
+                        qqq2_TVD(i) = linear(-dff2, qqq22(i), -df2, qqq2(i), df1, qqq1(i), 0.0_8)
+                    end do
+                    
+                    do i = 6, 8
+                        qqq1_TVD(i) = linear(-dff1, qqq11(i), -df1, qqq1(i), df2, qqq2(i), 0.0_8)
+                        qqq2_TVD(i) = linear(-dff2, qqq22(i), -df2, qqq2(i), df1, qqq1(i), 0.0_8)
+                    end do
+                    
+                    call dekard_skorost(gran_centr(1), gran_centr(2), gran_centr(3), &
+                        qqq1_TVD(2), qqq1_TVD(3), qqq1_TVD(4), aa, bb, cc)
+                    qqq1_TVD(2) = aa
+                    qqq1_TVD(3) = bb
+                    qqq1_TVD(4) = cc
+                    call dekard_skorost(gran_centr(1), gran_centr(2), gran_centr(3), &
+                        qqq2_TVD(2), qqq2_TVD(3), qqq2_TVD(4), aa, bb, cc)
+                    qqq2_TVD(2) = aa
+                    qqq2_TVD(3) = bb
+                    qqq2_TVD(4) = cc
+                    
+                    call dekard_skorost(gran_centr(1), gran_centr(2), gran_centr(3), &
+                        qqq1_TVD(6), qqq1_TVD(7), qqq1_TVD(8), aa, bb, cc)
+                    qqq1_TVD(6) = aa
+                    qqq1_TVD(7) = bb
+                    qqq1_TVD(8) = cc
+                    call dekard_skorost(gran_centr(1), gran_centr(2), gran_centr(3), &
+                        qqq2_TVD(6), qqq2_TVD(7), qqq2_TVD(8), aa, bb, cc)
+                    qqq2_TVD(6) = aa
+                    qqq2_TVD(7) = bb
+                    qqq2_TVD(8) = cc
+                end if
             else
-                ! Переводим скорости в сферическую с.к.
-                call spherical_skorost(cell_centr_s1(1), cell_centr_s1(2), cell_centr_s1(3), &
-                    qqq1(2), qqq1(3), qqq1(4), aa, bb, cc)
-                qqq1(2) = aa
-                qqq1(3) = bb
-                qqq1(4) = cc
-                
-                call spherical_skorost(cell_centr_s2(1), cell_centr_s2(2), cell_centr_s2(3), &
-                    qqq2(2), qqq2(3), qqq2(4), aa, bb, cc)
-                qqq2(2) = aa
-                qqq2(3) = bb
-                qqq2(4) = cc
-                
-                call spherical_skorost(cell_centr_ss1(1), cell_centr_ss1(2), cell_centr_ss1(3), &
-                    qqq11(2), qqq11(3), qqq11(4), aa, bb, cc)
-                qqq11(2) = aa
-                qqq11(3) = bb
-                qqq11(4) = cc
-                
-                call spherical_skorost(cell_centr_ss2(1), cell_centr_ss2(2), cell_centr_ss2(3), &
-                    qqq22(2), qqq22(3), qqq22(4), aa, bb, cc)
-                qqq22(2) = aa
-                qqq22(3) = bb
-                qqq22(4) = cc
-                
-                ! Перевод Магнитных полей в сферическую ск
-                
-                call spherical_skorost(cell_centr_s1(1), cell_centr_s1(2), cell_centr_s1(3), &
-                    qqq1(6), qqq1(7), qqq1(8), aa, bb, cc)
-                qqq1(6) = aa
-                qqq1(7) = bb
-                qqq1(8) = cc
-                
-                call spherical_skorost(cell_centr_s2(1), cell_centr_s2(2), cell_centr_s2(3), &
-                    qqq2(6), qqq2(7), qqq2(8), aa, bb, cc)
-                qqq2(6) = aa
-                qqq2(7) = bb
-                qqq2(8) = cc
-                
-                call spherical_skorost(cell_centr_ss1(1), cell_centr_ss1(2), cell_centr_ss1(3), &
-                    qqq11(6), qqq11(7), qqq11(8), aa, bb, cc)
-                qqq11(6) = aa
-                qqq11(7) = bb
-                qqq11(8) = cc
-                
-                call spherical_skorost(cell_centr_ss2(1), cell_centr_ss2(2), cell_centr_ss2(3), &
-                    qqq22(6), qqq22(7), qqq22(8), aa, bb, cc)
-                qqq22(6) = aa
-                qqq22(7) = bb
-                qqq22(8) = cc
-                
-                do i = 2, 4
+                ! Обычный снос
+                do i = 1, 8
                     qqq1_TVD(i) = linear(-dff1, qqq11(i), -df1, qqq1(i), df2, qqq2(i), 0.0_8)
                     qqq2_TVD(i) = linear(-dff2, qqq22(i), -df2, qqq2(i), df1, qqq1(i), 0.0_8)
                 end do
-                
-                do i = 6, 8
-                    qqq1_TVD(i) = linear(-dff1, qqq11(i), -df1, qqq1(i), df2, qqq2(i), 0.0_8)
-                    qqq2_TVD(i) = linear(-dff2, qqq22(i), -df2, qqq2(i), df1, qqq1(i), 0.0_8)
-                end do
-                
-                call dekard_skorost(gran_centr(1), gran_centr(2), gran_centr(3), &
-                    qqq1_TVD(2), qqq1_TVD(3), qqq1_TVD(4), aa, bb, cc)
-                qqq1_TVD(2) = aa
-                qqq1_TVD(3) = bb
-                qqq1_TVD(4) = cc
-                call dekard_skorost(gran_centr(1), gran_centr(2), gran_centr(3), &
-                    qqq2_TVD(2), qqq2_TVD(3), qqq2_TVD(4), aa, bb, cc)
-                qqq2_TVD(2) = aa
-                qqq2_TVD(3) = bb
-                qqq2_TVD(4) = cc
-                
-                call dekard_skorost(gran_centr(1), gran_centr(2), gran_centr(3), &
-                    qqq1_TVD(6), qqq1_TVD(7), qqq1_TVD(8), aa, bb, cc)
-                qqq1_TVD(6) = aa
-                qqq1_TVD(7) = bb
-                qqq1_TVD(8) = cc
-                call dekard_skorost(gran_centr(1), gran_centr(2), gran_centr(3), &
-                    qqq2_TVD(6), qqq2_TVD(7), qqq2_TVD(8), aa, bb, cc)
-                qqq2_TVD(6) = aa
-                qqq2_TVD(7) = bb
-                qqq2_TVD(8) = cc
             end if
         
             qqq1 = qqq1_TVD
             qqq2 = qqq2_TVD
-        else
-            rad1 = dev_norm2(cell_centr_s1)
-            rad2 = dev_norm2(gran_centr)
-            qqq1(1) = qqq1(1) * rad1**2 / rad2**2
-            qqq1(5) = qqq1(5) * rad1**(2 * ggg) / rad2**(2 * ggg)
-
-            the = acos(gran_centr(3) / rad5);
-
-            if(the > 3.14_8/9 .and. the < 8 * 3.14_8 / 9) then
-                ! Скорости сносим в сферической С.К.
-                call spherical_skorost(cell_centr_s1(3), cell_centr_s1(1), cell_centr_s1(2), &  
-                    qqq1(4), qqq1(2), qqq1(3), aa, bb, cc)
-                call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), &  
-                    aa, bb, cc, qqq1(4), qqq1(2), qqq1(3))
-
-                call spherical_skorost(cell_centr_s1(3), cell_centr_s1(1), cell_centr_s1(2), &  
-                    qqq1(8), qqq1(6), qqq1(7), aa, bb, cc)
-                call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), &  
-                    aa * rad1**2 / rad2**2, bb * rad1 / rad2, cc * rad1 / rad2, qqq1(8), qqq1(6), qqq1(7))
-            else
-                call spherical_skorost(cell_centr_s1(1), cell_centr_s1(2), cell_centr_s1(3), &  
-                    qqq1(2), qqq1(3), qqq1(4), aa, bb, cc)
-                call dekard_skorost(gran_centr(1), gran_centr(2), gran_centr(3), &  
-                    aa, bb, cc, qqq1(2), qqq1(3), qqq1(4))
-
-                call spherical_skorost(cell_centr_s1(1), cell_centr_s1(2), cell_centr_s1(3), &  
-                    qqq1(6), qqq1(7), qqq1(8), aa, bb, cc)
-                call dekard_skorost(gran_centr(1), gran_centr(2), gran_centr(3), &  
-                    aa * rad1**2 / rad2**2, bb * rad1 / rad2, cc * rad1 / rad2, qqq1(6), qqq1(7), qqq1(8))
-            end if
-
-            rad1 = dev_norm2(cell_centr_s2)                              
-			rad2 = dev_norm2(gran_centr)
-			qqq2(1) = qqq2(1) * rad1**2 / rad2**2
-			qqq2(5) = qqq2(5) * rad1**(2.0 * ggg) / rad2**(2.0 * ggg)
-
-            if(the > 3.14_8/9 .and. the < 8 * 3.14_8 / 9) then
-                call spherical_skorost(cell_centr_s2(3), cell_centr_s2(1), cell_centr_s2(2), &
-                    qqq2(4), qqq2(2), qqq2(3), aa, bb, cc)
-                call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), &
-                    aa, bb, cc, qqq2(4), qqq2(2), qqq2(3))
-
-                call spherical_skorost(cell_centr_s2(3), cell_centr_s2(1), cell_centr_s2(2), &
-                    qqq2(8), qqq2(6), qqq2(7), aa, bb, cc)
-                call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), &
-                    aa * rad1**2 / rad2**2, bb * rad1 / rad2, cc * rad1 / rad2, qqq2(8), qqq2(6), qqq2(7))
-            else
-                call spherical_skorost(cell_centr_s2(1), cell_centr_s2(2), cell_centr_s2(3), &
-                    qqq2(2), qqq2(3), qqq2(4), aa, bb, cc)
-                call dekard_skorost(gran_centr(1), gran_centr(2), gran_centr(3), &
-                    aa, bb, cc, qqq2(2), qqq2(3), qqq2(4))
-
-                call spherical_skorost(cell_centr_s2(1), cell_centr_s2(2), cell_centr_s2(3), &
-                    qqq2(6), qqq2(7), qqq2(8), aa, bb, cc)
-                call dekard_skorost(gran_centr(1), gran_centr(2), gran_centr(3), &
-                    aa * rad1**2 / rad2**2, bb * rad1 / rad2, cc * rad1 / rad2, qqq2(6), qqq2(7), qqq2(8))
-            end if
         end if
     end if
+
 
     if(qqq1(1) < 0.00000001 .or. qqq2(1) < 0.000000001) then
         write(*, *) qqq1(1), qqq1(2), qqq1(3), qqq1(4), qqq1(5), qqq1(6), qqq1(7), qqq1(8)
@@ -414,7 +374,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
          POTOK, n_disc)
 
 
-    time = min(time, 0.9 * dist/(max(dabs(dsl), dabs(dsp))+ dabs(wc)) )   ! REDUCTION
+    time = min(time, 0.8 * dist/(max(dabs(dsl), dabs(dsp))+ dabs(wc)) )   ! REDUCTION
     !time = min(time, 0.9 * dist/(dev_norm2(cross_product(gran_centr, rotate_velosity))))
 	dev_Gran_POTOK(1:dev_num_param, gr) = POTOK * square
 	
@@ -438,7 +398,7 @@ attributes(global) subroutine CUF_MGD_cells(now)
 	real(8) :: dist, QQ3
 	real(8) :: POTOK(dev_num_param), vv(3), rr(3), F(3)
 	real(8) :: time, Volume, sks
-	real(8) :: ro3, u3, v3, w3, p3, bx3, by3, bz3
+	real(8) :: ro3, u3, v3, w3, p3, bx3, by3, bz3, T_K
     real(8) :: rotate_velosity_lokal(3)
     real(8) :: Drotate_velosity_lokal(3)
 	
@@ -466,7 +426,10 @@ attributes(global) subroutine CUF_MGD_cells(now)
     !            - qqq(1) * rr * dev_GM / (dist**3)   
     !QQ3 = DOT_PRODUCT(F, vv);
     F = 0.0_8
-    QQ3 = 0.0_8
+
+    T_K = qqq(5) / qqq(1) * 66541.3
+    QQ3 = qqq(1)**2 * 2.71588 * 1e21 * (-interpolate_cooling(T_K, dev_cooling_T, dev_cooling_Lambda, dev_cooling_lnT, dev_cooling_lnLambda) &
+    + interpolate_cooling(T_K, dev_heating_T, dev_heating_Lambda, dev_heating_lnT, dev_heating_lnLambda))
 
 
     ! Просуммируем потоки через грани

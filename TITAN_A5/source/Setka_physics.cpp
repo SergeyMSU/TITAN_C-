@@ -539,7 +539,7 @@ void Setka::Init_physics(void)
 	}
 
 	// Задаём начальные условия на сетке
-	if (false)
+	if (true)
 	{
 		for (auto& i : this->All_Cell)
 		{
@@ -549,9 +549,7 @@ void Setka::Init_physics(void)
 			r = i->func_R(0);
 			double yy = norm2(0.0, y, z);
 
-			//if (r < 21.0)
-			//if (kv(x + 13.7)/1156.0 + kv(yy)/784.0 <= 1.0)
-			if (false)
+			if (r < 15.0)
 			{
 				the = acos(z / r);
 
@@ -576,7 +574,7 @@ void Setka::Init_physics(void)
 
 				i->parameters[0]["Q"] = i->parameters[0]["rho"];
 			}
-			else if (x < -150.0 && norm2(0.0, y, z) < 100.0)
+			else if (false) //(x < -150.0 && norm2(0.0, y, z) < 100.0)
 			{
 				i->parameters[0]["rho"] = 0.00017;
 				i->parameters[0]["p"] = 0.14;

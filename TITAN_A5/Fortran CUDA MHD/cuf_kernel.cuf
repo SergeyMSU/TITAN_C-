@@ -40,6 +40,16 @@ module MY_CUDA
 	real(8), device, allocatable :: dev_Gran_POTOK(:, :)       ! (10, :) поток грани    последний - дивергенция магнитного поля для очистки
 
 
+	real(8), device, allocatable :: dev_cooling_T(:)
+    real(8), device, allocatable :: dev_cooling_Lambda(:)
+    real(8), device, allocatable :: dev_cooling_lnT(:)
+    real(8), device, allocatable :: dev_cooling_lnLambda(:)
+
+    real(8), device, allocatable :: dev_heating_T(:)
+    real(8), device, allocatable :: dev_heating_Lambda(:)
+    real(8), device, allocatable :: dev_heating_lnT(:)
+    real(8), device, allocatable :: dev_heating_lnLambda(:)
+
     contains 
 
 	!@cuf attributes(host, device) & 
@@ -293,6 +303,16 @@ module MY_CUDA
 		allocate(dev_Gran_neighbour_TVD, mold = host_Gran_neighbour_TVD)
 		allocate(dev_Gran_type, mold = host_Gran_type)
 		allocate(dev_Gran_POTOK, mold = host_Gran_POTOK)
+
+		allocate(dev_cooling_T, mold = host_cooling_T)
+		allocate(dev_cooling_Lambda, mold = host_cooling_Lambda)
+		allocate(dev_cooling_lnT, mold = host_cooling_lnT)
+		allocate(dev_cooling_lnLambda, mold = host_cooling_lnLambda)
+		allocate(dev_heating_T, mold = host_heating_T)
+		allocate(dev_heating_Lambda, mold = host_heating_Lambda)
+		allocate(dev_heating_lnT, mold = host_heating_lnT)
+		allocate(dev_heating_lnLambda, mold = host_heating_lnLambda)
+
 		dev_Gran_normal = host_Gran_normal
 		dev_Gran_square = host_Gran_square
 		dev_Gran_center = host_Gran_center
@@ -300,6 +320,15 @@ module MY_CUDA
 		dev_Gran_neighbour_TVD = host_Gran_neighbour_TVD
 		dev_Gran_type = host_Gran_type
 		dev_Gran_POTOK = host_Gran_POTOK
+
+		dev_cooling_T = host_cooling_T
+		dev_cooling_Lambda = host_cooling_Lambda
+		dev_cooling_lnT = host_cooling_lnT
+		dev_cooling_lnLambda = host_cooling_lnLambda
+		dev_heating_T = host_heating_T
+		dev_heating_Lambda = host_heating_Lambda
+		dev_heating_lnT = host_heating_lnT
+		dev_heating_lnLambda = host_heating_lnLambda
 	end subroutine Set_CUDA
 
 	subroutine Send_data_to_Host()
@@ -358,8 +387,8 @@ module MY_CUDA
 		rotate_velosity = rotate_velosity_local
 		Drotate_velosity = Drotate_velosity_local
 
-		all_step = 1000000
-		print_step = 50000
+		all_step = 3000000
+		print_step = 20000
 
 		do step = 1,  all_step  ! ---------------------------------------------------------------------------------------------------
 			ierrAsync = cudaDeviceSynchronize()
@@ -383,7 +412,7 @@ module MY_CUDA
 
 			! if(local1 >= 14.0) EXIT
 
-			now = 1!2
+			now = 2!1
 			!if(local1 >= 20.0) now = 2
 			dev_now = now
 
@@ -405,8 +434,8 @@ module MY_CUDA
 			if(ierrAsync /= cudaSuccess) write(*,*) 'Error ASync start 19: ', cudaGetErrorString(cudaGetLastError())
 
 
-			!if (mod(step, 300000) == 0) then
-			if (.False.) then
+			if (mod(step, 500000) == 0) then
+			!if (.False.) then
 				call Send_data_to_Host()
 				call Save_Storage()
 				print*, "SAVE"
