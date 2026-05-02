@@ -75,12 +75,12 @@ attributes(global) subroutine CUF_MGD_grans(now)
 
 
     tvd = .TRUE.
-    metod = 0
+    metod = 2!3
 
-    if(now == 1) then
-        tvd = .FALSE.
-        metod = 0
-    end if
+    ! if(now == 1) then
+    !     tvd = .FALSE.
+    !     metod = 0
+    ! end if
 
 	n_disc = 0!! 1
 	time = 100000.0
@@ -452,17 +452,17 @@ attributes(global) subroutine CUF_MGD_cells(now)
     if (ro3 <= 0.0_8) then
         write(*, *) "Ro < 0  3688"
         write(*, *) " ---  ", ro3, qqq(1), rr(1), rr(2), rr(3)
-        ro3 = 0.1
+        ro3 = 0.0001
 
-        u3 = qqq(2)
-        v3 = qqq(3)
-        w3 = qqq(4)
+        u3 = -10.0! qqq(2)
+        v3 = 0.0! qqq(3)
+        w3 = 0.0! qqq(4)
 
         bx3 = qqq(6)
         by3 = qqq(7)
         bz3 = qqq(8)
 
-        p3 = qqq(5)
+        p3 = 0.1 ! qqq(5)
 
     else
         u3 = (qqq(1) * qqq(2) - time * (POTOK(2) + (qqq(6)/cpi4) * sks) / Volume + time * F(1)) / ro3

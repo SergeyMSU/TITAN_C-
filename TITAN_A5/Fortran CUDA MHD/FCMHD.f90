@@ -10,7 +10,7 @@ program MIK
     use MY_CUDA
 
     call Set_Storage()
-    !call Fill_data()
+    call Fill_data()
 
     call CUDA_info()
     call CUDA_START_MGD()

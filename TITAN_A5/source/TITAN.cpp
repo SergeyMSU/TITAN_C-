@@ -196,7 +196,7 @@ int main()
 
     //S1.Download_cell_parameters("parameters_promeg_119.bin");  //60   
     //S1.Download_cell_parameters("parameters_A5_0076.bin");  //60   
-    S1.Download_cell_parameters("parameters_A5_0084.bin");  //60   
+    S1.Download_cell_parameters("parameters_A5_0085.bin");  //60   
     // на 46 подвинул поверхности вручную
     // 
     // 63 - Ћакс и вторым пор€дком + особый снос в сверхзвуке
@@ -254,7 +254,7 @@ int main()
 
 
     // –учное движение TS
-    if (true)
+    if (false)
     {
         cout << "Hand TS move" << endl;
         // 1. —читываем файл и преобразуем в пол€рные координаты
@@ -300,7 +300,7 @@ int main()
     }
 
     // –учное движение HP
-    if (true)
+    if (false)
     {
         cout << "Hand HP move" << endl;
         // 1. —читываем файл и преобразуем в пол€рные координаты
@@ -391,7 +391,7 @@ int main()
     }
 
     //  –учное изменение BS
-    if (true)
+    if (false)
     {
         cout << "Hand BS move" << endl;
         // 1. —читываем файл и преобразуем в пол€рные координаты
@@ -489,14 +489,14 @@ int main()
         
     }
 
-    S1.PereInterpolate("For_intertpolate_0084-no_razriv-with_MK.bin", false);
+    //S1.PereInterpolate("For_intertpolate_0084-no_razriv-with_MK.bin", false);
 
     //S1.Smooth_head_TS();
 
 
     cout << "A-" << endl;
     // «адаЄм начальные и граничные услови€
-    S1.Init_physics();
+    //S1.Init_physics();
     
 
     // Ѕлок начальной визуализации сетки дл€ проверки корректного построени€
@@ -535,8 +535,8 @@ int main()
     
     //S1.Algoritm(1, &S1);
 
-    S1.Write_file_for_FCMHD();
-    //S1.Read_file_for_FCMHD();
+    //S1.Write_file_for_FCMHD();
+    S1.Read_file_for_FCMHD();
 
     //Dust_spectra DDD = Dust_spectra();
 
@@ -598,7 +598,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_A5_0085.bin");
+    //S1.Save_cell_parameters("parameters_A5_0085.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
