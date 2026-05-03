@@ -64,7 +64,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
     implicit none
 	integer, intent(in) :: now
     integer(4) :: n_disc, gr, metod, s1, s2, ss1, ss2, type, i
-    real(8) :: time, dist, wc, dsl, dsp, dsc, aa, bb, cc, the
+    real(8) :: time, dist, wc, dsl, dsp, dsc, aa, bb, cc, the, BR, BPHI, V1, V2, V3, BTHE
     real(8) :: POTOK(dev_num_param), distant(3), Gran_normal(3), square, rast(3)
     real(8) :: qqq1(dev_num_param), qqq2(dev_num_param), qqq11(dev_num_param), qqq22(dev_num_param)
     real(8) :: qqq1_TVD(dev_num_param), qqq2_TVD(dev_num_param)
@@ -75,7 +75,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
 
 
     tvd = .TRUE.
-    metod = 2!3
+    metod = 1!3
 
     ! if(now == 1) then
     !     tvd = .FALSE.
@@ -120,7 +120,30 @@ attributes(global) subroutine CUF_MGD_grans(now)
         qqq2 = qqq1
         cell_centr_s2 = cell_centr_s1
         tvd = .FALSE.
-    else if(type == 2 .or. type == 4) then
+    else if(type == 2) then
+        tvd = .FALSE.
+        the = acos(gran_centr(3) / rad5)
+        BR = -0.248585 * (3.00503 / rad5)**2
+        BPHI = -0.2 * BR * sin(the) * (rad5 / 3.00503)
+        BTHE = 0.0_8
+        call dekard_skorost(gran_centr(3), gran_centr(1), gran_centr(2), BR, BPHI, BTHE, V3, V1, V2)
+
+        mV = 66.6667
+
+        ! dev_time_all
+        qqq1(1) = 0.0249164 * (3.00503 / rad5)**2 * (1.0 + 0.3 * sin(dev_time_all/10.0))
+        qqq1(5) = 2.65775 * (3.00503 / rad5)**(2 * ggg)
+
+
+        qqq1(2) = mV * gran_centr(1) / rad5
+        qqq1(3) = mV * gran_centr(2) / rad5
+        qqq1(4) = mV * gran_centr(3) / rad5
+
+        qqq1(6) = V1
+        qqq1(7) = V2
+        qqq1(8) = V3
+        qqq2 = qqq1
+    else if(type == 4) then
         return
     else
         qqq2 = dev_Cell_par(:, s2)
