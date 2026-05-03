@@ -75,14 +75,14 @@ attributes(global) subroutine CUF_MGD_grans(now)
 
 
     tvd = .TRUE.
-    metod = 1!3
+    metod = 0!3
 
     ! if(now == 1) then
     !     tvd = .FALSE.
     !     metod = 0
     ! end if
 
-	n_disc = 0!! 1
+	n_disc = 1!! 1
 	time = 100000.0
 	gr = blockDim%x * (blockIdx%x - 1) + threadIdx%x   ! Номер потока
 
@@ -104,6 +104,10 @@ attributes(global) subroutine CUF_MGD_grans(now)
 	dist = dev_norm2(distant)
     rad5 = dev_norm2(gran_centr)
 
+    ! if(rad5 < 25.0) then
+    !     metod = 3
+    ! end if
+
     if(s1 < 1) then
         print*, "s1 < 1"
         STOP
@@ -116,11 +120,19 @@ attributes(global) subroutine CUF_MGD_grans(now)
         STOP
     end if
 
+    Gran_normal = dev_Gran_normal(:, gr)
+
     if(type == 3) then
-        qqq2 = qqq1
         cell_centr_s2 = cell_centr_s1
         tvd = .FALSE.
+
+        if (Gran_normal(1) < 0.9) then
+            if(qqq1(2) > -10.0) qqq1(2) = -10.0
+        end if
+
+        qqq2 = qqq1
     else if(type == 2) then
+        return
         tvd = .FALSE.
         the = acos(gran_centr(3) / rad5)
         BR = -0.248585 * (3.00503 / rad5)**2
@@ -131,9 +143,10 @@ attributes(global) subroutine CUF_MGD_grans(now)
         mV = 66.6667
 
         ! dev_time_all
-        qqq1(1) = 0.0249164 * (3.00503 / rad5)**2 * (1.0 + 0.3 * sin(dev_time_all/10.0))
+        qqq1(1) = 0.0249164 * (3.00503 / rad5)**2 * (1.0 + 0.5 * sin(2.0 * par_pi_8 * dev_time_all/0.03))
         qqq1(5) = 2.65775 * (3.00503 / rad5)**(2 * ggg)
 
+        !print*, qqq1(1), sin(2.0 * par_pi_8 * dev_time_all/0.03)
 
         qqq1(2) = mV * gran_centr(1) / rad5
         qqq1(3) = mV * gran_centr(2) / rad5
@@ -150,7 +163,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
         cell_centr_s2 = dev_Cell_center(:, s2)
     end if
 
-    Gran_normal = dev_Gran_normal(:, gr)
+    
     square = dev_Gran_square(gr)
 
     !tvd = .FALSE.
@@ -187,6 +200,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
 
             ! В этом случае надо делать снос с градиентами и в сферической СК
             if(M1 > 5 .and. M11 > 5 .and. M2 > 5 .and. M22 > 5) then
+            ! if(.False.) then
 
                 rad1 = dev_norm2(cell_centr_s1)                              
                 rad2 = dev_norm2(cell_centr_s2)                              
@@ -421,7 +435,7 @@ attributes(global) subroutine CUF_MGD_cells(now)
 	real(8) :: dist, QQ3
 	real(8) :: POTOK(dev_num_param), vv(3), rr(3), F(3)
 	real(8) :: time, Volume, sks
-	real(8) :: ro3, u3, v3, w3, p3, bx3, by3, bz3, T_K
+	real(8) :: ro3, u3, v3, w3, p3, bx3, by3, bz3, T_K, mV, the, BR, BPHI, BTHE, VV3, VV1, VV2
     real(8) :: rotate_velosity_lokal(3)
     real(8) :: Drotate_velosity_lokal(3)
 	
@@ -441,6 +455,31 @@ attributes(global) subroutine CUF_MGD_cells(now)
     dist = dev_norm2(rr)
 
     qqq = dev_Cell_par(:, gr)
+
+    if(dist < 10.0) then
+        the = acos(rr(3) / dist)
+        BR = -0.248585 * (3.00503 / dist)**2
+        BPHI = -0.2 * BR * sin(the) * (dist / 3.00503)
+        BTHE = 0.0_8
+        call dekard_skorost(rr(3), rr(1), rr(2), BR, BPHI, BTHE, VV3, VV1, VV2)
+
+        mV = 66.6667! * (1.0 + 0.5 * sin(2.0 * par_pi_8 * dev_time_all/0.08))
+
+        ! dev_time_all
+        ro3 = 0.0249164 * (3.00503 / dist)**2 * (1.0 + 0.3 * sin(2.0 * par_pi_8 * dev_time_all/0.08))
+        p3 = 2.65775 * (3.00503 / dist)**(2 * ggg)
+
+        u3 = mV * rr(1) / dist
+        v3 = mV * rr(2) / dist
+        w3 = mV * rr(3) / dist
+
+        bx3 = VV1
+        by3 = VV2
+        bz3 = VV3
+
+        dev_Cell_par(:, gr) = (/ro3, u3, v3, w3, p3, bx3, by3, bz3/)
+        return
+    end if
     
     vv = qqq(2:4)
     !F = 2.0 * qqq(1) * cross_product(vv, rotate_velosity_lokal) + &
@@ -506,6 +545,8 @@ attributes(global) subroutine CUF_MGD_cells(now)
     if (p3 <= 0.0_8) then
         p3 = 0.0000001
     end if
+
+    if( rr(1) < -70.0 .and. u3 > 0.0) u3 = -3.0_8
 
     dev_Cell_par(:, gr) = (/ro3, u3, v3, w3, p3, bx3, by3, bz3/)
 
