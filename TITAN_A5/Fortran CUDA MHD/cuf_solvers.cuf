@@ -82,7 +82,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
     !     metod = 0
     ! end if
 
-	n_disc = 1!! 1
+	n_disc = 0!! 1
 	time = 100000.0
 	gr = blockDim%x * (blockIdx%x - 1) + threadIdx%x   ! Номер потока
 
@@ -104,9 +104,11 @@ attributes(global) subroutine CUF_MGD_grans(now)
 	dist = dev_norm2(distant)
     rad5 = dev_norm2(gran_centr)
 
-    ! if(rad5 < 25.0) then
-    !     metod = 3
-    ! end if
+    if(rad5 < 140.0) then ! 120
+        metod = 3
+    else if(rad5 < 260.0) then
+        metod = 1
+    end if
 
     if(s1 < 1) then
         print*, "s1 < 1"
@@ -128,6 +130,17 @@ attributes(global) subroutine CUF_MGD_grans(now)
 
         if (Gran_normal(1) < 0.9) then
             if(qqq1(2) > -10.0) qqq1(2) = -10.0
+        end if
+
+        if (dabs(Gran_normal(1)) < 0.1) then
+            qqq1(1) = 1.0
+            qqq1(2) = -1.0
+            qqq1(3) = 0.0
+            qqq1(4) = 0.0
+            qqq1(5) = 0.200304
+            qqq1(6) = 0.420186 * cos(0.785398)
+            qqq1(7) = 0.420186 * sin(0.785398)
+            qqq1(8) = 0.0
         end if
 
         qqq2 = qqq1
@@ -435,7 +448,7 @@ attributes(global) subroutine CUF_MGD_cells(now)
 	real(8) :: dist, QQ3
 	real(8) :: POTOK(dev_num_param), vv(3), rr(3), F(3)
 	real(8) :: time, Volume, sks
-	real(8) :: ro3, u3, v3, w3, p3, bx3, by3, bz3, T_K, mV, the, BR, BPHI, BTHE, VV3, VV1, VV2
+	real(8) :: ro3, u3, v3, w3, p3, bx3, by3, bz3, T_K, mV, the, BR, BPHI, BTHE, VV3, VV1, VV2, dd
     real(8) :: rotate_velosity_lokal(3)
     real(8) :: Drotate_velosity_lokal(3)
 	
@@ -463,10 +476,11 @@ attributes(global) subroutine CUF_MGD_cells(now)
         BTHE = 0.0_8
         call dekard_skorost(rr(3), rr(1), rr(2), BR, BPHI, BTHE, VV3, VV1, VV2)
 
-        mV = 66.6667! * (1.0 + 0.5 * sin(2.0 * par_pi_8 * dev_time_all/0.08))
+        dd = (1.0 + 0.3 * sin(2.0 * par_pi_8 * dev_time_all/0.08))
+        mV = 66.6667 * dd
 
         ! dev_time_all
-        ro3 = 0.0249164 * (3.00503 / dist)**2 * (1.0 + 0.3 * sin(2.0 * par_pi_8 * dev_time_all/0.08))
+        ro3 = 0.0249164 * (3.00503 / dist)**2 / (dd**2)
         p3 = 2.65775 * (3.00503 / dist)**(2 * ggg)
 
         u3 = mV * rr(1) / dist
