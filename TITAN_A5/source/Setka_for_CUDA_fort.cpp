@@ -7,10 +7,10 @@ void Setka::Write_file_for_FCMHD(void)
 
 	cout << "Start: Write_file_for_FCMHD" << endl;
 
-	ofstream file("FCMHD_1.bin", ios::binary);
+	ofstream file("FCMHD_2.bin", ios::binary);
 	if (!file.is_open())
 	{
-		cout << "ERROR FCMHD_1.bin" << endl;
+		cout << "ERROR FCMHD_2.bin" << endl;
 		exit(-1);
 	}
 
@@ -225,10 +225,10 @@ void Setka::Read_file_for_FCMHD(void)
 {
 	this->Renumerate();
 
-	std::ifstream file("FCMHD_1.5_out.bin", std::ios::binary);
+	std::ifstream file("FCMHD_2.1_out.bin", std::ios::binary);
 	if (!file.is_open()) 
 	{
-		file.open("CUDA_FORT/FCMHD_1.5_out.bin", std::ios::binary);
+		file.open("CUDA_FORT/FCMHD_2.1_out.bin", std::ios::binary);
 	}
 
 	if (!file.is_open()) 

@@ -104,9 +104,10 @@ attributes(global) subroutine CUF_MGD_grans(now)
 	dist = dev_norm2(distant)
     rad5 = dev_norm2(gran_centr)
 
-    if(rad5 < 140.0) then ! 120
-        metod = 3
-    else if(rad5 < 260.0) then
+    ! if(rad5 < 80.0 .and. gran_centr(1) > 0 .and. sqrt(gran_centr(2)**2 + gran_centr(3)**2) < 20.0) then ! 120
+    !     metod = 2
+    ! else 
+    if(rad5 < 260.0) then
         metod = 1
     end if
 
@@ -424,7 +425,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
          POTOK, n_disc)
 
 
-    time = min(time, 0.8 * dist/(max(dabs(dsl), dabs(dsp))+ dabs(wc)) )   ! REDUCTION
+    time = min(time, 0.3 * dist/(max(dabs(dsl), dabs(dsp))+ dabs(wc)) )   ! REDUCTION
     !time = min(time, 0.9 * dist/(dev_norm2(cross_product(gran_centr, rotate_velosity))))
 	dev_Gran_POTOK(1:dev_num_param, gr) = POTOK * square
 	
@@ -469,18 +470,28 @@ attributes(global) subroutine CUF_MGD_cells(now)
 
     qqq = dev_Cell_par(:, gr)
 
-    if(dist < 10.0) then
+    if(dist < 11.0) then
         the = acos(rr(3) / dist)
         BR = -0.248585 * (3.00503 / dist)**2
         BPHI = -0.2 * BR * sin(the) * (dist / 3.00503)
         BTHE = 0.0_8
         call dekard_skorost(rr(3), rr(1), rr(2), BR, BPHI, BTHE, VV3, VV1, VV2)
 
-        dd = (1.0 + 0.3 * sin(2.0 * par_pi_8 * dev_time_all/0.08))
+
+        ! 0.08 - не прошли волны через AP
+        ! 0.16
+        !dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/0.16))
+        dd = 1.0
+        if(sin(2.0 * par_pi_8 * dev_time_all/0.1) > 0.0) then
+            dd = 1.3
+        else
+            dd = 0.7
+        end if
+
         mV = 66.6667 * dd
 
         ! dev_time_all
-        ro3 = 0.0249164 * (3.00503 / dist)**2 / (dd**2)
+        ro3 = 0.0249164 * (3.00503 / dist)**2 * dd! / (dd**2)
         p3 = 2.65775 * (3.00503 / dist)**(2 * ggg)
 
         u3 = mV * rr(1) / dist
@@ -526,8 +537,7 @@ attributes(global) subroutine CUF_MGD_cells(now)
     ro3 = qqq(1) - time * POTOK(1) / Volume
     
     if (ro3 <= 0.0_8) then
-        write(*, *) "Ro < 0  3688"
-        write(*, *) " ---  ", ro3, qqq(1), rr(1), rr(2), rr(3)
+        write(*, *) " Ro < 0  3688 ---  ", ro3, qqq(1), rr(1), rr(2), rr(3)
         ro3 = 0.0001
 
         u3 = -10.0! qqq(2)

@@ -79,7 +79,7 @@ Setka::Setka(string name_setka_2d, string name_setka_krug, int N_phi_)
 {
 	this->Surf1 = nullptr;
 	this->geo = new Geo_param();
-	this->geo->L6 = -150.0;   // Этот параметр важен при загрузке сетки
+	//this->geo->L6 = -150.0;   // Этот параметр важен при загрузке сетки
 
 	this->phys_param = new Phys_param();
 	Luch::geo = this->geo;
