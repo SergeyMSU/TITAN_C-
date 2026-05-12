@@ -104,12 +104,14 @@ attributes(global) subroutine CUF_MGD_grans(now)
 	dist = dev_norm2(distant)
     rad5 = dev_norm2(gran_centr)
 
-    ! if(rad5 < 80.0 .and. gran_centr(1) > 0 .and. sqrt(gran_centr(2)**2 + gran_centr(3)**2) < 20.0) then ! 120
-    !     metod = 2
+    ! if(rad5 < 70.0 .and. gran_centr(1) > 0 .and. sqrt(gran_centr(2)**2 + gran_centr(3)**2) < 15.0) then ! 120
+    !     metod = 3
     ! else 
-    if(rad5 < 260.0) then
-        metod = 1
+    if(rad5 < 260.0) then   ! .and. gran_centr(1) > 0
+        metod = 3 
     end if
+
+    !metod = 3
 
     if(s1 < 1) then
         print*, "s1 < 1"
@@ -177,6 +179,9 @@ attributes(global) subroutine CUF_MGD_grans(now)
         cell_centr_s2 = dev_Cell_center(:, s2)
     end if
 
+    if(rad5 < 260.0) then 
+        if(qqq1(1)/qqq2(1) > 20.0 .or. qqq1(1)/qqq2(1) < 0.05) metod = 1
+    end if
     
     square = dev_Gran_square(gr)
 
@@ -412,9 +417,9 @@ attributes(global) subroutine CUF_MGD_grans(now)
     end if
 
 
-    if(qqq1(1) < 0.00000001 .or. qqq2(1) < 0.000000001) then
-        write(*, *) qqq1(1), qqq1(2), qqq1(3), qqq1(4), qqq1(5), qqq1(6), qqq1(7), qqq1(8)
-        write(*, *) qqq2(1), qqq2(2), qqq2(3), qqq2(4), qqq2(5), qqq2(6), qqq2(7), qqq2(8)
+    if(qqq1(1) < 0.0 .or. qqq2(1) < 0.0) then
+        write(*, *) "Err1: ", qqq1(1), qqq1(2), qqq1(3), qqq1(4), qqq1(5), qqq1(6), qqq1(7), qqq1(8)
+        write(*, *) "Err2: ",qqq2(1), qqq2(2), qqq2(3), qqq2(4), qqq2(5), qqq2(6), qqq2(7), qqq2(8)
         STOP
     end if
 
@@ -425,7 +430,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
          POTOK, n_disc)
 
 
-    time = min(time, 0.3 * dist/(max(dabs(dsl), dabs(dsp))+ dabs(wc)) )   ! REDUCTION
+    time = min(time, 0.45 * dist/(max(dabs(dsl), dabs(dsp))+ dabs(wc)) )   ! REDUCTION
     !time = min(time, 0.9 * dist/(dev_norm2(cross_product(gran_centr, rotate_velosity))))
 	dev_Gran_POTOK(1:dev_num_param, gr) = POTOK * square
 	
@@ -452,7 +457,12 @@ attributes(global) subroutine CUF_MGD_cells(now)
 	real(8) :: ro3, u3, v3, w3, p3, bx3, by3, bz3, T_K, mV, the, BR, BPHI, BTHE, VV3, VV1, VV2, dd
     real(8) :: rotate_velosity_lokal(3)
     real(8) :: Drotate_velosity_lokal(3)
-	
+    ! Задайте параметры цикла (единицы согласуйте с dev_time_all)
+    real(kind=8), parameter :: t1 = 0.2_8    ! длительность первого интервала
+    real(kind=8), parameter :: t2 = 0.01_8    ! длительность второго интервала
+    real(kind=8), parameter :: dd1 = 1.0_8   ! значение dd на интервале t1
+    real(kind=8), parameter :: dd2 = 100.0_8   ! значение dd на интервале t2
+	real(kind=8) :: time_in_cycle, cycle_period
     
 	gr = blockDim%x * (blockIdx%x - 1) + threadIdx%x   ! Номер потока
 	time = time_step
@@ -482,16 +492,33 @@ attributes(global) subroutine CUF_MGD_cells(now)
         ! 0.16
         !dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/0.16))
         dd = 1.0
-        if(sin(2.0 * par_pi_8 * dev_time_all/0.1) > 0.0) then
-            dd = 1.3
-        else
-            dd = 0.7
-        end if
+        ! sin(2.0 * par_pi_8 * dev_time_all/0.1)
 
-        mV = 66.6667 * dd
+        ! Период полного цикла
+        cycle_period = t1 + t2
+
+        ! Вычисляем положение внутри текущего цикла
+        time_in_cycle = mod(dev_time_all, cycle_period)
+
+        ! Определяем dd в зависимости от того, на каком интервале находимся
+        ! if (time_in_cycle < t1) then
+        !     dd = dd1
+        ! else
+        !     dd = dd2
+        ! end if
+
+        ! if(sin(2.0 * par_pi_8 * dev_time_all/0.1) > 0.0) then
+        !     dd = 1.3
+        ! else
+        !     dd = 1.0
+        ! end if
+
+        dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/9.0))
+
+        mV = 66.6667
 
         ! dev_time_all
-        ro3 = 0.0249164 * (3.00503 / dist)**2 * dd! / (dd**2)
+        ro3 = 0.0249164 * (3.00503 / dist)**2 * dd ! / (dd**2)
         p3 = 2.65775 * (3.00503 / dist)**(2 * ggg)
 
         u3 = mV * rr(1) / dist
@@ -517,7 +544,7 @@ attributes(global) subroutine CUF_MGD_cells(now)
     T_K = qqq(5) / qqq(1) * 66541.3
     QQ3 = qqq(1)**2 * 2.71588 * 1e21 * (-interpolate_cooling(T_K, dev_cooling_T, dev_cooling_Lambda, dev_cooling_lnT, dev_cooling_lnLambda) &
     + interpolate_cooling(T_K, dev_heating_T, dev_heating_Lambda, dev_heating_lnT, dev_heating_lnLambda))
-
+    ! QQ3 = QQ3/100.0
 
     ! Просуммируем потоки через грани
     do i = 1, 6

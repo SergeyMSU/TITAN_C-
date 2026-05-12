@@ -387,7 +387,7 @@ module MY_CUDA
 		rotate_velosity = rotate_velosity_local
 		Drotate_velosity = Drotate_velosity_local
 
-		all_step = 150000 * 3! * 2 * 3   ! 160000
+		all_step = 140000 * 14! * 2 * 3   ! 160000
 		print_step = 10000
 
 		do step = 1,  all_step  ! ---------------------------------------------------------------------------------------------------
