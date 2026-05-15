@@ -2469,7 +2469,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 		// Расчитываем потоки через грани
 		// в private не добавляются нормально vectora, надо либо обычные массивы делать, либо 
 		// создавать их внутри в каждом потоке
-		#pragma omp parallel for reduction(min:loc_time) schedule(dynamic)
+		#pragma omp parallel for schedule(dynamic)   // reduction(min:loc_time)
 		for(int i_step = 0; i_step < gran_list->size(); i_step++)
 		{
 			//whach(GG->parameters["rho_H4"]);

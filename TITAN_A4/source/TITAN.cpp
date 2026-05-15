@@ -85,7 +85,8 @@ int main()
     // Вкдючил от -50 все три костыля на HP (до этого было от -30 кажется) и везде на гелиопаузе влючил HLLD
     // 
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");  // Стартовали согласование с 81  
-    S1.Download_cell_parameters("parameters_0110-.bin");    //начиная с 90 могут быть серьёзные изменения
+    S1.Download_cell_parameters("parameters_0111-.bin");    //начиная с 90 могут быть серьёзные изменения
+    //S1.Download_cell_parameters("parameters_0110-.bin");    //начиная с 90 могут быть серьёзные изменения
     // c 99- поменял подход обратно
     // Если что продолжать с 91
 
@@ -174,23 +175,26 @@ int main()
     //S1.Algoritm(23, &S1);
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(23, &S1);
-    //S1.Algoritm(101, &S1);
+    // 
+    // 
+    //S1.Algoritm(3, &S1);
 
 
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(4, &S1);
-    //S1.Algoritm(5, &S1);
+    S1.Algoritm(1, &S1);
 
 
     //S1.Algoritm(5, &S1);
     //S1.Algoritm(25, &S1);
 
 
-    S1.Algoritm(10, &S1);
+    //S1.Algoritm(10, &S1);
+    //S1.Algoritm(5, &S1);
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(4, &S1);
     //S1.Algoritm(5, &S1);
-    return 0;
+    //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
     
@@ -246,7 +250,7 @@ int main()
     }
 
 
-    //S1.Save_cell_parameters("parameters_0110-.bin");  
+    S1.Save_cell_parameters("parameters_0111-.bin");  
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -421,7 +425,12 @@ int main()
         Eigen::Vector3d(0.0, 1.0, 0.0), "_(0, 1, 0)_", 500.0);
 
     S1.Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_");
-    S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_");
+    //S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_");
+
+    Eigen::Vector3d eex(1.0, 0.0, 0.0);
+    Eigen::Vector3d eey(0.0, 0.0, 1.0);
+    Eigen::Vector3d centr_sys(0.0, 0.0, 0.0);
+    S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_", false, eex, eey, centr_sys);
 
 
     cout << "F " << endl;

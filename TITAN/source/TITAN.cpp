@@ -169,12 +169,12 @@ int main()
 
     //S1.Algoritm(10, &S1);
     S1.Algoritm(5, &S1);
-    S1.Algoritm(25, &S1);
+    //S1.Algoritm(25, &S1);
 
 
     //Dust_spectra DDD = Dust_spectra();
 
-    return 0;
+    //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 
@@ -317,10 +317,10 @@ int main()
 
     S1.Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_");
 
-    Eigen::Vector3d eex(0.0, 1.0, 0.0);
+    Eigen::Vector3d eex(1.0, 0.0, 0.0);
     Eigen::Vector3d eey(0.0, 0.0, 1.0);
-    Eigen::Vector3d centr_sys(-71.25, 0.0, 0.0);
-    S1.Tecplot_print_2D(&SS, 1.0, 0.0, 0.0, 71.25, "_2d_(1, 0, 0, 71.25)_", false, eex, eey, centr_sys);
+    Eigen::Vector3d centr_sys(0.0, 0.0, 0.0);
+    S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_", false, eex, eey, centr_sys);
 
 
     cout << "F " << endl;
