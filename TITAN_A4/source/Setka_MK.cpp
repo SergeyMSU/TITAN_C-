@@ -4567,7 +4567,8 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 			step++; if (step > 1000000) { cout << "Infiniti cycle ERROR  geget34" << endl; exit(-1); }
 			if (step > 990000)
 			{
-				cout << "AC step > 990000 " << r[0] << " " << r[1] << " " << r[2] << "   " << zone << " " << zone_now << endl;
+				cout << "AC step > 990000  " << r[0] << " " << r[1] << " " << r[2] << "   " << zone << " " << zone_now << endl;
+				exit(-1);
 			}
 
 			A = Find_cell_point(r[0], r[1], r[2], 0, prev);

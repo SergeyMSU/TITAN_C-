@@ -170,7 +170,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 
-		for (int i = 1; i <= 5 * 6; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 5 * 9; i++) // 6 * 2   12 * 5
 		{
 			/*if (i % 6 == 0 || i == 1)
 			{
@@ -196,7 +196,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			}
 			else
 			{
-				this->Go(true, 100, 1); // 400   1 
+				this->Go(true, 50, 1); // 400   1 
 			}
 			this->Smooth_head_HP3();
 			this->Smooth_head_TS3();

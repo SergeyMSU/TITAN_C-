@@ -554,7 +554,7 @@ bool Phys_param::need_contact_hard(const double& x)
 {
     if (this->contact_hard == false) return false;
 
-    if (x > -2000.0) return true;
+    if (x > 20.0) return true;
 
     return false;
 }
