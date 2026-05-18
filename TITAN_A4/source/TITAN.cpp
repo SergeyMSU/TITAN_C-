@@ -85,7 +85,8 @@ int main()
     // Вкдючил от -50 все три костыля на HP (до этого было от -30 кажется) и везде на гелиопаузе влючил HLLD
     // 
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");  // Стартовали согласование с 81  
-    S1.Download_cell_parameters("parameters_0111-.bin");    //начиная с 90 могут быть серьёзные изменения
+    //S1.Download_cell_parameters("parameters_0112-.bin");    //начиная с 90 могут быть серьёзные изменения
+    S1.Download_cell_parameters("parameters_0110-.bin");    //начиная с 90 могут быть серьёзные изменения
     // c 99- поменял подход обратно
     // Если что продолжать с 91
 
@@ -181,7 +182,7 @@ int main()
 
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(4, &S1);
-    S1.Algoritm(1, &S1);
+    //S1.Algoritm(1, &S1);
 
     //S1.Algoritm(3, &S1);
     //S1.Algoritm(4, &S1);
@@ -250,7 +251,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0112-.bin");  
+    //S1.Save_cell_parameters("parameters_0111-.bin");  
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

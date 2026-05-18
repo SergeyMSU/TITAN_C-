@@ -4607,6 +4607,7 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 			bool bb = false;
 			if (main_interpol) bb = SI_main.Get_param(r[0], r[1], r[2], parameters, prev_cell, next_cell);
 
+			//if(norm2(0.0, r[1], r[2]) < 15.0 )
 
 			if (bb == true)
 			{
