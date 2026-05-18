@@ -1318,7 +1318,6 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 	}
 
 
-
 	// Остальные узлы на HP (невыделяемой части) надо подвинуть
 	if (this->phys_param->move_HP == true)
 	{
@@ -1326,13 +1325,18 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 		for (auto& L : this->D_Luch)
 		{
 
+			//int klkl = 3; //4
 			double h1 = norm2(0.0, L[this->geo->N4 - 4]->Yzels_opor[1]->coord[now2][1],
 				L[this->geo->N4 - 4]->Yzels_opor[1]->coord[now2][2]);
 			double xx1 = L[this->geo->N4 - 4]->Yzels_opor[1]->coord[now2][0];
 
-			double h2 = norm2(0.0, L[this->geo->N4 - 6]->Yzels_opor[1]->coord[now2][1],
-				L[this->geo->N4 - 6]->Yzels_opor[1]->coord[now2][2]);
-			double xx2 = L[this->geo->N4 - 6]->Yzels_opor[1]->coord[now2][0];
+			double h2 = norm2(0.0, L[this->geo->N4 - 5]->Yzels_opor[1]->coord[now2][1],
+				L[this->geo->N4 - 5]->Yzels_opor[1]->coord[now2][2]);
+			double xx2 = L[this->geo->N4 - 5]->Yzels_opor[1]->coord[now2][0];
+
+			double xx3 = L[this->geo->N4 - 3]->Yzels_opor[1]->coord[now2][0];
+
+			double hhh = linear2(xx1, h1, xx2, h2, xx3);
 
 			// Высота контакта в хвосте (остаётся постоянной)
 			//double h2 = norm2(0.0, L[NN]->Yzels_opor[1]->coord[now2][1],
@@ -1352,7 +1356,7 @@ void Setka::Culc_Velocity_surface(short int now, const double& time, short int m
 			for (short int i = this->geo->N4 - 3; i <= NN; i++)
 			{
 				//double h = h1 + (i - this->geo->N4 + 2) * (h2 - h1) / (NN - this->geo->N4 + 2);
-				double h = h1;
+				double h = hhh; // h1;
 				auto yz = L[i]->Yzels_opor[1];
 				double hh = norm2(0.0, yz->coord[now2][1], yz->coord[now2][2]);
 				if (hh < 0.0000001 || h < 0.0000001 || std::isnan(hh) || std::isnan(h) ||

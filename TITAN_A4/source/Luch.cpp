@@ -302,6 +302,8 @@ void Luch::dvigenie(int i_time)
 			kv(this->Yzels_opor[3]->coord[i_time][2])); // BS причём для B лучей это фиктивный BS
 		// Она уже там не выделяется, поэтому подвинуть эти координаты надо заранее в другой подпрограмме
 
+		if (R4 < R3 + 30.0) R4 = R3 + 30.0;
+
 
 		int M0 = this->geo->M0;
 		int M1 = this->geo->M1;
@@ -445,7 +447,16 @@ void Luch::dvigenie(int i_time)
 			this->Yzels[num + j]->coord[i_time][1] = y;
 			this->Yzels[num + j]->coord[i_time][2] = z;
 		}
-		num += M3 + 1;
+		num += M3;
+
+		r = R4;
+		y = r * cos(phi);
+		z = r * sin(phi);
+		this->Yzels[num]->coord[i_time][0] = x3;
+		this->Yzels[num]->coord[i_time][1] = y;
+		this->Yzels[num]->coord[i_time][2] = z;
+
+		num += 1;
 
 
 		double ba5 = this->geo->ba5;
@@ -513,6 +524,8 @@ void Luch::dvigenie(int i_time)
 		double y2 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) +
 			kv(this->Yzels_opor[2]->coord[i_time][2]));
 
+		if (y2 < y1 + 30.0) y2 = y1 + 30.0;
+
 		x = x0;
 
 		double a = 0.7; // 0.1;
@@ -532,7 +545,8 @@ void Luch::dvigenie(int i_time)
 			this->Yzels[num + j]->coord[i_time][1] = y;
 			this->Yzels[num + j]->coord[i_time][2] = z;
 		}
-		num += (M2 - M11) + 1;
+		num += (M2 - M11);
+		num += 1;
 
 
 		double md1 = this->geo->md1;
@@ -567,7 +581,16 @@ void Luch::dvigenie(int i_time)
 			this->Yzels[num + j]->coord[i_time][1] = y;
 			this->Yzels[num + j]->coord[i_time][2] = z;
 		}
-		num += M3 + 1;
+		num += M3;
+
+		r = y2;
+		y = r * cos(phi);
+		z = r * sin(phi);
+		this->Yzels[num]->coord[i_time][0] = x;
+		this->Yzels[num]->coord[i_time][1] = y;
+		this->Yzels[num]->coord[i_time][2] = z;
+
+		num += 1;
 
 		double md3 = this->geo->md3;
 		if (this->parameters.find("md3") != this->parameters.end()) md3 = this->parameters["md3"];
@@ -630,6 +653,8 @@ void Luch::dvigenie(int i_time)
 		double y1 = sqrt(kv(this->Yzels_opor[2]->coord[i_time][1]) +
 			kv(this->Yzels_opor[2]->coord[i_time][2]));
 
+		if (y1 < y0 + 30.0) y1 = y0 + 30.0;
+
 		x = this->Yzels_opor[0]->coord[i_time][0];
 
 		this->Yzels[num]->coord[i_time][0] = x;
@@ -672,6 +697,13 @@ void Luch::dvigenie(int i_time)
 		num += M3;
 
 		this->Yzels[num]->coord[i_time][0] = x;
+
+		r = y1;
+		y = r * cos(phi);
+		z = r * sin(phi);
+		this->Yzels[num]->coord[i_time][0] = x;
+		this->Yzels[num]->coord[i_time][1] = y;
+		this->Yzels[num]->coord[i_time][2] = z;
 		
 		num += 1;
 

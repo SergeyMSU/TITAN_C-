@@ -396,15 +396,15 @@ void Gran::Read_AMR(short int ni, short int nH, Phys_param* ph_param, bool need_
 		if (need_refine == true)
 		{
 			unsigned int N = this->AMR[nH - 1][ni]->Size();
-			unsigned int Nmax = 25000;
+			unsigned int Nmax = 20000;
 
 			this->AMR[nH - 1][ni]->procent_signif = 0.8;
 			this->AMR[nH - 1][ni]->procent_devide = 4.0; // 2.0
 
 			if (nH == 8)
 			{
-				this->AMR[nH - 1][ni]->procent_signif = 12.0;  // 0.3
-				this->AMR[nH - 1][ni]->procent_devide = 20.0; // 2.0
+				this->AMR[nH - 1][ni]->procent_signif = 15.0;  // 0.3
+				this->AMR[nH - 1][ni]->procent_devide = 25.0; // 2.0
 			}
 
 			if (nH == 9)
