@@ -85,12 +85,13 @@ int main()
     // Вкдючил от -50 все три костыля на HP (до этого было от -30 кажется) и везде на гелиопаузе влючил HLLD
     // 
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");  // Стартовали согласование с 81  
-    S1.Download_cell_parameters("parameters_0113-.bin");    //начиная с 90 могут быть серьёзные изменения
+    S1.Download_cell_parameters("parameters_0112-.bin");    //начиная с 90 могут быть серьёзные изменения
     //S1.Download_cell_parameters("parameters_0110-.bin");    //начиная с 90 могут быть серьёзные изменения
     // c 99- поменял подход обратно
     // Если что продолжать с 91
     // на parameters_0111-  поменял сетку (увеличил расстояние между HP и BS). Далее посчитал МК
     // Далее потаюсь установить расчёт МГД
+    // 
 
 
     // Сначала стартовал согласовывать пикапы с 81 расчёта
@@ -151,6 +152,9 @@ int main()
         S1.Calculating_measure(1);
         S1.Init_TVD();
     }
+
+
+    //S1.Smooth_head_TS();
 
     cout << "A-" << endl;
     // Задаём начальные и граничные условия
@@ -260,7 +264,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0114-.bin");  
+    S1.Save_cell_parameters("parameters_0112-.bin");  
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

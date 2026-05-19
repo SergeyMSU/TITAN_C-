@@ -1662,6 +1662,7 @@ void Setka::Smooth_head_TS2(void)
 		auto lu = this->All_Luch[i_step];
 		lu->dvigenie(0);
 	}
+	
 	for (auto& i : this->All_Yzel)
 	{
 		for (unsigned short int j = 0; j < 3; j++)
