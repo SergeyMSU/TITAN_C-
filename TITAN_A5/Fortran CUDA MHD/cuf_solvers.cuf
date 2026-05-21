@@ -183,7 +183,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
         if(qqq1(1)/qqq2(1) > 20.0 .or. qqq1(1)/qqq2(1) < 0.05) metod = 1
     end if
 
-    metod = 0  ! TODO: убрать
+    !metod = 0  ! TODO: убрать
     
     square = dev_Gran_square(gr)
 

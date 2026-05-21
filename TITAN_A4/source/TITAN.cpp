@@ -91,7 +91,7 @@ int main()
     // Если что продолжать с 91
     // на parameters_0111-  поменял сетку (увеличил расстояние между HP и BS). Далее посчитал МК
     // Далее потаюсь установить расчёт МГД
-    // 
+    // 112 - всё установилось, но решил убрать артефакты
 
 
     // Сначала стартовал согласовывать пикапы с 81 расчёта
@@ -191,8 +191,8 @@ int main()
     // 
     
 
-    /*S1.Algoritm(5, &S1);
-    S1.Algoritm(25, &S1);*/
+    //S1.Algoritm(5, &S1);
+    //S1.Algoritm(25, &S1);
 
 
     //S1.Algoritm(1, &S1);
@@ -210,12 +210,12 @@ int main()
 
 
 
-    S1.Algoritm(10, &S1);
+    S1.Algoritm(1, &S1);
     //S1.Algoritm(5, &S1);
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(4, &S1);
     //S1.Algoritm(5, &S1);
-    return 0;
+    //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
     
@@ -271,7 +271,7 @@ int main()
     }
 
 
-    //S1.Save_cell_parameters("parameters_0112-.bin");  
+    S1.Save_cell_parameters("parameters_0113-.bin");  
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

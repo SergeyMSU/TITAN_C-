@@ -161,9 +161,10 @@ module STORAGE
         !3.1  10 градусов
         !3.2  30 градусов
 
+        ! FCMHD_A3.1_out.bin   - всё посчитано Лаксом - метод 0
 
         ! Открываем файл для записи в бинарном формате
-        open(newunit=unit, file="FCMHD_A3.1_out.bin", form='unformatted', access='stream', &
+        open(newunit=unit, file="FCMHD_A3.2_out.bin", form='unformatted', access='stream', &
             action='write', status='replace', iostat=ierr)
         
         if (ierr /= 0) then
