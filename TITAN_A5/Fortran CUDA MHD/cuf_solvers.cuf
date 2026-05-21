@@ -182,6 +182,8 @@ attributes(global) subroutine CUF_MGD_grans(now)
     if(rad5 < 260.0) then 
         if(qqq1(1)/qqq2(1) > 20.0 .or. qqq1(1)/qqq2(1) < 0.05) metod = 1
     end if
+
+    metod = 0  ! TODO: убрать
     
     square = dev_Gran_square(gr)
 
@@ -430,7 +432,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
          POTOK, n_disc)
 
 
-    time = min(time, 0.45 * dist/(max(dabs(dsl), dabs(dsp))+ dabs(wc)) )   ! REDUCTION
+    time = min(time, 0.8 * dist/(max(dabs(dsl), dabs(dsp))+ dabs(wc)) )   ! REDUCTION
     !time = min(time, 0.9 * dist/(dev_norm2(cross_product(gran_centr, rotate_velosity))))
 	dev_Gran_POTOK(1:dev_num_param, gr) = POTOK * square
 	
@@ -518,7 +520,7 @@ attributes(global) subroutine CUF_MGD_cells(now)
         mV = 66.6667
 
         ! dev_time_all
-        ro3 = 0.0249164 * (3.00503 / dist)**2 * dd ! / (dd**2)
+        ro3 = 0.0249164 * (3.00503 / dist)**2! * dd ! / (dd**2)
         p3 = 2.65775 * (3.00503 / dist)**(2 * ggg)
 
         u3 = mV * rr(1) / dist
@@ -567,16 +569,20 @@ attributes(global) subroutine CUF_MGD_cells(now)
         write(*, *) " Ro < 0  3688 ---  ", ro3, qqq(1), rr(1), rr(2), rr(3)
         ro3 = 0.0001
 
-        u3 = -10.0! qqq(2)
+        if(rr(1) > 0.0) then
+            u3 = 0.0
+            p3 = 1.0
+        else
+            u3 = -10.0
+            p3 = 0.1 ! qqq(5)
+        end if
+        !u3 = -10.0! qqq(2)
         v3 = 0.0! qqq(3)
         w3 = 0.0! qqq(4)
 
         bx3 = qqq(6)
         by3 = qqq(7)
         bz3 = qqq(8)
-
-        p3 = 0.1 ! qqq(5)
-
     else
         u3 = (qqq(1) * qqq(2) - time * (POTOK(2) + (qqq(6)/cpi4) * sks) / Volume + time * F(1)) / ro3
         v3 = (qqq(1) * qqq(3) - time * (POTOK(3) + (qqq(7)/cpi4) * sks) / Volume + time * F(2)) / ro3

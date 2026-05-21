@@ -210,7 +210,7 @@ int main()
     //S1.Download_cell_parameters("parameters_promeg_1121.bin");  
 
 
-    //S1.Download_cell_parameters("parameters_0219.bin");    
+    S1.Download_cell_parameters("parameters_A5-3_0001.bin");    
     // S1.Download_cell_parameters("parameters_promeg_1112.bin");
     //S1.Download_cell_parameters("parameters_promeg_1118.bin");
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");
@@ -223,7 +223,7 @@ int main()
     S1.geo->tetta1 = 2.89;
     S1.geo->tetta2 = 2.64;
 
-    S1.PereInterpolate("For_intertpolate_0085-no_razriv-with_MK.bin", true);
+    //S1.PereInterpolate("For_intertpolate_0085-no_razriv-with_MK.bin", true);
 
 
     //S1.Download_cell_parameters("parameters_promeg_1124.bin");
@@ -587,7 +587,7 @@ int main()
     }
 
 
-    S1.PereInterpolate("For_intertpolate_0085-no_razriv-with_MK.bin", false, false);
+    //S1.PereInterpolate("For_intertpolate_0085-no_razriv-with_MK.bin", false, false);
 
     //S1.Smooth_head_TS();
 
@@ -633,8 +633,9 @@ int main()
     
     //S1.Algoritm(1, &S1);
 
-    S1.Write_file_for_FCMHD();
-    //S1.Read_file_for_FCMHD();
+
+    S1.Read_file_for_FCMHD();
+    //S1.Write_file_for_FCMHD();
 
     //Dust_spectra DDD = Dust_spectra();
 
@@ -696,7 +697,7 @@ int main()
     }
 
 
-    //S1.Save_cell_parameters("parameters_A5-2_0001.bin");
+    //S1.Save_cell_parameters("parameters_A5-3_0001.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
