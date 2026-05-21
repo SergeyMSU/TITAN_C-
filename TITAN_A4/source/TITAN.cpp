@@ -195,7 +195,7 @@ int main()
     S1.Algoritm(25, &S1);*/
 
 
-    S1.Algoritm(1, &S1);
+    //S1.Algoritm(1, &S1);
 
     //S1.Algoritm(3, &S1);
     //S1.Algoritm(4, &S1);
@@ -203,12 +203,18 @@ int main()
     //S1.Algoritm(25, &S1);
 
 
+    S1.Algoritm(3, &S1);
+    S1.Algoritm(4, &S1);
+    S1.Algoritm(7, &S1);
+
+
+
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(5, &S1);
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(4, &S1);
     //S1.Algoritm(5, &S1);
-    //return 0;
+    return 0;
 
     /// Далее следует всё, что касается визуализации сетки
     
@@ -264,7 +270,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0112-.bin");  
+    //S1.Save_cell_parameters("parameters_0112-.bin");  
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
@@ -420,9 +426,9 @@ int main()
         S1.phys_param->param_names_for_print.push_back("S_k4__Pui_2_H4");*/
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0082-no_razriv-with_MK.bin", false, true);
+    S1.Save_for_interpolate("For_intertpolate_0082-with_razriv-with_MK.bin", true, true);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0082-no_razriv-with_MK.bin");
+    Interpol SS = Interpol("For_intertpolate_0082-with_razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");
@@ -430,21 +436,22 @@ int main()
     cout << "AAA" << endl;
 
     S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
-        Eigen::Vector3d(1.0, 0.0, 0.0), "_(1, 0, 0)_no-razriv_", 500.0);
+        Eigen::Vector3d(1.0, 0.0, 0.0), "_(1, 0, 0)_with-razriv_", 500.0);
 
     S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
-        Eigen::Vector3d(-1.0, 0.0, 0.0), "_(-1, 0, 0)_no-razriv_", 500.0);
+        Eigen::Vector3d(-1.0, 0.0, 0.0), "_(-1, 0, 0)_with-razriv_", 500.0);
 
     S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
-        Eigen::Vector3d(0.0, 1.0, 0.0), "_(0, 1, 0)_no-razriv_", 500.0);
+        Eigen::Vector3d(0.0, 1.0, 0.0), "_(0, 1, 0)_with-razriv_", 500.0);
 
-    S1.Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_no-razriv_");
+    S1.Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_with-razriv_");
+    
     //S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_");
 
     Eigen::Vector3d eex(1.0, 0.0, 0.0);
     Eigen::Vector3d eey(0.0, 0.0, 1.0);
     Eigen::Vector3d centr_sys(0.0, 0.0, 0.0);
-    S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_no-razriv_", false, eex, eey, centr_sys);
+    S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_with-razriv_", false, eex, eey, centr_sys);
 
 
     cout << "F " << endl;

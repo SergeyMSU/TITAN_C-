@@ -4115,7 +4115,7 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 	r[1] = Cel->center[0][1];
 	r[2] = Cel->center[0][2];
 
-	double dt = 0.001;
+	double dt = 0.001;  // 0.001
 	double rho0 = Cel->parameters[0]["rho"];
 	double qInt = 0.0;               // Интеграл от источника массы при ионизации
 	double q1, rho, rho_do;

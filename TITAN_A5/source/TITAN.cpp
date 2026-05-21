@@ -104,8 +104,6 @@ int main()
     cout << "Start Programm" << endl;
 
 
-
-
     if (false)
     {
         Eigen::Vector3d vec, cc, vv;
@@ -151,7 +149,8 @@ int main()
 
     // Создаём основную сетку из файлов вспомогательных сеток
     //Setka S1 = Setka("SDK1_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
-    Setka S1 = Setka("SDK_A5.2_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
+    //Setka S1 = Setka("SDK_A5.2_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
+    Setka S1 = Setka("SDK_A5.2_2D_Setka.bin", "SDK_100_krug_setka.bin", 100);
     //Setka S1 = Setka("SDK2_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
 
     S1.geo->L6 = -150.0; // Этот параметр важен при загрузке сетки так как определяет до куда выделять HP
@@ -205,7 +204,7 @@ int main()
     // 74 - поменял L6 на -190 (было -200)
     // 
     //S1.Download_cell_parameters("parameters_A5_0047.bin");  
-    S1.Download_cell_parameters("parameters_A5-2_0001.bin");  
+    //S1.Download_cell_parameters("parameters_A5-2_0001.bin");  
     
 
     //S1.Download_cell_parameters("parameters_promeg_1121.bin");  
@@ -224,7 +223,7 @@ int main()
     S1.geo->tetta1 = 2.89;
     S1.geo->tetta2 = 2.64;
 
-    //S1.PereInterpolate("For_intertpolate_0082-no_razriv-with_MK.bin", true);
+    S1.PereInterpolate("For_intertpolate_0085-no_razriv-with_MK.bin", true);
 
 
     //S1.Download_cell_parameters("parameters_promeg_1124.bin");
@@ -588,17 +587,14 @@ int main()
     }
 
 
- 
-
-    
-    //S1.PereInterpolate("For_intertpolate_0084-no_razriv-with_MK.bin", false, false);
+    S1.PereInterpolate("For_intertpolate_0085-no_razriv-with_MK.bin", false, false);
 
     //S1.Smooth_head_TS();
 
 
     cout << "A-" << endl;
     // Задаём начальные и граничные условия
-    //S1.Init_physics();
+    S1.Init_physics();
     
 
     // Блок начальной визуализации сетки для проверки корректного построения
@@ -637,8 +633,8 @@ int main()
     
     //S1.Algoritm(1, &S1);
 
-    //S1.Write_file_for_FCMHD();
-    S1.Read_file_for_FCMHD();
+    S1.Write_file_for_FCMHD();
+    //S1.Read_file_for_FCMHD();
 
     //Dust_spectra DDD = Dust_spectra();
 
@@ -767,9 +763,10 @@ int main()
 
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0085-no_razriv-with_MK.bin", false);
+    // "For_intertpolate_0085-no_razriv-with_MK.bin"
+    S1.Save_for_interpolate("For_intertpolate_A3_1-no_razriv-with_MK.bin", false);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0085-no_razriv-with_MK.bin");
+    Interpol SS = Interpol("For_intertpolate_A3_1-no_razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");

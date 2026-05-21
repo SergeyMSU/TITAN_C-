@@ -310,7 +310,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	}
 	else if (alg == 3)
 	{
-		bool interpol_SS = false;  // Во время вычисления f_pui надо ли интерполировать S+ S- в каждой точке? Или брать среднее в ячейке (это быстрее)
+		bool interpol_SS = false; // false;  // Во время вычисления f_pui надо ли интерполировать S+ S- в каждой точке? Или брать среднее в ячейке (это быстрее)
 
 		// Создаём вспомогательную Монте-Карло сетку из файлов вспомогательных сеток
 		cout << "Create Setka Smc" << endl;
@@ -351,7 +351,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		// переинтерполяция
 		if (true)
 		{
-			Smc.PereInterpolate(&SI_main, false);
+			Smc.PereInterpolate(&SI_main, false, false);
 		}
 
 		Smc.Test_geometr();
@@ -364,7 +364,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			A->read_S_FromFile(Smc.phys_param->par_n_H_LISM);
 		}
 
-		Smc.Save_for_interpolate("For_intertpolate_work_MK.bin", false);
+		Smc.Save_for_interpolate("For_intertpolate_work_MK.bin", false, false);
 		Interpol SI_MK = Interpol("For_intertpolate_work_MK.bin");
 
 
@@ -453,6 +453,11 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			//if (file_exists(filename) == true) continue;
 
 			short int zone = this->determ_zone(A, 0);
+
+			//if (zone != 1) continue;                                       // !TODO
+
+			//if(norm2(A->center[0][0], A->center[0][1], A->center[0][2]) > 7.0) continue;                                       // !TODO
+
 			//cout << "A" << endl;
 			A->Init_f_pui(this->phys_param->pui_nW, zone);
 			//cout << "B" << endl;
