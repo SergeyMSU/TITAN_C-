@@ -170,7 +170,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 
-		for (int i = 1; i <= 5 * 5; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 5 * 4; i++) // 6 * 2   12 * 5
 		{
 			/*if (i % 6 == 0 || i == 1)
 			{
