@@ -149,8 +149,8 @@ int main()
 
     // Создаём основную сетку из файлов вспомогательных сеток
     //Setka S1 = Setka("SDK1_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
-    //Setka S1 = Setka("SDK_A5.2_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
-    Setka S1 = Setka("SDK_A5.2_2D_Setka.bin", "SDK_100_krug_setka.bin", 100);
+    Setka S1 = Setka("SDK_A5.2_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
+    //Setka S1 = Setka("SDK_A5.2_2D_Setka.bin", "SDK_100_krug_setka.bin", 100);
     //Setka S1 = Setka("SDK2_2D_Setka.bin", "SDK1_krug_setka.bin", 60);
 
     S1.geo->L6 = -150.0; // Этот параметр важен при загрузке сетки так как определяет до куда выделять HP
@@ -209,8 +209,8 @@ int main()
 
     //S1.Download_cell_parameters("parameters_promeg_1121.bin");  
 
-
-    S1.Download_cell_parameters("parameters_A5-3_0001.bin");    
+    S1.Download_cell_parameters("parameters_A5-2_0001.bin");
+    //S1.Download_cell_parameters("parameters_A5-3_0001.bin");    
     // S1.Download_cell_parameters("parameters_promeg_1112.bin");
     //S1.Download_cell_parameters("parameters_promeg_1118.bin");
     //S1.Download_cell_parameters("parameters_promeg_1112.bin");

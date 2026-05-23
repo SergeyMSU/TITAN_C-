@@ -107,7 +107,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
     ! if(rad5 < 70.0 .and. gran_centr(1) > 0 .and. sqrt(gran_centr(2)**2 + gran_centr(3)**2) < 15.0) then ! 120
     !     metod = 3
     ! else 
-    if(rad5 < 200.0) then   ! .and. gran_centr(1) > 0
+    if(rad5 < 260.0) then   ! .and. gran_centr(1) > 0
         metod = 3 
     end if
 
@@ -179,16 +179,17 @@ attributes(global) subroutine CUF_MGD_grans(now)
         cell_centr_s2 = dev_Cell_center(:, s2)
     end if
 
-    if(rad5 < 200.0) then 
+    if(rad5 < 260.0) then 
         ! if(qqq1(1)/qqq2(1) > 5.0 .or. qqq1(1)/qqq2(1) < 0.2) metod = 1
-        if(qqq1(1)/qqq2(1) > 10.0 .or. qqq1(1)/qqq2(1) < 0.1) then
+        ! if(qqq1(1)/qqq2(1) > 5.0 .or. qqq1(1)/qqq2(1) < 0.2) then
+        if(qqq1(1)/qqq2(1) > 20.0 .or. qqq1(1)/qqq2(1) < 0.05) then
             metod = 1
-        else if(sqrt(qqq1(2)**2 + qqq1(3)**2 + qqq1(4)**2)/sqrt(ggg * qqq1(5)/qqq1(1)) > 1.0 .and. &
-            sqrt(qqq2(2)**2 + qqq2(3)**2 + qqq2(4)**2)/sqrt(ggg * qqq2(5)/qqq2(1)) < 1.0) then
-            metod = 1
-        else if(sqrt(qqq1(2)**2 + qqq1(3)**2 + qqq1(4)**2)/sqrt(ggg * qqq1(5)/qqq1(1)) < 1.0 .and. &
-            sqrt(qqq2(2)**2 + qqq2(3)**2 + qqq2(4)**2)/sqrt(ggg * qqq2(5)/qqq2(1)) > 1.0) then
-            metod = 1
+        ! else if(sqrt(qqq1(2)**2 + qqq1(3)**2 + qqq1(4)**2)/sqrt(ggg * qqq1(5)/qqq1(1)) > 1.0 .and. &
+        !     sqrt(qqq2(2)**2 + qqq2(3)**2 + qqq2(4)**2)/sqrt(ggg * qqq2(5)/qqq2(1)) < 1.0) then
+        !     metod = 1
+        ! else if(sqrt(qqq1(2)**2 + qqq1(3)**2 + qqq1(4)**2)/sqrt(ggg * qqq1(5)/qqq1(1)) < 1.0 .and. &
+        !     sqrt(qqq2(2)**2 + qqq2(3)**2 + qqq2(4)**2)/sqrt(ggg * qqq2(5)/qqq2(1)) > 1.0) then
+        !     metod = 1
         end if
     end if
 
@@ -501,8 +502,8 @@ attributes(global) subroutine CUF_MGD_cells(now)
 
         ! 0.08 - не прошли волны через AP
         ! 0.16
-        !dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/0.16))
-        dd = 1.0
+        !dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/6.0))
+        !dd = 1.0
         ! sin(2.0 * par_pi_8 * dev_time_all/0.1)
 
         ! Период полного цикла
@@ -524,7 +525,7 @@ attributes(global) subroutine CUF_MGD_cells(now)
         !     dd = 1.0
         ! end if
 
-        dd = 1.0 ! (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/9.0))
+        dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/6.0))
 
         mV = 66.6667
 
