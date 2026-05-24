@@ -31,10 +31,38 @@ short int Gran::Get_method()
 		{
 			for (auto& i : this->yzels)
 			{
-				if (i->type == Type_yzel::HP)
+				bool b1 = false;
+				bool b2 = false;
+				bool b3 = false;
+
+				for (auto& i : this->yzels)
 				{
-					return 0;                           // Лакс вдоль гелиопаузы
+					if (i->type == Type_yzel::HP)
+					{
+						return 0;                           // Лакс вдоль гелиопаузы
+					}
+
+					if (i->dist_from_HP == 1) b1 = true;
+					if (i->dist_from_HP == 2) b2 = true;
+					if (i->dist_from_HP == 3) b3 = true;
+
+					if (b1 == true)            // Сейчас вообще почти три ряда ячеек считаем Лаксом
+					{
+						return 0;                            // Лакс во втором ряду от гелиопаузы
+					}
+
+					if (b2 == true)            // Сейчас вообще почти три ряда ячеек считаем Лаксом
+					{
+						return 0;                            // Лакс во втором ряду от гелиопаузы
+					}
+
+					//if (b3 == true && b2 == true)            // Сейчас вообще почти три ряда ячеек считаем Лаксом
+					//{
+					//	return 0;                            // Лакс во втором ряду от гелиопаузы
+					//}
+
 				}
+
 			}
 
 			return 3;

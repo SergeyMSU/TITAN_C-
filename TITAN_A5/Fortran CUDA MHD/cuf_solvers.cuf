@@ -525,12 +525,13 @@ attributes(global) subroutine CUF_MGD_cells(now)
         !     dd = 1.0
         ! end if
 
-        dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/6.0))
+        !dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/6.0))
+        dd = (1.0 + 0.3 * sin(2.0 * par_pi_8 * dev_time_all/0.3))
 
         mV = 66.6667
 
         ! dev_time_all
-        ro3 = 0.0249164 * (3.00503 / dist)**2! * dd ! / (dd**2)
+        ro3 = 0.0249164 * (3.00503 / dist)**2 * dd ! / (dd**2)
         p3 = 2.65775 * (3.00503 / dist)**(2 * ggg)
 
         u3 = mV * rr(1) / dist

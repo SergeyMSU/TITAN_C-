@@ -434,7 +434,7 @@ int main()
         S1.phys_param->param_names_for_print.push_back("S_k4__Pui_2_H4");*/
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0082-no_razriv-with_MK.bin", true, true);
+    S1.Save_for_interpolate("For_intertpolate_0082-no_razriv-with_MK.bin", false, true);
     //return 0;
     Interpol SS = Interpol("For_intertpolate_0082-no_razriv-with_MK.bin");
 
