@@ -188,7 +188,7 @@ module STORAGE
         real(8) :: cf
 
         ! Открываем файл для записи в бинарном формате
-        open(3, file = "FCMHD_2.14_out.bin", FORM = 'BINARY', ACTION = "READ")
+        open(3, file = "FCMHD_2.11_out.bin", FORM = 'BINARY', ACTION = "READ")
         
         ! Записываем данные в ТОМ ЖЕ порядке, что и при чтении
         read(3) host_time_all
