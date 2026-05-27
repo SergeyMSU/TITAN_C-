@@ -4094,7 +4094,7 @@ void Setka::Culc_f_pui_in_cell(Cell* Cel, Setka& S_MK, Interpol& SI_main, Interp
 {
 	short int pui_nW = this->phys_param->pui_nW;
 	double pui_wR = this->phys_param->pui_wR;
-	double nH = this->phys_param->par_n_H_LISM;
+	double nH = 1.0; // this->phys_param->par_n_H_LISM;
 
 	bool main_interpol = false;
 

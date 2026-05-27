@@ -201,8 +201,8 @@ int main()
 
     //S1.Algoritm(3, &S1);
 
-    // S1.Algoritm(4, &S1);
-    // S1.Algoritm(5, &S1);
+    //S1.Algoritm(4, &S1);
+    //S1.Algoritm(5, &S1);
 
     //S1.Algoritm(25, &S1);
 
@@ -212,9 +212,9 @@ int main()
 
 
 
-    S1.Algoritm(1, &S1);
+    //S1.Algoritm(1, &S1);
     //S1.Algoritm(5, &S1);
-    //S1.Algoritm(10, &S1);
+    S1.Algoritm(10, &S1);
     //S1.Algoritm(4, &S1);
     //S1.Algoritm(5, &S1);
     //return 0;
@@ -273,7 +273,7 @@ int main()
     }
 
 
-    S1.Save_cell_parameters("parameters_0113-.bin");  
+    //S1.Save_cell_parameters("parameters_0113-.bin");  
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 

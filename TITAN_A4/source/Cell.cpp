@@ -997,7 +997,7 @@ void Cell::culc_pui_n_T(const double& pui_wR)
 			S2 = 1.0;
 		}
 		this->parameters[0]["MK_rho_Pui_1"] = S;
-		this->parameters[0]["MK_T_Pui_1"] = S2;
+		this->parameters[0]["MK_T_Pui_1"] = S2 * 2.0;  // этот коэффициент из-за определения температуры: mp * V_*^2 /kB / 2
 
 
 		pui_nw = this->f_pui_2.size();
@@ -1019,7 +1019,7 @@ void Cell::culc_pui_n_T(const double& pui_wR)
 			S2 = 1.0;
 		}
 		this->parameters[0]["MK_rho_Pui_2"] = S;
-		this->parameters[0]["MK_T_Pui_2"] = S2;
+		this->parameters[0]["MK_T_Pui_2"] = S2 * 2.0;
 
 		if (this->parameters[0]["MK_rho_Pui_1"] + this->parameters[0]["MK_rho_Pui_2"] > (rho - rho_He) * 0.995)
 		{
@@ -2039,7 +2039,7 @@ void Cell::MK_Add_pui_source(MK_particle& P, const double& wr, const double& nu_
 {
 	bool first_pui = false;       // Первый раз запускаем пуи? Это надо, когда пуи ещё нет в распределениях, но источники надо посчитать
 	// zone = 1, 2, 3, 4
-	// parent - 0, 1, 2 от каго рождён атом? тепловой протон, pui1, pui2
+	// parent - 0, 1, 2 от кого рождён атом? тепловой протон, pui1, pui2
 	double wr_ = wr * 0.97467943;   // Понижение wr для оттока части энергии в термальные протоны
 
 	int index = static_cast<int>(wr_ / phys_param->pui_wR * phys_param->pui_nW);
