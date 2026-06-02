@@ -640,8 +640,11 @@ int main()
     //Dust_spectra DDD = Dust_spectra();
 
 
+    S1.Algoritm(24, &S1);
 
-    //return 0;
+
+
+    return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 

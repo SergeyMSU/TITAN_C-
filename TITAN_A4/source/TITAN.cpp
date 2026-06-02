@@ -208,7 +208,7 @@ int main()
 
 
     //S1.Algoritm(3, &S1);
-    S1.Algoritm(7, &S1);
+    //S1.Algoritm(7, &S1);
 
 
 

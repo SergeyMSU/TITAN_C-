@@ -3988,14 +3988,14 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Save_for_interpolate("For_intertpolate_work.bin", false);
 		Interpol SS = Interpol("For_intertpolate_work.bin");
 
-		double dX = 2.0;
-		double dY = 2.0;
-		double dZ = 0.2;
+		double dX = 0.5;  // минимум по 0.5, но лучше меньше
+		double dY = 0.5;  // минимум по 0.5, но лучше меньше
+		double dZ = 0.05;
 
-		double ne, T;
+		
 
 		ofstream fout;
-		fout.open("H_alpha_X_Y.txt");
+		fout.open("H_alpha_X_Y-2.txt");
 
 		ofstream fout2;
 		fout2.open("soft_X-ray_X_Y.txt");
@@ -4003,10 +4003,25 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		ofstream fout3;
 		fout3.open("hard_X-ray_X_Y.txt");
 
-		for (double X = 200.0; X > -200.0; X = X - dX)
+		const int NX = static_cast<int>(65.0 / dX + 0.5); // ~130
+
+
+//#pragma omp parallel for schedule(dynamic)
+		//for (double X = 185.0; X > -287.0; X = X - dX)
+		for (double X = 92.7; X > -92.7; X = X - dX)
+		//for (int iX = 0; iX < NX; ++iX)
 		{
-			cout << "Culk for X = "<< X << endl;
-			for (double Y = -200.0; Y < 200.0; Y = Y + dY)
+			//double X = 65.0 - iX * dX;
+
+			#pragma omp critical 
+			{
+				cout << "Culk for X = " << X << endl;
+			}
+
+			double ne, T;
+
+			//for (double Y = -250.0; Y < 250.0; Y = Y + dY)
+			for (double Y = -185.5; Y < 185.5; Y = Y + dY)
 			{
 				std::array<Cell_handle, 6> prev_cell;
 				std::array<Cell_handle, 6> next_cell;
@@ -4023,9 +4038,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				//fine_int = SS.Get_param(0.0, X, Y, parameters, prev_cell, next_cell);
 				if (fine_int != false)
 				{
-					for (double Z = -200.0; Z < 200.0; Z = Z + dZ)
+					for (double Z = -250.0; Z < 250.0; Z = Z + dZ)
 					{
-						fine_int = SS.Get_param(X, Y, Z + dZ/2.0, parameters, prev_cell, next_cell);
+						fine_int = SS.Get_param(X, Y, Z + dZ / 2.0, parameters, prev_cell, next_cell);
 						//fine_int = SS.Get_param(X, Z + dZ / 2.0, Y, parameters, prev_cell, next_cell);
 						//fine_int = SS.Get_param(Z + dZ / 2.0, X, Y, parameters, prev_cell, next_cell);
 						if (fine_int == false) continue;
@@ -4033,17 +4048,21 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 						ne = parameters["rho"];
 						T = parameters["p"] / parameters["rho"];
-						IH += kv(ne) * this->phys_param->interpolate_alpha_eff_Ha(T * 6530.0) * dZ;
-						this->phys_param->interpolate_Xray(T * 6530.0, a1, a2);
+						IH += kv(ne) * this->phys_param->interpolate_alpha_eff_Ha(T * 54542.0) * dZ;
+						this->phys_param->interpolate_Xray(T * 54542.0, a1, a2);
 						I_soft_X_ray += kv(ne) * a1 * dZ;
 						I_hard_X_ray += kv(ne) * a2 * dZ;
 					}
 				}
 
-				fout << X * 4.21132 << " " << Y * 4.21132 << " " << IH * 2.91892*1E10 << endl;
-				fout2 << X * 4.21132 << " " << Y * 4.21132 << " " << I_soft_X_ray * 33.2504 << endl;
-				fout3 << X * 4.21132 << " " << Y * 4.21132 << " " << I_hard_X_ray * 173.48 << endl;
+				#pragma omp critical 
+				{
+					fout << X * 0.0107845 << " " << Y * 0.0107845 << " " << IH * 290308.0 * 0.6106 << endl;  // 2.91892 * 1E10
+					fout2 << X * 0.0107845 << " " << Y * 0.0107845 << " " << I_soft_X_ray * 33.2504 << endl;
+					fout3 << X * 0.0107845 << " " << Y * 0.0107845 << " " << I_hard_X_ray * 173.48 << endl;
+				}
 			}
+
 		}
 
 		fout.close();
