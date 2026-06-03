@@ -7,6 +7,22 @@ class Dust_spectra
 {
 public:
 
+	double Int1 = 0.0;  // интегралл Kabs(lambda) * F_lambda(lambda)  dlambda
+
+
+	std::vector<double> L_em;   // Вектор по температуре - интегралл от Kabs * Bplanka
+	int L_em_NN = 500;
+	double L_em_TL = 1.0;
+	double L_em_TR = 1000.0;
+
+	// Обратная таблица: T(L_em) с равномерным шагом по ln(L_em)
+	std::vector<double> inv_logL;   // узлы ln(L_em)
+	std::vector<double> inv_logT;   // узлы ln(T)
+	int inv_N = 0;                  // размер обратной таблицы
+	double inv_logL_min = 0.0;      // минимальный ln(L_em)
+	double inv_logL_max = 0.0;      // максимальный ln(L_em)
+	double inv_logL_step = 0.0;     // шаг по ln(L_em)
+
 	// Спектр звезды
 	std::vector<double> lambda_F_kurucz;      // исходные длины волн (см)
 	std::vector<double> value_F_kurucz;       // исходные значения K_abs
@@ -53,6 +69,23 @@ public:
 
 	void Read_g();
 	double interpolate_g(double lambda);
+
+	double planck_b_lambda(double lambda_cm, double T_K);
+
+
+	double temperatureAtIndex(int i) const 
+	{
+		// исходная сетка T равномерна от TL до TR с точками в центре интервалов
+		// T_i = TL + (i + 0.5) * (TR - TL) / NN
+		return L_em_TL + (i + 0.5) * (L_em_TR - L_em_TL) / L_em_NN;
+	}
+	
+	// Построение обратной функцйии для L_em для быстрой интерполяции
+	void buildInverseTable(int nPoints = 500);
+
+	// Возвращает температуру T по заданному значению L = L_em(T)
+	double getTemperatureFromL(double L) const;
+
 
 };
 

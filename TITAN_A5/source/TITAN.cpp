@@ -640,7 +640,7 @@ int main()
     //Dust_spectra DDD = Dust_spectra();
 
 
-    S1.Algoritm(24, &S1);
+    S1.Algoritm(25, &S1);
 
 
 

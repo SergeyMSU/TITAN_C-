@@ -1,4 +1,4 @@
-п»ї#include "Dust_spectra.h"
+#include "Dust_spectra.h"
 
 
 Dust_spectra::Dust_spectra()
@@ -27,7 +27,8 @@ Dust_spectra::Dust_spectra()
 
 void Dust_spectra::Read_F_kurucz()
 {
-    std::string filename = "solar_spectrum_kurucz_cgs.txt";
+    //std::string filename = "solar_spectrum_kurucz_cgs.txt";
+    std::string filename = "star_spectrum_kurucz_cgs.txt";
     std::ifstream file(filename);
     if (!file.is_open())
     {
@@ -36,7 +37,7 @@ void Dust_spectra::Read_F_kurucz()
     }
 
     std::string line;
-    // РџСЂРѕРїСѓСЃРєР°РµРј Р·Р°РіРѕР»РѕРІРѕРє (РµСЃР»Рё РµСЃС‚СЊ)
+    // Пропускаем заголовок (если есть)
     std::getline(file, line);
 
     while (std::getline(file, line))
@@ -60,13 +61,13 @@ void Dust_spectra::Read_F_kurucz()
         exit(-1);
     }
 
-    // РџСЂРѕРІРµСЂРєР° РјРѕРЅРѕС‚РѕРЅРЅРѕСЃС‚Рё
+    // Проверка монотонности
     if (!std::is_sorted(lambda_F_kurucz.begin(), lambda_F_kurucz.end()))
     {
         std::cerr << "Warning: lambda_F_kurucz are not in increasing order." << std::endl;
     }
 
-    // ------------------- РџР РћР’Р•Р РћР§РќРђРЇ РџР•Р§РђРўР¬ -------------------
+    // ------------------- ПРОВЕРОЧНАЯ ПЕЧАТЬ -------------------
     std::ofstream check_file("check_F_kurucz_interp.txt");
     if (!check_file.is_open())
     {
@@ -94,21 +95,21 @@ void Dust_spectra::Read_F_kurucz()
 
 double Dust_spectra::interpolate_F_kurucz(double lambda)
 {
-    // Р“СЂР°РЅРёС‡РЅС‹Рµ СѓСЃР»РѕРІРёСЏ
+    // Граничные условия
     if (lambda <= lambda_F_kurucz.front())
         return 0.0;
     if (lambda >= lambda_F_kurucz.back())
         return 0.0;
 
-    // РџРѕРёСЃРє РёРЅС‚РµСЂРІР°Р»Р°, СЃРѕРґРµСЂР¶Р°С‰РµРіРѕ lambda
+    // Поиск интервала, содержащего lambda
     auto it = std::lower_bound(lambda_F_kurucz.begin(), lambda_F_kurucz.end(), lambda);
     size_t idx = it - lambda_F_kurucz.begin();
 
-    // РўРѕС‡РЅРѕРµ СЃРѕРІРїР°РґРµРЅРёРµ
+    // Точное совпадение
     if (std::fabs(lambda_F_kurucz[idx] - lambda) < 1e-12)
         return value_F_kurucz[idx];
 
-    // Р›РёРЅРµР№РЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ
+    // Линейная интерполяция
     const double& x0 = lambda_F_kurucz[idx - 1];
     const double& x1 = lambda_F_kurucz[idx];
     const double& y0 = value_F_kurucz[idx - 1];
@@ -129,10 +130,10 @@ void Dust_spectra::Read_K_abs()
     }
 
     std::string line;
-    // РџСЂРѕРїСѓСЃРєР°РµРј Р·Р°РіРѕР»РѕРІРѕРє
+    // Пропускаем заголовок
     std::getline(file, line);
 
-    // Р§С‚РµРЅРёРµ РґР°РЅРЅС‹С…
+    // Чтение данных
     while (std::getline(file, line))
     {
         if (line.empty()) continue;
@@ -154,7 +155,7 @@ void Dust_spectra::Read_K_abs()
         exit(-1);
     }
 
-    // РџСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕ РІС‹С‡РёСЃР»СЏРµРј Р»РѕРіР°СЂРёС„РјС‹
+    // Предварительно вычисляем логарифмы
     lnLambda_K_abs.reserve(lambda_K_abs.size());
     lnValue_K_abs.reserve(value_K_abs.size());
     for (size_t i = 0; i < lambda_K_abs.size(); ++i)
@@ -163,13 +164,13 @@ void Dust_spectra::Read_K_abs()
         lnValue_K_abs.push_back(std::log(value_K_abs[i]));
     }
 
-    // РџСЂРѕРІРµСЂРєР° РјРѕРЅРѕС‚РѕРЅРЅРѕСЃС‚Рё (РїРѕ Р»РѕРіР°СЂРёС„РјР°Рј)
+    // Проверка монотонности (по логарифмам)
     if (!std::is_sorted(lnLambda_K_abs.begin(), lnLambda_K_abs.end()))
     {
         std::cerr << "Warning: lambda values are not in increasing order." << std::endl;
     }
 
-    // --- РџР•Р§РђРўР¬ Р”Р›РЇ РџР РћР’Р•Р РљР ---
+    // --- ПЕЧАТЬ ДЛЯ ПРОВЕРКИ ---
     std::ofstream check_file("check_K_abs_interp.txt");
     if (!check_file.is_open())
     {
@@ -177,7 +178,7 @@ void Dust_spectra::Read_K_abs()
         return;
     }
 
-    // Р›РѕРіР°СЂРёС„РјРёС‡РµСЃРєРё СЂР°РІРЅРѕРјРµСЂРЅС‹Р№ С€Р°Рі
+    // Логарифмически равномерный шаг
     double lam_min = lambda_K_abs.front();
     double lam_max = lambda_K_abs.back();
     double log_lam_min = std::log(lam_min);
@@ -199,31 +200,31 @@ void Dust_spectra::Read_K_abs()
 
 double Dust_spectra::interpolate_K_abs(double lambda)
 {
-    // Р•СЃР»Рё Р»СЏРјР±РґР° РјРµРЅСЊС€Рµ РјРёРЅРёРјР°Р»СЊРЅРѕР№ вЂ“ СЌРєСЃС‚СЂР°РїРѕР»СЏС†РёСЏ РїРѕ РїРµСЂРІС‹Рј РґРІСѓРј С‚РѕС‡РєР°Рј
+    // Если лямбда меньше минимальной – экстраполяция по первым двум точкам
     if (lambda <= lambda_K_abs.front())
     {
         return 0.0;
     }
 
-    // Р•СЃР»Рё Р»СЏРјР±РґР° Р±РѕР»СЊС€Рµ РјР°РєСЃРёРјР°Р»СЊРЅРѕР№ вЂ“ СЌРєСЃС‚СЂР°РїРѕР»СЏС†РёСЏ РїРѕ РїРѕСЃР»РµРґРЅРёРј РґРІСѓРј С‚РѕС‡РєР°Рј
+    // Если лямбда больше максимальной – экстраполяция по последним двум точкам
     if (lambda >= lambda_K_abs.back())
     {
         return 0.0;
     }
 
-    // РџРѕРёСЃРє РёРЅС‚РµСЂРІР°Р»Р°, СЃРѕРґРµСЂР¶Р°С‰РµРіРѕ lambda (РІ РёСЃС…РѕРґРЅРѕРј, РЅРµ Р»РѕРіР°СЂРёС„РјРёС‡РµСЃРєРѕРј РјР°СЃС€С‚Р°Р±Рµ)
-    // РќРѕ РїРѕСЃРєРѕР»СЊРєСѓ РґР°РЅРЅС‹Рµ РјРѕРЅРѕС‚РѕРЅРЅС‹, РјРѕР¶РЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ Р»РѕРіР°СЂРёС„РјРёС‡РµСЃРєРёР№ РїРѕРёСЃРє
+    // Поиск интервала, содержащего lambda (в исходном, не логарифмическом масштабе)
+    // Но поскольку данные монотонны, можно использовать логарифмический поиск
     double lnLambda = std::log(lambda);
     auto it = std::lower_bound(lnLambda_K_abs.begin(), lnLambda_K_abs.end(), lnLambda);
     size_t idx = it - lnLambda_K_abs.begin();
 
-    // РўРѕС‡РЅРѕРµ СЃРѕРІРїР°РґРµРЅРёРµ СЃ СѓР·Р»РѕРј
+    // Точное совпадение с узлом
     if (std::fabs(*it - lnLambda) < 1e-12)
     {
         return value_K_abs[idx];
     }
 
-    // Р›РёРЅРµР№РЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ РІ Р»РѕРіР°СЂРёС„РјРёС‡РµСЃРєРѕРј РјР°СЃС€С‚Р°Р±Рµ
+    // Линейная интерполяция в логарифмическом масштабе
     const double& lnL0 = lnLambda_K_abs[idx - 1];
     const double& lnL1 = lnLambda_K_abs[idx];
     const double& lnV0 = lnValue_K_abs[idx - 1];
@@ -244,10 +245,10 @@ void Dust_spectra::Read_K_sca()
     }
 
     std::string line;
-    // РџСЂРѕРїСѓСЃРєР°РµРј Р·Р°РіРѕР»РѕРІРѕРє
+    // Пропускаем заголовок
     std::getline(file, line);
 
-    // Р§С‚РµРЅРёРµ РґР°РЅРЅС‹С…
+    // Чтение данных
     while (std::getline(file, line))
     {
         if (line.empty()) continue;
@@ -269,7 +270,7 @@ void Dust_spectra::Read_K_sca()
         exit(-1);
     }
 
-    // РџСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕ РІС‹С‡РёСЃР»СЏРµРј Р»РѕРіР°СЂРёС„РјС‹
+    // Предварительно вычисляем логарифмы
     lnLambda_K_sca.reserve(lambda_K_sca.size());
     lnValue_K_sca.reserve(value_K_sca.size());
     for (size_t i = 0; i < lambda_K_sca.size(); ++i)
@@ -278,13 +279,13 @@ void Dust_spectra::Read_K_sca()
         lnValue_K_sca.push_back(std::log(value_K_sca[i]));
     }
 
-    // РџСЂРѕРІРµСЂРєР° РјРѕРЅРѕС‚РѕРЅРЅРѕСЃС‚Рё (РїРѕ Р»РѕРіР°СЂРёС„РјР°Рј)
+    // Проверка монотонности (по логарифмам)
     if (!std::is_sorted(lnLambda_K_sca.begin(), lnLambda_K_sca.end()))
     {
         std::cerr << "Warning: lambda values are not in increasing order." << std::endl;
     }
 
-    // --- РџР•Р§РђРўР¬ Р”Р›РЇ РџР РћР’Р•Р РљР ---
+    // --- ПЕЧАТЬ ДЛЯ ПРОВЕРКИ ---
     std::ofstream check_file("check_K_sca_interp.txt");
     if (!check_file.is_open())
     {
@@ -292,7 +293,7 @@ void Dust_spectra::Read_K_sca()
         return;
     }
 
-    // Р›РѕРіР°СЂРёС„РјРёС‡РµСЃРєРё СЂР°РІРЅРѕРјРµСЂРЅС‹Р№ С€Р°Рі
+    // Логарифмически равномерный шаг
     double lam_min = lambda_K_sca.front();
     double lam_max = lambda_K_sca.back();
     double log_lam_min = std::log(lam_min);
@@ -314,31 +315,31 @@ void Dust_spectra::Read_K_sca()
 
 double Dust_spectra::interpolate_K_sca(double lambda)
 {
-    // Р•СЃР»Рё Р»СЏРјР±РґР° РјРµРЅСЊС€Рµ РјРёРЅРёРјР°Р»СЊРЅРѕР№ вЂ“ СЌРєСЃС‚СЂР°РїРѕР»СЏС†РёСЏ РїРѕ РїРµСЂРІС‹Рј РґРІСѓРј С‚РѕС‡РєР°Рј
+    // Если лямбда меньше минимальной – экстраполяция по первым двум точкам
     if (lambda <= lambda_K_sca.front())
     {
         return 0.0;
     }
 
-    // Р•СЃР»Рё Р»СЏРјР±РґР° Р±РѕР»СЊС€Рµ РјР°РєСЃРёРјР°Р»СЊРЅРѕР№ вЂ“ СЌРєСЃС‚СЂР°РїРѕР»СЏС†РёСЏ РїРѕ РїРѕСЃР»РµРґРЅРёРј РґРІСѓРј С‚РѕС‡РєР°Рј
+    // Если лямбда больше максимальной – экстраполяция по последним двум точкам
     if (lambda >= lambda_K_sca.back())
     {
         return 0.0;
     }
 
-    // РџРѕРёСЃРє РёРЅС‚РµСЂРІР°Р»Р°, СЃРѕРґРµСЂР¶Р°С‰РµРіРѕ lambda (РІ РёСЃС…РѕРґРЅРѕРј, РЅРµ Р»РѕРіР°СЂРёС„РјРёС‡РµСЃРєРѕРј РјР°СЃС€С‚Р°Р±Рµ)
-    // РќРѕ РїРѕСЃРєРѕР»СЊРєСѓ РґР°РЅРЅС‹Рµ РјРѕРЅРѕС‚РѕРЅРЅС‹, РјРѕР¶РЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ Р»РѕРіР°СЂРёС„РјРёС‡РµСЃРєРёР№ РїРѕРёСЃРє
+    // Поиск интервала, содержащего lambda (в исходном, не логарифмическом масштабе)
+    // Но поскольку данные монотонны, можно использовать логарифмический поиск
     double lnLambda = std::log(lambda);
     auto it = std::lower_bound(lnLambda_K_sca.begin(), lnLambda_K_sca.end(), lnLambda);
     size_t idx = it - lnLambda_K_sca.begin();
 
-    // РўРѕС‡РЅРѕРµ СЃРѕРІРїР°РґРµРЅРёРµ СЃ СѓР·Р»РѕРј
+    // Точное совпадение с узлом
     if (std::fabs(*it - lnLambda) < 1e-12)
     {
         return value_K_sca[idx];
     }
 
-    // Р›РёРЅРµР№РЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ РІ Р»РѕРіР°СЂРёС„РјРёС‡РµСЃРєРѕРј РјР°СЃС€С‚Р°Р±Рµ
+    // Линейная интерполяция в логарифмическом масштабе
     const double& lnL0 = lnLambda_K_sca[idx - 1];
     const double& lnL1 = lnLambda_K_sca[idx];
     const double& lnV0 = lnValue_K_sca[idx - 1];
@@ -359,7 +360,7 @@ void Dust_spectra::Read_g()
     }
 
     std::string line;
-    // РџСЂРѕРїСѓСЃРєР°РµРј Р·Р°РіРѕР»РѕРІРѕРє (РїРµСЂРІР°СЏ СЃС‚СЂРѕРєР°)
+    // Пропускаем заголовок (первая строка)
     std::getline(file, line);
 
     while (std::getline(file, line))
@@ -383,7 +384,7 @@ void Dust_spectra::Read_g()
         exit(-1);
     }
 
-    // Р’С‹С‡РёСЃР»СЏРµРј Р»РѕРіР°СЂРёС„РјС‹ РґР»РёРЅ РІРѕР»РЅ РґР»СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёРё
+    // Вычисляем логарифмы длин волн для интерполяции
     lnLambda_g.reserve(lambda_g.size());
     for (size_t i = 0; i < lambda_g.size(); ++i)
         lnLambda_g.push_back(std::log(lambda_g[i]));
@@ -391,7 +392,7 @@ void Dust_spectra::Read_g()
     if (!std::is_sorted(lnLambda_g.begin(), lnLambda_g.end()))
         std::cerr << "Warning: lambda_g are not in increasing order." << std::endl;
 
-    // ------------------- РџР РћР’Р•Р РћР§РќРђРЇ РџР•Р§РђРўР¬ -------------------
+    // ------------------- ПРОВЕРОЧНАЯ ПЕЧАТЬ -------------------
     std::ofstream check_file("check_g_interp.txt");
     if (!check_file.is_open())
     {
@@ -421,26 +422,26 @@ void Dust_spectra::Read_g()
 
 double Dust_spectra::interpolate_g(double lambda)
 {
-    // Р›РµРІР°СЏ РіСЂР°РЅРёС†Р°
+    // Левая граница
     if (lambda <= lambda_g.front())
         return 1.0;
 
-    // РџСЂР°РІР°СЏ РіСЂР°РЅРёС†Р°
+    // Правая граница
     if (lambda >= lambda_g.back())
         return 0.0;
 
-    // Р›РѕРіР°СЂРёС„Рј Р·Р°РїСЂР°С€РёРІР°РµРјРѕР№ РґР»РёРЅС‹ РІРѕР»РЅС‹
+    // Логарифм запрашиваемой длины волны
     double lnLambda = std::log(lambda);
 
-    // РџРѕРёСЃРє РёРЅС‚РµСЂРІР°Р»Р° РІ lnLambda_g
+    // Поиск интервала в lnLambda_g
     auto it = std::lower_bound(lnLambda_g.begin(), lnLambda_g.end(), lnLambda);
     size_t idx = it - lnLambda_g.begin();
 
-    // РўРѕС‡РЅРѕРµ СЃРѕРІРїР°РґРµРЅРёРµ СЃ СѓР·Р»РѕРј
+    // Точное совпадение с узлом
     if (std::fabs(*it - lnLambda) < 1e-12)
         return g_vec[idx];
 
-    // Р›РёРЅРµР№РЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ g (РЅРµ Р»РѕРіР°СЂРёС„РјРёСЂСѓСЏ) РїРѕ lnLambda
+    // Линейная интерполяция g (не логарифмируя) по lnLambda
     const double& lnL0 = lnLambda_g[idx - 1];
     const double& lnL1 = lnLambda_g[idx];
     const double& g0 = g_vec[idx - 1];
@@ -460,7 +461,7 @@ void Dust_spectra::integrate_F_kurucz()
         
     cum_int_F_kurucz.clear();
     cum_int_F_kurucz.reserve(lambda_F_kurucz.size());
-    // РџРµСЂРІРѕРѕР±СЂР°Р·РЅР°СЏ РІ РЅР°С‡Р°Р»СЊРЅРѕР№ С‚РѕС‡РєРµ = 0
+    // Первообразная в начальной точке = 0
     cum_int_F_kurucz.push_back(0.0);
 
     double integral = 0.0;
@@ -487,7 +488,7 @@ void Dust_spectra::build_inverse_cdf_F_kurucz()
         double prob = static_cast<double>(i) / (N - 1);   // 0..1
         double target = prob * total;
 
-        // РќР°Р№С‚Рё РёРЅС‚РµСЂРІР°Р» РІ cum_int_F_kurucz, СЃРѕРґРµСЂР¶Р°С‰РёР№ target
+        // Найти интервал в cum_int_F_kurucz, содержащий target
         auto it = std::lower_bound(cum_int_F_kurucz.begin(), cum_int_F_kurucz.end(), target);
         size_t idx = it - cum_int_F_kurucz.begin();
 
@@ -502,7 +503,7 @@ void Dust_spectra::build_inverse_cdf_F_kurucz()
             continue;
         }
 
-        // Р›РёРЅРµР№РЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ РїРѕ РєСѓРјСѓР»СЏРЅС‚Рµ
+        // Линейная интерполяция по кумулянте
         const double& cum0 = cum_int_F_kurucz[idx - 1];
         const double& cum1 = cum_int_F_kurucz[idx];
         const double& lam0 = lambda_F_kurucz[idx - 1];
@@ -515,7 +516,7 @@ void Dust_spectra::build_inverse_cdf_F_kurucz()
 
 double Dust_spectra::sample_F_kurucz(double xi) const
 {
-    // xi в€€ [0,1]
+    // xi ? [0,1]
     if (xi <= 0.0) return lambda_F_kurucz.front();
     if (xi >= 1.0) return lambda_F_kurucz.back();
 
@@ -526,6 +527,145 @@ double Dust_spectra::sample_F_kurucz(double xi) const
     if (frac < 1e-12) return inv_cdf_lambda_F[idx];
     if (idx + 1 >= inv_cdf_size) return inv_cdf_lambda_F.back();
 
-    // Р›РёРЅРµР№РЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ РјРµР¶РґСѓ СЃРѕСЃРµРґРЅРёРјРё С‚РѕС‡РєР°РјРё РѕР±СЂР°С‚РЅРѕР№ С‚Р°Р±Р»РёС†С‹
+    // Линейная интерполяция между соседними точками обратной таблицы
     return inv_cdf_lambda_F[idx] + frac * (inv_cdf_lambda_F[idx + 1] - inv_cdf_lambda_F[idx]);
+}
+
+double Dust_spectra::planck_b_lambda(double lambda_cm, double T_K)
+{
+
+    // Защита от нефизичных входных данных
+    if (lambda_cm <= 0.0 || T_K <= 0.0) 
+    {
+        return 0.0;
+    }
+
+    // Предварительные вычисления
+    const double two_h_c2 = 0.0000119106;          // 2·h·c?
+
+    const double lambda5 = lambda_cm * lambda_cm *
+        lambda_cm * lambda_cm *
+        lambda_cm;                // ??
+    const double exponent_arg = 1.43948 / (lambda_cm * T_K);
+
+    // Предотвращение переполнения exp при больших аргументах
+    if (exponent_arg > 700.0) 
+    {
+        return 0.0;   // интенсивность пренебрежимо мала
+    }
+
+    const double exp_val = std::exp(exponent_arg);
+    const double denominator = exp_val - 1.0;
+
+    // Обработка случая, когда знаменатель почти нулевой (малые аргументы)
+    // Используем разложение 1/(exp(x)-1) ? 1/x при x ? 0
+    if (std::abs(denominator) < 1e-12) 
+    {
+        // При очень малых x: B_? ? (2·h·c? / ??) * (k_B·T·? / (h·c))
+        return two_h_c2 / lambda5 * (T_K * lambda_cm) / (1.43948);
+    }
+
+    return two_h_c2 / lambda5 / denominator;
+}
+
+// Построение обратной таблицы с равномерным шагом по ln(L_em)
+void Dust_spectra::buildInverseTable(int nPoints)
+{
+    if (L_em.empty() || L_em_NN < 2) {
+        throw std::runtime_error("Исходная таблица L_em пуста или слишком мала");
+    }
+
+    // Определяем диапазон ln(L_em)
+    double logL_min = std::log(L_em.front());
+    double logL_max = std::log(L_em.back());
+    inv_N = nPoints;
+    inv_logL_min = logL_min;
+    inv_logL_max = logL_max;
+    inv_logL_step = (logL_max - logL_min) / (inv_N - 1);
+
+    inv_logL.clear();
+    inv_logT.clear();
+    inv_logL.reserve(inv_N);
+    inv_logT.reserve(inv_N);
+
+    // Подготовим вспомогательные векторы логарифмов исходной таблицы
+    std::vector<double> logL_em(L_em_NN);
+    std::vector<double> logT(L_em_NN);
+    for (int i = 0; i < L_em_NN; ++i) {
+        logL_em[i] = std::log(L_em[i]);
+        logT[i] = std::log(temperatureAtIndex(i));
+    }
+
+    // Для каждой точки обратной сетки выполняем интерполяцию в исходной таблице
+    for (int i = 0; i < inv_N; ++i) {
+        double logL_target = inv_logL_min + i * inv_logL_step;
+        double L_target = std::exp(logL_target);
+
+        // Находим интервал в исходной таблице, содержащий L_target
+        // Используем бинарный поиск (L_em монотонно возрастает)
+        auto it = std::upper_bound(L_em.begin(), L_em.end(), L_target);
+        if (it == L_em.begin()) {
+            // меньше минимального – берём крайнюю левую точку
+            inv_logT.push_back(logT.front());
+            continue;
+        }
+        if (it == L_em.end()) {
+            // больше максимального – берём крайнюю правую точку
+            inv_logT.push_back(logT.back());
+            continue;
+        }
+
+        int idx_right = std::distance(L_em.begin(), it);
+        int idx_left = idx_right - 1;
+
+        double logL_left = logL_em[idx_left];
+        double logL_right = logL_em[idx_right];
+        double logT_left = logT[idx_left];
+        double logT_right = logT[idx_right];
+
+        // Линейная интерполяция в логарифмических координатах
+        double weight = (logL_target - logL_left) / (logL_right - logL_left);
+        double logT_interp = logT_left + weight * (logT_right - logT_left);
+        inv_logT.push_back(logT_interp);
+    }
+
+    // Сохраняем узлы inv_logL (только для удобства отладки, но для интерполяции они не нужны,
+    // так как сетка равномерна). Заполним для полноты.
+    inv_logL.resize(inv_N);
+    for (int i = 0; i < inv_N; ++i) {
+        inv_logL[i] = inv_logL_min + i * inv_logL_step;
+    }
+}
+
+// Возвращает температуру T по заданному значению L = L_em(T)
+double Dust_spectra::getTemperatureFromL(double L) const
+{
+    // Защита от выхода за границы исходного диапазона L_em
+    if (L <= L_em.front()) {
+        return L_em_TL;
+    }
+    if (L >= L_em.back()) {
+        return L_em_TR;
+    }
+
+    double logL = std::log(L);
+
+    // Защита от выхода за границы обратной таблицы (на случай ошибок округления)
+    if (logL <= inv_logL_min) {
+        return std::exp(inv_logT.front());
+    }
+    if (logL >= inv_logL_max) {
+        return std::exp(inv_logT.back());
+    }
+
+    // Прямой расчёт индекса в равномерной сетке
+    double frac = (logL - inv_logL_min) / inv_logL_step;
+    int idx = static_cast<int>(frac);
+    // Ограничиваем, чтобы idx был в [0, inv_N-2]
+    if (idx < 0) idx = 0;
+    if (idx >= inv_N - 1) idx = inv_N - 2;
+
+    double t = frac - idx;   // вес для интерполяции (0..1)
+    double logT_interp = inv_logT[idx] + t * (inv_logT[idx + 1] - inv_logT[idx]);
+    return std::exp(logT_interp);
 }

@@ -145,6 +145,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 22 - расчёт потенциального поля в сверхзвуке методом контрольных объёмов - второй порядок
 	// 23 - печатаем мини-интерполяционную сетку и источники Sp Sm для Игоря
 	// 24 - печатаем карты в Линии H-alpha
+	// 25 - Расчёт инфракрасных спектров
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -3988,14 +3989,14 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Save_for_interpolate("For_intertpolate_work.bin", false);
 		Interpol SS = Interpol("For_intertpolate_work.bin");
 
-		double dX = 0.5;  // минимум по 0.5, но лучше меньше
-		double dY = 0.5;  // минимум по 0.5, но лучше меньше
+		double dX = 3.0;  // минимум по 0.5, но лучше меньше
+		double dY = 3.0;  // минимум по 0.5, но лучше меньше
 		double dZ = 0.05;
 
 		
 
 		ofstream fout;
-		fout.open("H_alpha_X_Y-2.txt");
+		fout.open("H_alpha_X_Y-0.txt");
 
 		ofstream fout2;
 		fout2.open("soft_X-ray_X_Y.txt");
@@ -4007,21 +4008,21 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 
 //#pragma omp parallel for schedule(dynamic)
-		//for (double X = 185.0; X > -287.0; X = X - dX)
-		for (double X = 92.7; X > -92.7; X = X - dX)
+		for (double X = 185.0; X > -287.0; X = X - dX)
+		//for (double X = 120.2; X > -120.7; X = X - dX)
 		//for (int iX = 0; iX < NX; ++iX)
 		{
 			//double X = 65.0 - iX * dX;
 
-			#pragma omp critical 
-			{
+			//#pragma omp critical 
+			//{
 				cout << "Culk for X = " << X << endl;
-			}
+			//}
 
 			double ne, T;
 
-			//for (double Y = -250.0; Y < 250.0; Y = Y + dY)
-			for (double Y = -185.5; Y < 185.5; Y = Y + dY)
+			for (double Y = -250.0; Y < 250.0; Y = Y + dY)
+			//for (double Y = -225.5; Y < 225.5; Y = Y + dY)
 			{
 				std::array<Cell_handle, 6> prev_cell;
 				std::array<Cell_handle, 6> next_cell;
@@ -4055,12 +4056,12 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 					}
 				}
 
-				#pragma omp critical 
-				{
+				//#pragma omp critical 
+				//{
 					fout << X * 0.0107845 << " " << Y * 0.0107845 << " " << IH * 290308.0 * 0.6106 << endl;  // 2.91892 * 1E10
 					fout2 << X * 0.0107845 << " " << Y * 0.0107845 << " " << I_soft_X_ray * 33.2504 << endl;
 					fout3 << X * 0.0107845 << " " << Y * 0.0107845 << " " << I_hard_X_ray * 173.48 << endl;
-				}
+				//}
 			}
 
 		}
@@ -4068,6 +4069,163 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		fout.close();
 		fout2.close();
 		fout3.close();
+	}
+	else if (alg == 25)
+	{
+		
+		Dust_spectra DDD = Dust_spectra();
+
+		//Считаем интегралл Kabs(lambda) * F_lambda(lambda)
+		if (true)
+		{
+			double S = 0.0;
+			double k, f;
+			double dlambda = 1E-9;
+			double lambda = 1E-9;
+			int ki = 0;
+			while (lambda < 0.01)
+			{
+				ki++;
+				k = DDD.interpolate_K_abs(lambda + dlambda / 2.0);
+				f = DDD.interpolate_F_kurucz(lambda + dlambda / 2.0);
+				S = S + k * f * dlambda;
+				lambda = lambda + dlambda;
+				if (ki > 500000)
+				{
+					//cout << "1 proverca:  lambda = " << lambda << "   S = " << S << endl;
+					ki = 0;
+				}
+			}
+
+			DDD.Int1 = S;
+			cout << "DDD.Int1 = " << DDD.Int1 << endl;
+		}
+
+		ofstream fout;
+		fout.open("Kabs(lambda)_planck_b_lambda.txt");
+
+		//Считаем интегралл Kabs(lambda) * planck_b_lambda
+		int NN = DDD.L_em_NN;
+		double TL = DDD.L_em_TL;
+		double TR = DDD.L_em_TR;
+		if (true)
+		{
+			DDD.L_em.resize(NN);
+			for (int i = 0; i < NN; i++)
+			{
+				DDD.L_em[i] = 0.0;
+			}
+
+			double k, f;
+			double dlambda = 1E-6;
+			double lambda = 1E-8;
+			int ki = 0;
+			while (lambda < 5.0)
+			{
+				k = DDD.interpolate_K_abs(lambda + dlambda / 2.0);
+				for (int i = 0; i < NN; i++)
+				{
+					double T = TL + (i + 0.5) * (TR - TL) / NN;
+					f = DDD.planck_b_lambda(lambda, T);
+					DDD.L_em[i] += k * f * dlambda;
+				}
+				lambda = lambda + dlambda;
+			}
+		}
+
+		for (int i = 0; i < NN; i++)
+		{
+			double T = TL + (i + 0.5) * (TR - TL) / NN;
+			fout << T << " " << DDD.L_em[i] << endl;
+		}
+		fout.close();
+		DDD.buildInverseTable(500); 
+
+
+		// Вычисляем температуру пыли в каждой точке
+		for (auto& A : this->All_Cell)
+		{
+			double r = norm2(A->center[0][0], A->center[0][1], A->center[0][2]);
+			double aa = kv(0.0000300503 / r) * DDD.Int1 / const_pi;
+			double Tdust = DDD.getTemperatureFromL(aa);
+			A->parameters[0]["Tdust"] = Tdust;
+			A->parameters[1]["Tdust"] = Tdust;
+
+			if (A->parameters[0]["p"] / A->parameters[0]["rho"] * 54542.0 > 100000)
+			{
+				A->parameters[0]["rhodust"] = 0.0;
+				A->parameters[1]["rhodust"] = 0.0;
+			}
+			else
+			{
+				A->parameters[0]["rhodust"] = A->parameters[0]["rho"] / 165.0;
+				A->parameters[1]["rhodust"] = A->parameters[0]["rho"] / 165.0;
+			}
+		}
+		this->phys_param->param_names.push_back("Tdust");
+		this->phys_param->param_names.push_back("rhodust");
+
+
+		// Теперь рисуем сами карты
+		this->Save_for_interpolate("For_intertpolate_work.bin", false);
+		Interpol SS = Interpol("For_intertpolate_work.bin");
+
+		double dX = 1.5;  // минимум по 0.5, но лучше меньше
+		double dY = 2.0;  // минимум по 0.5, но лучше меньше
+		double dZ = 0.05;
+		double lambda_0 = 24E-4;
+		double kk_abs = DDD.interpolate_K_abs(lambda_0);
+
+
+		fout.open("infrared-1.txt");
+
+
+		const int NX = static_cast<int>(65.0 / dX + 0.5); // ~130
+
+
+		//for (double X = 185.0; X > -287.0; X = X - dX)
+	    for (double X = 120.2; X > -120.7; X = X - dX)
+		//for (int iX = 0; iX < NX; ++iX)
+		{
+			cout << "Culk for X = " << X << endl;
+
+			double rhodust, Tdust;
+
+			//for (double Y = -250.0; Y < 250.0; Y = Y + dY)
+		    for (double Y = -225.5; Y < 225.5; Y = Y + dY)
+			{
+				std::array<Cell_handle, 6> prev_cell;
+				std::array<Cell_handle, 6> next_cell;
+				for (short int i = 0; i < 6; i++) prev_cell[i] = Cell_handle();
+				std::unordered_map<string, double> parameters;
+				bool fine_int;
+
+				double IH = 0.0;
+				double a1, a2;
+				fine_int = SS.Get_param(X, Y, 0.0, parameters, prev_cell, next_cell);
+
+				if (fine_int != false)
+				{
+					for (double Z = -250.0; Z < 250.0; Z = Z + dZ)
+					{
+						fine_int = SS.Get_param(X, Y, Z + dZ / 2.0, parameters, prev_cell, next_cell);
+						if (fine_int == false) continue;
+						for (short int i = 0; i < 6; i++) next_cell[i] = prev_cell[i];
+
+						rhodust = parameters["rhodust"];
+						Tdust = parameters["Tdust"];
+
+						IH += rhodust * kk_abs * DDD.planck_b_lambda(lambda_0, Tdust) * dZ;
+					}
+				}
+
+
+				fout << X * 0.0107845 << " " << Y * 0.0107845 << " " << IH * 3.35078E-7 << endl;  // 2.91892 * 1E10
+			}
+
+		}
+
+		fout.close();
 	}
 
 
