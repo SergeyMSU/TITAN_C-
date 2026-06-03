@@ -4170,21 +4170,22 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Save_for_interpolate("For_intertpolate_work.bin", false);
 		Interpol SS = Interpol("For_intertpolate_work.bin");
 
-		double dX = 1.5;  // минимум по 0.5, но лучше меньше
-		double dY = 2.0;  // минимум по 0.5, но лучше меньше
+		double dX = 0.25;  // минимум по 0.5, но лучше меньше
+		double dY = 0.5;  // минимум по 0.5, но лучше меньше
 		double dZ = 0.05;
 		double lambda_0 = 24E-4;
 		double kk_abs = DDD.interpolate_K_abs(lambda_0);
 
 
-		fout.open("infrared-1.txt");
+		fout.open("simpl-infrared-2.txt");
 
 
 		const int NX = static_cast<int>(65.0 / dX + 0.5); // ~130
 
 
-		//for (double X = 185.0; X > -287.0; X = X - dX)
-	    for (double X = 120.2; X > -120.7; X = X - dX)
+		//for (double X = 185.0; X > -285.0; X = X - dX)
+	    //for (double X = 120.0; X > -120.0; X = X - dX)
+	    for (double X = 65.0; X > 10.0; X = X - dX)
 		//for (int iX = 0; iX < NX; ++iX)
 		{
 			cout << "Culk for X = " << X << endl;
@@ -4192,7 +4193,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			double rhodust, Tdust;
 
 			//for (double Y = -250.0; Y < 250.0; Y = Y + dY)
-		    for (double Y = -225.5; Y < 225.5; Y = Y + dY)
+		    //for (double Y = -225.0; Y < 225.0; Y = Y + dY)
+		    for (double Y = -65.0; Y < 65.0; Y = Y + dY)
 			{
 				std::array<Cell_handle, 6> prev_cell;
 				std::array<Cell_handle, 6> next_cell;
@@ -4208,6 +4210,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				{
 					for (double Z = -250.0; Z < 250.0; Z = Z + dZ)
 					{
+						if(norm2(X, Y, Z + dZ / 2.0) < 15.0) continue;
 						fine_int = SS.Get_param(X, Y, Z + dZ / 2.0, parameters, prev_cell, next_cell);
 						if (fine_int == false) continue;
 						for (short int i = 0; i < 6; i++) next_cell[i] = prev_cell[i];
