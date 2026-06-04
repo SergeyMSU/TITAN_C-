@@ -4767,7 +4767,6 @@ void Setka::mas_pogl_Culc(const double& ex, const double& ey, const double& ez, 
 	fout.close();
 }
 
-
 void Setka::mas_pogl_Culc_fluid(const double& ex, const double& ey, const double& ez, const string& name)
 {
 	ofstream fout;

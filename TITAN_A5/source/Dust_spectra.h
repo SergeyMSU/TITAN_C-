@@ -8,7 +8,8 @@ class Dust_spectra
 public:
 
 	double Int1 = 0.0;  // интегралл Kabs(lambda) * F_lambda(lambda)  dlambda
-
+	double E_esc = 0.0;   // Суммарная энергия ушедших из области пакетов
+	mutex mut;
 
 	std::vector<double> L_em;   // Вектор по температуре - интегралл от Kabs * Bplanka
 	int L_em_NN = 500;
@@ -51,7 +52,35 @@ public:
 	std::vector<double> g_vec;         // значения коэффициента g
 	std::vector<double> lnLambda_g;    // логарифмы длин волн для быстрого поиска
 
+	// ----------------------------------------------------------------------------------------------------------------------
+	// Далее всё для метода переизлучения пакеты из ячейки с заданной температурой
+	// ---------- сетки и таблица (переименованы с _sca) ----------
+	std::vector<double> T_grid_sca;              // температуры [K]
+	std::vector<double> lambda_grid_sca;         // длины волн [см] (логарифмическая сетка)
+	std::vector<std::vector<double>> cdf_table_sca; // CDF для каждой температуры
+	std::vector<std::vector<double>> inv_lambda_table_sca;
+	int N_prob_sca = 5000;  // число точек в равномерной сетке по вероятности
 
+	// Подготовить таблицы CDF для диапазона температур и длин волн
+	void prepare_sca(double T_min, double T_max, int N_temp,
+		double lambda_min, double lambda_max, int M_lambda);
+
+	// Сохранить все таблицы в файл
+	void save_sca(const std::string& filename) const;
+	// Загрузить таблицы из файла
+	void load_sca(const std::string& filename);
+
+	// Основная функция: возвращает длину волны в СГС по случайному числу u ? [0,1]
+	// и температуре T_K [K]. Значение T_K может находиться между узлами сетки.
+	double sample_frequency_sca(double uniform_rand, double T_K) const;
+
+	// ---------- вспомогательные методы ----------
+	void find_temp_interval_sca(double T_K, size_t& idx_low, size_t& idx_high, double& frac) const;
+	void prepare_inverse_sca(int N_prob);
+
+
+
+	// -----------------------------------------------------------------------------------------------------------------------
 	Dust_spectra();
 
 

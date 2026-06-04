@@ -10,6 +10,7 @@ class Setka
 public:
 	class Geo_param* geo;
 	class Phys_param* phys_param;
+	class Dust_spectra* DDD;
 	string name = "no_name";
 
 
@@ -414,5 +415,11 @@ public:
 
 	void Write_file_for_FCMHD(void);
 	void Read_file_for_FCMHD(void);
+
+
+	// Для работы с пылью
+
+	void MK_go_dust();
+	void MK_fly_dust(MK_particle& P, Sensor* Sens);
 };
 

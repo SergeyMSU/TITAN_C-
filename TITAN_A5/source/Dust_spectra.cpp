@@ -669,3 +669,236 @@ double Dust_spectra::getTemperatureFromL(double L) const
     double logT_interp = inv_logT[idx] + t * (inv_logT[idx + 1] - inv_logT[idx]);
     return std::exp(logT_interp);
 }
+
+void Dust_spectra::prepare_sca(double T_min, double T_max, int N_temp,
+    double lambda_min, double lambda_max, int M_lambda)
+{
+    cout << "Start: prepare_sca" << endl;
+    // 1. Линейная сетка температур
+    T_grid_sca.resize(N_temp);
+    for (int i = 0; i < N_temp; ++i) 
+    {
+        T_grid_sca[i] = T_min + (T_max - T_min) * i / (N_temp - 1);
+    }
+
+    // 2. Логарифмическая сетка длин волн
+    lambda_grid_sca.resize(M_lambda);
+    double log_lmin = std::log(lambda_min);
+    double log_lmax = std::log(lambda_max);
+    for (int j = 0; j < M_lambda; ++j) {
+        double t = static_cast<double>(j) / (M_lambda - 1);
+        lambda_grid_sca[j] = std::exp(log_lmin + t * (log_lmax - log_lmin));
+    }
+
+    // 3. Построение CDF для каждой температуры
+    cdf_table_sca.assign(N_temp, std::vector<double>(M_lambda, 0.0));
+
+    for (int i = 0; i < N_temp; ++i) 
+    {
+        if (i % 10 == 0) cout << "i = " << i << "   from: " << N_temp << endl;
+        double T = T_grid_sca[i];
+        std::vector<double> pdf(M_lambda, 0.0);
+
+        // Вычисляем ненормированную PDF: K_abs * B_lambda
+        for (int j = 0; j < M_lambda; ++j) 
+        {
+            double lam = lambda_grid_sca[j];
+            double k_abs = interpolate_K_abs(lam);
+            double B = planck_b_lambda(lam, T);
+            pdf[j] = k_abs * B;
+        }
+
+        // Интегрируем методом трапеций (сетка неравномерная)
+        double integral = 0.0;
+        cdf_table_sca[i][0] = 0.0;
+        for (int j = 1; j < M_lambda; ++j) 
+        {
+            double dlam = lambda_grid_sca[j] - lambda_grid_sca[j - 1];
+            integral += 0.5 * (pdf[j - 1] + pdf[j]) * dlam;
+            cdf_table_sca[i][j] = integral;
+        }
+
+        // Нормировка (последний элемент должен быть 1)
+        double total = integral;
+        if (total <= 0.0) 
+        {
+            throw std::runtime_error("Zero total probability for T = " + std::to_string(T));
+        }
+        for (int j = 0; j < M_lambda; ++j) 
+        {
+            cdf_table_sca[i][j] /= total;
+        }
+    }
+
+    cout << "END: prepare_sca" << endl;
+}
+
+void Dust_spectra::prepare_inverse_sca(int N_prob) 
+{
+    cout << "Start: prepare_inverse_sca " << endl;
+    if (cdf_table_sca.empty())
+        throw std::runtime_error("CDF table must be prepared first (call prepare_sca)");
+
+    N_prob_sca = N_prob;
+    size_t N_temp = T_grid_sca.size();
+    size_t M = lambda_grid_sca.size();
+
+    inv_lambda_table_sca.assign(N_temp, std::vector<double>(N_prob));
+
+    for (size_t i = 0; i < N_temp; ++i) 
+    {
+        if (i % 10 == 0) cout << "i = " << i << "   from: " << N_temp << endl;
+        const auto& cdf = cdf_table_sca[i];
+        for (int k = 0; k < N_prob; ++k) 
+        {
+            double p = (k + 0.5) / N_prob;   // центр интервала
+
+            // Бинарный поиск интервала в CDF (выполняется один раз при подготовке)
+            auto it = std::upper_bound(cdf.begin(), cdf.end(), p);
+            size_t j = std::distance(cdf.begin(), it);
+            if (j == 0) 
+            {
+                inv_lambda_table_sca[i][k] = lambda_grid_sca.front();
+                continue;
+            }
+            if (j >= M) 
+            {
+                inv_lambda_table_sca[i][k] = lambda_grid_sca.back();
+                continue;
+            }
+            double p_low = cdf[j - 1];
+            double p_high = cdf[j];
+            double t = (p - p_low) / (p_high - p_low);
+
+            double lam_low = lambda_grid_sca[j - 1];
+            double lam_high = lambda_grid_sca[j];
+            // Логарифмическая интерполяция
+            inv_lambda_table_sca[i][k] = lam_low * std::pow(lam_high / lam_low, t);
+        }
+    }
+
+    cout << "End: prepare_inverse_sca " << endl;
+}
+
+void Dust_spectra::find_temp_interval_sca(double T_K, size_t& idx_low, size_t& idx_high, double& frac) const 
+{
+    if (T_K <= T_grid_sca.front()) {
+        idx_low = idx_high = 0;
+        frac = 0.0;
+        return;
+    }
+    if (T_K >= T_grid_sca.back()) {
+        idx_low = idx_high = T_grid_sca.size() - 1;
+        frac = 0.0;
+        return;
+    }
+    auto it = std::upper_bound(T_grid_sca.begin(), T_grid_sca.end(), T_K);
+    idx_high = std::distance(T_grid_sca.begin(), it);
+    idx_low = idx_high - 1;
+    frac = (T_K - T_grid_sca[idx_low]) / (T_grid_sca[idx_high] - T_grid_sca[idx_low]);
+}
+
+double Dust_spectra::sample_frequency_sca(double uniform_rand, double T_K) const
+{
+    if (uniform_rand < 0.0) uniform_rand = 0.0;
+    if (uniform_rand > 1.0) uniform_rand = 1.0;
+
+    // Если быстрая таблица не подготовлена – используем обычный бинарный поиск
+    if (inv_lambda_table_sca.empty()) 
+    {
+        throw std::runtime_error("Fast inverse table not prepared. Call prepare_inverse_sca first.");
+    }
+
+    size_t i_low, i_high;
+    double frac;
+    find_temp_interval_sca(T_K, i_low, i_high, frac);
+
+    // Функция получения ? по u для одной температуры (индекс i)
+    auto sample_lambda_fast = [&](size_t temp_idx, double u) -> double {
+        const auto& table = inv_lambda_table_sca[temp_idx]; // N_prob элементов
+        // Позиция на равномерной сетке [0, 1]
+        double pos = u * (N_prob_sca - 1);
+        int k = static_cast<int>(pos);
+        if (k < 0) k = 0;
+        if (k >= N_prob_sca - 1) k = N_prob_sca - 2;
+        double t = pos - k;  // 0..1
+        double lam_low = table[k];
+        double lam_high = table[k + 1];
+        // Логарифмическая интерполяция внутри интервала
+        return lam_low * std::pow(lam_high / lam_low, t);
+        };
+
+    double lam_low_T = sample_lambda_fast(i_low, uniform_rand);
+    double lam_high_T = sample_lambda_fast(i_high, uniform_rand);
+
+    double lambda_cm = lam_low_T + frac * (lam_high_T - lam_low_T);
+    if (lambda_cm <= 0.0) lambda_cm = lambda_grid_sca.front();
+
+    return lambda_cm;
+}
+
+void Dust_spectra::save_sca(const std::string& filename) const 
+{
+    std::ofstream ofs(filename);
+    if (!ofs) throw std::runtime_error("Cannot open file for writing: " + filename);
+
+    size_t N = T_grid_sca.size();
+    size_t M = lambda_grid_sca.size();
+    ofs << N << " " << M << "\n";
+
+    for (size_t i = 0; i < N; ++i) ofs << T_grid_sca[i] << (i + 1 == N ? "\n" : " ");
+    for (size_t j = 0; j < M; ++j) ofs << lambda_grid_sca[j] << (j + 1 == M ? "\n" : " ");
+
+    for (size_t i = 0; i < N; ++i) {
+        for (size_t j = 0; j < M; ++j) {
+            ofs << cdf_table_sca[i][j] << (j + 1 == M ? "\n" : " ");
+        }
+    }
+
+    // Сохраняем обратную таблицу, если она есть
+    int has_inv = inv_lambda_table_sca.empty() ? 0 : 1;
+    ofs << has_inv << "\n";
+    if (has_inv) {
+        ofs << N_prob_sca << "\n";
+        for (size_t i = 0; i < T_grid_sca.size(); ++i) {
+            for (int k = 0; k < N_prob_sca; ++k) {
+                ofs << inv_lambda_table_sca[i][k] << (k + 1 == N_prob_sca ? "\n" : " ");
+            }
+        }
+    }
+}
+
+void Dust_spectra::load_sca(const std::string& filename) {
+    std::ifstream ifs(filename);
+    if (!ifs) throw std::runtime_error("Cannot open file for reading: " + filename);
+
+    size_t N, M;
+    ifs >> N >> M;
+
+    T_grid_sca.resize(N);
+    for (size_t i = 0; i < N; ++i) ifs >> T_grid_sca[i];
+
+    lambda_grid_sca.resize(M);
+    for (size_t j = 0; j < M; ++j) ifs >> lambda_grid_sca[j];
+
+    cdf_table_sca.assign(N, std::vector<double>(M));
+    for (size_t i = 0; i < N; ++i)
+        for (size_t j = 0; j < M; ++j)
+            ifs >> cdf_table_sca[i][j];
+
+    int has_inv;
+    ifs >> has_inv;
+    if (has_inv) {
+        ifs >> N_prob_sca;
+        inv_lambda_table_sca.assign(T_grid_sca.size(), std::vector<double>(N_prob_sca));
+        for (size_t i = 0; i < T_grid_sca.size(); ++i) {
+            for (int k = 0; k < N_prob_sca; ++k) {
+                ifs >> inv_lambda_table_sca[i][k];
+            }
+        }
+    }
+    else {
+        inv_lambda_table_sca.clear();
+        N_prob_sca = 0;
+    }
+}

@@ -636,15 +636,23 @@ int main()
 
     S1.Read_file_for_FCMHD();
     //S1.Write_file_for_FCMHD();
+    S1.DDD = new Dust_spectra();
 
-    //Dust_spectra DDD = Dust_spectra();
+    //S1.DDD->prepare_sca(10.0, 200.0, 300, 1E-8, 1.0, 50000);
+    //S1.DDD->prepare_inverse_sca(10000);
 
+    //S1.DDD->save_sca("dust_table_for_poglosh.txt");
+    S1.DDD->load_sca("dust_table_for_poglosh.txt");
+
+    //cout << "nu = " << S1.DDD->sample_frequency_sca(0.3456, 123.4) << endl;
 
     S1.Algoritm(25, &S1);
+    //S1.Algoritm(26, &S1);
+    S1.Algoritm(27, &S1);
 
 
 
-    return 0;
+    //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
 
