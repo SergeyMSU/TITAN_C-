@@ -15,7 +15,7 @@ void isotropic_direction(double xi1, double xi2, Eigen::Vector3d& Vel2);
 void Setka::MK_go_dust()
 {
 	auto start = std::chrono::high_resolution_clock::now();
-	int N_package = 12000000;   // Сколько запускаем пакетов
+	int N_package = 8000000; // 12000000;   // Сколько запускаем пакетов
 	unsigned int k1 = 0;
 
 	// Блок загрузки датчиков случайных чисел
@@ -57,7 +57,7 @@ void Setka::MK_go_dust()
 	// Надо считать температуру пыли из файла
 	if (true)
 	{
-		std::string filename = "dust_paremeter_2.bin";
+		std::string filename = "dust_paremeter_3-rho10.bin";
 		std::ifstream file(filename, std::ios::binary);
 		if (!file.is_open())
 		{
@@ -118,6 +118,9 @@ void Setka::MK_go_dust()
 		poz[0] = sin_theta * cos_phi;
 		poz[1] = sin_theta * sin_phi;
 		poz[2] = costhe;
+
+		//poz[0] = 1.0; poz[1] = 0.0; poz[2] = 0.0; // Направление в апвинд
+
 		P.AddVel(poz);  // Скорость
 		P.Addcoord(poz * 25.0); // Положение
 
@@ -149,7 +152,7 @@ void Setka::MK_go_dust()
 		double Tdust = 0.0;
 		if (A->parameters[0]["rhodust"] > 0.00000001)
 		{
-			double aa = A->parameters[0]["E_abs"] / const_pi / A->volume[0] / A->parameters[0]["rhodust"] / 3.71063E26; // плотность * объём
+			double aa = A->parameters[0]["E_abs"] / (4.0 * const_pi) / A->volume[0] / A->parameters[0]["rhodust"] / 3.71063E26; // плотность * объём
 			Tdust = DDD->getTemperatureFromL(aa);
 		}
 
@@ -159,7 +162,7 @@ void Setka::MK_go_dust()
 	// Надо сохранить температуру и плотность пыли в файл
 	if (true)
 	{
-		std::string filename = "dust_paremeter_3.bin";
+		std::string filename = "dust_paremeter_1-rho10.bin";
 		std::ofstream file(filename, std::ios::binary);
 		if (!file.is_open())
 		{
@@ -482,13 +485,14 @@ void Setka::MK_fly_dust(MK_particle& P, Sensor* Sens)
 					//return;  // Пока просто вырубим эти пакеты
 					// В этом случае произошло рассеяние пакета
 					double g = this->DDD->interpolate_g(P.lambda);
+					//if (g < 0.9) return; // Не вырубаем пакеты, которые почти не рассеялись
 					double ksi1 = Sens->MakeRandom();
 					double ksi2 = Sens->MakeRandom();
 					Eigen::Vector3d Vel, Vel2;
 					Vel[0] = P.Vel[0];
 					Vel[1] = P.Vel[1];
 					Vel[2] = P.Vel[2];
-					scatter_1(Vel, g, ksi1, ksi2, Vel2);  // Разыгрываем скорость пакеты при рассеянии
+					scatter_1(Vel, g, ksi1, ksi2, Vel2);  // Разыгрываем скорость пакета при рассеянии
 					P.Vel[0] = Vel2[0];
 					P.Vel[1] = Vel2[1];
 					P.Vel[2] = Vel2[2];
@@ -496,6 +500,7 @@ void Setka::MK_fly_dust(MK_particle& P, Sensor* Sens)
 				else
 				{
 					// В этом случае произошло поглощение пакета
+					//return;  // Пока просто вырубим эти пакеты
 					// Здесь надо поменять частоту покеты и выбрать изотропное направление
 					double ksi1 = Sens->MakeRandom();
 					double ksi2 = Sens->MakeRandom();
@@ -552,6 +557,7 @@ void Setka::MK_fly_dust(MK_particle& P, Sensor* Sens)
 		}
 
 		if (gran->type != Type_Gran::Us)
+		//if (gran->type != Type_Gran::Us || norm2(P.coord[0], P.coord[1], P.coord[2]) > 55.635)  // Вырубаем за пределами внешнего ударного слоя
 		{
 		a1:
 			// В этом случае долетели до границы, записываем что надо и выключаем частицу

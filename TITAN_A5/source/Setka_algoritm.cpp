@@ -4148,7 +4148,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		for (auto& A : this->All_Cell)
 		{
 			double r = norm2(A->center[0][0], A->center[0][1], A->center[0][2]);
-			double aa = kv(0.0000300503 / r) * DDD->Int1 / const_pi;
+			double aa = kv(0.0000300503 / r) * DDD->Int1 / (4.0 * const_pi);
 			double Tdust = DDD->getTemperatureFromL(aa);
 			A->parameters[0]["Tdust"] = Tdust;
 			A->parameters[1]["Tdust"] = Tdust;
@@ -4162,8 +4162,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			}
 			else
 			{
-				A->parameters[0]["rhodust"] = A->parameters[0]["rho"] / 165.0;
-				A->parameters[1]["rhodust"] = A->parameters[0]["rho"] / 165.0;
+				A->parameters[0]["rhodust"] = A->parameters[0]["rho"] / 165.0 * 10.0;
+				A->parameters[1]["rhodust"] = A->parameters[0]["rho"] / 165.0 * 10.0;
 			}
 		}
 		this->phys_param->param_names.push_back("Tdust");
@@ -4171,7 +4171,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 		// Надо сохранить температуру и плотность пыли в файл
 
-		std::string filename = "dust_paremeter_0.bin";
+		//std::string filename = "dust_paremeter_0.bin";
+		std::string filename = "dust_paremeter_0-rho10.bin";
 		std::ofstream file(filename, std::ios::binary);
 		if (!file.is_open()) 
 		{
@@ -4195,31 +4196,55 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Save_for_interpolate("For_intertpolate_work.bin", false);
 		Interpol SS = Interpol("For_intertpolate_work.bin");
 
-		double dX = 0.25;  // минимум по 0.5, но лучше меньше
-		double dY = 0.5;  // минимум по 0.5, но лучше меньше
+		double dX = 1.0;  // минимум по 0.5, но лучше меньше
+		double dY = 1.0; // 0.5;  // минимум по 0.5, но лучше меньше
 		double dZ = 0.05;
 		double lambda_0 = 24E-4;
 		double kk_abs = DDD->interpolate_K_abs(lambda_0);
+		double kk_sca = DDD->interpolate_K_sca(lambda_0);
+		double kk_ext = kk_sca + kk_abs;
+
+		// Надо считать температуру пыли из файла
+		if (false)
+		{
+			std::string filename = "dust_paremeter_1-rho10.bin";
+			std::ifstream file(filename, std::ios::binary);
+			if (!file.is_open())
+			{
+				std::cerr << "Error gjiuerhgyh7845ygfudhger " << filename << std::endl;
+				exit(-1);
+			}
+
+			for (auto& A : this->All_Cell)
+			{
+				double a1, a2;
+
+				file.read(reinterpret_cast<char*>(&a1), sizeof(a1));
+				file.read(reinterpret_cast<char*>(&a2), sizeof(a2));
+				A->parameters[0]["Tdust"] = A->parameters[1]["Tdust"] = a2;
+			}
+		}
 
 		ofstream fout;
-		fout.open("simpl-infrared-2.txt");
+		fout.open("2.8-simple-infrared-rho10-0.txt");
+		// -0, -1, -2 - три разрешения в порядке уменьтшения размера между точками
 
 
 		const int NX = static_cast<int>(65.0 / dX + 0.5); // ~130
 
 
-		//for (double X = 185.0; X > -285.0; X = X - dX)
+		for (double X = 185.0; X > -285.0; X = X - dX)
 		//for (double X = 120.0; X > -120.0; X = X - dX)
-		for (double X = 65.0; X > 10.0; X = X - dX)
+		//for (double X = 65.0; X > 10.0; X = X - dX)
 			//for (int iX = 0; iX < NX; ++iX)
 		{
 			cout << "Culk for X = " << X << endl;
 
 			double rhodust, Tdust;
 
-			//for (double Y = -250.0; Y < 250.0; Y = Y + dY)
+			for (double Y = -250.0; Y < 250.0; Y = Y + dY)
 			//for (double Y = -225.0; Y < 225.0; Y = Y + dY)
-			for (double Y = -65.0; Y < 65.0; Y = Y + dY)
+			//for (double Y = -65.0; Y < 65.0; Y = Y + dY)
 			{
 				std::array<Cell_handle, 6> prev_cell;
 				std::array<Cell_handle, 6> next_cell;
@@ -4228,14 +4253,15 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				bool fine_int;
 
 				double IH = 0.0;
+				double qq = 0.0;
 				double a1, a2;
 				fine_int = SS.Get_param(X, Y, 0.0, parameters, prev_cell, next_cell);
 
 				if (fine_int != false)
 				{
-					for (double Z = -250.0; Z < 250.0; Z = Z + dZ)
+					for (double Z = 250.0; Z > -250.0; Z = Z - dZ)
 					{
-						if (norm2(X, Y, Z + dZ / 2.0) < 15.0) continue;
+						if (norm2(X, Y, Z + dZ / 2.0) < 17.0) continue;
 						fine_int = SS.Get_param(X, Y, Z + dZ / 2.0, parameters, prev_cell, next_cell);
 						if (fine_int == false) continue;
 						for (short int i = 0; i < 6; i++) next_cell[i] = prev_cell[i];
@@ -4243,7 +4269,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 						rhodust = parameters["rhodust"];
 						Tdust = parameters["Tdust"];
 
-						IH += rhodust * kk_abs * DDD->planck_b_lambda(lambda_0, Tdust) * dZ;
+						qq += rhodust * kk_ext * dZ * 3.35078E-7;
+						//cout << "qq = " << qq << "  " << rhodust * kk_ext * dZ * 3.35078E-7 << endl;
+						IH += rhodust * kk_abs * DDD->planck_b_lambda(lambda_0, Tdust) * dZ * exp(-qq);
 					}
 				}
 
