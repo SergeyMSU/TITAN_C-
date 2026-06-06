@@ -4162,8 +4162,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			}
 			else
 			{
-				A->parameters[0]["rhodust"] = A->parameters[0]["rho"] / 165.0 * 10.0;
-				A->parameters[1]["rhodust"] = A->parameters[0]["rho"] / 165.0 * 10.0;
+				A->parameters[0]["rhodust"] = A->parameters[0]["rho"] / 165.0;// *10.0;
+				A->parameters[1]["rhodust"] = A->parameters[0]["rho"] / 165.0;// *10.0;
 			}
 		}
 		this->phys_param->param_names.push_back("Tdust");
@@ -4172,7 +4172,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		// Надо сохранить температуру и плотность пыли в файл
 
 		//std::string filename = "dust_paremeter_0.bin";
-		std::string filename = "dust_paremeter_0-rho10.bin";
+		std::string filename = "2.11.dust_paremeter_0-rho1.bin";
 		std::ofstream file(filename, std::ios::binary);
 		if (!file.is_open()) 
 		{
@@ -4196,8 +4196,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Save_for_interpolate("For_intertpolate_work.bin", false);
 		Interpol SS = Interpol("For_intertpolate_work.bin");
 
-		double dX = 1.0;  // минимум по 0.5, но лучше меньше
-		double dY = 1.0; // 0.5;  // минимум по 0.5, но лучше меньше
+		double dX = 3.0;  // минимум по 0.5, но лучше меньше
+		double dY = 3.0; // 0.5;  // минимум по 0.5, но лучше меньше
 		double dZ = 0.05;
 		double lambda_0 = 24E-4;
 		double kk_abs = DDD->interpolate_K_abs(lambda_0);
@@ -4226,7 +4226,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		}
 
 		ofstream fout;
-		fout.open("2.8-simple-infrared-rho10-0.txt");
+		fout.open("2.11-simple-infrared-rho1-0.txt");
 		// -0, -1, -2 - три разрешения в порядке уменьтшения размера между точками
 
 
@@ -4234,8 +4234,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 
 		for (double X = 185.0; X > -285.0; X = X - dX)
-		//for (double X = 120.0; X > -120.0; X = X - dX)
-		//for (double X = 65.0; X > 10.0; X = X - dX)
+		//for (double X = 120.0; X > -100.0; X = X - dX)
+		//for (double X = 65.0; X > 15.0; X = X - dX)
 			//for (int iX = 0; iX < NX; ++iX)
 		{
 			cout << "Culk for X = " << X << endl;

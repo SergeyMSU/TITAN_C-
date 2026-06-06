@@ -225,10 +225,10 @@ void Setka::Read_file_for_FCMHD(void)
 {
 	this->Renumerate();
 
-	std::ifstream file("FCMHD_2.8_out.bin", std::ios::binary);
+	std::ifstream file("FCMHD_2.11_out.bin", std::ios::binary);
 	if (!file.is_open()) 
 	{
-		file.open("CUDA_FORT/FCMHD_2.8_out.bin", std::ios::binary);
+		file.open("CUDA_FORT/FCMHD_2.11_out.bin", std::ios::binary);
 	}
 
 	if (!file.is_open()) 

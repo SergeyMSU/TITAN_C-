@@ -15,7 +15,7 @@ void isotropic_direction(double xi1, double xi2, Eigen::Vector3d& Vel2);
 void Setka::MK_go_dust()
 {
 	auto start = std::chrono::high_resolution_clock::now();
-	int N_package = 8000000; // 12000000;   // Сколько запускаем пакетов
+	int N_package = 12000000;   // Сколько запускаем пакетов
 	unsigned int k1 = 0;
 
 	// Блок загрузки датчиков случайных чисел
@@ -57,7 +57,7 @@ void Setka::MK_go_dust()
 	// Надо считать температуру пыли из файла
 	if (true)
 	{
-		std::string filename = "dust_paremeter_3-rho10.bin";
+		std::string filename = "dust_paremeter_2-rho10.bin";
 		std::ifstream file(filename, std::ios::binary);
 		if (!file.is_open())
 		{
