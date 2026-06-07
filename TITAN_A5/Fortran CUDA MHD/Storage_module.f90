@@ -165,7 +165,7 @@ module STORAGE
         ! FCMHD_A3.1_out.bin   - всё посчитано Лаксом - метод 0
 
         ! Открываем файл для записи в бинарном формате
-        open(newunit=unit, file="FCMHD_2.14_out.bin", form='unformatted', access='stream', &
+        open(newunit=unit, file="FCMHD_2.11-2_out.bin", form='unformatted', access='stream', &
             action='write', status='replace', iostat=ierr)
         
         if (ierr /= 0) then
