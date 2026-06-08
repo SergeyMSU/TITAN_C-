@@ -634,10 +634,10 @@ int main()
     //S1.Algoritm(1, &S1);
 
 
-    //S1.Read_file_for_FCMHD();
-    S1.Write_file_for_FCMHD();
+    S1.Read_file_for_FCMHD();
+    //S1.Write_file_for_FCMHD();
 
-    return 0;
+    //return 0;
     S1.DDD = new Dust_spectra();
 
     //S1.DDD->prepare_sca(10.0, 200.0, 300, 1E-8, 1.0, 50000);
