@@ -631,15 +631,16 @@ void Setka::Init_physics(void)
 
 				the = acos(z / r);
 
-				BR = -0.248585 * kv(3.00503 / r);
-				BPHI = -0.2 * BR * sin(the) * (r / 3.00503);
+				// с какого расстояния начинаем считать  3.00503  
+				BR = -0.324242 * kv(2.30386 / r);   // 0.248585
+				BPHI = -0.2 * BR * sin(the) * (r / 2.30386);
 
 				dekard_skorost(z, x, y, BR, BPHI, 0.0, V3, V1, V2);
 
-				mV = 66.6667;
+				mV = 86.9565; // 66.6667;
 
-				i->parameters["rho"] = 0.0249164 * pow(3.00503 / r, 2);
-				i->parameters["p"] = 2.65775 * pow(3.00503 / r, 2 * this->phys_param->gamma);
+				i->parameters["rho"] = 0.0249164 * pow(2.30386 / r, 2);
+				i->parameters["p"] = 4.52169 * pow(2.30386 / r, 2 * this->phys_param->gamma); // 2.65775
 
 
 				i->parameters["Vx"] = mV * x/r;

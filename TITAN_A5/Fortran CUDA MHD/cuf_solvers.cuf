@@ -193,7 +193,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
         end if
     end if
 
-    !metod = 0  ! TODO: убрать
+    metod = 1  ! TODO: убрать
     
     square = dev_Gran_square(gr)
 
@@ -494,8 +494,9 @@ attributes(global) subroutine CUF_MGD_cells(now)
 
     if(dist < 11.0) then
         the = acos(rr(3) / dist)
-        BR = -0.248585 * (3.00503 / dist)**2
-        BPHI = -0.2 * BR * sin(the) * (dist / 3.00503)
+        !BR = -0.248585 * (2.30386 / dist)**2
+        BR = -0.324242 * (2.30386 / dist)**2
+        BPHI = -0.2 * BR * sin(the) * (dist / 2.30386)
         BTHE = 0.0_8
         call dekard_skorost(rr(3), rr(1), rr(2), BR, BPHI, BTHE, VV3, VV1, VV2)
 
@@ -528,11 +529,13 @@ attributes(global) subroutine CUF_MGD_cells(now)
         !dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/6.0))
         dd = 1.0 !(1.0 + 0.5 * sin(2.0 * par_pi_8 * dev_time_all/0.3))
 
-        mV = 66.6667
+        mV = 86.9565! 66.6667
 
         ! dev_time_all
-        ro3 = 0.0249164 * (3.00503 / dist)**2 * dd ! / (dd**2)
-        p3 = 2.65775 * (3.00503 / dist)**(2 * ggg)
+        !@ ro3 = 0.0249164 * (3.00503 / dist)**2 * dd ! / (dd**2)
+        ro3 = 0.0249164 * (2.30386 / dist)**2 * dd ! / (dd**2)
+        ! p3 = 2.65775 * (2.30386 / dist)**(2 * ggg)
+        p3 = 4.52169 * (2.30386 / dist)**(2 * ggg)
 
         u3 = mV * rr(1) / dist
         v3 = mV * rr(2) / dist
@@ -554,9 +557,9 @@ attributes(global) subroutine CUF_MGD_cells(now)
     !QQ3 = DOT_PRODUCT(F, vv);
     F = 0.0_8
 
-    T_K = qqq(5) / qqq(1) * 66541.3
-    QQ3 = qqq(1)**2 * 2.71588 * 1e21 * (-interpolate_cooling(T_K, dev_cooling_T, dev_cooling_Lambda, dev_cooling_lnT, dev_cooling_lnLambda) &
-    + interpolate_cooling(T_K, dev_heating_T, dev_heating_Lambda, dev_heating_lnT, dev_heating_lnLambda))
+    T_K = qqq(5) / qqq(1) * 39111.5 !66541.3
+    QQ3 = qqq(1)**2 * 7.86113 * 1e21 * (-interpolate_cooling(T_K, dev_cooling_T, dev_cooling_Lambda, dev_cooling_lnT, dev_cooling_lnLambda) &
+    + interpolate_cooling(T_K, dev_heating_T, dev_heating_Lambda, dev_heating_lnT, dev_heating_lnLambda)) ! 2.71588 * 1e21
     ! QQ3 = QQ3/100.0
 
     ! Просуммируем потоки через грани
