@@ -193,7 +193,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
         end if
     end if
 
-    metod = 1 ! TODO: убрать
+    !metod = 1 ! TODO: убрать
     
     square = dev_Gran_square(gr)
 
@@ -442,7 +442,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
          POTOK, n_disc)
 
 
-    time = min(time, 0.4 * dist/(max(dabs(dsl), dabs(dsp)) + dabs(wc)) )   ! REDUCTION
+    time = min(time, 0.6 * dist/(max(dabs(dsl), dabs(dsp)) + dabs(wc)) )   ! REDUCTION
     !time = min(time, 0.9 * dist/(dev_norm2(cross_product(gran_centr, rotate_velosity))))
 	dev_Gran_POTOK(1:dev_num_param, gr) = POTOK * square
 	
@@ -492,7 +492,7 @@ attributes(global) subroutine CUF_MGD_cells(now)
 
     qqq = dev_Cell_par(:, gr)
 
-    if(dist < 12.0) then
+    if(dist < 14.0) then
         the = acos(rr(3) / dist)
         !BR = -0.248585 * (2.30386 / dist)**2
         BR = -0.324242 * (2.30386 / dist)**2
