@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     29293,        855]
-NotebookOptionsPosition[     28092,        810]
-NotebookOutlinePosition[     28468,        826]
-CellTagsIndexPosition[     28425,        823]
+NotebookDataLength[     51883,       1519]
+NotebookOptionsPosition[     50353,       1464]
+NotebookOutlinePosition[     50729,       1480]
+CellTagsIndexPosition[     50686,       1477]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -130,6 +130,660 @@ Cell[BoxData[
  CellChangeTimes->{{3.988864648326949*^9, 3.988864721856902*^9}, 
    3.9888647828425145`*^9, 3.9888649292111516`*^9, 3.9888655258786926`*^9, 
    3.9888655641337433`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Solve", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"n", "==", 
+     RowBox[{"npui", "+", "nth", "+", "ne", "+", "nHe"}]}], "&&", 
+    RowBox[{"ne", "==", 
+     RowBox[{"nth", "+", "npui", "+", 
+      RowBox[{"2", "*", "nHe"}]}]}], "&&", 
+    RowBox[{"pth", "==", 
+     RowBox[{"nth", "*", "kB", "*", "Tth"}]}], "&&", 
+    RowBox[{"ppui", "==", 
+     RowBox[{"npui", "*", "kB", "*", "Tpui"}]}], "&&", 
+    RowBox[{"pHe", "==", 
+     RowBox[{"nHe", "*", "kB", "*", "THe"}]}], "&&", 
+    RowBox[{"pe", "==", 
+     RowBox[{"ne", "*", "kB", "*", "Te"}]}], "&&", 
+    RowBox[{"p", "==", 
+     RowBox[{"pth", "+", "ppui", "+", "pe", "+", "pHe"}]}], "&&", 
+    RowBox[{"Te", "\[Equal]", "Tth"}], "&&", 
+    RowBox[{"THe", " ", "\[Equal]", "Tth"}], "&&", 
+    RowBox[{"p", "==", 
+     RowBox[{"n", "*", "kB", "*", "T"}]}], "&&", 
+    RowBox[{"\[Rho]", "==", 
+     RowBox[{"mp", "*", 
+      RowBox[{"(", 
+       RowBox[{"nth", "+", "npui", "+", 
+        RowBox[{"4", "*", "nHe"}]}], ")"}]}]}], "&&", 
+    RowBox[{"\[Rho]He", "==", 
+     RowBox[{"4", "*", "mp", "*", "nHe"}]}]}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+    "Tth", ",", " ", "pth", ",", "nth", ",", "ne", ",", "pe", ",", "Te", ",", 
+     "ppui", ",", "pHe", ",", "THe", ",", "T", ",", "n", ",", "nHe"}], 
+    "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.9900717419676895`*^9, 3.9900717889573298`*^9}, {
+  3.9900718281948433`*^9, 3.9900719531861763`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"Tth", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"4", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"mp", " ", "p"}], "-", 
+          RowBox[{"kB", " ", "mp", " ", "npui", " ", "Tpui"}]}], ")"}]}], 
+       RowBox[{"kB", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"4", " ", "mp", " ", "npui"}], "-", 
+          RowBox[{"8", " ", "\[Rho]"}], "+", 
+          RowBox[{"5", " ", "\[Rho]He"}]}], ")"}]}]]}]}], ",", 
+    RowBox[{"pth", "\[Rule]", 
+     FractionBox[
+      RowBox[{"4", " ", 
+       RowBox[{"(", 
+        RowBox[{"p", "-", 
+         RowBox[{"kB", " ", "npui", " ", "Tpui"}]}], ")"}], " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"mp", " ", "npui"}], "-", "\[Rho]", "+", "\[Rho]He"}], 
+        ")"}]}], 
+      RowBox[{
+       RowBox[{"4", " ", "mp", " ", "npui"}], "-", 
+       RowBox[{"8", " ", "\[Rho]"}], "+", 
+       RowBox[{"5", " ", "\[Rho]He"}]}]]}], ",", 
+    RowBox[{"nth", "\[Rule]", 
+     FractionBox[
+      RowBox[{
+       RowBox[{
+        RowBox[{"-", "mp"}], " ", "npui"}], "+", "\[Rho]", "-", "\[Rho]He"}], 
+      "mp"]}], ",", 
+    RowBox[{"ne", "\[Rule]", 
+     FractionBox[
+      RowBox[{
+       RowBox[{"2", " ", "\[Rho]"}], "-", "\[Rho]He"}], 
+      RowBox[{"2", " ", "mp"}]]}], ",", 
+    RowBox[{"pe", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"2", " ", 
+        RowBox[{"(", 
+         RowBox[{"p", "-", 
+          RowBox[{"kB", " ", "npui", " ", "Tpui"}]}], ")"}], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "\[Rho]"}], "-", "\[Rho]He"}], ")"}]}], 
+       RowBox[{
+        RowBox[{"4", " ", "mp", " ", "npui"}], "-", 
+        RowBox[{"8", " ", "\[Rho]"}], "+", 
+        RowBox[{"5", " ", "\[Rho]He"}]}]]}]}], ",", 
+    RowBox[{"Te", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"4", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"mp", " ", "p"}], "-", 
+          RowBox[{"kB", " ", "mp", " ", "npui", " ", "Tpui"}]}], ")"}]}], 
+       RowBox[{"kB", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"4", " ", "mp", " ", "npui"}], "-", 
+          RowBox[{"8", " ", "\[Rho]"}], "+", 
+          RowBox[{"5", " ", "\[Rho]He"}]}], ")"}]}]]}]}], ",", 
+    RowBox[{"ppui", "\[Rule]", 
+     RowBox[{"kB", " ", "npui", " ", "Tpui"}]}], ",", 
+    RowBox[{"pHe", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{"p", "-", 
+          RowBox[{"kB", " ", "npui", " ", "Tpui"}]}], ")"}], " ", 
+        "\[Rho]He"}], 
+       RowBox[{
+        RowBox[{"4", " ", "mp", " ", "npui"}], "-", 
+        RowBox[{"8", " ", "\[Rho]"}], "+", 
+        RowBox[{"5", " ", "\[Rho]He"}]}]]}]}], ",", 
+    RowBox[{"THe", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"4", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"mp", " ", "p"}], "-", 
+          RowBox[{"kB", " ", "mp", " ", "npui", " ", "Tpui"}]}], ")"}]}], 
+       RowBox[{"kB", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"4", " ", "mp", " ", "npui"}], "-", 
+          RowBox[{"8", " ", "\[Rho]"}], "+", 
+          RowBox[{"5", " ", "\[Rho]He"}]}], ")"}]}]]}]}], ",", 
+    RowBox[{"T", "\[Rule]", 
+     FractionBox[
+      RowBox[{"4", " ", "mp", " ", "p"}], 
+      RowBox[{"kB", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"8", " ", "\[Rho]"}], "-", 
+         RowBox[{"5", " ", "\[Rho]He"}]}], ")"}]}]]}], ",", 
+    RowBox[{"n", "\[Rule]", 
+     FractionBox[
+      RowBox[{
+       RowBox[{"8", " ", "\[Rho]"}], "-", 
+       RowBox[{"5", " ", "\[Rho]He"}]}], 
+      RowBox[{"4", " ", "mp"}]]}], ",", 
+    RowBox[{"nHe", "\[Rule]", 
+     FractionBox["\[Rho]He", 
+      RowBox[{"4", " ", "mp"}]]}]}], "}"}], "}"}]], "Output",
+ CellChangeTimes->{{3.9900718382079105`*^9, 3.9900718591853085`*^9}, {
+  3.9900719497963767`*^9, 3.9900719536392236`*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+  "\:0422\:0435\:043f\:0435\:0440\:044c", " ", 
+   "\:0437\:0430\:043f\:0438\:0448\:0435\:043c", " ", "\:0432", " ", 
+   "\:0431\:0435\:0437\:0440\:0430\:0437\:043c\:0435\:0440\:043d\:044b\:0445",
+    " ", "\:043f\:0435\:0440\:0435\:043c\:0435\:043d\:043d\:044b\:0445", " ", 
+   "\:0443\:0440\:0430\:0432\:043d\:0435\:043d\:0438\:044f", " ", 
+   "\:0441\:043e\:0441\:0442\:043e\:044f\:043d\:0438\:044f"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"\:0414\:043b\:044f", " ", "\:0421\:0412"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Solve", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"n", "==", 
+     RowBox[{"npui", "+", "nth", "+", "ne", "+", "nHe"}]}], "&&", 
+    RowBox[{"ne", "==", 
+     RowBox[{"nth", "+", "npui", "+", 
+      RowBox[{"2", "*", "nHe"}]}]}], "&&", 
+    RowBox[{"pth", "==", 
+     RowBox[{"nth", "*", 
+      RowBox[{"Tth", "/", "2"}]}]}], "&&", 
+    RowBox[{"ppui", "==", 
+     RowBox[{"npui", "*", 
+      RowBox[{"Tpui", "/", "2"}]}]}], "&&", 
+    RowBox[{"pHe", "==", 
+     RowBox[{"nHe", "*", 
+      RowBox[{"THe", "/", "2"}]}]}], "&&", 
+    RowBox[{"pe", "==", 
+     RowBox[{"ne", "*", 
+      RowBox[{"Te", "/", "2"}]}]}], "&&", 
+    RowBox[{"p", "==", 
+     RowBox[{"pth", "+", "ppui", "+", "pe", "+", "pHe"}]}], "&&", 
+    RowBox[{"Te", "\[Equal]", "Tth"}], "&&", 
+    RowBox[{"THe", " ", "\[Equal]", "Tth"}], "&&", 
+    RowBox[{"p", "==", 
+     RowBox[{"n", "*", 
+      RowBox[{"T", "/", "2"}]}]}], "&&", 
+    RowBox[{"\[Rho]", "==", 
+     RowBox[{"(", 
+      RowBox[{"nth", "+", "npui", "+", 
+       RowBox[{"4", "*", "nHe"}]}], ")"}]}], "&&", 
+    RowBox[{"\[Rho]He", "==", 
+     RowBox[{"4", "*", "nHe"}]}]}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+    "Tth", ",", " ", "pth", ",", "nth", ",", "ne", ",", "pe", ",", "Te", ",", 
+     "ppui", ",", "pHe", ",", "THe", ",", "T", ",", "n", ",", "nHe"}], 
+    "}"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"\:0414\:043b\:044f", " ", "LISM"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Solve", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"n", "==", 
+     RowBox[{"npui", "+", "nth", "+", "ne", "+", "nHe"}]}], "&&", 
+    RowBox[{"ne", "==", 
+     RowBox[{"nth", "+", "npui", "+", "nHe"}]}], "&&", 
+    RowBox[{"pth", "==", 
+     RowBox[{"nth", "*", 
+      RowBox[{"Tth", "/", "2"}]}]}], "&&", 
+    RowBox[{"ppui", "==", 
+     RowBox[{"npui", "*", 
+      RowBox[{"Tpui", "/", "2"}]}]}], "&&", 
+    RowBox[{"pHe", "==", 
+     RowBox[{"nHe", "*", 
+      RowBox[{"THe", "/", "2"}]}]}], "&&", 
+    RowBox[{"pe", "==", 
+     RowBox[{"ne", "*", 
+      RowBox[{"Te", "/", "2"}]}]}], "&&", 
+    RowBox[{"p", "==", 
+     RowBox[{"pth", "+", "ppui", "+", "pe", "+", "pHe"}]}], "&&", 
+    RowBox[{"Te", "\[Equal]", "Tth"}], "&&", 
+    RowBox[{"THe", " ", "\[Equal]", "Tth"}], "&&", 
+    RowBox[{"p", "==", 
+     RowBox[{"n", "*", 
+      RowBox[{"T", "/", "2"}]}]}], "&&", 
+    RowBox[{"\[Rho]", "==", 
+     RowBox[{"(", 
+      RowBox[{"nth", "+", "npui", "+", 
+       RowBox[{"4", "*", "nHe"}]}], ")"}]}], "&&", 
+    RowBox[{"\[Rho]He", "==", 
+     RowBox[{"4", "*", "nHe"}]}]}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+    "Tth", ",", " ", "pth", ",", "nth", ",", "ne", ",", "pe", ",", "Te", ",", 
+     "ppui", ",", "pHe", ",", "THe", ",", "T", ",", "n", ",", "nHe"}], 
+    "}"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"\:0423\:043d\:0438\:0432\:0435\:0440\:0441\:0430\:043b\:044c\:043d\
+\:043e", ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Solve", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"n", "==", 
+     RowBox[{"npui", "+", "nth", "+", "ne", "+", "nHe"}]}], "&&", 
+    RowBox[{"ne", "==", 
+     RowBox[{"nth", "+", "npui", "+", 
+      RowBox[{"al", "*", "nHe"}]}]}], "&&", 
+    RowBox[{"pth", "==", 
+     RowBox[{"nth", "*", 
+      RowBox[{"Tth", "/", "2"}]}]}], "&&", 
+    RowBox[{"ppui", "==", 
+     RowBox[{"npui", "*", 
+      RowBox[{"Tpui", "/", "2"}]}]}], "&&", 
+    RowBox[{"pHe", "==", 
+     RowBox[{"nHe", "*", 
+      RowBox[{"THe", "/", "2"}]}]}], "&&", 
+    RowBox[{"pe", "==", 
+     RowBox[{"ne", "*", 
+      RowBox[{"Te", "/", "2"}]}]}], "&&", 
+    RowBox[{"p", "==", 
+     RowBox[{"pth", "+", "ppui", "+", "pe", "+", "pHe"}]}], "&&", 
+    RowBox[{"Te", "\[Equal]", "Tth"}], "&&", 
+    RowBox[{"THe", " ", "\[Equal]", "Tth"}], "&&", 
+    RowBox[{"p", "==", 
+     RowBox[{"n", "*", 
+      RowBox[{"T", "/", "2"}]}]}], "&&", 
+    RowBox[{"\[Rho]", "==", 
+     RowBox[{"(", 
+      RowBox[{"nth", "+", "npui", "+", 
+       RowBox[{"4", "*", "nHe"}]}], ")"}]}], "&&", 
+    RowBox[{"\[Rho]He", "==", 
+     RowBox[{"4", "*", "nHe"}]}]}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+    "Tth", ",", " ", "pth", ",", "nth", ",", "ne", ",", "pe", ",", "Te", ",", 
+     "ppui", ",", "pHe", ",", "THe", ",", "T", ",", "n", ",", "nHe"}], 
+    "}"}]}], "]"}]}], "Input",
+ CellChangeTimes->{{3.990072226398239*^9, 3.990072244574304*^9}, {
+  3.990072321747939*^9, 3.990072377035485*^9}, {3.9900743584879475`*^9, 
+  3.9900743876460395`*^9}, {3.9900745716157722`*^9, 3.9900745869665337`*^9}, {
+  3.9900747895812674`*^9, 3.990074797463704*^9}, {3.99007500815862*^9, 
+  3.990075008518672*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"Tth", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"4", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}]}], 
+       RowBox[{
+        RowBox[{"4", " ", "npui"}], "-", 
+        RowBox[{"8", " ", "\[Rho]"}], "+", 
+        RowBox[{"5", " ", "\[Rho]He"}]}]]}]}], ",", 
+    RowBox[{"pth", "\[Rule]", 
+     FractionBox[
+      RowBox[{"2", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"2", " ", "p"}], "-", 
+         RowBox[{"npui", " ", "Tpui"}]}], ")"}], " ", 
+       RowBox[{"(", 
+        RowBox[{"npui", "-", "\[Rho]", "+", "\[Rho]He"}], ")"}]}], 
+      RowBox[{
+       RowBox[{"4", " ", "npui"}], "-", 
+       RowBox[{"8", " ", "\[Rho]"}], "+", 
+       RowBox[{"5", " ", "\[Rho]He"}]}]]}], ",", 
+    RowBox[{"nth", "\[Rule]", 
+     RowBox[{
+      RowBox[{"-", "npui"}], "+", "\[Rho]", "-", "\[Rho]He"}]}], ",", 
+    RowBox[{"ne", "\[Rule]", 
+     RowBox[{
+      FractionBox["1", "2"], " ", 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"2", " ", "\[Rho]"}], "-", "\[Rho]He"}], ")"}]}]}], ",", 
+    RowBox[{"pe", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "\[Rho]"}], "-", "\[Rho]He"}], ")"}]}], 
+       RowBox[{
+        RowBox[{"4", " ", "npui"}], "-", 
+        RowBox[{"8", " ", "\[Rho]"}], "+", 
+        RowBox[{"5", " ", "\[Rho]He"}]}]]}]}], ",", 
+    RowBox[{"Te", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"4", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}]}], 
+       RowBox[{
+        RowBox[{"4", " ", "npui"}], "-", 
+        RowBox[{"8", " ", "\[Rho]"}], "+", 
+        RowBox[{"5", " ", "\[Rho]He"}]}]]}]}], ",", 
+    RowBox[{"ppui", "\[Rule]", 
+     FractionBox[
+      RowBox[{"npui", " ", "Tpui"}], "2"]}], ",", 
+    RowBox[{"pHe", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}], " ", "\[Rho]He"}], 
+       RowBox[{"2", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"4", " ", "npui"}], "-", 
+          RowBox[{"8", " ", "\[Rho]"}], "+", 
+          RowBox[{"5", " ", "\[Rho]He"}]}], ")"}]}]]}]}], ",", 
+    RowBox[{"THe", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"4", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}]}], 
+       RowBox[{
+        RowBox[{"4", " ", "npui"}], "-", 
+        RowBox[{"8", " ", "\[Rho]"}], "+", 
+        RowBox[{"5", " ", "\[Rho]He"}]}]]}]}], ",", 
+    RowBox[{"T", "\[Rule]", 
+     FractionBox[
+      RowBox[{"8", " ", "p"}], 
+      RowBox[{
+       RowBox[{"8", " ", "\[Rho]"}], "-", 
+       RowBox[{"5", " ", "\[Rho]He"}]}]]}], ",", 
+    RowBox[{"n", "\[Rule]", 
+     RowBox[{
+      FractionBox["1", "4"], " ", 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"8", " ", "\[Rho]"}], "-", 
+        RowBox[{"5", " ", "\[Rho]He"}]}], ")"}]}]}], ",", 
+    RowBox[{"nHe", "\[Rule]", 
+     FractionBox["\[Rho]He", "4"]}]}], "}"}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.9900723795503054`*^9, {3.990074378023773*^9, 3.990074399213411*^9}, 
+   3.990074588401078*^9, 3.9900748103505106`*^9, 3.990075009400939*^9}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"Tth", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"2", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}]}], 
+       RowBox[{
+        RowBox[{"2", " ", "npui"}], "-", 
+        RowBox[{"4", " ", "\[Rho]"}], "+", 
+        RowBox[{"3", " ", "\[Rho]He"}]}]]}]}], ",", 
+    RowBox[{"pth", "\[Rule]", 
+     FractionBox[
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"2", " ", "p"}], "-", 
+         RowBox[{"npui", " ", "Tpui"}]}], ")"}], " ", 
+       RowBox[{"(", 
+        RowBox[{"npui", "-", "\[Rho]", "+", "\[Rho]He"}], ")"}]}], 
+      RowBox[{
+       RowBox[{"2", " ", "npui"}], "-", 
+       RowBox[{"4", " ", "\[Rho]"}], "+", 
+       RowBox[{"3", " ", "\[Rho]He"}]}]]}], ",", 
+    RowBox[{"nth", "\[Rule]", 
+     RowBox[{
+      RowBox[{"-", "npui"}], "+", "\[Rho]", "-", "\[Rho]He"}]}], ",", 
+    RowBox[{"ne", "\[Rule]", 
+     RowBox[{
+      FractionBox["1", "4"], " ", 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"4", " ", "\[Rho]"}], "-", 
+        RowBox[{"3", " ", "\[Rho]He"}]}], ")"}]}]}], ",", 
+    RowBox[{"pe", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"4", " ", "\[Rho]"}], "-", 
+          RowBox[{"3", " ", "\[Rho]He"}]}], ")"}]}], 
+       RowBox[{"4", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "npui"}], "-", 
+          RowBox[{"4", " ", "\[Rho]"}], "+", 
+          RowBox[{"3", " ", "\[Rho]He"}]}], ")"}]}]]}]}], ",", 
+    RowBox[{"Te", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"2", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}]}], 
+       RowBox[{
+        RowBox[{"2", " ", "npui"}], "-", 
+        RowBox[{"4", " ", "\[Rho]"}], "+", 
+        RowBox[{"3", " ", "\[Rho]He"}]}]]}]}], ",", 
+    RowBox[{"ppui", "\[Rule]", 
+     FractionBox[
+      RowBox[{"npui", " ", "Tpui"}], "2"]}], ",", 
+    RowBox[{"pHe", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}], " ", "\[Rho]He"}], 
+       RowBox[{"4", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "npui"}], "-", 
+          RowBox[{"4", " ", "\[Rho]"}], "+", 
+          RowBox[{"3", " ", "\[Rho]He"}]}], ")"}]}]]}]}], ",", 
+    RowBox[{"THe", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"2", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}]}], 
+       RowBox[{
+        RowBox[{"2", " ", "npui"}], "-", 
+        RowBox[{"4", " ", "\[Rho]"}], "+", 
+        RowBox[{"3", " ", "\[Rho]He"}]}]]}]}], ",", 
+    RowBox[{"T", "\[Rule]", 
+     FractionBox[
+      RowBox[{"4", " ", "p"}], 
+      RowBox[{
+       RowBox[{"4", " ", "\[Rho]"}], "-", 
+       RowBox[{"3", " ", "\[Rho]He"}]}]]}], ",", 
+    RowBox[{"n", "\[Rule]", 
+     RowBox[{
+      FractionBox["1", "2"], " ", 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"4", " ", "\[Rho]"}], "-", 
+        RowBox[{"3", " ", "\[Rho]He"}]}], ")"}]}]}], ",", 
+    RowBox[{"nHe", "\[Rule]", 
+     FractionBox["\[Rho]He", "4"]}]}], "}"}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.9900723795503054`*^9, {3.990074378023773*^9, 3.990074399213411*^9}, 
+   3.990074588401078*^9, 3.9900748103505106`*^9, 3.9900750094288335`*^9}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"Tth", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"4", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}]}], 
+       RowBox[{
+        RowBox[{"4", " ", "npui"}], "-", 
+        RowBox[{"8", " ", "\[Rho]"}], "+", 
+        RowBox[{"7", " ", "\[Rho]He"}], "-", 
+        RowBox[{"al", " ", "\[Rho]He"}]}]]}]}], ",", 
+    RowBox[{"pth", "\[Rule]", 
+     FractionBox[
+      RowBox[{"2", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"2", " ", "p"}], "-", 
+         RowBox[{"npui", " ", "Tpui"}]}], ")"}], " ", 
+       RowBox[{"(", 
+        RowBox[{"npui", "-", "\[Rho]", "+", "\[Rho]He"}], ")"}]}], 
+      RowBox[{
+       RowBox[{"4", " ", "npui"}], "-", 
+       RowBox[{"8", " ", "\[Rho]"}], "+", 
+       RowBox[{"7", " ", "\[Rho]He"}], "-", 
+       RowBox[{"al", " ", "\[Rho]He"}]}]]}], ",", 
+    RowBox[{"nth", "\[Rule]", 
+     RowBox[{
+      RowBox[{"-", "npui"}], "+", "\[Rho]", "-", "\[Rho]He"}]}], ",", 
+    RowBox[{"ne", "\[Rule]", 
+     RowBox[{
+      FractionBox["1", "4"], " ", 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"4", " ", "\[Rho]"}], "-", 
+        RowBox[{"4", " ", "\[Rho]He"}], "+", 
+        RowBox[{"al", " ", "\[Rho]He"}]}], ")"}]}]}], ",", 
+    RowBox[{"pe", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}], " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"4", " ", "\[Rho]"}], "-", 
+          RowBox[{"4", " ", "\[Rho]He"}], "+", 
+          RowBox[{"al", " ", "\[Rho]He"}]}], ")"}]}], 
+       RowBox[{"2", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"4", " ", "npui"}], "-", 
+          RowBox[{"8", " ", "\[Rho]"}], "+", 
+          RowBox[{"7", " ", "\[Rho]He"}], "-", 
+          RowBox[{"al", " ", "\[Rho]He"}]}], ")"}]}]]}]}], ",", 
+    RowBox[{"Te", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"4", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}]}], 
+       RowBox[{
+        RowBox[{"4", " ", "npui"}], "-", 
+        RowBox[{"8", " ", "\[Rho]"}], "+", 
+        RowBox[{"7", " ", "\[Rho]He"}], "-", 
+        RowBox[{"al", " ", "\[Rho]He"}]}]]}]}], ",", 
+    RowBox[{"ppui", "\[Rule]", 
+     FractionBox[
+      RowBox[{"npui", " ", "Tpui"}], "2"]}], ",", 
+    RowBox[{"pHe", "\[Rule]", 
+     FractionBox[
+      RowBox[{
+       RowBox[{
+        RowBox[{"-", "2"}], " ", "p", " ", "\[Rho]He"}], "+", 
+       RowBox[{"npui", " ", "Tpui", " ", "\[Rho]He"}]}], 
+      RowBox[{"2", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"4", " ", "npui"}], "-", 
+         RowBox[{"8", " ", "\[Rho]"}], "+", 
+         RowBox[{"7", " ", "\[Rho]He"}], "-", 
+         RowBox[{"al", " ", "\[Rho]He"}]}], ")"}]}]]}], ",", 
+    RowBox[{"THe", "\[Rule]", 
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"4", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"2", " ", "p"}], "-", 
+          RowBox[{"npui", " ", "Tpui"}]}], ")"}]}], 
+       RowBox[{
+        RowBox[{"4", " ", "npui"}], "-", 
+        RowBox[{"8", " ", "\[Rho]"}], "+", 
+        RowBox[{"7", " ", "\[Rho]He"}], "-", 
+        RowBox[{"al", " ", "\[Rho]He"}]}]]}]}], ",", 
+    RowBox[{"T", "\[Rule]", 
+     FractionBox[
+      RowBox[{"8", " ", "p"}], 
+      RowBox[{
+       RowBox[{"8", " ", "\[Rho]"}], "-", 
+       RowBox[{"7", " ", "\[Rho]He"}], "+", 
+       RowBox[{"al", " ", "\[Rho]He"}]}]]}], ",", 
+    RowBox[{"n", "\[Rule]", 
+     RowBox[{
+      FractionBox["1", "4"], " ", 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"8", " ", "\[Rho]"}], "-", 
+        RowBox[{"7", " ", "\[Rho]He"}], "+", 
+        RowBox[{"al", " ", "\[Rho]He"}]}], ")"}]}]}], ",", 
+    RowBox[{"nHe", "\[Rule]", 
+     FractionBox["\[Rho]He", "4"]}]}], "}"}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.9900723795503054`*^9, {3.990074378023773*^9, 3.990074399213411*^9}, 
+   3.990074588401078*^9, 3.9900748103505106`*^9, 3.9900750094882793`*^9}]
 }, Open  ]],
 
 Cell[BoxData[
@@ -829,33 +1483,43 @@ Cell[CellGroupData[{
 Cell[580, 22, 1382, 31, 100, "Input"],
 Cell[1965, 55, 2511, 76, 129, "Output"]
 }, Open  ]],
-Cell[4491, 134, 414, 12, 84, "Input"],
 Cell[CellGroupData[{
-Cell[4930, 150, 1609, 38, 162, "Input"],
-Cell[6542, 190, 393, 6, 45, "Output"],
-Cell[6938, 198, 395, 6, 45, "Output"]
-}, Open  ]],
-Cell[7348, 207, 96, 1, 45, InheritFromParent],
-Cell[CellGroupData[{
-Cell[7469, 212, 392, 12, 45, "Input"],
-Cell[7864, 226, 88, 1, 45, "Output"]
+Cell[4513, 136, 1430, 36, 129, "Input"],
+Cell[5946, 174, 3983, 117, 129, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[7989, 232, 540, 14, 45, "Input"],
-Cell[8532, 248, 139, 2, 45, "Output"]
+Cell[9966, 296, 5099, 134, 382, "Input"],
+Cell[15068, 432, 3663, 111, 129, "Output"],
+Cell[18734, 545, 3780, 115, 129, "Output"],
+Cell[22517, 662, 4220, 123, 187, "Output"]
 }, Open  ]],
-Cell[8686, 253, 136, 2, 45, "Input"],
+Cell[26752, 788, 414, 12, 84, "Input"],
 Cell[CellGroupData[{
-Cell[8847, 259, 1398, 35, 129, "Input"],
-Cell[10248, 296, 5899, 159, 280, "Output"]
+Cell[27191, 804, 1609, 38, 162, "Input"],
+Cell[28803, 844, 393, 6, 45, "Output"],
+Cell[29199, 852, 395, 6, 45, "Output"]
+}, Open  ]],
+Cell[29609, 861, 96, 1, 45, "Input"],
+Cell[CellGroupData[{
+Cell[29730, 866, 392, 12, 45, "Input"],
+Cell[30125, 880, 88, 1, 45, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[16184, 460, 1345, 34, 129, "Input"],
-Cell[17532, 496, 5277, 153, 255, "Output"]
+Cell[30250, 886, 540, 14, 45, "Input"],
+Cell[30793, 902, 139, 2, 45, "Output"]
+}, Open  ]],
+Cell[30947, 907, 136, 2, 45, "Input"],
+Cell[CellGroupData[{
+Cell[31108, 913, 1398, 35, 129, "Input"],
+Cell[32509, 950, 5899, 159, 280, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[22846, 654, 1332, 33, 150, "Input"],
-Cell[24181, 689, 3895, 118, 366, "Output"]
+Cell[38445, 1114, 1345, 34, 100, "Input"],
+Cell[39793, 1150, 5277, 153, 255, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[45107, 1308, 1332, 33, 100, "Input"],
+Cell[46442, 1343, 3895, 118, 187, "Output"]
 }, Open  ]]
 }
 ]

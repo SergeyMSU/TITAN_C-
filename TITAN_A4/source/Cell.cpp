@@ -59,7 +59,7 @@ void Cell::read_mas_pogl_FromFile(Phys_param* phys_param)
 	if (file_exists(filename) == false)
 	{
 		cout << "Not file: " << filename << endl;
-		// cout << "Not file: " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][2] << endl;
+		cout << "Not file: " << this->center[0][0] << " " << this->center[0][1] << " " << this->center[0][2] << endl;
 		return;
 	}
 

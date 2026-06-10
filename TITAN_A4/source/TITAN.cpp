@@ -186,6 +186,9 @@ int main()
     // 
     // 
     //S1.Algoritm(3, &S1);
+    // 
+    // 
+    S1.Algoritm(8, &S1);
 
 
     //S1.Algoritm(5, &S1);
@@ -201,8 +204,8 @@ int main()
 
     //S1.Algoritm(3, &S1);
 
-    S1.Algoritm(4, &S1);
-    S1.Algoritm(5, &S1);
+    //S1.Algoritm(4, &S1);
+    //S1.Algoritm(5, &S1);
 
     //S1.Algoritm(25, &S1);
 
@@ -217,7 +220,7 @@ int main()
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(4, &S1);
     //S1.Algoritm(5, &S1);
-    //return 0;
+    return 0;
 
     /// Далее следует всё, что касается визуализации сетки
     
