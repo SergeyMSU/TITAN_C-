@@ -353,6 +353,12 @@ void Setka::Init_physics(void)
 				i->parameters[0]["p_Pui_2"] = 0.000000001;
 			}
 
+			if (zone == 3 || zone == 4)
+			{
+				i->parameters[0]["rho_Pui_1"] = 0.000000001;
+				i->parameters[0]["p_Pui_1"] = 0.000000001;
+			}
+
 			//i->parameters[0]["rho_H2"] /= 2.0;
 			//i->parameters[0]["p_H2"] /= 2.0;
 
@@ -2765,7 +2771,7 @@ void Setka::Save_for_interpolate(string filename, bool razriv)
 	out.write(reinterpret_cast<const char*>(&this->geo->L6), sizeof(double));
 
 	// Добавляем ещё переменные для вывода  "BB/8pi"
-	if (true)
+	if (false)
 	{
 		this->phys_param->param_names.push_back("BB/8pi");
 		for (const auto& Cel : this->All_Cell)
