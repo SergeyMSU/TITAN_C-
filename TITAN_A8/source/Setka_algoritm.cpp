@@ -33,10 +33,10 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Smooth_head_HP3();
 		this->Smooth_head_TS3();
 
-		this->Go(true, 2000, 1); // 400   1
-		std::this_thread::sleep_for(std::chrono::seconds(30)); // Спать 30 сек
+		//this->Go(true, 2000, 1); // 400   1
+		//std::this_thread::sleep_for(std::chrono::seconds(30)); // Спать 30 сек
 
-		for (int i = 1; i <= 6 * 8; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 6 * 10; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
 			cout << "IIIII = " << i << endl;
@@ -56,8 +56,11 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			}
 			
 			this->Go(true, 100, 1); // 400   1 
-			this->Go(false, 400, 1); // 400   1
-			std::this_thread::sleep_for(std::chrono::seconds(30)); // Спать 30 сек
+			std::this_thread::sleep_for(std::chrono::seconds(10)); // Спать сек
+			this->Go(false, 200, 1); // 400   1
+			std::this_thread::sleep_for(std::chrono::seconds(20)); // Спать сек
+			this->Go(false, 200, 1); // 400   1
+			std::this_thread::sleep_for(std::chrono::seconds(20)); // Спать сек
 
 			this->Smooth_head_HP3();
 			this->Smooth_head_TS3();
@@ -102,7 +105,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				string namn = "parameters_promeg_11" + to_string(i) + ".bin";
 				this->Save_cell_parameters(namn);
 
-				if (true)
+				if (false)
 				{
 					this->Save_for_interpolate("For_intertpolate_0059-.bin", false);
 					Interpol SS = Interpol("For_intertpolate_0059-.bin");

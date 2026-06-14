@@ -387,7 +387,7 @@ module MY_CUDA
 		rotate_velosity = rotate_velosity_local
 		Drotate_velosity = Drotate_velosity_local
 
-		all_step = 140000 * 2 ! * 2 * 3   ! 140000
+		all_step = 140000 * 7 ! * 2 * 3   ! 140000
 		print_step = 5000
 
 		do step = 1,  all_step  ! ---------------------------------------------------------------------------------------------------
@@ -397,6 +397,11 @@ module MY_CUDA
 				print*, "Step = ", step , "  step_time = ", local1, " all step = ", all_step
 			end if
 
+			if(mod(step, 30000) == 0) then
+				print*, "Sleep 30"
+				call sleep(30)   ! пауза на 30 секунд (целое число секунд)
+				print*, "Sleep 30 end"
+			end if
 
 			time_step = time_step2
 			time_step2 = 1000000000000000.0_8

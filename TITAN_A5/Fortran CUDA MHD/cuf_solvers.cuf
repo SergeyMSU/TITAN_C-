@@ -195,17 +195,24 @@ attributes(global) subroutine CUF_MGD_grans(now)
 
     M1 = sqrt(qqq1(2)**2 + qqq1(3)**2 + qqq1(4)**2)/sqrt(ggg * qqq1(5)/qqq1(1))
     M2 = sqrt(qqq2(2)**2 + qqq2(3)**2 + qqq2(4)**2)/sqrt(ggg * qqq2(5)/qqq2(1))
-    if(gran_centr(1) < -40 .and. gran_centr(1) > -100 .and. M1 < 1.0 .and. M2 < 1.0 .and. &
-        sqrt(gran_centr(2)**2 + gran_centr(3)**2) < 50.0 .and. &
-        dabs(Gran_normal(1) * qqq1(2) + Gran_normal(2) * qqq1(3) + Gran_normal(3) * qqq1(4))/&
-        sqrt(qqq1(2)**2 + qqq1(3)**2 + qqq1(4)**2) < 0.5) then
-        metod = 0
-    end if
-
-    ! if(gran_centr(1) < 40 .and. gran_centr(1) > 30 .and. &
-    !     sqrt(gran_centr(2)**2 + gran_centr(3)**2) < 25.0) then
+    ! if(gran_centr(1) < -30 .and. gran_centr(1) > -110 .and. M1 < 1.0 .and. M2 < 1.0 .and. &
+    !     sqrt(gran_centr(2)**2 + gran_centr(3)**2) < 50.0 .and. &
+    !     dabs(Gran_normal(1) * qqq1(2) + Gran_normal(2) * qqq1(3) + Gran_normal(3) * qqq1(4))/&
+    !     sqrt(qqq1(2)**2 + qqq1(3)**2 + qqq1(4)**2) < 0.5) then
     !     metod = 0
     ! end if
+    if(gran_centr(1) < -30 .and. gran_centr(1) > -100 .and. M1 < 1.0 .and. M2 < 1.0 .and. &
+        sqrt(gran_centr(2)**2 + gran_centr(3)**2) < 50.0) then
+        metod = 1
+    end if
+
+    if(gran_centr(1) < -100) then
+        metod = 1
+    end if
+
+    if(rad5 >= 150.0) then 
+        metod = 0
+    end if
 
     !metod = 1 ! TODO: убрать
     
@@ -456,7 +463,7 @@ attributes(global) subroutine CUF_MGD_grans(now)
          POTOK, n_disc)
 
 
-    time = min(time, 0.6 * dist/(max(dabs(dsl), dabs(dsp)) + dabs(wc)) )   ! REDUCTION
+    time = min(time, 0.7 * dist/(max(dabs(dsl), dabs(dsp)) + dabs(wc)) )   ! REDUCTION
     !time = min(time, 0.9 * dist/(dev_norm2(cross_product(gran_centr, rotate_velosity))))
 	dev_Gran_POTOK(1:dev_num_param, gr) = POTOK * square
 	
@@ -541,7 +548,7 @@ attributes(global) subroutine CUF_MGD_cells(now)
         ! end if
 
         !dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/6.0))
-        dd = 1.0 !(1.0 + 0.5 * sin(2.0 * par_pi_8 * dev_time_all/0.3))
+        dd = (1.0 + 0.5 * sin(2.0 * par_pi_8 * dev_time_all/0.217237))
 
         mV = 86.9565! 66.6667
 
