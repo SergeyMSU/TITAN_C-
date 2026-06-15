@@ -36,7 +36,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		//this->Go(true, 2000, 1); // 400   1
 		//std::this_thread::sleep_for(std::chrono::seconds(30)); // Спать 30 сек
 
-		for (int i = 1; i <= 6 * 5; i++) // 6 * 2   12 * 5
+		for (int i = 1; i <= 6 * 12; i++) // 6 * 2   12 * 5
 		{
 			auto start = std::chrono::high_resolution_clock::now();
 			cout << "IIIII = " << i << endl;
@@ -55,11 +55,13 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				//this->Go(true, 50, 1); // 400   1 
 			}
 			
-			this->Go(true, 100, 1); // 400   1 
+			this->Go(true, 40, 1); // 400   1 
 			std::this_thread::sleep_for(std::chrono::seconds(10)); // Спать сек
-			this->Go(false, 200, 1); // 400   1
+			this->Go(false, 150, 1); // 400   1
 			std::this_thread::sleep_for(std::chrono::seconds(20)); // Спать сек
-			this->Go(false, 200, 1); // 400   1
+			this->Go(false, 150, 1); // 400   1
+			std::this_thread::sleep_for(std::chrono::seconds(20)); // Спать сек
+			this->Go(false, 150, 1); // 400   1
 			std::this_thread::sleep_for(std::chrono::seconds(20)); // Спать сек
 
 			this->Smooth_head_HP3();
