@@ -44,7 +44,7 @@ short int Gran::Get_method()
 
 		// Временно убираем HLLD
 		//if (this->cells[0]->type == Type_cell::Zone_2 && this->center[0][0] < -70.0)
-		if (this->cells[0]->type == Type_cell::Zone_2 && this->center[0][0] < -400.0)
+		if (this->cells[0]->type == Type_cell::Zone_2 && this->center[0][0] < -120.0)
 		{
 			return 0;
 		}

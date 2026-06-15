@@ -548,7 +548,8 @@ attributes(global) subroutine CUF_MGD_cells(now)
         ! end if
 
         !dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/6.0))
-        dd = (1.0 + 0.5 * sin(2.0 * par_pi_8 * dev_time_all/0.217237))
+        dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/2.05539))
+        ! 2.05539      0.217237
 
         mV = 86.9565! 66.6667
 

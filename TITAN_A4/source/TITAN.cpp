@@ -188,10 +188,10 @@ int main()
     //S1.Algoritm(3, &S1);
     // 
     // 
-    S1.Algoritm(8, &S1);
+    //S1.Algoritm(8, &S1);
 
 
-    //S1.Algoritm(5, &S1);
+    S1.Algoritm(5, &S1);
     //S1.Algoritm(24, &S1);
     // 
     
@@ -220,7 +220,7 @@ int main()
     //S1.Algoritm(10, &S1);
     //S1.Algoritm(4, &S1);
     //S1.Algoritm(5, &S1);
-    return 0;
+    //return 0;
 
     /// Далее следует всё, что касается визуализации сетки
     
@@ -373,10 +373,52 @@ int main()
         S1.phys_param->param_names_for_print.push_back("rho_H8");
         S1.phys_param->param_names_for_print.push_back("rho_H9");
 
+        S1.phys_param->param_names_for_print.push_back("Vx_H1");
+        S1.phys_param->param_names_for_print.push_back("Vy_H1");
+        S1.phys_param->param_names_for_print.push_back("Vz_H1");
+
+        S1.phys_param->param_names_for_print.push_back("Vx_H2");
+        S1.phys_param->param_names_for_print.push_back("Vy_H2");
+        S1.phys_param->param_names_for_print.push_back("Vz_H2");
+
+        S1.phys_param->param_names_for_print.push_back("Vx_H3");
+        S1.phys_param->param_names_for_print.push_back("Vy_H3");
+        S1.phys_param->param_names_for_print.push_back("Vz_H3");
+
+        S1.phys_param->param_names_for_print.push_back("Vx_H4");
+        S1.phys_param->param_names_for_print.push_back("Vy_H4");
+        S1.phys_param->param_names_for_print.push_back("Vz_H4");
+
+        S1.phys_param->param_names_for_print.push_back("Vx_H5");
+        S1.phys_param->param_names_for_print.push_back("Vy_H5");
+        S1.phys_param->param_names_for_print.push_back("Vz_H5");
+
         S1.phys_param->param_names_for_print.push_back("Vx_H6");
         S1.phys_param->param_names_for_print.push_back("Vy_H6");
         S1.phys_param->param_names_for_print.push_back("Vz_H6");
+
+        S1.phys_param->param_names_for_print.push_back("Vx_H7");
+        S1.phys_param->param_names_for_print.push_back("Vy_H7");
+        S1.phys_param->param_names_for_print.push_back("Vz_H7");
+
+        S1.phys_param->param_names_for_print.push_back("Vx_H8");
+        S1.phys_param->param_names_for_print.push_back("Vy_H8");
+        S1.phys_param->param_names_for_print.push_back("Vz_H8");
+
+        S1.phys_param->param_names_for_print.push_back("Vx_H9");
+        S1.phys_param->param_names_for_print.push_back("Vy_H9");
+        S1.phys_param->param_names_for_print.push_back("Vz_H9");
+
+
+        S1.phys_param->param_names_for_print.push_back("p_H1");
+        S1.phys_param->param_names_for_print.push_back("p_H2");
+        S1.phys_param->param_names_for_print.push_back("p_H3");
+        S1.phys_param->param_names_for_print.push_back("p_H4");
+        S1.phys_param->param_names_for_print.push_back("p_H5");
         S1.phys_param->param_names_for_print.push_back("p_H6");
+        S1.phys_param->param_names_for_print.push_back("p_H7");
+        S1.phys_param->param_names_for_print.push_back("p_H8");
+        S1.phys_param->param_names_for_print.push_back("p_H9");
 
 
         S1.phys_param->param_names_for_print.push_back("S_k1__p_H1");
@@ -412,6 +454,17 @@ int main()
         S1.phys_param->param_names_for_print.push_back("MK_n_H8");
         S1.phys_param->param_names_for_print.push_back("MK_n_H9");
 
+        S1.phys_param->param_names_for_print.push_back("MK_Vx_H1");
+        S1.phys_param->param_names_for_print.push_back("MK_Vx_H2");
+        S1.phys_param->param_names_for_print.push_back("MK_Vx_H3");
+        S1.phys_param->param_names_for_print.push_back("MK_Vx_H4");
+        S1.phys_param->param_names_for_print.push_back("MK_Vx_H5");
+        S1.phys_param->param_names_for_print.push_back("MK_Vx_H6");
+        S1.phys_param->param_names_for_print.push_back("MK_Vx_H7");
+        S1.phys_param->param_names_for_print.push_back("MK_Vx_H8");
+        S1.phys_param->param_names_for_print.push_back("MK_Vx_H9");
+
+
         S1.phys_param->param_names_for_print.push_back("MK_T_H1");
         S1.phys_param->param_names_for_print.push_back("MK_T_H2");
         S1.phys_param->param_names_for_print.push_back("MK_T_H3");
@@ -437,9 +490,9 @@ int main()
         S1.phys_param->param_names_for_print.push_back("S_k4__Pui_2_H4");*/
     }
 
-    S1.Save_for_interpolate("For_intertpolate_0082-with_razriv-with_MK.bin", true, true);
+    S1.Save_for_interpolate("For_intertpolate_0082-no_razriv-with_MK.bin", false, true);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_0082-with_razriv-with_MK.bin");
+    Interpol SS = Interpol("For_intertpolate_0082-no_razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");
@@ -447,22 +500,22 @@ int main()
     cout << "AAA" << endl;
 
     S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
-        Eigen::Vector3d(1.0, 0.0, 0.0), "_(1, 0, 0)_with-razriv_", 500.0);
+        Eigen::Vector3d(1.0, 0.0, 0.0), "_(1, 0, 0)_no-razriv_MK_", 500.0);
 
-    S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
-        Eigen::Vector3d(-1.0, 0.0, 0.0), "_(-1, 0, 0)_with-razriv_", 500.0);
+    //S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+    //    Eigen::Vector3d(-1.0, 0.0, 0.0), "_(-1, 0, 0)_with-razriv_", 500.0);
 
-    S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
-        Eigen::Vector3d(0.0, 1.0, 0.0), "_(0, 1, 0)_with-razriv_", 500.0);
+    //S1.Tecplot_print_1D(&SS, Eigen::Vector3d(0.0, 0.0, 0.0),
+    //    Eigen::Vector3d(0.0, 1.0, 0.0), "_(0, 1, 0)_with-razriv_", 500.0);
 
-    S1.Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_with-razriv_");
+    //S1.Tecplot_print_2D(&SS, 0.0, 0.0, 1.0, -0.00001, "_2d_(0, 0, 1, 0)_with-razriv_");
     
     //S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_");
 
     Eigen::Vector3d eex(1.0, 0.0, 0.0);
     Eigen::Vector3d eey(0.0, 0.0, 1.0);
     Eigen::Vector3d centr_sys(0.0, 0.0, 0.0);
-    S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_with-razriv_", false, eex, eey, centr_sys);
+   // S1.Tecplot_print_2D(&SS, 0.0, 1.0, 0.0, -0.00001, "_2d_(0, 1, 0, 0)_with-razriv_", false, eex, eey, centr_sys);
 
 
     cout << "F " << endl;
