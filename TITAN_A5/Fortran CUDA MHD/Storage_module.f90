@@ -167,7 +167,7 @@ module STORAGE
         ! "FCMHD_2.11-5_out.bin"    - Лакс в головной области и Лакс поперёк TS в хвосте
 
         ! Открываем файл для записи в бинарном формате
-        open(newunit=unit, file="FCMHD_2.7-1_out.bin", form='unformatted', access='stream', &
+        open(newunit=unit, file="FCMHD_2.7-2_out.bin", form='unformatted', access='stream', &
             action='write', status='replace', iostat=ierr)
         
         if (ierr /= 0) then
@@ -189,8 +189,8 @@ module STORAGE
         integer :: unit, ierr
         real(8) :: cf
 
-        ! Открываем файл для записи в бинарном формате
-        open(3, file = "FCMHD_2.11-7_out.bin", FORM = 'BINARY', ACTION = "READ")
+        ! Открываем файл для записи в бинарном формате  2.11-7
+        open(3, file = "FCMHD_2.7-1_out.bin", FORM = 'BINARY', ACTION = "READ") 
         
         ! Записываем данные в ТОМ ЖЕ порядке, что и при чтении
         read(3) host_time_all
