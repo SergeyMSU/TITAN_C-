@@ -201,7 +201,8 @@ attributes(global) subroutine CUF_MGD_grans(now)
     !     sqrt(qqq1(2)**2 + qqq1(3)**2 + qqq1(4)**2) < 0.5) then
     !     metod = 0
     ! end if
-    if(gran_centr(1) < -30 .and. gran_centr(1) > -100 .and. M1 < 1.0 .and. M2 < 1.0 .and. &
+    !if(gran_centr(1) < -30 .and. gran_centr(1) > -100 & ! .and. M1 < 1.0 .and. M2 < 1.0 .and. &
+    if(gran_centr(1) < -20 .and. gran_centr(1) > -120 .and. & ! M1 < 1.0 .and. M2 < 1.0 .and. &
         sqrt(gran_centr(2)**2 + gran_centr(3)**2) < 50.0) then
         metod = 1
     end if
@@ -548,7 +549,7 @@ attributes(global) subroutine CUF_MGD_cells(now)
         ! end if
 
         !dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/6.0))
-        dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/2.05539))
+        dd = (1.0 + 0.7 * sin(2.0 * par_pi_8 * dev_time_all/(2.05539 * 2.0)))
         ! 2.05539      0.217237
 
         mV = 86.9565! 66.6667
