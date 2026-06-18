@@ -37,7 +37,7 @@ int main()
     //S1.Download_cell_parameters("parameters_0060.bin");   
 
     //S1.Download_cell_parameters("parameters_0065.bin");
-    S1.Download_cell_parameters("parameters_0093.bin");   // можно с 87 попробовать
+    S1.Download_cell_parameters("parameters_0094.bin");   // можно с 87 попробовать
     //S1.Download_cell_parameters("parameters_0080.bin");
 
     // 71 до включения фигни на HP  -> 70 -> 72  -> отключил все костыли  -> 73
@@ -169,7 +169,7 @@ int main()
 
 
 
-    S1.Save_cell_parameters("parameters_0093.bin");
+    S1.Save_cell_parameters("parameters_0094.bin");
     //S1.Save_cell_parameters("parameters_0138.bin");
     //S1.Save_cell_pui_parameters("parameters_0026.bin");
 
