@@ -49,10 +49,10 @@ short int Gran::Get_method()
 			return 0;
 		}*/
 
-		//if (this->cells[0]->type == Type_cell::Zone_2)   // Лакс во второй зоне
-		//{
-		//	return 0;
-		//}
+		if (this->cells[0]->type == Type_cell::Zone_2 && this->center[0][0] < -100.0)   // Лакс во второй зоне
+		{
+			return 0;
+		}
 
 	}
 	//else if (this->type2 == Type_Gran_surf::HP)    // Лакс на гелиопаузе

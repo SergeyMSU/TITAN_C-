@@ -1905,7 +1905,7 @@ void Setka::Go(bool is_inner_area, size_t steps__, short int metod)
 			// Увеличиваем охлаждение во внутреннем ударнем слое
 			if (zone == 2)
 			{
-				if (SOURSE["E"] < 0.0) SOURSE["E"] *= 1.3;
+				if (SOURSE["E"] < 0.0) SOURSE["E"] *= 1.4;
 			}
 
 			double rho3, u3, v3, w3, bx3, by3, bz3, p3, Q3, rho_He3, rho_He;
