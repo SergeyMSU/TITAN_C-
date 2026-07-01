@@ -3991,14 +3991,43 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Save_for_interpolate("For_intertpolate_work.bin", false);
 		Interpol SS = Interpol("For_intertpolate_work.bin");
 
-		double dX = 3.0;  // минимум по 0.5, но лучше меньше
-		double dY = 3.0;  // минимум по 0.5, но лучше меньше
+		//double dX = 3.0;  // минимум по 0.5, но лучше меньше
+		//double dY = 3.0;  // минимум по 0.5, но лучше меньше
+
+		//double dX = 1.0;  // минимум по 0.5, но лучше меньше
+		//double dY = 1.0;  // минимум по 0.5, но лучше меньше
+
+		double dX = 0.25;  // минимум по 0.5, но лучше меньше
+		double dY = 0.25;  // минимум по 0.5, но лучше меньше
+
+
 		double dZ = 0.05;
 
+
+		// Перевод в размерные единицы
+		double ch_r = 0.0140668;          // расстояние для переведа в парсеки
+		double ch_T = 39111.5;            // температура для перевода в Кельвины
+		double ch_Halpha = 378663.0 * 0.6106;            // температура для перевода в Кельвины
+		// последний коэффициент от того, что там    =   ne nH
+
+		/*double XL = -285.0;
+		double XR = 100.0;
+		double YL = -213.0;
+		double YR = 213.0;*/
+
+		/*double XL = -71.0;
+		double XR = 71.0;
+		double YL = -142.0;
+		double YR = 142.0;*/
+
+		double XL = 0.0;
+		double XR = 57.0;
+		double YL = -71.0;
+		double YR = 71.0;
 		
 
 		ofstream fout;
-		fout.open("H_alpha_X_Y-0.txt");
+		fout.open("H_alpha_X_Y_2.8-2-v2.txt");
 
 		ofstream fout2;
 		fout2.open("soft_X-ray_X_Y.txt");
@@ -4010,7 +4039,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 
 //#pragma omp parallel for schedule(dynamic)
-		for (double X = 185.0; X > -287.0; X = X - dX)
+		for (double X = XR; X > XL; X = X - dX)
 		//for (double X = 120.2; X > -120.7; X = X - dX)
 		//for (int iX = 0; iX < NX; ++iX)
 		{
@@ -4023,7 +4052,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 			double ne, T;
 
-			for (double Y = -250.0; Y < 250.0; Y = Y + dY)
+			for (double Y = YL; Y < YR; Y = Y + dY)
 			//for (double Y = -225.5; Y < 225.5; Y = Y + dY)
 			{
 				std::array<Cell_handle, 6> prev_cell;
@@ -4051,8 +4080,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 						ne = parameters["rho"];
 						T = parameters["p"] / parameters["rho"];
-						IH += kv(ne) * this->phys_param->interpolate_alpha_eff_Ha(T * 54542.0) * dZ;
-						this->phys_param->interpolate_Xray(T * 54542.0, a1, a2);
+						IH += kv(ne) * this->phys_param->interpolate_alpha_eff_Ha(T * ch_T) * dZ;
+						this->phys_param->interpolate_Xray(T * ch_T, a1, a2);
 						I_soft_X_ray += kv(ne) * a1 * dZ;
 						I_hard_X_ray += kv(ne) * a2 * dZ;
 					}
@@ -4060,9 +4089,10 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 				//#pragma omp critical 
 				//{
-					fout << X * 0.0107845 << " " << Y * 0.0107845 << " " << IH * 290308.0 * 0.6106 << endl;  // 2.91892 * 1E10
-					fout2 << X * 0.0107845 << " " << Y * 0.0107845 << " " << I_soft_X_ray * 33.2504 << endl;
-					fout3 << X * 0.0107845 << " " << Y * 0.0107845 << " " << I_hard_X_ray * 173.48 << endl;
+
+				fout << X * ch_r << " " << Y * ch_r << " " << IH * ch_Halpha << endl;  // 2.91892 * 1E10
+				fout2 << X * ch_r << " " << Y * ch_r << " " << I_soft_X_ray * 33.2504 << endl;
+				fout3 << X * ch_r << " " << Y * ch_r << " " << I_hard_X_ray * 173.48 << endl;
 				//}
 			}
 
