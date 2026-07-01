@@ -3988,17 +3988,17 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	}
 	else if (alg == 24)
 	{
-		this->Save_for_interpolate("For_intertpolate_work.bin", false);
-		Interpol SS = Interpol("For_intertpolate_work.bin");
+		this->Save_for_interpolate("For_intertpolate_work3.bin", false);
+		Interpol SS = Interpol("For_intertpolate_work3.bin");
 
-		//double dX = 3.0;  // минимум по 0.5, но лучше меньше
-		//double dY = 3.0;  // минимум по 0.5, но лучше меньше
+		double dX = 2.0;  // минимум по 0.5, но лучше меньше
+		double dY = 2.0;  // минимум по 0.5, но лучше меньше
 
 		//double dX = 1.0;  // минимум по 0.5, но лучше меньше
 		//double dY = 1.0;  // минимум по 0.5, но лучше меньше
 
-		double dX = 0.25;  // минимум по 0.5, но лучше меньше
-		double dY = 0.25;  // минимум по 0.5, но лучше меньше
+		//double dX = 0.25;  // минимум по 0.5, но лучше меньше
+		//double dY = 0.25;  // минимум по 0.5, но лучше меньше
 
 
 		double dZ = 0.05;
@@ -4010,24 +4010,24 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		double ch_Halpha = 378663.0 * 0.6106;            // температура для перевода в Кельвины
 		// последний коэффициент от того, что там    =   ne nH
 
-		/*double XL = -285.0;
+		double XL = -285.0;
 		double XR = 100.0;
 		double YL = -213.0;
-		double YR = 213.0;*/
+		double YR = 213.0;
 
-		/*double XL = -71.0;
-		double XR = 71.0;
-		double YL = -142.0;
-		double YR = 142.0;*/
+		//double XL = -71.0;
+		//double XR = 71.0;
+		//double YL = -142.0;
+		//double YR = 142.0;
 
-		double XL = 0.0;
-		double XR = 57.0;
-		double YL = -71.0;
-		double YR = 71.0;
+		//double XL = 0.0;
+		//double XR = 57.0;
+		//double YL = -71.0;
+		//double YR = 71.0;
 		
 
 		ofstream fout;
-		fout.open("H_alpha_X_Y_2.8-2-v2.txt");
+		fout.open("H_alpha_X_Y_2.12-2-v0.txt");
 
 		ofstream fout2;
 		fout2.open("soft_X-ray_X_Y.txt");
@@ -4053,6 +4053,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			double ne, T;
 
 			for (double Y = YL; Y < YR; Y = Y + dY)
+			//for (double Y = 0.0; Y < 0.000001; Y = Y + dY)
 			//for (double Y = -225.5; Y < 225.5; Y = Y + dY)
 			{
 				std::array<Cell_handle, 6> prev_cell;
@@ -4071,6 +4072,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				if (fine_int != false)
 				{
 					for (double Z = -250.0; Z < 250.0; Z = Z + dZ)
+					//for (double Z = 0.0; Z < 0.00001; Z = Z + dZ)
 					{
 						fine_int = SS.Get_param(X, Y, Z + dZ / 2.0, parameters, prev_cell, next_cell);
 						//fine_int = SS.Get_param(X, Z + dZ / 2.0, Y, parameters, prev_cell, next_cell);
@@ -4084,6 +4086,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 						this->phys_param->interpolate_Xray(T * ch_T, a1, a2);
 						I_soft_X_ray += kv(ne) * a1 * dZ;
 						I_hard_X_ray += kv(ne) * a2 * dZ;
+
+						//cout << ne << " " << this->phys_param->interpolate_alpha_eff_Ha(T * ch_T) << " " << T << " " << T * ch_T << endl;
 					}
 				}
 

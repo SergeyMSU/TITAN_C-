@@ -779,9 +779,9 @@ int main()
     }
 
     // "For_intertpolate_0085-no_razriv-with_MK.bin"
-    S1.Save_for_interpolate("For_intertpolate_A3_1-no_razriv-with_MK.bin", false);
+    S1.Save_for_interpolate("For_intertpolate_AA-no_razriv-with_MK.bin", false);
     //return 0;
-    Interpol SS = Interpol("For_intertpolate_A3_1-no_razriv-with_MK.bin");
+    Interpol SS = Interpol("For_intertpolate_AA-no_razriv-with_MK.bin");
 
     //S1.Save_for_interpolate("For_intertpolate_0059-.bin", false);
     //Interpol SS = Interpol("For_intertpolate_0059-.bin");
