@@ -648,9 +648,10 @@ int main()
 
     //cout << "nu = " << S1.DDD->sample_frequency_sca(0.3456, 123.4) << endl;
 
-    S1.Algoritm(24, &S1);
-    //S1.Algoritm(25, &S1);
-    //S1.Algoritm(26, &S1);
+    //S1.Algoritm(24, &S1);
+
+    S1.Algoritm(25, &S1);
+    S1.Algoritm(26, &S1);
     //S1.Algoritm(27, &S1);
 
 

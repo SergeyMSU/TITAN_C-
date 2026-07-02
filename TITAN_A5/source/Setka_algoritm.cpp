@@ -145,9 +145,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	// 22 - расчёт потенциального поля в сверхзвуке методом контрольных объёмов - второй порядок
 	// 23 - печатаем мини-интерполяционную сетку и источники Sp Sm для Игоря
 	// 24 - печатаем карты в Линии H-alpha
-	// 25 - Подготовка расчёта инфракрасных спектров
-	// 26 - Расчёт инфракрасных спектров (простым методом)
-	// 27 - Расчёт температуры пыли методом МОнте-Карло
+	// 25 - Подготовка расчёта инфракрасных спектров (вычисляет плотность и температуру пыли простым методом)
+	// 26 - Расчёт инфракрасных спектров
+	// 27 - Расчёт температуры пыли методом Монте-Карло
 
 	cout << "Start Algoritm: " << alg << endl;
 
@@ -4109,6 +4109,12 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	else if (alg == 25)
 	{
 		
+		// Перевод в размерные единицы
+		double ch_r = 0.0140668;          // расстояние для переведа в парсеки
+		double ch_T = 39111.5;            // температура для перевода в Кельвины
+		double ch_r_0 = 0.0000230386;     // безразмерный радиус звезды
+
+
 		//Dust_spectra DDD = Dust_spectra();
 
 		//Считаем интегралл Kabs(lambda) * F_lambda(lambda)
@@ -4182,12 +4188,12 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		for (auto& A : this->All_Cell)
 		{
 			double r = norm2(A->center[0][0], A->center[0][1], A->center[0][2]);
-			double aa = kv(0.0000300503 / r) * DDD->Int1 / (4.0 * const_pi);
+			double aa = kv(ch_r_0 / r) * DDD->Int1 / (4.0 * const_pi);
 			double Tdust = DDD->getTemperatureFromL(aa);
 			A->parameters[0]["Tdust"] = Tdust;
 			A->parameters[1]["Tdust"] = Tdust;
 
-			if (A->parameters[0]["p"] / A->parameters[0]["rho"] * 54542.0 > 100000)
+			if (A->parameters[0]["p"] / A->parameters[0]["rho"] * ch_T > 100000)
 			{
 				A->parameters[0]["rhodust"] = 0.0;
 				A->parameters[1]["rhodust"] = 0.0;
@@ -4196,8 +4202,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			}
 			else
 			{
-				A->parameters[0]["rhodust"] = A->parameters[0]["rho"] / 165.0 * 10.0;
-				A->parameters[1]["rhodust"] = A->parameters[0]["rho"] / 165.0 * 10.0;
+				A->parameters[0]["rhodust"] = A->parameters[0]["rho"] / 165.0;
+				A->parameters[1]["rhodust"] = A->parameters[0]["rho"] / 165.0;
 			}
 		}
 		this->phys_param->param_names.push_back("Tdust");
@@ -4206,7 +4212,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		// Надо сохранить температуру и плотность пыли в файл
 
 		//std::string filename = "dust_paremeter_0.bin";
-		std::string filename = "2.8.dust_paremeter_0-rho10.bin";
+		std::string filename = "2.12-2.dust_parameter.bin";
 		std::ofstream file(filename, std::ios::binary);
 		if (!file.is_open()) 
 		{
@@ -4247,10 +4253,17 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	}
 	else if (alg == 26)
 	{
+
+		// Перевод в размерные единицы
+		double ch_r = 0.0140668;          // расстояние для переведа в парсеки
+		double ch_T = 39111.5;            // температура для перевода в Кельвины
+		double ch_r_0 = 0.0000230386;     // безразмерный радиус звезды
+		double ch_rho_r = 4.37058E-7;     // характерная плотность * размер
+
 		// Надо считать температуру пыли из файла
-		if (true)
+		if (false)
 		{
-			std::string filename = "dust_paremeter_1-rho10.bin";
+			std::string filename = "2.8-2.dust_parameter.bin";
 			std::ifstream file(filename, std::ios::binary);
 			if (!file.is_open())
 			{
@@ -4270,20 +4283,48 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 
 		// Теперь рисуем сами карты
-		this->Save_for_interpolate("For_intertpolate_work.bin", false);
-		Interpol SS = Interpol("For_intertpolate_work.bin");
+		this->Save_for_interpolate("For_intertpolate_work3.bin", false);
+		Interpol SS = Interpol("For_intertpolate_work3.bin");
 
-		double dX = 0.1;  // минимум по 0.5, но лучше меньше
-		double dY = 3.0; // 0.5;  // минимум по 0.5, но лучше меньше
+
+		double dX = 2.0;  // минимум по 0.5, но лучше меньше
+		double dY = 2.0;  // минимум по 0.5, но лучше меньше
+
+		//double dX = 1.0;  // минимум по 0.5, но лучше меньше
+		//double dY = 1.0;  // минимум по 0.5, но лучше меньше
+
+		//double dX = 0.25;  // минимум по 0.5, но лучше меньше
+		//double dY = 0.25;  // минимум по 0.5, но лучше меньше
+
+		double XL = -285.0;
+		double XR = 100.0;
+		double YL = -213.0;
+		double YR = 213.0;
+
+		/*double XL = -71.0;
+		double XR = 71.0;
+		double YL = -142.0;
+		double YR = 142.0;*/
+
+		/*double XL = 0.0;
+		double XR = 57.0;
+		double YL = -71.0;
+		double YR = 71.0;*/
+
+
 		double dZ = 0.05;
 		double lambda_0 = 24E-4;
 		double kk_abs = DDD->interpolate_K_abs(lambda_0);
 		double kk_sca = DDD->interpolate_K_sca(lambda_0);
 		double kk_ext = kk_sca + kk_abs;
+		double lambda_1 = 70E-4;
+		double kk_abs2 = DDD->interpolate_K_abs(lambda_1);
+		double kk_sca2 = DDD->interpolate_K_sca(lambda_1);
+		double kk_ext2 = kk_sca2 + kk_abs2;
 
 		
 		ofstream fout;
-		fout.open("2.8-infrared-rho10-1d.txt");
+		fout.open("2.12-2-infrared-v0.txt");
 		// -0, -1, -2 - три разрешения в порядке уменьтшения размера между точками
 
 
@@ -4292,7 +4333,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 		//for (double X = 185.0; X > -285.0; X = X - dX)
 		//for (double X = 120.0; X > -100.0; X = X - dX)
-		for (double X = 65.0; X > 15.0; X = X - dX)
+		for (double X = XR; X > XL; X = X - dX)
 			//for (int iX = 0; iX < NX; ++iX)
 		{
 			cout << "Culk for X = " << X << endl;
@@ -4302,7 +4343,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			//for (double Y = -250.0; Y < 250.0; Y = Y + dY)
 			//for (double Y = -225.0; Y < 225.0; Y = Y + dY)
 			//for (double Y = -65.0; Y < 65.0; Y = Y + dY)
-			for (double Y = 0.0; Y < 0.0001; Y = Y + dY)
+			for (double Y = YL; Y < YR; Y = Y + dY)
 			{
 				std::array<Cell_handle, 6> prev_cell;
 				std::array<Cell_handle, 6> next_cell;
@@ -4311,7 +4352,9 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 				bool fine_int;
 
 				double IH = 0.0;
+				double IH2 = 0.0;
 				double qq = 0.0;
+				double qq2 = 0.0;
 				double a1, a2;
 				fine_int = SS.Get_param(X, Y, 0.0, parameters, prev_cell, next_cell);
 
@@ -4327,14 +4370,16 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 						rhodust = parameters["rhodust"];
 						Tdust = parameters["Tdust"];
 
-						qq += rhodust * kk_ext * dZ * 3.35078E-7;
+						qq += rhodust * kk_ext * dZ * ch_rho_r;
+						qq2 += rhodust * kk_ext2 * dZ * ch_rho_r;
 						//cout << "qq = " << qq << "  " << rhodust * kk_ext * dZ * 3.35078E-7 << endl;
 						IH += rhodust * kk_abs * DDD->planck_b_lambda(lambda_0, Tdust) * dZ * exp(-qq);
+						IH2 += rhodust * kk_abs2 * DDD->planck_b_lambda(lambda_1, Tdust) * dZ * exp(-qq2);
 					}
 				}
 
 
-				fout << X * 0.0107845 << " " << Y * 0.0107845 << " " << IH * 3.35078E-7 << endl;  // 2.91892 * 1E10
+				fout << X * ch_r << " " << Y * ch_r << " " << IH * ch_rho_r << " " << IH2 * ch_rho_r << endl;  // 2.91892 * 1E10
 			}
 
 		}
@@ -4345,8 +4390,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 	{
 		this->MK_go_dust();
 	}
-
-
+	
 		
 
 	cout << "End Algoritm " << alg << endl;
