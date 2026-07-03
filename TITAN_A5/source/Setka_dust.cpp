@@ -15,8 +15,10 @@ void isotropic_direction(double xi1, double xi2, Eigen::Vector3d& Vel2);
 void Setka::MK_go_dust()
 {
 	auto start = std::chrono::high_resolution_clock::now();
-	int N_package = 12000000;   // Сколько запускаем пакетов
+	int N_package = 12000000 * 2;   // Сколько запускаем пакетов
 	unsigned int k1 = 0;
+
+	double ch_rho_V = 8.23433E26; // плотность * объём     3.71063E26
 
 	// Блок загрузки датчиков случайных чисел
 	if (true)
@@ -57,7 +59,7 @@ void Setka::MK_go_dust()
 	// Надо считать температуру пыли из файла
 	if (true)
 	{
-		std::string filename = "dust_paremeter_2-rho10.bin";
+		std::string filename = "dust_parameter_MK_2.8-2-rho10-v3.bin";
 		std::ifstream file(filename, std::ios::binary);
 		if (!file.is_open())
 		{
@@ -83,7 +85,7 @@ void Setka::MK_go_dust()
 	this->DDD->E_esc = 0.0;
 
 
-	double LL = 4.0 * const_pi * this->DDD->Itot * 1E24;  // Квадрат радиуса звезды
+	double LL = 4.0 * const_pi * this->DDD->Itot * 1E24;  // Квадрат радиуса звезды (в сгс)
 	double Energ = LL / N_package;
 
 	cout << "LL = " << LL << "   Energ = " << Energ << endl;
@@ -152,7 +154,7 @@ void Setka::MK_go_dust()
 		double Tdust = 0.0;
 		if (A->parameters[0]["rhodust"] > 0.00000001)
 		{
-			double aa = A->parameters[0]["E_abs"] / (4.0 * const_pi) / A->volume[0] / A->parameters[0]["rhodust"] / 3.71063E26; // плотность * объём
+			double aa = A->parameters[0]["E_abs"] / (4.0 * const_pi) / A->volume[0] / A->parameters[0]["rhodust"] / ch_rho_V; // плотность * объём
 			Tdust = DDD->getTemperatureFromL(aa);
 		}
 
@@ -162,7 +164,7 @@ void Setka::MK_go_dust()
 	// Надо сохранить температуру и плотность пыли в файл
 	if (true)
 	{
-		std::string filename = "dust_paremeter_1-rho10.bin";
+		std::string filename = "dust_parameter_MK_2.8-2-rho10-v4.bin";
 		std::ofstream file(filename, std::ios::binary);
 		if (!file.is_open())
 		{
@@ -201,6 +203,8 @@ void Setka::MK_fly_dust(MK_particle& P, Sensor* Sens)
 	unsigned int k_cikl = 0;
 	bool vtoroy_shans = false;
 	bool vtoroy_shans2 = false;
+
+	const double ch_rho_l = 4.37058E-7;  // Множитель из-за размера * характерную плотность   3.35078E-7
 
 
 	std::array<Cell_handle, 6> prev_cell;
@@ -382,7 +386,7 @@ void Setka::MK_fly_dust(MK_particle& P, Sensor* Sens)
 		{
 			// Иначе если частота процессов нулевая, то в этой ячейке не произошло никакое событие
 			sig = Vel_norm / nu_ex;
-			I += l / sig * 3.35078E-7;  // Множитель из-за размера * характерную плотность
+			I += l / sig * ch_rho_l;  // Множитель из-за размера * характерную плотность
 		}
 
 		if (vtoroy_shans == false)
@@ -392,12 +396,12 @@ void Setka::MK_fly_dust(MK_particle& P, Sensor* Sens)
 				P.I_do = I;  // В этом случае перезарядки в ячейке не произошло
 
 				P.cel->mut.lock();
-				P.cel->parameters[0]["E_abs"] += P.mu * (Kabs * rhodust) * l * 3.35078E-7;
+				P.cel->parameters[0]["E_abs"] += P.mu * (Kabs * rhodust) * l * ch_rho_l;
 				P.cel->mut.unlock();
 			}
 			else
 			{
-				double ksi = (P.KSI - P.I_do) * sig / 3.35078E-7;
+				double ksi = (P.KSI - P.I_do) * sig / ch_rho_l;
 				double t_ex = ksi / Vel_norm;
 				if (t_ex > time * 1.0001)
 				{
@@ -471,7 +475,7 @@ void Setka::MK_fly_dust(MK_particle& P, Sensor* Sens)
 				//double uz_E = Velosity_3(u, cp);
 
 				P.cel->mut.lock();
-				P.cel->parameters[0]["E_abs"] += P.mu * (this->DDD->interpolate_K_abs(P.lambda) * rhodust) * (t_ex * Vel_norm) * 3.35078E-7;
+				P.cel->parameters[0]["E_abs"] += P.mu * (this->DDD->interpolate_K_abs(P.lambda) * rhodust) * (t_ex * Vel_norm) * ch_rho_l;
 				P.cel->mut.unlock();
 
 				// -------------------------------------------------------------------

@@ -651,8 +651,8 @@ int main()
     //S1.Algoritm(24, &S1);
 
     S1.Algoritm(25, &S1);
-    S1.Algoritm(26, &S1);
     //S1.Algoritm(27, &S1);
+    S1.Algoritm(26, &S1);
 
 
 

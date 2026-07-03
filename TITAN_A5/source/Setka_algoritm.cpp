@@ -3991,16 +3991,16 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		this->Save_for_interpolate("For_intertpolate_work3.bin", false);
 		Interpol SS = Interpol("For_intertpolate_work3.bin");
 
-		double dX = 2.0;  // минимум по 0.5, но лучше меньше
-		double dY = 2.0;  // минимум по 0.5, но лучше меньше
+		//double dX = 2.0;  // минимум по 0.5, но лучше меньше
+		//double dY = 2.0;  // минимум по 0.5, но лучше меньше
 
 		//double dX = 1.0;  // минимум по 0.5, но лучше меньше
 		//double dY = 1.0;  // минимум по 0.5, но лучше меньше
 
-		//double dX = 0.25;  // минимум по 0.5, но лучше меньше
-		//double dY = 0.25;  // минимум по 0.5, но лучше меньше
+		double dX = 0.25;  // минимум по 0.5, но лучше меньше
+		double dY = 0.25;  // минимум по 0.5, но лучше меньше
 
-
+		dX = 0.05; 
 		double dZ = 0.05;
 
 
@@ -4010,24 +4010,24 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		double ch_Halpha = 378663.0 * 0.6106;            // температура для перевода в Кельвины
 		// последний коэффициент от того, что там    =   ne nH
 
-		double XL = -285.0;
+		/*double XL = -285.0;
 		double XR = 100.0;
 		double YL = -213.0;
-		double YR = 213.0;
+		double YR = 213.0;*/
 
 		//double XL = -71.0;
 		//double XR = 71.0;
 		//double YL = -142.0;
 		//double YR = 142.0;
 
-		//double XL = 0.0;
-		//double XR = 57.0;
-		//double YL = -71.0;
-		//double YR = 71.0;
+		double XL = 0.0;
+		double XR = 57.0;
+		double YL = -71.0;
+		double YR = 71.0;
 		
 
 		ofstream fout;
-		fout.open("H_alpha_X_Y_2.12-2-v0.txt");
+		fout.open("H_alpha_X_Y_2.8-2-1d.txt");
 
 		ofstream fout2;
 		fout2.open("soft_X-ray_X_Y.txt");
@@ -4052,8 +4052,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 			double ne, T;
 
-			for (double Y = YL; Y < YR; Y = Y + dY)
-			//for (double Y = 0.0; Y < 0.000001; Y = Y + dY)
+			//for (double Y = YL; Y < YR; Y = Y + dY)
+			for (double Y = 0.0; Y < 0.000001; Y = Y + dY)
 			//for (double Y = -225.5; Y < 225.5; Y = Y + dY)
 			{
 				std::array<Cell_handle, 6> prev_cell;
@@ -4202,8 +4202,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 			}
 			else
 			{
-				A->parameters[0]["rhodust"] = A->parameters[0]["rho"] / 165.0;
-				A->parameters[1]["rhodust"] = A->parameters[0]["rho"] / 165.0;
+				A->parameters[0]["rhodust"] = A->parameters[0]["rho"] / 165.0 * 10.0;
+				A->parameters[1]["rhodust"] = A->parameters[0]["rho"] / 165.0 * 10.0;
 			}
 		}
 		this->phys_param->param_names.push_back("Tdust");
@@ -4212,7 +4212,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		// Надо сохранить температуру и плотность пыли в файл
 
 		//std::string filename = "dust_paremeter_0.bin";
-		std::string filename = "2.12-2.dust_parameter.bin";
+		std::string filename = "2.8-2.dust_parameter-rho10.bin";
 		std::ofstream file(filename, std::ios::binary);
 		if (!file.is_open()) 
 		{
@@ -4261,9 +4261,10 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		double ch_rho_r = 4.37058E-7;     // характерная плотность * размер
 
 		// Надо считать температуру пыли из файла
-		if (false)
+		if (true)
 		{
-			std::string filename = "2.8-2.dust_parameter.bin";
+			//std::string filename = "dust_parameter_MK_2.8-2.bin";
+			std::string filename = "dust_parameter_MK_2.8-2-rho10-v4.bin";
 			std::ifstream file(filename, std::ios::binary);
 			if (!file.is_open())
 			{
@@ -4287,29 +4288,31 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 		Interpol SS = Interpol("For_intertpolate_work3.bin");
 
 
-		double dX = 2.0;  // минимум по 0.5, но лучше меньше
-		double dY = 2.0;  // минимум по 0.5, но лучше меньше
+		//double dX = 2.0;  // минимум по 0.5, но лучше меньше
+		//double dY = 2.0;  // минимум по 0.5, но лучше меньше
 
 		//double dX = 1.0;  // минимум по 0.5, но лучше меньше
 		//double dY = 1.0;  // минимум по 0.5, но лучше меньше
 
-		//double dX = 0.25;  // минимум по 0.5, но лучше меньше
-		//double dY = 0.25;  // минимум по 0.5, но лучше меньше
+		double dX = 0.25;  // минимум по 0.5, но лучше меньше
+		dX = 0.05;  // минимум по 0.5, но лучше меньше
+		double dY = 0.25;  // минимум по 0.5, но лучше меньше
 
-		double XL = -285.0;
+		/*double XL = -285.0;
 		double XR = 100.0;
 		double YL = -213.0;
-		double YR = 213.0;
+		double YR = 213.0;*/
 
 		/*double XL = -71.0;
 		double XR = 71.0;
 		double YL = -142.0;
 		double YR = 142.0;*/
 
-		/*double XL = 0.0;
-		double XR = 57.0;
+		double XL = 0.0;
+		//double XR = 57.0;
+		double XR = 200.0;
 		double YL = -71.0;
-		double YR = 71.0;*/
+		double YR = 71.0;
 
 
 		double dZ = 0.05;
@@ -4324,7 +4327,7 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 		
 		ofstream fout;
-		fout.open("2.12-2-infrared-v0.txt");
+		fout.open("2.8-infrared-MK-1d_rho10.txt");
 		// -0, -1, -2 - три разрешения в порядке уменьтшения размера между точками
 
 
@@ -4342,8 +4345,8 @@ void Setka::Algoritm(short int alg, Setka* Smain)
 
 			//for (double Y = -250.0; Y < 250.0; Y = Y + dY)
 			//for (double Y = -225.0; Y < 225.0; Y = Y + dY)
-			//for (double Y = -65.0; Y < 65.0; Y = Y + dY)
-			for (double Y = YL; Y < YR; Y = Y + dY)
+			for (double Y = 0.0; Y < 0.0001; Y = Y + dY)
+			//for (double Y = YL; Y < YR; Y = Y + dY)
 			{
 				std::array<Cell_handle, 6> prev_cell;
 				std::array<Cell_handle, 6> next_cell;
